@@ -123,7 +123,7 @@ public class ColoredPasswordField extends JPasswordField implements KeyListener,
 
 	@Override
 	public void keyTyped(KeyEvent e) {
-		if(this.keyTypedSound != null) { FileLocation.loadSound(this.keyTypedSound).start(); }
+		if(this.keyTypedSound != null) { FileLocation.playSound(this.keyTypedSound); }
 		if(this.nextComponent !=null && e.getKeyChar() == KeyEvent.VK_ENTER) { FieldCharLimit.switchComponent(this.nextComponent); }
 		if(this.prevComponent !=null && this.getPasswordAsText().length() <= 0 && e.getKeyChar() == KeyEvent.VK_BACK_SPACE) { FieldCharLimit.switchComponent(this.prevComponent); }
 	}
@@ -142,12 +142,12 @@ public class ColoredPasswordField extends JPasswordField implements KeyListener,
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		if(this.isEnabled() && this.clickSound != null) { FileLocation.loadSound(this.clickSound).start(); }
+		if(this.isEnabled() && this.clickSound != null) { FileLocation.playSound(this.clickSound); }
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
-		if(this.isEnabled() && this.hoverSound != null) { FileLocation.loadSound(this.hoverSound).start(); }
+		if(this.isEnabled() && this.hoverSound != null) { FileLocation.playSound(this.hoverSound); }
 	}
 
 	@Override

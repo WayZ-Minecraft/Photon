@@ -54,7 +54,7 @@ public class AbstractCheckbox extends JComponent implements MouseListener {
     public void mousePressed(MouseEvent e) {
     	if(this.isEnabled()) {
     		this.setChecked(!checked);
-    		if(this.clickSound !=null) { FileLocation.loadSound(this.clickSound).start(); }
+    		if(this.clickSound !=null) { FileLocation.playSound(this.clickSound); }
     	}
     }
 
@@ -65,7 +65,7 @@ public class AbstractCheckbox extends JComponent implements MouseListener {
 
     @Override
     public void mouseEntered(MouseEvent e) {
-    	if(this.isEnabled() && this.hoverSound !=null) { FileLocation.loadSound(this.hoverSound).start(); }
+    	if(this.isEnabled() && this.hoverSound !=null) { FileLocation.playSound(this.hoverSound); }
     	repaint();
     }
 

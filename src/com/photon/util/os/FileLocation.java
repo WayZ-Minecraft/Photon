@@ -16,14 +16,14 @@ import com.photon.ui.images.Scalr.Method;
 
 public class FileLocation {
 	
-	public static Clip loadSound(String file) {
+	public static void playSound(String file) {
 		try {
 			final AudioInputStream audioIn = AudioSystem.getAudioInputStream(ClassLoader.getSystemClassLoader().getResource("resources/" + file + (file.contains(".wav") ? "" : ".wav")));
 			final Clip clip = AudioSystem.getClip();
 			clip.open(audioIn);
-			return clip;
+			clip.start();
+			audioIn.close();
 		} catch (Exception e) {}
-		return null;
 	}
 	
 	public static BufferedImage loadSmoothedImage(String image) { return loadSmoothedImage(image, 50); }
@@ -31,12 +31,21 @@ public class FileLocation {
 	public static BufferedImage loadSmoothedImage(String image, int smoothLevel) { return Scalr.resize(loadImage(image), Method.ULTRA_QUALITY, smoothLevel, Scalr.OP_ANTIALIAS); }
 	
 	public static BufferedImage loadImage(String image) {
-		try { return ImageIO.read(loadFile(image)); } catch (IOException e) { return null; }
+		try {
+			final InputStream stream = loadFile(image);
+			final BufferedImage img = ImageIO.read(stream);
+			stream.close();
+			return img;
+		} catch (IOException e) { return null; }
 	}
 
 	public static Font loadFont(String path, String fontName, float size) {
 		Font font = null;
-		try { font = Font.createFont(Font.TRUETYPE_FONT, loadFile(path)).deriveFont(Font.PLAIN, 15f); } catch (Exception e) { e.printStackTrace(); }
+		try {
+			final InputStream stream = loadFile(path);
+			font = Font.createFont(Font.TRUETYPE_FONT, stream).deriveFont(Font.PLAIN, 15f);
+			stream.close();
+		} catch (Exception e) {}
 		return font.deriveFont(size);
 	}
 	
@@ -60,7 +69,7 @@ public class FileLocation {
 			default:
 				workingDirectory = new File(userHome + "/." + workDir);
 		}
-		if (!workingDirectory.exists()) { workingDirectory.mkdirs(); }
+		if (!workingDirectory.exists()) workingDirectory.mkdirs();
 		return workingDirectory;
 	}
 }

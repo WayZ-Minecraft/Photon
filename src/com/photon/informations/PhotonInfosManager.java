@@ -32,7 +32,9 @@ public class PhotonInfosManager {
     	try {
     		final URL whatismyip = new URL("http://checkip.amazonaws.com");
     		final BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
-    		return in.readLine();
+    		String result = in.readLine();
+    		in.close();
+    		return result;
     	} catch (IOException e) {}
     	return "UNKNOWN";
     }
@@ -103,9 +105,7 @@ public class PhotonInfosManager {
 	
 	public static String getLatestModURL() { return NetworkDirectories.config.webUrl + "services_updates/" + getInfos().project_id + "-" + getLatestModUpdate() + ".jar"; }
 	
-	public static String getLatestModSHA1() {
-		return ProtectorManager.hash(getInfos().project_id + "-" + getLatestModUpdate() + ".jar");
-	}
+	public static String getLatestModSHA1() { return ProtectorManager.hash(getInfos().project_id + "-" + getLatestModUpdate() + ".jar"); }
 
     private static void download(final String remotePath, final File localPath) {
         BufferedInputStream in = null;
@@ -139,7 +139,15 @@ public class PhotonInfosManager {
         }
     }
 	
-	public static BufferedImage getGameLogo() { try { return ImageIO.read(getGameLogoInputStream()); } catch (IOException e) { e.printStackTrace(); return null; } }
+	public static BufferedImage getGameLogo() {
+		try {
+			final InputStream stream = getGameLogoInputStream();
+			final BufferedImage img = ImageIO.read(stream);
+			stream.close();
+			return img;
+		} 
+		catch (IOException e) { e.printStackTrace(); return null; }
+	}
 	
 	public static InputStream getGameLogoInputStream() {
 		try {

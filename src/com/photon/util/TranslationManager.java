@@ -37,14 +37,15 @@ public class TranslationManager {
 					properties.put(key, translation);
 				}
 			}
+			stream.close();
 			reader.close();
-		} catch (IOException e) { e.printStackTrace(); }
+		} catch (IOException e) {}
 	}
 	
 	public static String format(String key) { return format(key, new Object()); }
 	
 	public static String format(String key, Object... obj) {
-		String prop = properties.get(key);
+		final String prop = properties.get(key);
 		return prop == null ? key : String.format(prop, obj);
 	}
 }

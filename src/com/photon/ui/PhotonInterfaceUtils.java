@@ -6,13 +6,10 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.awt.Transparency;
 import java.awt.font.FontRenderContext;
 import java.awt.font.LineBreakMeasurer;
 import java.awt.font.TextAttribute;
@@ -21,8 +18,6 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.text.AttributedString;
-
-import com.photon.ui.images.GaussianFilter;
 
 public class PhotonInterfaceUtils {
 
@@ -84,6 +79,15 @@ public class PhotonInterfaceUtils {
         g.drawString(text, x, y);
     }
     
+    public static void drawTextAlignedRight(Graphics g, String text, int width, int posY, Color color, Font font) {
+    	if(font == null) font = g.getFont();
+		final FontMetrics fm = g.getFontMetrics(font);
+        final double x = width - fm.getStringBounds(text, g).getWidth();
+        if(color !=null) g.setColor(color);
+        if(font !=null) g.setFont(font);
+        g.drawString(text, (int) x, posY);
+	}
+    
     public static void drawCenteredText(Graphics g, String text, Rectangle parent, Color color, Font font)
     {
     	if(font == null) { font = g.getFont(); }
@@ -115,14 +119,12 @@ public class PhotonInterfaceUtils {
     
     public static void activateSmoothing(Graphics g) { ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR); }
     
-    public static void activateAntialias(Graphics g)
-    {
+    public static void activateAntialias(Graphics g) {
         ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
     }
 
-    public static BufferedImage getImageAsBufferedImage(Image img)
-    {
+    public static BufferedImage getImageAsBufferedImage(Image img) {
         if (img instanceof BufferedImage) { return (BufferedImage) img; }
         BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
         Graphics2D bGr = bimage.createGraphics();
@@ -217,91 +219,5 @@ public class PhotonInterfaceUtils {
     	activateAntialias(g);
     	g.setColor(color == null ? Color.black : new Color(color.getRed() / 255.0F, color.getGreen() / 255.0F, color.getBlue() / 255.0F, alpha / 255.0F));
     	g.fillRoundRect(x, y, w, h, arcw, arch);
-    }
-    
-    public static BufferedImage generateGlow(int width, int height, int size, Color glow, float alpha) {
-        BufferedImage source = createCompatibleImage(width, height);
-        Graphics2D g2d = source.createGraphics();
-        g2d.setColor(Color.WHITE);
-        g2d.fillRect(0, 0, width, height);
-        g2d.dispose();
-        return generateGlow(source, size, glow, alpha);
-    }
-
-    public static BufferedImage generateGlow(BufferedImage imgSource, int size, Color color, float alpha) {
-
-        int imgWidth = (int)Math.round(imgSource.getWidth() + (size * 2.5));
-        int imgHeight = (int)Math.round(imgSource.getHeight() + (size * 2.5));
-
-        BufferedImage imgMask = createCompatibleImage(imgWidth, imgHeight);
-        Graphics2D g2 = imgMask.createGraphics();
-
-        int x = Math.round((imgWidth - imgSource.getWidth()) / 2f);
-        int y = Math.round((imgHeight - imgSource.getHeight()) / 2f);
-        g2.drawImage(imgSource, x, y, null);
-        g2.dispose();
-
-        BufferedImage imgGlow = generateBlur(imgMask, size, color, alpha);
-
-        imgGlow = applyMask(imgGlow, imgMask, AlphaComposite.DST_OUT);
-
-        return imgGlow;
-
-    }
-    
-    public static BufferedImage generateBlur(Image imgSource, int size, Color color, float alpha) { return generateBlur(getImageAsBufferedImage(imgSource), size, color, alpha); }
-    
-    public static BufferedImage generateBlur(BufferedImage imgSource, int size, Color color, float alpha) {
-        GaussianFilter filter = new GaussianFilter(size);
-
-        int imgWidth = imgSource.getWidth();
-        int imgHeight = imgSource.getHeight();
-
-        BufferedImage imgBlur = createCompatibleImage(imgWidth, imgHeight);
-        Graphics2D g2 = imgBlur.createGraphics();
-
-        g2.drawImage(imgSource, 0, 0, null);
-        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_IN, alpha));
-        g2.setColor(color);
-
-        g2.fillRect(0, 0, imgSource.getWidth(), imgSource.getHeight());
-        g2.dispose();
-
-        imgBlur = filter.filter(imgBlur, null);
-
-        return imgBlur;
-
-    }
-
-    private static BufferedImage createCompatibleImage(int width, int height) { return createCompatibleImage(width, height, Transparency.TRANSLUCENT); }
-
-    private static BufferedImage createCompatibleImage(int width, int height, int transparency) {
-        BufferedImage image = getGraphicsConfiguration().createCompatibleImage(width, height, transparency);
-        image.coerceData(true);
-        return image;
-    }
-    
-    private static GraphicsConfiguration getGraphicsConfiguration() { return GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration(); }
-
-    private static BufferedImage applyMask(BufferedImage sourceImage, BufferedImage maskImage, int method) {
-        BufferedImage maskedImage = null;
-        if (sourceImage != null) {
-            int width = maskImage.getWidth(null);
-            int height = maskImage.getHeight(null);
-
-            maskedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D mg = maskedImage.createGraphics();
-
-            int x = (width - sourceImage.getWidth(null)) / 2;
-            int y = (height - sourceImage.getHeight(null)) / 2;
-
-            mg.drawImage(sourceImage, x, y, null);
-            mg.setComposite(AlphaComposite.getInstance(method));
-
-            mg.drawImage(maskImage, 0, 0, null);
-
-            mg.dispose();
-        }
-        return maskedImage;
     }
 }

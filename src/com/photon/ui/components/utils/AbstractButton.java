@@ -57,20 +57,20 @@ public abstract class AbstractButton extends JComponent implements MouseListener
 
     @Override
     public void mousePressed(MouseEvent e) {
-    	if(this.isEnabled() && this.clickSound !=null) { FileLocation.loadSound(this.clickSound).start(); }
+    	if(this.isEnabled() && this.clickSound !=null) FileLocation.playSound(this.clickSound);
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
         if(this.isEnabled() && e.getButton() == MouseEvent.BUTTON1) {
-            for(EventListener eventListener : this.eventListeners) { eventListener.onEvent(new PhotonEvent(this, PhotonEvent.BUTTON_CLICKED_EVENT)); }
+            for(EventListener eventListener : this.eventListeners) eventListener.onEvent(new PhotonEvent(this, PhotonEvent.BUTTON_CLICKED_EVENT));
         }
     }
 
     @Override
     public void mouseEntered(MouseEvent e) {
         this.hover = true;
-    	if(this.isEnabled() && this.hoverSound !=null) FileLocation.loadSound(this.hoverSound).start();
+    	if(this.isEnabled() && this.hoverSound !=null) FileLocation.playSound(this.hoverSound);
         repaint();
     }
 

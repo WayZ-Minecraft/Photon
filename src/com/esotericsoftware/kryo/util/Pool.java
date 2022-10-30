@@ -43,7 +43,6 @@ public abstract class Pool<T> {
 
 	/** @param maximumCapacity The maximum number of free objects to store in this pool. Objects are not created until
 	 *           {@link #obtain()} is called and no free objects are available. */
-	@SuppressWarnings("serial")
 	public Pool (boolean threadSafe, boolean softReferences, final int maximumCapacity) {
 		Queue<T> queue;
 		if (threadSafe)

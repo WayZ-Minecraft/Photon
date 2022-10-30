@@ -30,7 +30,7 @@ import com.esotericsoftware.kryo.util.Util;
  * efficiently writing primitive types and strings using big endian.
  * @author Nathan Sweet */
 @SuppressWarnings({ "deprecation" })
-public class Output extends OutputStream implements AutoCloseable, Poolable {
+public class Output extends OutputStream implements Poolable {
 	protected int maxCapacity;
 	protected long total;
 	protected int position;

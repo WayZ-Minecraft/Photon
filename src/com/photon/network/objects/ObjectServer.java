@@ -7,6 +7,7 @@ public class ObjectServer {
 	
     public String serverIP;
     public int serverPort;
+    public int queuePort;
     
     public String[] owners = new String[] {};
     public String[] tags = new String[] {};

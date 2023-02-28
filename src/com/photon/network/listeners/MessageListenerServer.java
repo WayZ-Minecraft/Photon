@@ -45,13 +45,13 @@ public class MessageListenerServer extends Listener
     			PhotonEngine.networkConnectionsList.remove(request.uuid);
     			PhotonEngine.networkConnectionsList.put(request.uuid, connection);
     		}
-    		else if (object instanceof ClientRequestAccount) { //TODO WTF
+    		else if (object instanceof ClientRequestAccount) {
 	            final ClientRequestAccount request = (ClientRequestAccount)object;
-	            if (request.UUID != null) {}
-	            if (request.email != null) {}
-	            final ServerResponseAccount response = new ServerResponseAccount();
-	            response.givenProfile = ProfileManager.getProfileFromUUID(request.UUID);
-	            connection.sendTCP(response);
+				final ServerResponseAccount response = new ServerResponseAccount();
+	            if (request.UUID != null) response.givenProfile = ProfileManager.getProfileFromUUID(request.UUID);
+	            if (request.email != null) response.givenProfile = ProfileManager.getProfileFromEMail(request.email);
+	            if (request.discordID != null) response.givenProfile = ProfileManager.getProfileFromDiscordID(request.discordID);
+				connection.sendTCP(response);
 	        }
 	        else if (object instanceof ClientRequestAccountVerification) {
 	        	final ClientRequestAccountVerification request = (ClientRequestAccountVerification)object;
@@ -59,7 +59,7 @@ public class MessageListenerServer extends Listener
 	        	final ObjectPlayerAccount profile = ProfileManager.getProfileFromEMail(request.email);
 	        	if(response.exist = profile != null) {
 	        		response.isValidPassword = profile.password.equals(request.password);
-	        		if(response.isValidPassword) { response.profile = profile; }
+	        		if(response.isValidPassword) response.profile = profile;
 	        	}
 	        	connection.sendTCP(response);
 	        }
@@ -140,7 +140,7 @@ public class MessageListenerServer extends Listener
 	        
 	        else if (object instanceof ClientRequestAddClass) NetworkObjectRegistry.addClass(((ClientRequestAddClass)object).name, ((ClientRequestAddClass)object).bytes);
 	        else if (object instanceof ClientRequestAddListener) MessageListenerCommon.addListener(((ClientRequestAddListener)object).listener);
-    	} catch (IOException e) {}
+    	} catch (IOException e) { e.printStackTrace(); }
     	
     	for(INetworkMessageListener listener : MessageListenerCommon.listeners) {
         	if(listener.serverSide()) listener.received(connection, object);

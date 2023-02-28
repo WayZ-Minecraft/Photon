@@ -64,7 +64,6 @@ public class NetworkEngine {
         return list;
     }
 	
-	@SuppressWarnings("serial")
 	public static class NetworkFrame extends Frame {
 		
 		public NetworkFrame() {
@@ -79,7 +78,6 @@ public class NetworkEngine {
 		}
 	}
 	
-	@SuppressWarnings("serial")
 	public static class NetworkPanel extends Panel {
 
 		final JTextArea console = new JTextArea(24, 80);

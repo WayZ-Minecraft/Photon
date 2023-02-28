@@ -9,7 +9,8 @@
             "name": "Network Engine",
             "request": "launch",
             "mainClass": "com.photon.network.NetworkEngine",
-            "projectName": "photon_9cbf47e6"
+            "projectName": "photon_9cbf47e6",
+            "args": "nogui"
         }
     ]
 }

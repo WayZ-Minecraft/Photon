@@ -40,14 +40,14 @@ public class ProfileManager
     
     public static ObjectPlayerAccount getProfileFromEMail(final String email) {
     	for(ObjectPlayerAccount profile : getAllPorifles()) {
-    		if(profile.email.equals(email)) { return profile; }
+    		if(profile.email.equals(email)) return profile;
     	}
     	return null;
     }
     
     public static ObjectPlayerAccount getProfileFromDiscordID(final String discordID) {
     	for(ObjectPlayerAccount profile : getAllPorifles()) {
-    		if(profile.discordID !=null && !profile.discordID.isEmpty() && profile.discordID.equals(discordID)) { return profile; }
+    		if(profile.discordID !=null && !profile.discordID.isEmpty() && profile.discordID.equals(discordID)) return profile;
     	}
     	return null;
     }
@@ -67,8 +67,10 @@ public class ProfileManager
     
     public static ObjectPlayerAccount createPlayerProfile(final String username, final String email, final String password) {
     	try {
-    		if(doesProfileExistByEMail(email)) { return null; }
-    		if(doesProfileExistByUsername(username)) { return null; }
+    		if(doesProfileExistByEMail(email)) return null;
+    		if(doesProfileExistByUsername(username)) return null;
+			if(username == null || email == null || password !=null) return null;
+			if(username.isEmpty() || email.isEmpty() || password.isEmpty()) return null;
     		final ObjectPlayerAccount profile = new ObjectPlayerAccount();
     		profile.email = email;
     		profile.username = username;
@@ -95,7 +97,7 @@ public class ProfileManager
     
     public static boolean doesProfileExistByUsername(final String username) {
     	for(ObjectPlayerAccount profile : getAllPorifles()) {
-    		if(profile.username.equals(username)) { return true; }
+    		if(profile.username.equals(username)) return true;
     	}
     	return false;
     }

@@ -2,3 +2,5 @@ network
 bin
 .classpath
 .project
+build
+.settings

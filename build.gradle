@@ -1,36 +1,45 @@
 plugins {
     id 'java-library'
+    id 'com.github.johnrengelman.shadow'
 }
 
 repositories {
     mavenCentral()
-    maven { url = "https://clojars.org/repo/" }
+    maven { url 'https://jitpack.io' }
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
 }
 
-dependencies {    
+dependencies {
     /* Apache */
-    implementation 'commons-codec:commons-codec:1.15'
-	implementation 'commons-io:commons-io:2.11.0'
-	implementation 'org.apache.commons:commons-lang3:3.12.0'
+    api 'commons-codec:commons-codec:1.15'
+	api 'commons-io:commons-io:2.11.0'
 
 	/* Other */
-	implementation 'net.dv8tion:JDA:5.0.0-beta.5'
-	implementation 'com.google.code.gson:gson:2.8.8'
-	implementation 'kryonet:kryonet:2.21-2'
+	api 'net.dv8tion:JDA:5.0.0-beta.5'
+	api 'com.google.code.gson:gson:2.8.8'
+	api 'com.github.crykn:kryonet:2.22.8'
+	api 'com.esotericsoftware:kryo:5.4.1-SNAPSHOT'
 	
 	/* Mail */
-	implementation 'com.google.code.gson:gson:2.8.8'
-	implementation 'com.sun.mail:javax.mail:1.6.2'
-	implementation 'com.sun.mail:smtp:1.6.2'
-	implementation 'com.sun.mail:pop3:1.6.2'
-	implementation 'com.sun.mail:imap:1.6.2'
+	api 'com.google.code.gson:gson:2.8.8'
+	api 'com.sun.mail:javax.mail:1.6.2'
+	api 'com.sun.mail:smtp:1.6.2'
+	api 'com.sun.mail:pop3:1.6.2'
+	api 'com.sun.mail:imap:1.6.2'
 }
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
 
 archivesBaseName = 'photon'
 
-jar {
-  	from('build/classes/java/main')
+shadowJar {
+    baseName = 'photon'
+    version = '1.0.0'
+   	manifest {
+        attributes([ "Main-Class": "com.photon.network.NetworkEngine" ])
+    }    
+    from('build/classes/java/main')
    	from('src/main/resources')
 }
+
+jar { dependsOn shadowJar }

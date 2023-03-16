@@ -18,7 +18,7 @@ public class FileLocation {
 	
 	public static void playSound(String file) {
 		try {
-			final AudioInputStream audioIn = AudioSystem.getAudioInputStream(ClassLoader.getSystemClassLoader().getResource("resources/" + file + (file.contains(".wav") ? "" : ".wav")));
+			final AudioInputStream audioIn = AudioSystem.getAudioInputStream(ClassLoader.getSystemClassLoader().getResource(file + (file.contains(".wav") ? "" : ".wav")));
 			final Clip clip = AudioSystem.getClip();
 			clip.open(audioIn);
 			clip.start();
@@ -33,6 +33,7 @@ public class FileLocation {
 	public static BufferedImage loadImage(String image) {
 		try {
 			final InputStream stream = loadFile(image);
+			if(stream == null) return null;
 			final BufferedImage img = ImageIO.read(stream);
 			stream.close();
 			return img;
@@ -49,7 +50,7 @@ public class FileLocation {
 		return font.deriveFont(size);
 	}
 	
-	public static InputStream loadFile(String file) { return ClassLoader.getSystemClassLoader().getResourceAsStream("resources/" + file); }	
+	public static InputStream loadFile(String file) { return ClassLoader.getSystemClassLoader().getResourceAsStream(file); }	
 	
 	public static File getWorkingDirectory(String workDir) {
 		String userHome = System.getProperty("user.home", ".");

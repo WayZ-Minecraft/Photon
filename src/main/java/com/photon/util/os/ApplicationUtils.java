@@ -2,12 +2,14 @@ package com.photon.util.os;
 
 import java.io.File;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.swing.JOptionPane;
-
-import org.apache.commons.lang3.ArrayUtils;
 
 public class ApplicationUtils {
 
@@ -24,7 +26,12 @@ public class ApplicationUtils {
 	
 	public static void launch(File f, String[] commands, boolean exit, long time) {
 		if(!f.getName().endsWith(".jar")) { return; }
-		final ProcessBuilder pb = new ProcessBuilder(ArrayUtils.addAll(new String[] { "java", "-jar", f.getAbsolutePath() }, commands));
+		final List<Object> list = Collections.emptyList();
+		final ArrayList<String> list1 = (ArrayList<String>) Arrays.asList(commands);
+		final ArrayList<String> list2 = (ArrayList<String>) Arrays.asList(new String[] { "java", "-jar", f.getAbsolutePath() });
+		list.addAll(list1);
+		list.addAll(list2);
+		final ProcessBuilder pb = new ProcessBuilder((String[]) list.toArray());
 		try {
 			pb.start();
 			if(exit) { exitProperly(time); }

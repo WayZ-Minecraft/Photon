@@ -27,6 +27,7 @@ public class TranslationManager {
 	public static void load(Locale locale, String path) {
 		try {
 			InputStream stream = FileLocation.loadFile(path + "/lang_" + locale.getLanguage() + ".properties");
+			if(stream == null) return;
 			BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
 			String line;
 			properties.clear();

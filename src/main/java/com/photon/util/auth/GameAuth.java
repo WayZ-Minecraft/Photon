@@ -28,8 +28,12 @@ public class GameAuth
 		if(PhotonEngine.clientAccountResponse != null) {
 			if(!PhotonEngine.clientAccountResponse.exist) { error = AuthError.ACCOUNT_NOT_FOUND; }
 			else {
-				if(!PhotonEngine.clientAccountResponse.isValidPassword) { error = AuthError.PASSWORD_NOT_VALID; }
-				else { setSession(email, PhotonEngine.clientAccountResponse.profile.uuid); PhotonEngine.clientAccountResponse = null; return isAuthed = true; }
+				if(!PhotonEngine.clientAccountResponse.isValidPassword) error = AuthError.PASSWORD_NOT_VALID;
+				else {
+					setSession(email, PhotonEngine.clientAccountResponse.profile.uuid);
+					PhotonEngine.clientAccountResponse = null;
+					return isAuthed = true;
+				}
 			}
 		} else { error = AuthError.ACCOUNT_NOT_FOUND; }
 		return isAuthed = false;

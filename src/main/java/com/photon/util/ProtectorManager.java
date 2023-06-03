@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.net.URLConnection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -17,15 +19,18 @@ import com.photon.network.NetworkDirectories;
 
 public class ProtectorManager {
 
-	public static byte[] getInfo() { return Base64.getEncoder().encode((NetworkDirectories.config.webUser + ":" + NetworkDirectories.config.webPassword).getBytes()); }
+	private static byte[] getInfo() { return Base64.getEncoder().encode((NetworkDirectories.config.webUser + ":" + NetworkDirectories.config.webPassword).getBytes()); }
 	
-	public static String getAuth() { return "Basic " + new String(getInfo()); }
+	private static String getAuth() { return "Basic " + new String(getInfo()); }
 	
 	public static void addProperties(URLConnection connection, String... exceptions) {
 		connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
 		for(String ex : exceptions) {
 			if(connection.getURL().toString().contains(ex)) return;
 		}
+		Authenticator.setDefault(new Authenticator() {
+		    @Override protected PasswordAuthentication getPasswordAuthentication() { return new PasswordAuthentication(NetworkDirectories.config.webUser, NetworkDirectories.config.webPassword.toCharArray()); }
+		});
 		if(new String(getInfo()).equalsIgnoreCase(":")) connection.setRequestProperty("Authorization", ProtectorManager.getAuth());
 	}
 	

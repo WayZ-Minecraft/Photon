@@ -57,14 +57,15 @@ public class DiscordEngine {
 		return role == null ? false : m.getRoles().contains(role);
 	}
 	
-	public static TextChannel getTextChannelById(String id) { return jda.getTextChannelById(id);  }
+	public static TextChannel getTextChannelById(String id) { return jda.getTextChannelById(id == null ? "" : id);  }
 	
 	public static void log(Color color, String title, Object o) {
 		final EmbedBuilder embed = new EmbedBuilder();
 		embed.setColor(color);
 		embed.setTitle(title);
 		embed.setDescription(o.toString());
-		getTextChannelById(NetworkDirectories.config.channelID_LOG).sendMessageEmbeds(embed.build()).queue();
+		final TextChannel logChannel = getTextChannelById(NetworkDirectories.config.channelID_LOG);
+		if(logChannel !=null) logChannel.sendMessageEmbeds(embed.build()).queue();
 	}
 	
 	public static EmbedBuilder getNetworkPanel() {
@@ -75,8 +76,10 @@ public class DiscordEngine {
 	}
 	
 	public static void showNetworkPanel() {
-		if(jda !=null) getTextChannelById(NetworkDirectories.config.channelID_LOG).sendMessageEmbeds(getNetworkPanel().build())
-		.setActionRow(Button.primary("network_restart", "Restart")).queue();
+		if(jda !=null) {
+			final TextChannel panelChannel = getTextChannelById(NetworkDirectories.config.channelID_LOG);
+			if(panelChannel !=null) panelChannel.sendMessageEmbeds(getNetworkPanel().build()).setActionRow(Button.primary("network_restart", "Restart")).queue();
+		}
 	}
 	
 	public static void sendPermsError(Member m, TextChannel c) {

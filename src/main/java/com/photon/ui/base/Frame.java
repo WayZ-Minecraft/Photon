@@ -16,9 +16,9 @@ public abstract class Frame extends JFrame {
 	
 	boolean debugMode;
 	
-	public Frame() {
-		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-	}
+	public Frame() { this(EXIT_ON_CLOSE); }
+	
+	public Frame(int exitMode) { this.setDefaultCloseOperation(exitMode); }
 	
 	public Frame(boolean debug) {
 		this();

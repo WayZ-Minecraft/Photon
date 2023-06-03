@@ -1,6 +1,6 @@
 plugins {
     id 'java-library'
-    id 'com.github.johnrengelman.shadow'
+    id 'com.github.johnrengelman.shadow' version '7.0.0' 
 }
 
 repositories {
@@ -21,25 +21,44 @@ dependencies {
 	api 'com.esotericsoftware:kryo:5.4.1-SNAPSHOT'
 	
 	/* Mail */
-	api 'com.google.code.gson:gson:2.8.8'
 	api 'com.sun.mail:javax.mail:1.6.2'
 	api 'com.sun.mail:smtp:1.6.2'
-	api 'com.sun.mail:pop3:1.6.2'
-	api 'com.sun.mail:imap:1.6.2'
+	implementation 'com.sun.mail:pop3:1.6.2'
+	implementation 'com.sun.mail:imap:1.6.2'
+	
+	/* Shadow Apache */
+    shadow 'commons-codec:commons-codec:1.15'
+	shadow 'commons-io:commons-io:2.11.0'
+
+	/* Shadow Other */
+	shadow 'net.dv8tion:JDA:5.0.0-beta.5'
+	shadow 'com.google.code.gson:gson:2.8.8'
+	shadow 'com.github.crykn:kryonet:2.22.8'
+	shadow 'com.esotericsoftware:kryo:5.4.1-SNAPSHOT'
+	
+	/* Shadow Mail */
+	shadow 'com.sun.mail:javax.mail:1.6.2'
+	shadow 'com.sun.mail:smtp:1.6.2'
+	shadow 'com.sun.mail:pop3:1.6.2'
+	shadow 'com.sun.mail:imap:1.6.2'
 }
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
+tasks.withType(JavaCompile).configureEach { it.options.release = 17 }
 
+sourceCompatibility = targetCompatibility = JavaVersion.VERSION_17
+
+version = '1.0.0'
 archivesBaseName = 'photon'
 
-shadowJar {
-    baseName = 'photon'
-    version = '1.0.0'
+jar {
+	duplicatesStrategy 'exclude'
    	manifest {
         attributes([ "Main-Class": "com.photon.network.NetworkEngine" ])
-    }    
-    from('build/classes/java/main')
-   	from('src/main/resources')
+    }
+}
+shadowJar {
+   	configurations = [project.configurations.shadow]
+   	duplicatesStrategy 'exclude'
 }
 
-jar { dependsOn shadowJar }
+tasks.build.dependsOn shadowJar

@@ -22,8 +22,8 @@ public class EmailManager { //TODO EMAILs SENDER
 
 	public static Session getSession() {
 		Properties props = new Properties();
-        final String pass = "rxwbfgouxamxqjtw";
-        final String from = "erwin.redote@gmail.com";
+        final String pass = "";
+        final String from = "";
         props.setProperty("mail.host", "smtp.gmail.com");
         props.put("mail.smtp.port", "587");
         props.put("mail.username", from);

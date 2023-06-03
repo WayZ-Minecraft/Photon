@@ -8,15 +8,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 
 import javax.imageio.ImageIO;
-
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.IOUtils;
 
 import com.google.gson.Gson;
 import com.photon.network.NetworkDirectories;
@@ -68,14 +66,15 @@ public class PhotonInfosManager {
 	
 	public static String getLatestAPIUpdate() { return getInfos() == null || getInfos().api_version == null ? "UNKNOWN" : getInfos().api_version; }
 	
-	public static void updateLauncherFromDir(File dir) {
+	public static void updateLauncherFromDir(File dir, String ending) {
 		if(isUpdating) { ConsoleManager.printError("Can't download two files at the same time"); return; }
 		isUpdating = true;
 		updateFinished = false;
         new Thread() {
         	@Override
             public void run() {
-		        download(NetworkDirectories.config.webUrl + "services_updates/launcher-" + getLatestLauncherUpdate() + ".jar", new File(dir, "/launcher-" + getLatestLauncherUpdate() + ".jar"));
+		        download(NetworkDirectories.config.webUrl+"services_updates/launcher-"+getLatestLauncherUpdate()+ending,
+		        		new File(dir, "/launcher-"+getLatestLauncherUpdate()+ending));
 		        isUpdating = false;
 		        updateFinished = true;
         	}
@@ -93,16 +92,19 @@ public class PhotonInfosManager {
         new Thread() {
         	@Override
             public void run() {
-		        download(NetworkDirectories.config.webUrl + "services_updates/" + fileName + "-" + getLatestModUpdate() + ".jar", new File(dir, fileName + "-" + getLatestModUpdate() + ".jar"));
+		        final boolean success = download(NetworkDirectories.config.webUrl + "services_updates/" + fileName + "-" + getLatestModUpdate() + ".jar", new File(dir, fileName + "-" + getLatestModUpdate() + ".jar"));
 		        final File oldFile = new File(dir, "/" + fileName + "-" + currentVersion + ".jar");
-		        if(oldFile.exists()) { oldFile.delete(); }
+		        if(oldFile.exists() && success) oldFile.delete();
 		        isUpdating = false;
 		        updateFinished = true;
         	}
         }.start();
     }
     
-	public static boolean hasModUpdate(String actualVersion) { return actualVersion.hashCode() != getLatestModUpdate().hashCode(); }
+	public static boolean hasModUpdate(String actualVersion) {
+		final String lastestVersion = getLatestModUpdate();
+		return actualVersion.hashCode() != lastestVersion.hashCode() && lastestVersion != "UNKNOWN";
+	}
 	
 	public static String getLatestModUpdate() { return getInfos() == null || getInfos().mod_version == null ? "UNKNOWN" : getInfos().mod_version; }
 	
@@ -110,16 +112,20 @@ public class PhotonInfosManager {
 	
 	public static String getLatestModSHA1() {
 		try {
-			final InputStream inputStream = new URL(getLatestModURL()).openStream();
-			try {
-				byte[] fileBytes = IOUtils.toByteArray(inputStream);
-				return DigestUtils.sha1Hex(fileBytes);
-			} finally { inputStream.close(); }
-		} catch(IOException e) {}
+			URL url = new URL(NetworkDirectories.config.webUrl+"services_updates/get_sha1.php");
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			ProtectorManager.addProperties(conn);
+			conn.setRequestMethod("GET");
+			BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			String sha1 = reader.readLine();
+			reader.close();
+			return sha1;
+		} catch (IOException e) {}
 		return "UNKNOWN";
 	}
 
-    private static void download(final String remotePath, final File localPath) {
+	/* return true if successfull */
+    private static boolean download(final String remotePath, final File localPath) {
         BufferedInputStream in = null;
         FileOutputStream out = null;
         try {
@@ -141,6 +147,7 @@ public class PhotonInfosManager {
                     updateSizeDownloaded = (int)(sumCount / 1024.0 / 1024.0);
                 }
             }
+            return true;
         }
         catch (IOException e) { isUpdating = false; }
         finally {
@@ -149,6 +156,7 @@ public class PhotonInfosManager {
         		if (out != null) out.close();
         	} catch (IOException e3) { e3.printStackTrace(); }
         }
+        return false;
     }
 	
 	public static BufferedImage getGameLogo() {
@@ -178,7 +186,7 @@ public class PhotonInfosManager {
     		connection.connect();
 			final BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 			final ObjectInfos object = new Gson().fromJson(in, ObjectInfos.class);
-			in.close();
+			in.close();	
 			return object;
         } catch (IOException e) { e.printStackTrace(); }
         return null;

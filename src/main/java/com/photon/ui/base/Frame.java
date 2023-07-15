@@ -11,7 +11,6 @@ import javax.swing.UIManager;
 import com.photon.ui.PhotonInterfaceUtils;
 import com.photon.ui.components.utils.WindowMover;
 
-@SuppressWarnings("serial")
 public abstract class Frame extends JFrame {
 	
 	boolean debugMode;

@@ -13,6 +13,8 @@ public class TranslationManager {
 	
 	public static final Locale locale_en = new Locale("en", "US"); 
 	public static final Locale locale_fr = new Locale("fr", "FR");
+	public static final Locale locale_de = new Locale("de", "DE");
+	public static final Locale locale_ru = new Locale("ru", "RU");
 	private static final HashMap<String, String> properties = new HashMap<String, String>();
 	
 	public static void load(String localeFromString, String path) {
@@ -48,5 +50,9 @@ public class TranslationManager {
 	public static String format(String key, Object... obj) {
 		final String prop = properties.get(key);
 		return prop == null ? key : String.format(prop, obj);
+	}
+
+	public static String getSystem() {
+		return "";
 	}
 }

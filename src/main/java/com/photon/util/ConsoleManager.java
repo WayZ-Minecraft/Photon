@@ -3,6 +3,10 @@ package com.photon.util;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Formatter;
@@ -12,13 +16,15 @@ import java.util.logging.LogManager;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
+import com.photon.PhotonEngine;
 import com.photon.discord.DiscordEngine;
 import com.photon.network.NetworkConnectionClient;
 import com.photon.network.messages.requests.ClientRequestSendDiscordLogs;
 
 public class ConsoleManager
 {  	
-	private static Logger logger = Logger.getLogger("");
+	private static final ConsoleHandler consoleHandler = new ConsoleHandler();
+	private static final Logger logger = Logger.getLogger("");
 	protected static final String ANSI_RESET = "\u001B[0m";
 	protected static final String ANSI_BLACK = "\u001B[30m";
 	protected static final String ANSI_RED = "\u001B[31m";
@@ -36,39 +42,96 @@ public class ConsoleManager
 		for (Handler handler : handlers) { rootLogger.removeHandler(handler); }
 		
 		/* Adding console handler */
-		ConsoleHandler consoleHandler = new ConsoleHandler();
 		logger.addHandler(consoleHandler);
-		consoleHandler.setFormatter(new ConsoleFormatter());
 	}
 	
+	public static String of(Exception e) {
+		final StringWriter sw = new StringWriter();
+		final PrintWriter pw = new PrintWriter(sw);
+		e.printStackTrace(pw);
+		return sw.toString();
+	}
+
 	public static void registerFileHandler(File file) {
 		/* Adding file handler */
 		try {
     		final FileHandler fh = new FileHandler(file.getPath());
             logger.addHandler(fh);
-            fh.setFormatter(new ConsoleFormatter());
+            fh.setFormatter(new ConsoleFormatter(null));
+
+			/* Save file after closing launcher */
+			Runtime.getRuntime().addShutdownHook(new Thread(() -> { savePreviousFile(file); }));
         } catch (SecurityException | IOException e) {}
 	}
 	
+	private static void savePreviousFile(File file) {
+		try {
+			Files.copy(Path.of(file.getPath()), Path.of(new File(file.getParent(), "launcher-"+PhotonEngine.getDate(true)+".log").getPath()));
+		} catch (IOException e) {}
+	}
+
+	public static Log create(Object obj) { return new Log().withObject(obj); }
+
 	public static void print(Object o) { print(EnumLogType.INFO, false, o); }
 	
 	public static void print(EnumLogType type, Object o) { print(type, false, o); }
 	
 	public static void print(EnumLogType type, boolean discordLog, Object o) { printLine(type, "", discordLog, o); }
+	
+	public static class Log {
+		private EnumLogType type = EnumLogType.INFO;
+		private boolean isError = false;
+		private boolean logOnDiscord = false;
+		private Object object;
 
-	public static void printDebug(Object o) { printDebug(EnumLogType.INFO, o, false); }
-	
-	public static void printDebug(EnumLogType type, Object... o) { printDebug(type, false, o); }
-	
-	public static void printDebug(EnumLogType type, final boolean discordLog, Object o) { printLine(type, " : DEBUG", discordLog, o); }
-	
-	public static void printError(Object o) { printError(EnumLogType.INFO, false, o); }
-	
-	public static void printError(EnumLogType type, Object... o) { printError(type, false, o); }
-	
-	public static void printError(EnumLogType type, final boolean discordLog, Object o) { printLine(type, " : ERROR", discordLog, o); }
-	
+		public void end() {
+			if(object == null) throw new Error("Wait ! Object can't be null");
+			final String subTypeName = (isError?" : "+ConsoleManager.ANSI_RED+"ERROR"+type.consoleColor:"");
+
+			/* Changing log format */
+			consoleHandler.setFormatter(new ConsoleFormatter(type));
+
+			/* Log */
+			logger.log(Level.OFF, "["+type+subTypeName+"] "+object);
+
+			/* Display the error on discord if enabled */
+			if(logOnDiscord) {
+				/* If on network -> Don't send packets */
+				if(DiscordEngine.jda !=null) DiscordEngine.log(type.color, type+subTypeName, object);
+				else {
+					final ClientRequestSendDiscordLogs request = new ClientRequestSendDiscordLogs();
+					request.type = type;
+					request.subType = subTypeName;
+					request.content = object;
+					NetworkConnectionClient.sendTCP(request);
+				}
+			}
+		}
+
+		public Log displayOnDiscord() {
+			this.logOnDiscord = true;
+			return this;
+		}
+
+		public Log withType(EnumLogType type) {
+			this.type = type;
+			return this;
+		}
+
+		protected Log withObject(Object obj) {
+			this.object = obj;
+			return this;
+		}
+
+		public Log error() {
+			this.isError = true;
+			return this;
+		}
+	}
+
+	@Deprecated
 	private static void printLine(EnumLogType type, String subType, boolean discordLog, Object o) {
+		consoleHandler.setFormatter(new ConsoleFormatter(type)); /* Set log format */
 		logger.log(Level.OFF, "["+type+subType+"] " + o);
 		if(discordLog == true) {
 			final ClientRequestSendDiscordLogs request = new ClientRequestSendDiscordLogs();
@@ -81,22 +144,35 @@ public class ConsoleManager
 	}
 	
 	public static enum EnumLogType {
-		INFO(new Color(52, 148, 196)), NETWORK(new Color(178, 63, 63)), LAUNCHER(new Color(98, 164, 83)), ANTICHEAT(new Color(196, 148, 52)), CLIENT(new Color(98, 164, 83)), SERVER(new Color(98, 164, 83));
+		INFO(new Color(52, 148, 196), ANSI_CYAN), 
+		NETWORK(new Color(178, 63, 63), ANSI_GREEN),
+		LAUNCHER(new Color(98, 164, 83), ANSI_BLACK),
+		ANTICHEAT(new Color(196, 148, 52), ANSI_YELLOW),
+		CLIENT(new Color(98, 164, 83), ANSI_BLUE), 
+		SERVER(new Color(98, 164, 83), ANSI_PURPLE);
 		
 		public Color color;
+		public String consoleColor;
 		
-		private EnumLogType(Color color) { this.color = color; }
+		private EnumLogType(Color color, String consoleColor) {
+			this.color = color;
+			this.consoleColor = consoleColor;
+		}
 	}
 	
 	private static class ConsoleFormatter extends Formatter {
+		private final EnumLogType type;
+
+		private ConsoleFormatter(EnumLogType type) { this.type = type; }
+
         @Override
         public String format(LogRecord record) {
             StringBuffer sb = new StringBuffer();
-            sb.append(ANSI_CYAN);
+            if(type !=null) sb.append(type.consoleColor);
             sb.append(record.getMessage());
-            sb.append("\n"+ANSI_RESET);
+            sb.append("\n");
+			if(type !=null) sb.append(ANSI_RESET);
             return sb.toString();
         }
-         
     }
 }

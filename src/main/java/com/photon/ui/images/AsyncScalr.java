@@ -36,7 +36,7 @@ import com.photon.ui.images.Scalr.Rotation;
  * Class used to provide the asynchronous versions of all the methods defined in
  * {@link Scalr} for the purpose of efficiently handling large amounts of image
  * operations via a select number of processing threads asynchronously.
- * <p/>
+ * </p>
  * Given that image-scaling operations, especially when working with large
  * images, can be very hardware-intensive (both CPU and memory), in large-scale
  * deployments (e.g. a busy web application) it becomes increasingly important
@@ -44,13 +44,13 @@ import com.photon.ui.images.Scalr.Rotation;
  * fire off too many simultaneous operations that the JVM's heap explodes and
  * runs out of memory or pegs the CPU on the host machine, staving all other
  * running processes.
- * <p/>
+ * </p>
  * Up until now it was left to the caller to implement their own serialization
  * or limiting logic to handle these use-cases. Given imgscalr's popularity in
  * web applications it was determined that this requirement be common enough
  * that it should be integrated directly into the imgscalr library for everyone
  * to benefit from.
- * <p/>
+ * </p>
  * Every method in this class wraps the matching methods in the {@link Scalr}
  * class in new {@link Callable} instances that are submitted to an internal
  * {@link ExecutorService} for execution at a later date. A {@link Future} is
@@ -60,7 +60,7 @@ import com.photon.ui.images.Scalr.Rotation;
  * {@link Future#get(long, TimeUnit)} can be used to block on the
  * <code>Future</code>, waiting for the scale operation to complete and return
  * the resultant {@link BufferedImage} to the caller.
- * <p/>
+ * </p>
  * This design provides the following features:
  * <ul>
  * <li>Non-blocking, asynchronous scale operations that can continue execution
@@ -89,10 +89,10 @@ import com.photon.ui.images.Scalr.Rotation;
  * on a sufficiently busy host where some of the cores may be busy running a
  * database or a web server, you will want to allocate even less scaling
  * threads.
- * <p/>
+ * </p>
  * So as a maximum you would never want more scaling threads than CPU cores in
  * any situation and less so on a busy server.
- * <p/>
+ * </p>
  * If you allocate more threads than you have available CPU cores, your scaling
  * operations will slow down as the CPU will spend a considerable amount of time
  * context-switching between threads on the same core trying to finish all the
@@ -101,13 +101,13 @@ import com.photon.ui.images.Scalr.Rotation;
  * your own benchmarking you'll likely find (as I did) that the actual disk I/O
  * necessary to pull the image data off disk is a much smaller portion of the
  * execution time than the actual scaling operations.
- * <p/>
+ * </p>
  * If you are executing on a storage medium that is unexpectedly slow and I/O is
  * a considerable portion of the scaling operation (e.g. S3 or EBS volumes),
  * feel free to try using more threads than CPU cores to see if that helps; but
  * in most normal cases, it will only slow down all other parallel scaling
  * operations.
- * <p/>
+ * </p>
  * As for memory, every time an image is scaled it is decoded into a
  * {@link BufferedImage} and stored in the JVM Heap space (decoded image
  * instances are always larger than the source images on-disk). For larger
@@ -117,7 +117,7 @@ import com.photon.ui.images.Scalr.Rotation;
  * want to limit simultaneous scaling operations to 1 or 2 regardless of the
  * number of cores just to avoid having too many {@link BufferedImage} instances
  * in JVM Heap space at the same time.
- * <p/>
+ * </p>
  * These are rough metrics and behaviors to give you an idea of how best to tune
  * this class for your deployment, but nothing can replacement writing a small
  * Java class that scales a handful of images in a number of different ways and
@@ -127,7 +127,7 @@ import com.photon.ui.images.Scalr.Rotation;
  * one of the operation methods are called, at which point the
  * <code>service</code> will be instantiated for the first time and operation
  * queued up.
- * <p/>
+ * </p>
  * More specifically, if you have no need for asynchronous image processing
  * offered by this class, you don't need to worry about wasted resources or
  * hanging/idle threads as they will never be created if you never use this
@@ -138,7 +138,7 @@ import com.photon.ui.images.Scalr.Rotation;
  * means they will block the host VM from exiting until they are explicitly shut
  * down in a client application; in a server application the container will shut
  * down the pool forcibly.
- * <p/>
+ * </p>
  * If you have used the {@link AsyncScalr} class and are trying to shut down a
  * client application, you will need to call {@link #getService()} then
  * {@link ExecutorService#shutdown()} or {@link ExecutorService#shutdownNow()}
@@ -157,21 +157,21 @@ import com.photon.ui.images.Scalr.Rotation;
  * {@link ThreadFactory} used under the covers, this can be done by overriding
  * the {@link #createService()} method which is invoked by this class anytime a
  * new {@link ExecutorService} is needed.
- * <p/>
+ * </p>
  * By default the {@link #createService()} method delegates to the
  * {@link #createService(ThreadFactory)} method with a new instance of
  * {@link DefaultThreadFactory}. Either of these methods can be overridden and
  * customized easily if desired.
- * <p/>
+ * </p>
  * <strong>TIP</strong>: A common customization to this class is to make the
  * {@link Thread}s generated by the underlying factory more server-friendly, in
  * which case the caller would want to use an instance of the
  * {@link ServerThreadFactory} when creating the new {@link ExecutorService}.
- * <p/>
+ * </p>
  * This can be done in one line by overriding {@link #createService()} and
  * returning the result of:
  * <code>return createService(new ServerThreadFactory());</code>
- * <p/>
+ * </p>
  * By default this class uses an {@link ThreadPoolExecutor} internally to handle
  * execution of queued image operations. If a different type of
  * {@link ExecutorService} is desired, again, simply overriding the
@@ -185,7 +185,7 @@ public class AsyncScalr {
 	 * System property name used to set the number of threads the default
 	 * underlying {@link ExecutorService} will use to process async image
 	 * operations.
-	 * <p/>
+	 * </p>
 	 * Value is "<code>imgscalr.async.threadCount</code>".
 	 */
 	public static final String THREAD_COUNT_PROPERTY_NAME = "imgscalr.async.threadCount";
@@ -193,11 +193,11 @@ public class AsyncScalr {
 	/**
 	 * Number of threads the internal {@link ExecutorService} will use to
 	 * simultaneously execute scale requests.
-	 * <p/>
+	 * </p>
 	 * This value can be changed by setting the
 	 * <code>imgscalr.async.threadCount</code> system property (see
 	 * {@link #THREAD_COUNT_PROPERTY_NAME}) to a valid integer value &gt; 0.
-	 * <p/>
+	 * </p>
 	 * Default value is <code>2</code>.
 	 */
 	public static final int THREAD_COUNT = Integer.getInteger(
@@ -218,15 +218,15 @@ public class AsyncScalr {
 	/**
 	 * Used to get access to the internal {@link ExecutorService} used by this
 	 * class to process scale operations.
-	 * <p/>
+	 * </p>
 	 * <strong>NOTE</strong>: You will need to explicitly shutdown any service
 	 * currently set on this class before the host JVM exits.
-	 * <p/>
+	 * </p>
 	 * You can call {@link ExecutorService#shutdown()} to wait for all scaling
 	 * operations to complete first or call
 	 * {@link ExecutorService#shutdownNow()} to kill any in-process operations
 	 * and purge all pending operations before exiting.
-	 * <p/>
+	 * </p>
 	 * Additionally you can use
 	 * {@link ExecutorService#awaitTermination(long, TimeUnit)} after issuing a
 	 * shutdown command to try and wait until the service has finished all
@@ -477,12 +477,12 @@ public class AsyncScalr {
 	/**
 	 * Used to verify that the underlying <code>service</code> points at an
 	 * active {@link ExecutorService} instance that can be used by this class.
-	 * <p/>
+	 * </p>
 	 * If <code>service</code> is <code>null</code>, has been shutdown or
 	 * terminated then this method will replace it with a new
 	 * {@link ExecutorService} by calling the {@link #createService()} method
 	 * and assigning the returned value to <code>service</code>.
-	 * <p/>
+	 * </p>
 	 * Any subclass that wants to customize the {@link ExecutorService} or
 	 * {@link ThreadFactory} used internally by this class should override the
 	 * {@link #createService()}.
@@ -502,7 +502,7 @@ public class AsyncScalr {
 	 * Default {@link ThreadFactory} used by the internal
 	 * {@link ExecutorService} to creates execution {@link Thread}s for image
 	 * scaling.
-	 * <p/>
+	 * </p>
 	 * More or less a copy of the hidden class backing the
 	 * {@link Executors#defaultThreadFactory()} method, but exposed here to make
 	 * it easier for implementors to extend and customize.
@@ -525,8 +525,7 @@ public class AsyncScalr {
 			 * Determine the group that threads created by this factory will be
 			 * in.
 			 */
-			group = (manager == null ? Thread.currentThread().getThreadGroup()
-					: manager.getThreadGroup());
+			group = (manager == null ? Thread.currentThread().getThreadGroup() : manager.getThreadGroup());
 
 			/*
 			 * Define a common name prefix for the threads created by this
@@ -538,7 +537,7 @@ public class AsyncScalr {
 		/**
 		 * Used to create a {@link Thread} capable of executing the given
 		 * {@link Runnable}.
-		 * <p/>
+		 * </p>
 		 * Thread created by this factory are utilized by the parent
 		 * {@link ExecutorService} when processing queued up scale operations.
 		 */

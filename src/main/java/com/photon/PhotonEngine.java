@@ -4,10 +4,14 @@ import java.awt.Desktop;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
 import javax.swing.JOptionPane;
+
+import org.jetbrains.annotations.Nullable;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.network.NetworkConnectionClient;
@@ -16,6 +20,7 @@ import com.photon.network.objects.ObjectNews;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.objects.ObjectServer;
 import com.photon.util.ConsoleManager;
+import com.photon.util.ConsoleManager.EnumLogType;
 import com.photon.util.os.OperatingSystem;
 
 public class PhotonEngine {
@@ -23,8 +28,8 @@ public class PhotonEngine {
 	public static final String VERSION = "1.0.0";
 	public static final String network_Ip_Local = "localhost";
 	public static String network_Ip = network_Ip_Local;
-    public static int network_Tcp = 54555;
-    public static int network_Udp = 54555;
+    public static int network_Tcp = 54556;
+    public static int network_Udp = 54556;
     
     public static ObjectPlayerAccount clientPlayerProfile;
     public static ServerResponseValidAccount clientAccountResponse;
@@ -35,11 +40,19 @@ public class PhotonEngine {
     public static ArrayList<ObjectServer> networkServerList = new ArrayList<>();
     public static HashMap<String, Connection> networkConnectionsList = new HashMap<>();
 
+    public static String getDate(boolean showTime) { return getDate(showTime, null); }
+    
+    public static String getDate(boolean showTime, @Nullable Date date) {
+        if(date == null) date = new Date();
+        return new SimpleDateFormat("dd-mm-yyyy"+(showTime?"_HH-mm-ss":"")).format(date);
+    }
+
     public static void loadClient(String ip) throws IOException {
     	try {
     		PhotonEngine.setIP(ip);
     		NetworkConnectionClient.load();
     	} catch (IOException e) {
+            ConsoleManager.create(ConsoleManager.of(e)).withType(EnumLogType.NETWORK).error().end();
     		try {
     			PhotonEngine.setIP(network_Ip_Local);
     			NetworkConnectionClient.load();
@@ -55,7 +68,7 @@ public class PhotonEngine {
     }
     
     public static void openURL(String url) {
-    	try { openURL(new URI(url)); } catch (URISyntaxException e) { ConsoleManager.printError("Can't open URL : " + e); }
+    	try { openURL(new URI(url)); } catch (URISyntaxException e) { ConsoleManager.create("Can't open URL : " + e).error().end(); }
     }
     
     public static void openURL(URI url) {

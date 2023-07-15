@@ -13,7 +13,7 @@ public abstract class MultiThreadWorker
         }
         try {
             for (int i = 0; i < workers.length; ++i) workers[i].join();
-        } catch (InterruptedException e) { ConsoleManager.printError(e); }
+        } catch (InterruptedException e) { ConsoleManager.create(e).error().end(); }
     }
     
     protected abstract boolean work();

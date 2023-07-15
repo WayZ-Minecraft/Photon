@@ -19,6 +19,7 @@ import javax.imageio.ImageIO;
 import com.google.gson.Gson;
 import com.photon.network.NetworkDirectories;
 import com.photon.util.ConsoleManager;
+import com.photon.util.ConsoleManager.EnumLogType;
 import com.photon.util.ProtectorManager;
 
 public class PhotonInfosManager {
@@ -45,7 +46,7 @@ public class PhotonInfosManager {
 	public static boolean isOnline(String op) throws UnknownHostException, IOException { return InetAddress.getByName(op).isReachable(100); }
 
 	public static File updateAPI(String fileName, File dir, String currentVersion) {
-    	if(isUpdating) { ConsoleManager.printError("Can't download two files at the same time"); return null; }
+    	if(isUpdating) { ConsoleManager.create("Can't download two files at the same time").end(); return null; }
         isUpdating = true;
         updateFinished = false;
         final File file = new File(dir, fileName + "-" + getLatestAPIUpdate() + ".jar");
@@ -67,7 +68,7 @@ public class PhotonInfosManager {
 	public static String getLatestAPIUpdate() { return getInfos() == null || getInfos().api_version == null ? "UNKNOWN" : getInfos().api_version; }
 	
 	public static void updateLauncherFromDir(File dir, String ending) {
-		if(isUpdating) { ConsoleManager.printError("Can't download two files at the same time"); return; }
+		if(isUpdating) { ConsoleManager.create("Can't download two files at the same time").end(); return; }
 		isUpdating = true;
 		updateFinished = false;
         new Thread() {
@@ -86,7 +87,7 @@ public class PhotonInfosManager {
 	public static String getLatestLauncherUpdate() { return getInfos() == null || getInfos().launcher_version == null ? "UNKNOWN" : getInfos().launcher_version; }
 	
     public static void updateMod(String fileName, File dir, String currentVersion) {
-    	if(isUpdating) { ConsoleManager.printError("Can't download two files at the same time"); return; }
+    	if(isUpdating) { ConsoleManager.create("Can't download two files at the same time").end(); return; }
         isUpdating = true;
         updateFinished = false;
         new Thread() {
@@ -125,7 +126,7 @@ public class PhotonInfosManager {
 	}
 
 	/* return true if successfull */
-    private static boolean download(final String remotePath, final File localPath) {
+    public static boolean download(final String remotePath, final File localPath) {
         BufferedInputStream in = null;
         FileOutputStream out = null;
         try {
@@ -149,7 +150,10 @@ public class PhotonInfosManager {
             }
             return true;
         }
-        catch (IOException e) { isUpdating = false; }
+        catch (IOException e) {
+			e.printStackTrace();
+			isUpdating = false;
+		}
         finally {
         	try {
         		if (in != null) in.close();
@@ -165,8 +169,7 @@ public class PhotonInfosManager {
 			final BufferedImage img = ImageIO.read(stream);
 			stream.close();
 			return img;
-		} 
-		catch (IOException e) { e.printStackTrace(); return null; }
+		} catch (IOException e) { e.printStackTrace(); return null; }
 	}
 	
 	public static InputStream getGameLogoInputStream() {
@@ -186,9 +189,9 @@ public class PhotonInfosManager {
     		connection.connect();
 			final BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 			final ObjectInfos object = new Gson().fromJson(in, ObjectInfos.class);
-			in.close();	
+			in.close();
 			return object;
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) { ConsoleManager.create(ConsoleManager.of(e)).withType(EnumLogType.LAUNCHER).error().end(); }
         return null;
     }
 }

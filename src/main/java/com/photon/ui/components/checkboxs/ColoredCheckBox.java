@@ -3,14 +3,11 @@ package com.photon.ui.components.checkboxs;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
 
 import com.photon.ui.PhotonInterfaceUtils;
 import com.photon.ui.components.utils.AbstractCheckbox;
+import com.photon.util.os.FileLocation;
 
-@SuppressWarnings("serial")
 public class ColoredCheckBox extends AbstractCheckbox {
 	
 	private Image checkImage;
@@ -22,10 +19,8 @@ public class ColoredCheckBox extends AbstractCheckbox {
 	public ColoredCheckBox(Color backgroundColor, Color checkColor) {
 		this.backgroundColor = backgroundColor;
 		this.checkColor = checkColor;
-		try { 
-			Image img = ImageIO.read(ColoredCheckBox.class.getResourceAsStream("checkbox_check.png")); 
-			this.checkImage = img;
-		} catch (IOException iOException) {}
+		Image img = FileLocation.loadImage("checkbox_check");
+		this.checkImage = img;
 	}
 	
 	@Override

@@ -35,7 +35,7 @@ public class Scalr {
 	/**
 	 * A {@link ConvolveOp} using a very light "blur" kernel that acts like an
 	 * anti-aliasing filter (softens the image a bit) when applied to an image.
-	 * <p/>
+	 * </p>
 	 * A common request by users of the library was that they wished to "soften"
 	 * resulting images when scaling them down drastically. After quite a bit of
 	 * A/B testing, the kernel used by this Op was selected as the closest match
@@ -43,7 +43,7 @@ public class Scalr {
 	 * {@link AreaAveragingScaleFilter} (which is used internally by the
 	 * deprecated {@link Image#getScaledInstance(int, int, int)} method in the
 	 * JDK that imgscalr is meant to replace).
-	 * <p/>
+	 * </p>
 	 * This ConvolveOp uses a 3x3 kernel with the values:
 	 * <table cellpadding="4" border="1">
 	 * <tr>
@@ -62,14 +62,14 @@ public class Scalr {
 	 * <td>.0f</td>
 	 * </tr>
 	 * </table>
-	 * <p/>
+	 * </p>
 	 * For those that have worked with ConvolveOps before, this Op uses the
 	 * {@link ConvolveOp#EDGE_NO_OP} instruction to not process the pixels along
 	 * the very edge of the image (otherwise EDGE_ZERO_FILL would create a
 	 * black-border around the image). If you have not worked with a ConvolveOp
 	 * before, it just means this default OP will "do the right thing" and not
 	 * give you garbage results.
-	 * <p/>
+	 * </p>
 	 * This ConvolveOp uses no {@link RenderingHints} values as internally the
 	 * {@link ConvolveOp} class only uses hints when doing a color conversion
 	 * between the source and destination {@link BufferedImage} targets.
@@ -97,7 +97,7 @@ public class Scalr {
 
 	/**
 	 * A {@link RescaleOp} used to make any input image 10% darker.
-	 * <p/>
+	 * </p>
 	 * This operation can be applied multiple times in a row if greater than 10%
 	 * changes in brightness are desired.
 	 * 
@@ -107,7 +107,7 @@ public class Scalr {
 
 	/**
 	 * A {@link RescaleOp} used to make any input image 10% brighter.
-	 * <p/>
+	 * </p>
 	 * This operation can be applied multiple times in a row if greater than 10%
 	 * changes in brightness are desired.
 	 * 
@@ -118,7 +118,7 @@ public class Scalr {
 	/**
 	 * A {@link ColorConvertOp} used to convert any image to a grayscale color
 	 * palette.
-	 * <p/>
+	 * </p>
 	 * Applying this op multiple times to the same image has no compounding
 	 * effects.
 	 * 
@@ -146,13 +146,13 @@ public class Scalr {
 		 * Used to indicate that the scaling implementation should decide which
 		 * method to use in order to get the best looking scaled image in the
 		 * least amount of time.
-		 * <p/>
+		 * </p>
 		 * The scaling algorithm will use the
 		 * {@link Scalr#THRESHOLD_QUALITY_BALANCED} or
 		 * {@link Scalr#THRESHOLD_BALANCED_SPEED} thresholds as cut-offs to
 		 * decide between selecting the <code>QUALITY</code>,
 		 * <code>BALANCED</code> or <code>SPEED</code> scaling algorithms.
-		 * <p/>
+		 * </p>
 		 * By default the thresholds chosen will give nearly the best looking
 		 * result in the fastest amount of time. We intend this method to work
 		 * for 80% of people looking to scale an image quickly and get a good
@@ -220,7 +220,7 @@ public class Scalr {
 		 * image's proportions. If the dimensions are not proportionally
 		 * correct, this will introduce vertical or horizontal stretching to the
 		 * image.
-		 * <p/>
+		 * </p>
 		 * It is recommended that you use one of the other <code>FIT_TO</code>
 		 * modes or {@link Mode#AUTOMATIC} if you want the image to look
 		 * correct, but if dimension-fitting is the #1 priority regardless of
@@ -275,10 +275,10 @@ public class Scalr {
 		CW_270,
 		/**
 		 * Flip the image horizontally by reflecting it around the y axis.
-		 * <p/>
+		 * </p>
 		 * This is not a standard rotation around a center point, but instead
 		 * creates the mirrored reflection of the image horizontally.
-		 * <p/>
+		 * </p>
 		 * More specifically, the vertical orientation of the image stays the
 		 * same (the top stays on top, and the bottom on bottom), but the right
 		 * and left sides flip. This is different than a standard rotation where
@@ -287,10 +287,10 @@ public class Scalr {
 		FLIP_HORZ,
 		/**
 		 * Flip the image vertically by reflecting it around the x axis.
-		 * <p/>
+		 * </p>
 		 * This is not a standard rotation around a center point, but instead
 		 * creates the mirrored reflection of the image vertically.
-		 * <p/>
+		 * </p>
 		 * More specifically, the horizontal orientation of the image stays the
 		 * same (the left stays on the left and the right stays on the right),
 		 * but the top and bottom sides flip. This is different than a standard
@@ -304,10 +304,10 @@ public class Scalr {
 	 * {@link Method#AUTOMATIC} method will decide if a {@link Method#BALANCED}
 	 * method will be used (if smaller than or equal to threshold) or a
 	 * {@link Method#SPEED} method will be used (if larger than threshold).
-	 * <p/>
+	 * </p>
 	 * The bigger the image is being scaled to, the less noticeable degradations
 	 * in the image becomes and the faster algorithms can be selected.
-	 * <p/>
+	 * </p>
 	 * The value of this threshold (1600) was chosen after visual, by-hand, A/B
 	 * testing between different types of images scaled with this library; both
 	 * photographs and screenshots. It was determined that images below this
@@ -323,10 +323,10 @@ public class Scalr {
 	 * {@link Method#AUTOMATIC} method will decide if a {@link Method#QUALITY}
 	 * method will be used (if smaller than or equal to threshold) or a
 	 * {@link Method#BALANCED} method will be used (if larger than threshold).
-	 * <p/>
+	 * </p>
 	 * The bigger the image is being scaled to, the less noticeable degradations
 	 * in the image becomes and the faster algorithms can be selected.
-	 * <p/>
+	 * </p>
 	 * The value of this threshold (800) was chosen after visual, by-hand, A/B
 	 * testing between different types of images scaled with this library; both
 	 * photographs and screenshots. It was determined that images below this
@@ -340,12 +340,12 @@ public class Scalr {
 	/**
 	 * Used to apply, in the order given, 1 or more {@link BufferedImageOp}s to
 	 * a given {@link BufferedImage} and return the result.
-	 * <p/>
+	 * </p>
 	 * <strong>Feature</strong>: This implementation works around <a
 	 * href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4965606">a
 	 * decade-old JDK bug</a> that can cause a {@link RasterFormatException}
 	 * when applying a perfectly valid {@link BufferedImageOp}s to images.
-	 * <p/>
+	 * </p>
 	 * <strong>Feature</strong>: This implementation also works around
 	 * {@link BufferedImageOp}s failing to apply and throwing
 	 * {@link ImagingOpException}s when run against a <code>src</code> image
@@ -353,11 +353,11 @@ public class Scalr {
 	 * standard Java methods to load images provides no consistency in getting
 	 * images in well-supported formats. This method automatically accounts and
 	 * corrects for all those problems (if necessary).
-	 * <p/>
+	 * </p>
 	 * It is recommended you always use this method to apply any
 	 * {@link BufferedImageOp}s instead of relying on directly using the
 	 * {@link BufferedImageOp#filter(BufferedImage, BufferedImage)} method.
-	 * <p/>
+	 * </p>
 	 * <strong>Performance</strong>: Not all {@link BufferedImageOp}s are
 	 * hardware accelerated operations, but many of the most popular (like
 	 * {@link ConvolveOp}) are. For more information on if your image op is
@@ -365,7 +365,7 @@ public class Scalr {
 	 * class that actually executes the Op code, <a href=
 	 * "http://www.docjar.com/html/api/sun/awt/image/ImagingLib.java.html"
 	 * >sun.awt.image.ImagingLib</a>.
-	 * <p/>
+	 * </p>
 	 * <strong>TIP</strong>: This operation leaves the original <code>src</code>
 	 * image unmodified. If the caller is done with the <code>src</code> image
 	 * after getting the result of this operation, remember to call
@@ -527,7 +527,7 @@ public class Scalr {
 	 * Used to crop the given <code>src</code> image from the top-left corner
 	 * and applying any optional {@link BufferedImageOp}s to the result before
 	 * returning it.
-	 * <p/>
+	 * </p>
 	 * <strong>TIP</strong>: This operation leaves the original <code>src</code>
 	 * image unmodified. If the caller is done with the <code>src</code> image
 	 * after getting the result of this operation, remember to call
@@ -575,7 +575,7 @@ public class Scalr {
 	/**
 	 * Used to crop the given <code>src</code> image and apply any optional
 	 * {@link BufferedImageOp}s to it before returning the result.
-	 * <p/>
+	 * </p>
 	 * <strong>TIP</strong>: This operation leaves the original <code>src</code>
 	 * image unmodified. If the caller is done with the <code>src</code> image
 	 * after getting the result of this operation, remember to call
@@ -679,14 +679,14 @@ public class Scalr {
 	 * Used to apply padding around the edges of an image using
 	 * {@link Color#BLACK} to fill the extra padded space and then return the
 	 * result.
-	 * <p/>
+	 * </p>
 	 * The amount of <code>padding</code> specified is applied to all sides;
 	 * more specifically, a <code>padding</code> of <code>2</code> would add 2
 	 * extra pixels of space (filled by the given <code>color</code>) on the
 	 * top, bottom, left and right sides of the resulting image causing the
 	 * result to be 4 pixels wider and 4 pixels taller than the <code>src</code>
 	 * image.
-	 * <p/>
+	 * </p>
 	 * <strong>TIP</strong>: This operation leaves the original <code>src</code>
 	 * image unmodified. If the caller is done with the <code>src</code> image
 	 * after getting the result of this operation, remember to call
@@ -732,14 +732,14 @@ public class Scalr {
 	 * Used to apply padding around the edges of an image using the given color
 	 * to fill the extra padded space and then return the result. {@link Color}s
 	 * using an alpha channel (i.e. transparency) are supported.
-	 * <p/>
+	 * </p>
 	 * The amount of <code>padding</code> specified is applied to all sides;
 	 * more specifically, a <code>padding</code> of <code>2</code> would add 2
 	 * extra pixels of space (filled by the given <code>color</code>) on the
 	 * top, bottom, left and right sides of the resulting image causing the
 	 * result to be 4 pixels wider and 4 pixels taller than the <code>src</code>
 	 * image.
-	 * <p/>
+	 * </p>
 	 * <strong>TIP</strong>: This operation leaves the original <code>src</code>
 	 * image unmodified. If the caller is done with the <code>src</code> image
 	 * after getting the result of this operation, remember to call
@@ -866,10 +866,10 @@ public class Scalr {
 	 * Resize a given image (maintaining its original proportion) to a width and
 	 * height no bigger than <code>targetSize</code> and apply the given
 	 * {@link BufferedImageOp}s (if any) to the result before returning it.
-	 * <p/>
+	 * </p>
 	 * A scaling method of {@link Method#AUTOMATIC} and mode of
 	 * {@link Mode#AUTOMATIC} are used.
-	 * <p/>
+	 * </p>
 	 * <strong>TIP</strong>: This operation leaves the original <code>src</code>
 	 * image unmodified. If the caller is done with the <code>src</code> image
 	 * after getting the result of this operation, remember to call
@@ -916,9 +916,9 @@ public class Scalr {
 	 * height no bigger than <code>targetSize</code> using the given scaling
 	 * method and apply the given {@link BufferedImageOp}s (if any) to the
 	 * result before returning it.
-	 * <p/>
+	 * </p>
 	 * A mode of {@link Mode#AUTOMATIC} is used.
-	 * <p/>
+	 * </p>
 	 * <strong>TIP</strong>: This operation leaves the original <code>src</code>
 	 * image unmodified. If the caller is done with the <code>src</code> image
 	 * after getting the result of this operation, remember to call
@@ -973,9 +973,9 @@ public class Scalr {
 	 * the given WIDTH or HEIGHT explicitly, depending on the {@link Mode}
 	 * specified) and apply the given {@link BufferedImageOp}s (if any) to the
 	 * result before returning it.
-	 * <p/>
+	 * </p>
 	 * A scaling method of {@link Method#AUTOMATIC} is used.
-	 * <p/>
+	 * </p>
 	 * <strong>TIP</strong>: This operation leaves the original <code>src</code>
 	 * image unmodified. If the caller is done with the <code>src</code> image
 	 * after getting the result of this operation, remember to call
@@ -1037,7 +1037,7 @@ public class Scalr {
 	 * the given WIDTH or HEIGHT explicitly, depending on the {@link Mode}
 	 * specified) using the given scaling method and apply the given
 	 * {@link BufferedImageOp}s (if any) to the result before returning it.
-	 * <p/>
+	 * </p>
 	 * <strong>TIP</strong>: This operation leaves the original <code>src</code>
 	 * image unmodified. If the caller is done with the <code>src</code> image
 	 * after getting the result of this operation, remember to call
@@ -1103,15 +1103,15 @@ public class Scalr {
 	 * Resize a given image (maintaining its original proportion) to the target
 	 * width and height and apply the given {@link BufferedImageOp}s (if any) to
 	 * the result before returning it.
-	 * <p/>
+	 * </p>
 	 * A scaling method of {@link Method#AUTOMATIC} and mode of
 	 * {@link Mode#AUTOMATIC} are used.
-	 * <p/>
+	 * </p>
 	 * <strong>TIP</strong>: See the class description to understand how this
 	 * class handles recalculation of the <code>targetWidth</code> or
 	 * <code>targetHeight</code> depending on the image's orientation in order
 	 * to maintain the original proportion.
-	 * <p/>
+	 * </p>
 	 * <strong>TIP</strong>: This operation leaves the original <code>src</code>
 	 * image unmodified. If the caller is done with the <code>src</code> image
 	 * after getting the result of this operation, remember to call
@@ -1159,14 +1159,14 @@ public class Scalr {
 	 * Resize a given image (maintaining its original proportion) to the target
 	 * width and height using the given scaling method and apply the given
 	 * {@link BufferedImageOp}s (if any) to the result before returning it.
-	 * <p/>
+	 * </p>
 	 * A mode of {@link Mode#AUTOMATIC} is used.
-	 * <p/>
+	 * </p>
 	 * <strong>TIP</strong>: See the class description to understand how this
 	 * class handles recalculation of the <code>targetWidth</code> or
 	 * <code>targetHeight</code> depending on the image's orientation in order
 	 * to maintain the original proportion.
-	 * <p/>
+	 * </p>
 	 * <strong>TIP</strong>: This operation leaves the original <code>src</code>
 	 * image unmodified. If the caller is done with the <code>src</code> image
 	 * after getting the result of this operation, remember to call
@@ -1221,14 +1221,14 @@ public class Scalr {
 	 * width and height (or fitting the image to the given WIDTH or HEIGHT
 	 * explicitly, depending on the {@link Mode} specified) and apply the given
 	 * {@link BufferedImageOp}s (if any) to the result before returning it.
-	 * <p/>
+	 * </p>
 	 * A scaling method of {@link Method#AUTOMATIC} is used.
-	 * <p/>
+	 * </p>
 	 * <strong>TIP</strong>: See the class description to understand how this
 	 * class handles recalculation of the <code>targetWidth</code> or
 	 * <code>targetHeight</code> depending on the image's orientation in order
 	 * to maintain the original proportion.
-	 * <p/>
+	 * </p>
 	 * <strong>TIP</strong>: This operation leaves the original <code>src</code>
 	 * image unmodified. If the caller is done with the <code>src</code> image
 	 * after getting the result of this operation, remember to call
@@ -1292,12 +1292,12 @@ public class Scalr {
 	 * explicitly, depending on the {@link Mode} specified) using the given
 	 * scaling method and apply the given {@link BufferedImageOp}s (if any) to
 	 * the result before returning it.
-	 * <p/>
+	 * </p>
 	 * <strong>TIP</strong>: See the class description to understand how this
 	 * class handles recalculation of the <code>targetWidth</code> or
 	 * <code>targetHeight</code> depending on the image's orientation in order
 	 * to maintain the original proportion.
-	 * <p/>
+	 * </p>
 	 * <strong>TIP</strong>: This operation leaves the original <code>src</code>
 	 * image unmodified. If the caller is done with the <code>src</code> image
 	 * after getting the result of this operation, remember to call
@@ -1542,7 +1542,7 @@ public class Scalr {
 	/**
 	 * Used to apply a {@link Rotation} and then <code>0</code> or more
 	 * {@link BufferedImageOp}s to a given image and return the result.
-	 * <p/>
+	 * </p>
 	 * <strong>TIP</strong>: This operation leaves the original <code>src</code>
 	 * image unmodified. If the caller is done with the <code>src</code> image
 	 * after getting the result of this operation, remember to call
@@ -1704,10 +1704,10 @@ public class Scalr {
 	/**
 	 * Used to write out a useful and well-formatted log message by any piece of
 	 * code inside of the imgscalr library.
-	 * <p/>
+	 * </p>
 	 * If a message cannot be logged (logging is disabled) then this method
 	 * returns immediately.
-	 * <p/>
+	 * </p>
 	 * <strong>NOTE</strong>: Because Java will auto-box primitive arguments
 	 * into Objects when building out the <code>params</code> array, care should
 	 * be taken not to call this method with primitive values unless
@@ -1744,16 +1744,16 @@ public class Scalr {
 	 * {@link BufferedImage#TYPE_INT_RGB} or {@link BufferedImage#TYPE_INT_ARGB}
 	 * ) capable of being rendered into from the given <code>src</code>. The
 	 * width and height of both images will be identical.
-	 * <p/>
+	 * </p>
 	 * This does not perform a copy of the image data from <code>src</code> into
 	 * the result image; see {@link #copyToOptimalImage(BufferedImage)} for
 	 * that.
-	 * <p/>
+	 * </p>
 	 * We force all rendering results into one of these two types, avoiding the
 	 * case where a source image is of an unsupported (or poorly supported)
 	 * format by Java2D causing the rendering result to end up looking terrible
 	 * (common with GIFs) or be totally corrupt (e.g. solid black image).
-	 * <p/>
+	 * </p>
 	 * Originally reported by Magnus Kvalheim from Movellas when scaling certain
 	 * GIF and PNG images.
 	 * 
@@ -1768,7 +1768,7 @@ public class Scalr {
 	 *      href="http://www.mail-archive.com/java2d-interest@capra.eng.sun.com/msg05621.html">How
 	 *      Java2D handles poorly supported image types</a>
 	 * @see <a
-	 *      href="http://code.google.com/p/java-image-scaling/source/browse/trunk/src/main/java/com/mortennobel/imagescaling/MultiStepRescaleOp.java">Thanks
+	 *      href="http://code.google.com//pjava-image-scaling/source/browse/trunk/src/main/java/com/mortennobel/imagescaling/MultiStepRescaleOp.java">Thanks
 	 *      to Morten Nobel for implementation hint</a>
 	 */
 	protected static BufferedImage createOptimalImage(BufferedImage src) {
@@ -1780,16 +1780,16 @@ public class Scalr {
 	 * most optimal RGB TYPE ( {@link BufferedImage#TYPE_INT_RGB} or
 	 * {@link BufferedImage#TYPE_INT_ARGB} ) capable of being rendered into from
 	 * the given <code>src</code>.
-	 * <p/>
+	 * </p>
 	 * This does not perform a copy of the image data from <code>src</code> into
 	 * the result image; see {@link #copyToOptimalImage(BufferedImage)} for
 	 * that.
-	 * <p/>
+	 * </p>
 	 * We force all rendering results into one of these two types, avoiding the
 	 * case where a source image is of an unsupported (or poorly supported)
 	 * format by Java2D causing the rendering result to end up looking terrible
 	 * (common with GIFs) or be totally corrupt (e.g. solid black image).
-	 * <p/>
+	 * </p>
 	 * Originally reported by Magnus Kvalheim from Movellas when scaling certain
 	 * GIF and PNG images.
 	 * 
@@ -1811,7 +1811,7 @@ public class Scalr {
 	 *      href="http://www.mail-archive.com/java2d-interest@capra.eng.sun.com/msg05621.html">How
 	 *      Java2D handles poorly supported image types</a>
 	 * @see <a
-	 *      href="http://code.google.com/p/java-image-scaling/source/browse/trunk/src/main/java/com/mortennobel/imagescaling/MultiStepRescaleOp.java">Thanks
+	 *      href="http://code.google.com//pjava-image-scaling/source/browse/trunk/src/main/java/com/mortennobel/imagescaling/MultiStepRescaleOp.java">Thanks
 	 *      to Morten Nobel for implementation hint</a>
 	 */
 	protected static BufferedImage createOptimalImage(BufferedImage src,
@@ -1832,14 +1832,14 @@ public class Scalr {
 	 * {@link BufferedImage} instance of an optimal type (RGB or ARGB). If
 	 * <code>src</code> is already of an optimal type, then it is returned
 	 * unmodified.
-	 * <p/>
+	 * </p>
 	 * This method is meant to be used by any calling code (imgscalr's or
 	 * otherwise) to convert any inbound image from a poorly supported image
 	 * type into the 2 most well-supported image types in Java2D (
 	 * {@link BufferedImage#TYPE_INT_RGB} or {@link BufferedImage#TYPE_INT_ARGB}
 	 * ) in order to ensure all subsequent graphics operations are performed as
 	 * efficiently and correctly as possible.
-	 * <p/>
+	 * </p>
 	 * When using Java2D to work with image types that are not well supported,
 	 * the results can be anything from exceptions bubbling up from the depths
 	 * of Java2D to images being completely corrupted and just returned as solid
@@ -1878,7 +1878,7 @@ public class Scalr {
 	/**
 	 * Used to determine the scaling {@link Method} that is best suited for
 	 * scaling the image to the targeted dimensions.
-	 * <p/>
+	 * </p>
 	 * This method is intended to be used to select a specific scaling
 	 * {@link Method} when a {@link Method#AUTOMATIC} method is specified. This
 	 * method utilizes the {@link Scalr#THRESHOLD_QUALITY_BALANCED} and
@@ -1925,7 +1925,7 @@ public class Scalr {
 	/**
 	 * Used to implement a straight-forward image-scaling operation using Java
 	 * 2D.
-	 * <p/>
+	 * </p>
 	 * This method uses the Oracle-encouraged method of
 	 * <code>Graphics2D.drawImage(...)</code> to scale the given image with the
 	 * given interpolation hint.
@@ -1964,17 +1964,6 @@ public class Scalr {
 	}
 
 	/**
-	 * Used to implement Chris Campbell's incremental-scaling algorithm: <a
-	 * href="http://today.java.net/pub/a/today/2007/04/03/perils
-	 * -of-image-getscaledinstance
-	 * .html">http://today.java.net/pub/a/today/2007/04/03/perils
-	 * -of-image-getscaledinstance.html</a>.
-	 * <p/>
-	 * Modifications to the original algorithm are variable names and comments
-	 * added for clarity and the hard-coding of using BICUBIC interpolation as
-	 * well as the explicit "flush()" operation on the interim BufferedImage
-	 * instances to avoid resource leaking.
-	 * 
 	 * @param src
 	 *            The image that will be scaled.
 	 * @param targetWidth
@@ -1989,8 +1978,7 @@ public class Scalr {
 	 *            indicate the method that {@link Graphics2D} should use when
 	 *            scaling the image.
 	 * 
-	 * @return an image scaled to the given dimensions using the given rendering
-	 *         hint.
+	 * @return an image scaled to the given dimensions using the given rendering hint.
 	 */
 	protected static BufferedImage scaleImageIncrementally(BufferedImage src,
 			int targetWidth, int targetHeight, Method scalingMethod,

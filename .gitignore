@@ -1,7 +1,8 @@
-network
+/network/
 bin
 .classpath
 .project
-build
-.settings
-/.gradle/
+build/
+.gradle/
+.vscode/
+.settings/

@@ -10,21 +10,33 @@ import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
 
 import com.photon.ui.images.Scalr;
 import com.photon.ui.images.Scalr.Method;
 
 public class FileLocation {
 	
-	public static void playSound(String file) {
+	/**
+	 * Play a sound of wav format
+	 * @param file The path of the sound
+	 * @param volume The volume impact of the sound (ex: -10f for -10db or 10f for +10db)
+	 */
+	public static void playSound(String file, float volume) {
 		try {
 			final AudioInputStream audioIn = AudioSystem.getAudioInputStream(ClassLoader.getSystemClassLoader().getResource(file + (file.contains(".wav") ? "" : ".wav")));
 			final Clip clip = AudioSystem.getClip();
 			clip.open(audioIn);
+
+			FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+			gainControl.setValue(volume);
+
 			clip.start();
 			audioIn.close();
 		} catch (Exception e) {}
 	}
+
+	public static void playSound(String file) { playSound(file, 0.0f);}
 	
 	public static BufferedImage loadSmoothedImage(String image) { return loadSmoothedImage(image, 50); }
 	

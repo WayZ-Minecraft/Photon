@@ -11,9 +11,6 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 
-import com.photon.ui.images.Scalr;
-import com.photon.ui.images.Scalr.Method;
-
 public class FileLocation {
 	
 	public static void playSound(String file) {
@@ -25,11 +22,7 @@ public class FileLocation {
 			audioIn.close();
 		} catch (Exception e) {}
 	}
-	
-	public static BufferedImage loadSmoothedImage(String image) { return loadSmoothedImage(image, 50); }
-	
-	public static BufferedImage loadSmoothedImage(String image, int smoothLevel) { return Scalr.resize(loadImage(image), Method.ULTRA_QUALITY, smoothLevel, Scalr.OP_ANTIALIAS); }
-	
+			
 	public static BufferedImage loadImage(String image) {
 		try {
 			final InputStream stream = loadFile(image);

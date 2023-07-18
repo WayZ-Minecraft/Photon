@@ -1,14 +1,5 @@
 package com.photon.util.auth;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.net.URL;
-
-import javax.imageio.ImageIO;
-
-import com.photon.ui.images.Scalr;
-import com.photon.ui.images.Scalr.Method;
-
 public class Session {
 
 	public String username;
@@ -51,17 +42,5 @@ public class Session {
 	
 	public void setUuid(String id) {
 		this.uuId = id;
-	}
-	
-	public String getPlayerMCAvatar() { return "https://crafatar.com/avatars/" + this.getUuid() + ".png"; }
-	
-	public BufferedImage getPlayerMCAvatarAsImage() {
-		try {
-			return ImageIO.read(new URL(getPlayerMCAvatar()).openStream());
-		} catch (IOException e) { return null; }
-	}
-	
-	public BufferedImage getPlayerMCAvatarAsImageSmooth(int smoothLevel) {
-		return Scalr.resize(getPlayerMCAvatarAsImage(), Method.ULTRA_QUALITY, smoothLevel, Scalr.OP_ANTIALIAS);
 	}
 }

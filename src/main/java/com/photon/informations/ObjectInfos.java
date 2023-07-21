@@ -4,7 +4,6 @@ public class ObjectInfos
 {
 	public String mod_version;
 	public String launcher_version;
-	public String api_version;
 	
 	public String discord_bot_id;
 	public String discord_bot_token;

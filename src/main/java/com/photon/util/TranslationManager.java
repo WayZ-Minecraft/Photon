@@ -53,6 +53,10 @@ public class TranslationManager {
 	}
 
 	public static String getSystem() {
-		return "";
+		String lang = System.getProperty("user.language");
+		if(lang.equalsIgnoreCase(locale_fr.getLanguage())) return locale_fr.getLanguage();
+		else if(lang.equalsIgnoreCase(locale_de.getLanguage())) return locale_de.getLanguage();
+		else if(lang.equalsIgnoreCase(locale_ru.getLanguage())) return locale_ru.getLanguage();
+		return locale_en.getLanguage();
 	}
 }

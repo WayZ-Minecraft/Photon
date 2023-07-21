@@ -29,7 +29,11 @@ public class PhotonInfosManager {
 	public static double updatePercentage;
     public static double updateSize;
     public static double updateSizeDownloaded;
-	    
+	
+	/**
+	 * Get the current IP of the user using the Amazon AWS service
+	 * @return the current IP of the user
+	 */
     public static String getCurrentIP() {    	
     	try {
     		final URL whatismyip = new URL("http://checkip.amazonaws.com");
@@ -41,51 +45,60 @@ public class PhotonInfosManager {
     	return "UNKNOWN";
     }
     
+	/**
+	 * Check if the current IP is equals to the given IP
+	 * @param ip the IP to check
+	 * @return true if the current IP is equals to the given IP
+	 */
     public static boolean isIPEquals(String ip) { return ip.equalsIgnoreCase(getCurrentIP()); }
     
+	/**
+	 * Check if the given IP is online (ping)
+	 * @param op the IP to check
+	 * @return true if the given IP is online
+	 * @throws UnknownHostException : if the IP is not valid
+	 * @throws IOException : if the IP is not reachable
+	 */
 	public static boolean isOnline(String op) throws UnknownHostException, IOException { return InetAddress.getByName(op).isReachable(100); }
-
-	public static File updateAPI(String fileName, File dir, String currentVersion) {
-    	if(isUpdating) { ConsoleManager.create("Can't download two files at the same time").end(); return null; }
-        isUpdating = true;
-        updateFinished = false;
-        final File file = new File(dir, fileName + "-" + getLatestAPIUpdate() + ".jar");
-        new Thread() {
-        	@Override
-            public void run() {
-		        download(NetworkDirectories.config.webUrl + "services_updates/API-" + getLatestAPIUpdate() + ".jar", file);
-		        final File oldFile = new File(dir, "/" + fileName + "-" + currentVersion + ".jar");
-		        if(oldFile.exists()) oldFile.delete();
-		        isUpdating = false;
-		        updateFinished = true;
-        	}
-        }.start();
-        return file;
-    }
 	
-	public static boolean hasAPIUpdate(String actualVersion) { return actualVersion.hashCode() != getLatestAPIUpdate().hashCode(); }
-	
-	public static String getLatestAPIUpdate() { return getInfos() == null || getInfos().api_version == null ? "UNKNOWN" : getInfos().api_version; }
-	
-	public static void updateLauncherFromDir(File dir, String ending) {
+	/**
+	 * Update the launcher from the given dir
+	 * @param dir the dir where the launcher file is located
+	 * @param ending the extension of the launcher file (JAR, EXE, ...)
+	 */
+	public static void updateLauncherFromDir(File dir) {
 		if(isUpdating) { ConsoleManager.create("Can't download two files at the same time").end(); return; }
 		isUpdating = true;
 		updateFinished = false;
         new Thread() {
         	@Override
             public void run() {
-		        download(NetworkDirectories.config.webUrl+"services_updates/launcher-"+getLatestLauncherUpdate()+ending,
-		        		new File(dir, "/launcher-"+getLatestLauncherUpdate()+ending));
+		        download(NetworkDirectories.config.webUrl+"services_updates/launcher-"+getLatestLauncherUpdate()+".jar", new File(dir, "/launcher.jar"));
 		        isUpdating = false;
 		        updateFinished = true;
         	}
         }.start();
 	}
 	
+	/**
+	 * Check if the launcher has an update
+	 * @param actualVersion the actual version of the launcher
+	 * @return true if the launcher has an update
+	 */
 	public static boolean hasLauncherUpdate(String actualVersion) { return actualVersion.hashCode() != getLatestLauncherUpdate().hashCode(); }
 	
+	/**
+	 * Get the latest version of the launcher
+	 * @return the latest version of the launcher
+	 */
 	public static String getLatestLauncherUpdate() { return getInfos() == null || getInfos().launcher_version == null ? "UNKNOWN" : getInfos().launcher_version; }
 	
+	/**
+	 * Update the mod from the given dir
+	 * @param fileName the name of the mod file
+	 * @param dir the dir where the mod file is located
+	 * @param currentVersion the current version of the mod
+	 */
     public static void updateMod(String fileName, File dir, String currentVersion) {
     	if(isUpdating) { ConsoleManager.create("Can't download two files at the same time").end(); return; }
         isUpdating = true;
@@ -102,11 +115,20 @@ public class PhotonInfosManager {
         }.start();
     }
     
+	/**
+	 * Check if the mod has an update
+	 * @param actualVersion the actual version of the mod
+	 * @return true if the mod has an update
+	 */
 	public static boolean hasModUpdate(String actualVersion) {
 		final String lastestVersion = getLatestModUpdate();
 		return actualVersion.hashCode() != lastestVersion.hashCode() && lastestVersion != "UNKNOWN";
 	}
 	
+	/**
+	 * Get the latest version of the mod
+	 * @return the latest version of the mod
+	 */
 	public static String getLatestModUpdate() { return getInfos() == null || getInfos().mod_version == null ? "UNKNOWN" : getInfos().mod_version; }
 	
 	public static String getLatestModURL() { return NetworkDirectories.config.webUrl + "services_updates/" + getInfos().project_id + "-" + getLatestModUpdate() + ".jar"; }

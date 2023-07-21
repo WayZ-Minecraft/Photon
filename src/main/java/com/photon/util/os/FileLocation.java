@@ -17,7 +17,7 @@ public class FileLocation {
 	/**
 	 * Play a sound of wav format
 	 * @param file The path of the sound
-	 * @param volume The volume impact of the sound (ex: -10f for -10db or 10f for +10db)
+	 * @param volume The volume impact of the sound (eg: -10f for -10db or 10f for +10db)
 	 */
 	public static void playSound(String file, float volume) {
 		try {

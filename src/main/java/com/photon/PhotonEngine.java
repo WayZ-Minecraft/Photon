@@ -11,8 +11,6 @@ import java.util.HashMap;
 
 import javax.swing.JOptionPane;
 
-import org.jetbrains.annotations.Nullable;
-
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.network.NetworkConnectionClient;
 import com.photon.network.messages.response.account.ServerResponseValidAccount;
@@ -25,7 +23,6 @@ import com.photon.util.os.OperatingSystem;
 
 public class PhotonEngine {
 	
-	public static final String VERSION = "1.0.0";
 	public static final String network_Ip_Local = "localhost";
 	public static String network_Ip = network_Ip_Local;
     public static int network_Tcp = 54556;
@@ -42,7 +39,7 @@ public class PhotonEngine {
 
     public static String getDate(boolean showTime) { return getDate(showTime, null); }
     
-    public static String getDate(boolean showTime, @Nullable Date date) {
+    public static String getDate(boolean showTime, Date date) {
         if(date == null) date = new Date();
         return new SimpleDateFormat("dd-mm-yyyy"+(showTime?"_HH-mm-ss":"")).format(date);
     }
@@ -60,6 +57,11 @@ public class PhotonEngine {
     	}
     }
     
+    /**
+     * Set the IP of the network
+     * @param ip the IP to set
+     * @author Niwer
+     */
     public static void setIP(String ip) { network_Ip = ip; }
     
     public static void setPorts(int tcp, int udp) {

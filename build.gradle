@@ -1,3 +1,8 @@
+buildscript {
+    repositories { mavenCentral() }
+    dependencies { classpath 'com.guardsquare:proguard-gradle:7.3.2' }
+}
+
 plugins {
     id 'java-library'
     id 'com.github.johnrengelman.shadow' version '7.0.0'
@@ -50,16 +55,29 @@ sourceCompatibility = targetCompatibility = JavaVersion.VERSION_17
 version = '1.0.0'
 archivesBaseName = 'photon'
 
+/* Generate JAR */
 jar {
 	duplicatesStrategy 'exclude'
    	manifest {
         attributes([ "Main-Class": "com.photon.network.NetworkEngine" ])
     }
 }
+
+/* Add all dependcies to the jar */
 shadowJar {
    	configurations = [project.configurations.shadow]
    	duplicatesStrategy 'exclude'
-	archiveClassifier.set('')
+	archiveClassifier.set('unobfuscated')
 }
 
-tasks.build.dependsOn shadowJar
+tasks.register('proguard', proguard.gradle.ProGuardTask) {
+    dependsOn jar
+    dependsOn shadowJar
+    configuration file('obfuscate.pro')
+    injars(tasks.named("shadowJar").flatMap { it.archiveFile })
+    outjars(layout.buildDirectory.file("libs/${archivesBaseName}.jar"))
+    libraryjars(configurations.shadow.filter { it.exists() })
+}
+proguard.shouldRunAfter shadowJar
+
+tasks.build.dependsOn proguard

@@ -36,7 +36,7 @@ public class NetworkConnectionClient {
 
     public static void sendTCP(Object obj) {
         if(!isConnected()) return;
-        ConsoleManager.print(EnumLogType.NETWORK, "Sending : "+obj);
+        ConsoleManager.create("Sending : "+obj).withType(EnumLogType.NETWORK).end();
         client.sendTCP(obj);
     }
     

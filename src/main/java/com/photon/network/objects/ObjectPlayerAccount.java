@@ -4,8 +4,7 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 
-public class ObjectPlayerAccount
-{
+public class ObjectPlayerAccount {
 	public String username;
 	public String email;
 	public String password;

@@ -14,10 +14,7 @@ public class MessageListenerCommon implements Listener
 	
     @Override
     public void disconnected(final Connection connection) {
-        new Thread() {
-            @Override
-            public void run() { NetworkConnectionClient.attemptReconnectionFromClient(); }
-        }.start();
+        new Thread(() -> NetworkConnectionClient.attemptReconnectionFromClient()).start();
     }
     
     public static void registerListener(INetworkMessageListener listener) {

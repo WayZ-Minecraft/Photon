@@ -17,6 +17,12 @@ public class TranslationManager {
 	public static final Locale locale_ru = new Locale("ru", "RU");
 	private static final HashMap<String, String> properties = new HashMap<String, String>();
 	
+    /**
+     * Load the language file
+     * @param locale : The language code in string format
+     * @param path : The path of the language file
+     * @autor Created by Niwer
+     */
 	public static void load(String localeFromString, String path) {
 		Locale locale = locale_en;
 		if(localeFromString !=null) {
@@ -26,6 +32,12 @@ public class TranslationManager {
 		load(locale, path);
 	}
 	
+    /**
+     * Load the language file
+     * @param locale : The language code in locale format
+     * @param path : The path of the language file
+     * @autor Created by Niwer
+     */
 	public static void load(Locale locale, String path) {
 		try {
 			InputStream stream = FileLocation.loadFile(path + "/lang_" + locale.getLanguage() + ".properties");
@@ -45,13 +57,31 @@ public class TranslationManager {
 		} catch (IOException e) {}
 	}
 	
+    /**
+     * Format a text for specific language
+     * @param key : the key of the translation
+     * @return the translation
+     * @autor Created by Niwer
+     */
 	public static String format(String key) { return format(key, new Object()); }
 	
+    /**
+     * Format a text for specific language with objects
+     * @param key : the key of the translation
+     * @param obj : the object(s) to format the translation
+     * @return the translation with the formatted object(s)
+     * @autor Created by Niwer
+     */
 	public static String format(String key, Object... obj) {
 		final String prop = properties.get(key);
 		return prop == null ? key : String.format(prop, obj);
 	}
 
+    /**
+     * Get the system language in locale format
+     * @return the lowercase language code (ex: en, fr, de, ru)
+     * @autor Created by Niwer
+     */
 	public static String getSystem() {
 		String lang = System.getProperty("user.language");
 		if(lang.equalsIgnoreCase(locale_fr.getLanguage())) return locale_fr.getLanguage();

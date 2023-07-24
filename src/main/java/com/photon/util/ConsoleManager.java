@@ -25,7 +25,7 @@ public class ConsoleManager
 {  	
 	private static final ConsoleHandler consoleHandler = new ConsoleHandler();
 	private static final Logger logger = Logger.getLogger("");
-	protected static final String ANSI_RESET = "\u001B[0m";
+	protected static final String ANSI_RESET = "\u001B[241m";
 	protected static final String ANSI_BLACK = "\u001B[30m";
 	protected static final String ANSI_RED = "\u001B[31m";
 	protected static final String ANSI_GREEN = "\u001B[32m";
@@ -72,10 +72,13 @@ public class ConsoleManager
 
 	public static Log create(Object obj) { return new Log().withObject(obj); }
 
+    @Deprecated
 	public static void print(Object o) { print(EnumLogType.INFO, false, o); }
 	
+    @Deprecated
 	public static void print(EnumLogType type, Object o) { print(type, false, o); }
 	
+    @Deprecated
 	public static void print(EnumLogType type, boolean discordLog, Object o) { printLine(type, "", discordLog, o); }
 	
 	public static class Log {
@@ -171,7 +174,7 @@ public class ConsoleManager
             if(type !=null) sb.append(type.consoleColor);
             sb.append(record.getMessage());
             sb.append("\n");
-			if(type !=null) sb.append(ANSI_RESET);
+			if(type !=null) sb.append(ANSI_WHITE);
             return sb.toString();
         }
     }

@@ -72,7 +72,7 @@ public class MessageListenerServer implements Listener
 	        	final ObjectPlayerAccount profile = ProfileManager.createPlayerProfile(request.username, request.email, request.password);
 	        	if(response.exist = profile != null) {
 	        		response.profile = profile;
-	        		ConsoleManager.print(EnumLogType.NETWORK, true, "A new user created an account! (" + profile.username + ")");
+                    ConsoleManager.create("A new user created an account! (" + profile.username + ")").displayOnDiscord().withType(EnumLogType.NETWORK).end();
 	        	}
 	        	connection.sendTCP(response);
 	        }
@@ -99,7 +99,7 @@ public class MessageListenerServer implements Listener
 	            final BufferedWriter writer = new BufferedWriter(new FileWriter(crashReportFile));
 	            writer.write(request.fileMessage);
 	            writer.close();
-	            ConsoleManager.print(EnumLogType.NETWORK, true, "Received a new Crash Report from Client: " + request.userUUID);
+                ConsoleManager.create("Received a new Crash Report from Client: " + request.userUUID).displayOnDiscord().withType(EnumLogType.NETWORK).end();
 	        }
 	        
 	        else if (object instanceof ClientRequestAnticheat request) {
@@ -111,7 +111,7 @@ public class MessageListenerServer implements Listener
 	            writer.write(request.fileMessage);
 	            writer.write("\nOperating System: " + request.operatingSystem);
 	            writer.close();
-	            ConsoleManager.print(EnumLogType.NETWORK, true, "Cheater: "+request.userUUID+"\nOperating System: "+request.operatingSystem + "\nReason: " + request.fileMessage);
+                ConsoleManager.create("Cheater: "+request.userUUID+"\nOperating System: "+request.operatingSystem + "\nReason: " + request.fileMessage).displayOnDiscord().withType(EnumLogType.NETWORK).end();
 	        }
     		
 	        else if (object instanceof ClientRequestNewsList) {
@@ -136,7 +136,8 @@ public class MessageListenerServer implements Listener
 	            if (!cancelAdding) {
 					request.objServer.connectionID = connection.getID();
 	            	PhotonEngine.networkServerList.add(request.objServer);
-	            	ConsoleManager.print(EnumLogType.NETWORK, "Adding server to the server list: "+request.objServer.serverIP+":"+request.objServer.serverPort+"\nMOTD: "+request.objServer.serverMOTD + "\nName: " + request.objServer.serverName);
+                    ConsoleManager.create("Adding server to the server list: "+request.objServer.serverIP+":"+request.objServer.serverPort+"\nMOTD: "
+                        +request.objServer.serverMOTD + "\nName: " + request.objServer.serverName).displayOnDiscord().withType(EnumLogType.NETWORK).end();
 	            }
 	        }
 	        else if (object instanceof ClientRequestServerList) {

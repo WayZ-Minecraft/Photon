@@ -2,6 +2,9 @@ package com.photon.network.listeners;
 
 import com.esotericsoftware.kryonet.Connection;
 
+/**
+ * Interface to add a network message listeners
+ */
 public interface INetworkMessageListener {
 
 	public INetworkListenerSide applyTo();

@@ -20,8 +20,6 @@
 
 # Classes
 -keep class com.esotericsoftware.** { *; }
--keep class com.sun.** { *; }
--keep class org.apache.logging.log4j.** { *; }
 
 -keep class com.photon.informations.ObjectInfos { <fields>; }
 -keep class com.photon.network.objects.** { <fields>; }

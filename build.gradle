@@ -36,7 +36,7 @@ dependencies {
 	shadow 'commons-io:commons-io:2.11.0'
 
 	/* Shadow Other */
-	shadow 'net.dv8tion:JDA:5.0.0-beta.5'
+	shadow 'net.dv8tion:JDA:5.0.0-beta.12'
 	shadow 'com.google.code.gson:gson:2.8.8'
 	shadow 'com.github.crykn:kryonet:2.22.8'
 	shadow 'com.esotericsoftware:kryo:5.4.1-SNAPSHOT'
@@ -68,6 +68,7 @@ shadowJar {
    	configurations = [project.configurations.shadow]
    	duplicatesStrategy 'exclude'
 	archiveClassifier.set('unobfuscated')
+    archiveFileName = "network.jar"
 }
 
 tasks.register('proguard', proguard.gradle.ProGuardTask) {

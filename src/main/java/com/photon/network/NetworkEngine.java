@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.PhotonEngine;
+import com.photon.discord.BotEngine;
 import com.photon.discord.DiscordEngine;
 import com.photon.informations.PhotonInfosManager;
 import com.photon.util.ConsoleManager;
@@ -28,7 +29,7 @@ public class NetworkEngine {
 
 			/* Load features */
 			NetworkDirectories.load();
-			DiscordEngine.load();
+			BotEngine.load();
 			NetworkConnectionServer.load();
 
 			/* Register logs file */

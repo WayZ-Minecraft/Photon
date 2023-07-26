@@ -55,7 +55,7 @@ public class NetworkDirectories
 		public String webUser = "";
 		public String webPassword = "";
 		
-		public String discordPrefix = "!";
+		public String discordBotToken = "";
 		public String channelID_LOG = "";
 		public String channelID_GENERAL = "";
 	}

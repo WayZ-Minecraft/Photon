@@ -4,6 +4,8 @@ import javax.security.auth.login.LoginException;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.photon.network.NetworkDirectories;
+
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
@@ -17,8 +19,8 @@ public class BotEngine extends ListenerAdapter {
     
     public static Guild guild;
 
-    public static void main(String[] args) throws LoginException {
-        String token = ""; //TODO : add your token here;
+    public static void load() throws LoginException {
+        String token = NetworkDirectories.config.discordBotToken; //TODO : add your token here;
         JDABuilder botBuilder = JDABuilder.createDefault(token);
         botBuilder.setActivity(Activity.playing("/"));
         
@@ -31,7 +33,6 @@ public class BotEngine extends ListenerAdapter {
 
     /**
      * Register slash commands when the bot is ready
-     * 
      * @param event The event of the bot being ready
      * @author Mini
      */

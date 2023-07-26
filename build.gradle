@@ -41,6 +41,10 @@ dependencies {
 	shadow 'com.sun.mail:smtp:1.6.2'
 	shadow 'com.sun.mail:pop3:1.6.2'
 	shadow 'com.sun.mail:imap:1.6.2'
+
+	/* Discord */
+	implementation("net.dv8tion:JDA:5.0.0-beta.12")
+    implementation 'ch.qos.logback:logback-classic:1.4.8'
 }
 
 tasks.withType(JavaCompile).configureEach { it.options.release = 17 }

@@ -31,10 +31,10 @@ public class OLDDiscordEventListeners extends ListenerAdapter
 		final String subName = event.getSubcommandName();
 		switch(name) {
 		case "link-account":
-			final String UUID = event.getOption("uuid").getAsString();
+			final String ingameUUID = event.getOption("uuid").getAsString();
 			final String AUTHCODE = String.valueOf(event.getOption("authcode").getAsInt());
-			if(ProfileManager.isAuthCodeValid(UUID, AUTHCODE)) {
-				ObjectPlayerAccount profile = ProfileManager.getProfileFromUUID(UUID);
+			if(ProfileManager.isAuthCodeValid(ingameUUID, AUTHCODE)) {
+				ObjectPlayerAccount profile = ProfileManager.getProfileFromUUID(ingameUUID);
 				profile.discordID = event.getMember().getId();
 				profile.discordAuthCode = AUTHCODE;
 				final EmbedBuilder embed = new EmbedBuilder();

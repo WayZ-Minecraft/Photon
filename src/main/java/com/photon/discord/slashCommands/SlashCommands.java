@@ -5,6 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.photon.discord.slashCommands.advancedCommands.CustomMute;
+import com.photon.network.NetworkEngine;
+import com.photon.network.objects.ObjectPlayerAccount;
+import com.photon.network.objects.ProfileManager;
+import com.photon.util.os.ApplicationUtils;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.User;
@@ -36,6 +40,15 @@ public class SlashCommands {
         .addOption(OptionType.INTEGER, "duration", "time of mute", true, true)
         .addOption(OptionType.STRING, "reason", "the reason of the mute", false, false)
         .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.VOICE_MUTE_OTHERS)));
+
+        // Add commands restart network
+        commands.add(Commands.slash("restart-network", "restart the network")
+        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+
+        // Add commands link-account
+        commands.add(Commands.slash("link-account", "link your minecraft account to your discord account")
+        .addOption(OptionType.STRING, "uuid", "your WayZ unique user identity (in game)", true, false)
+        .addOption(OptionType.STRING, "authkey", "your authentication Key", true, false));
     }
 
     /**
@@ -55,6 +68,9 @@ public class SlashCommands {
                 break;
             case "tempmute":
                 tempmute(event);
+                break;
+            case "restart-network":
+                restartNetwork(event);
                 break;
             default:
                 break;
@@ -93,5 +109,38 @@ public class SlashCommands {
         final long time = event.getOption("duration").getAsLong();
         CustomMute.timeMute(player, (int) time);
         event.reply(String.format("Mute %s for %s minutes, reason : %s", player.getName(), time, event.getOption("reason").getAsString())).queue();
+    }
+
+
+    /**
+     * Restart the network (/restart-network)
+     * @param event The event that triggered this command
+     * @author Mini
+     */
+    protected static void restartNetwork(SlashCommandInteractionEvent event) {
+        event.reply("Restarting network...").queue();
+        ApplicationUtils.restart(NetworkEngine.class, "--restart");
+    }
+
+
+    /**
+     * Link a discord account to a minecraft account (/link-account uuid authkey)
+     * @param event The event that triggered this command
+     * @author Mini
+     */
+    protected static void linkAccount(SlashCommandInteractionEvent event) {
+        final String ingameUUID = event.getOption("uuid").getAsString();
+        final String AUTHCODE = String.valueOf(event.getOption("authkey").getAsInt());
+        if(!ProfileManager.isAuthCodeValid(ingameUUID, AUTHCODE)) {
+            if(ProfileManager.doesProfileExistByUUID(ingameUUID)) event.reply("Error your User Id is wrong or doesn't exist").queue();
+            else event.reply("Error your authentication Key is wrong").queue();
+            return;
+        }
+
+        ObjectPlayerAccount profile = ProfileManager.getProfileFromUUID(ingameUUID);
+        profile.discordID = event.getMember().getId();
+        profile.discordAuthCode = AUTHCODE;
+
+        event.reply("Your account has been linked").queue();
     }
 }

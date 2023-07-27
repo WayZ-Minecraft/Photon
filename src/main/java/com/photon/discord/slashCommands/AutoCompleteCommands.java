@@ -10,7 +10,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
 
 public class AutoCompleteCommands extends ListenerAdapter{
-    // private String[] muteDuration = new String[]{"10 minutes", "30 minutes", "1 hour", "6 hour", "1 day", "1 week", "1 month"};
+    /* Class to manage commande auto-completion */
     private static HashMap<String, Integer> muteDuration = new HashMap<String, Integer>(){{
         put("10 minutes", 10);
         put("30 minutes", 30);
@@ -23,6 +23,11 @@ public class AutoCompleteCommands extends ListenerAdapter{
 
     private static String[] keys = muteDuration.keySet().toArray(new String[0]);
     
+
+    /**
+     * Handle auto complete interaction
+     * @param event The event that triggered this command
+     */
     @Override
     public void onCommandAutoCompleteInteraction(CommandAutoCompleteInteractionEvent event) {
         System.out.println(muteDuration);

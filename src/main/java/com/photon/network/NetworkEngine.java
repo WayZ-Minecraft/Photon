@@ -2,13 +2,13 @@ package com.photon.network;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.PhotonEngine;
 import com.photon.discord.BotEngine;
-import com.photon.discord.OLDDiscordEngine;
 import com.photon.informations.PhotonInfosManager;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
@@ -29,7 +29,7 @@ public class NetworkEngine {
 
 			/* Load features */
 			NetworkDirectories.load();
-			BotEngine.load();
+			BotEngine.load(Arrays.asList(args).contains("--restart") ? "--restart" : null);
 			NetworkConnectionServer.load();
 
 			/* Register logs file */

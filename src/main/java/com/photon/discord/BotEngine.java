@@ -1,5 +1,7 @@
 package com.photon.discord;
 
+import java.util.Arrays;
+
 import javax.security.auth.login.LoginException;
 
 import org.jetbrains.annotations.NotNull;
@@ -20,12 +22,13 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 public class BotEngine extends ListenerAdapter {
     
     public static Guild guild;
+    public static boolean isRestarting = false;
 
     /**
      * Load the bot, register slash commands and start it
      * @throws LoginException
      */
-    public static void load() throws LoginException {
+    public static void load(String... args) throws LoginException {
         String token = NetworkDirectories.config.discordBotToken;
         JDABuilder botBuilder = JDABuilder.createDefault(token);
         botBuilder.setActivity(Activity.playing("/"));
@@ -33,6 +36,8 @@ public class BotEngine extends ListenerAdapter {
         botBuilder.addEventListeners(new BotEngine());
         botBuilder.addEventListeners(new AutoCompleteCommands());
         botBuilder.enableIntents(GatewayIntent.MESSAGE_CONTENT);
+
+        if(Arrays.asList(args).contains("--restart")) isRestarting = true;
 
         botBuilder.build();
         SlashCommands.load();
@@ -47,6 +52,10 @@ public class BotEngine extends ListenerAdapter {
     public void onGuildReady(@NotNull GuildReadyEvent event) {
         guild = event.getGuild();
         guild.updateCommands().addCommands(SlashCommands.commands).queue();
+        if (isRestarting) {
+            guild.getTextChannelById(NetworkDirectories.config.discordBotChannelID).sendMessage("Network restarted").queue();
+            isRestarting = false;
+        }
     }
 
     @Override

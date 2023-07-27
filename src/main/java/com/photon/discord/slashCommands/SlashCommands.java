@@ -1,10 +1,10 @@
-package com.photon.discord;
+package com.photon.discord.slashCommands;
 
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.photon.discord.advancedCommands.CustomMute;
+import com.photon.discord.slashCommands.advancedCommands.CustomMute;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.User;
@@ -33,9 +33,8 @@ public class SlashCommands {
         // Add commands time mute
         commands.add(Commands.slash("tempmute", "use to mute a temporaly a specifique player")
         .addOption(OptionType.USER , "user", "the user", true, false)
-        .addOption(OptionType.INTEGER, "day", "time of mute", false, false)
-        .addOption(OptionType.INTEGER, "hours", "time of mute", false, false)
-        .addOption(OptionType.INTEGER, "minutes", "time of mute", false, false)
+        .addOption(OptionType.INTEGER, "duration", "time of mute", true, true)
+        .addOption(OptionType.STRING, "reason", "the reason of the mute", false, false)
         .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.VOICE_MUTE_OTHERS)));
     }
 
@@ -91,11 +90,8 @@ public class SlashCommands {
     protected static void tempmute(SlashCommandInteractionEvent event) {
         System.out.println(event.getOption("user"));
         final User player = event.getOption("user").getAsUser();
-        long days = event.getOption("days") != null ? event.getOption("days").getAsLong() : 0;
-        long hours = event.getOption("hours") != null ? event.getOption("hours").getAsLong() : 0;
-        long minutes = event.getOption("minutes") != null ? event.getOption("minutes").getAsLong() : 0;
-        final long time = ( days * 24 + hours ) * 60 + minutes;
+        final long time = event.getOption("duration").getAsLong();
         CustomMute.timeMute(player, (int) time);
-        event.reply(String.format("Mute %s for %s minutes", player.getName(), time)).queue();
+        event.reply(String.format("Mute %s for %s minutes, reason : %s", player.getName(), time, event.getOption("reason").getAsString())).queue();
     }
 }

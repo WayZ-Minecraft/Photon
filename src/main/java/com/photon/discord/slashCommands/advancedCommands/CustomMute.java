@@ -1,4 +1,4 @@
-package com.photon.discord.advancedCommands;
+package com.photon.discord.slashCommands.advancedCommands;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;

@@ -4,6 +4,8 @@ import javax.security.auth.login.LoginException;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.photon.discord.slashCommands.AutoCompleteCommands;
+import com.photon.discord.slashCommands.SlashCommands;
 import com.photon.network.NetworkDirectories;
 
 import net.dv8tion.jda.api.JDABuilder;
@@ -29,6 +31,7 @@ public class BotEngine extends ListenerAdapter {
         botBuilder.setActivity(Activity.playing("/"));
         
         botBuilder.addEventListeners(new BotEngine());
+        botBuilder.addEventListeners(new AutoCompleteCommands());
         botBuilder.enableIntents(GatewayIntent.MESSAGE_CONTENT);
 
         botBuilder.build();

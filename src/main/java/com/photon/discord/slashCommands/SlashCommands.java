@@ -32,7 +32,8 @@ public class SlashCommands {
 
         // Add commands clear
         commands.add(Commands.slash("clear", "clear a number of message")
-        .addOption(OptionType.INTEGER, "number", "number of message to delete", false, false));
+        .addOption(OptionType.INTEGER, "number", "number of message to delete", false, false)
+        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MESSAGE_MANAGE)));
 
         // Add commands time mute
         commands.add(Commands.slash("tempmute", "use to mute a temporaly a specifique player")

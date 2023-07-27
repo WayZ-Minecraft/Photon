@@ -17,6 +17,7 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import com.photon.PhotonEngine;
+import com.photon.discord.BotEngine;
 import com.photon.discord.OLDDiscordEngine;
 import com.photon.network.NetworkConnectionClient;
 import com.photon.network.messages.requests.ClientRequestSendDiscordLogs;
@@ -83,6 +84,7 @@ public class ConsoleManager
 		private boolean isError = false;
 		private boolean logOnDiscord = false;
 		private Object object;
+		private File file;
 
 		public void end() {
 			if(object == null) throw new Error("Wait ! Object can't be null");
@@ -97,7 +99,7 @@ public class ConsoleManager
 			/* Display the error on discord if enabled */
 			if(logOnDiscord) {
 				/* If on network -> Don't send packets */
-				if(OLDDiscordEngine.jda !=null) OLDDiscordEngine.log(type.color, type+subTypeName, object);
+				if(BotEngine.botBuilder !=null) BotEngine.log(type.color, type+subTypeName, object, file);
 				else {
 					final ClientRequestSendDiscordLogs request = new ClientRequestSendDiscordLogs();
 					request.type = type;
@@ -125,6 +127,11 @@ public class ConsoleManager
 
 		public Log error() {
 			this.isError = true;
+			return this;
+		}
+
+		public Log withFile(File file) {
+			this.file = file;
 			return this;
 		}
 	}

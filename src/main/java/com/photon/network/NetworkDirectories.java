@@ -57,6 +57,7 @@ public class NetworkDirectories
 		
 		public String discordBotToken = "";
 		public String discordBotChannelID = "";
+		public String discordBotChannelID_LOG = "";
 		public String channelID_LOG = "";
 		public String channelID_GENERAL = "";
 	}

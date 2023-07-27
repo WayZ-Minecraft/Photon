@@ -17,7 +17,7 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import com.photon.PhotonEngine;
-import com.photon.discord.DiscordEngine;
+import com.photon.discord.OLDDiscordEngine;
 import com.photon.network.NetworkConnectionClient;
 import com.photon.network.messages.requests.ClientRequestSendDiscordLogs;
 
@@ -97,7 +97,7 @@ public class ConsoleManager
 			/* Display the error on discord if enabled */
 			if(logOnDiscord) {
 				/* If on network -> Don't send packets */
-				if(DiscordEngine.jda !=null) DiscordEngine.log(type.color, type+subTypeName, object);
+				if(OLDDiscordEngine.jda !=null) OLDDiscordEngine.log(type.color, type+subTypeName, object);
 				else {
 					final ClientRequestSendDiscordLogs request = new ClientRequestSendDiscordLogs();
 					request.type = type;
@@ -139,7 +139,7 @@ public class ConsoleManager
 			request.subType = subType;
 			request.content = o;
 			NetworkConnectionClient.sendTCP(request);
-			if(DiscordEngine.jda !=null) DiscordEngine.log(type.color, type+subType, o);
+			if(OLDDiscordEngine.jda !=null) OLDDiscordEngine.log(type.color, type+subType, o);
 		}
 	}
 	

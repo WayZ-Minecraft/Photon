@@ -8,7 +8,7 @@ import java.io.IOException;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.photon.PhotonEngine;
-import com.photon.discord.DiscordEngine;
+import com.photon.discord.OLDDiscordEngine;
 import com.photon.network.NetworkConnectionServer;
 import com.photon.network.NetworkDirectories;
 import com.photon.network.NetworkObjectRegistry;
@@ -120,8 +120,8 @@ public class MessageListenerServer implements Listener
 	            connection.sendTCP(response);
 	        }
 	        
-	        else if (object instanceof ClientRequestSendDiscordLogs request && DiscordEngine.jda !=null) {
-	        	DiscordEngine.log(request.type.color, request.type+" : "+request.subType, request.content);
+	        else if (object instanceof ClientRequestSendDiscordLogs request && OLDDiscordEngine.jda !=null) {
+	        	OLDDiscordEngine.log(request.type.color, request.type+" : "+request.subType, request.content);
 	        }
 	        
 	        else if (object instanceof ClientRequestAddServer request) {

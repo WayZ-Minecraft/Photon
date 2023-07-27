@@ -5,14 +5,14 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import com.photon.discord.BotEngine;
+import com.photon.discord.Roles;
 
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 
 public class CustomMute {
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    public static final Long MUTE_ROLE_ID = 1133846380994105374L; // TODO: Change this to your mute role id
-    private static final Role muteRole = BotEngine.guild.getRoleById(MUTE_ROLE_ID);
+    private static final Role muteRole = BotEngine.guild.getRoleById(Roles.MUTE.id);
 
 
 

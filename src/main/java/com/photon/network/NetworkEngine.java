@@ -8,7 +8,7 @@ import java.util.Map.Entry;
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.PhotonEngine;
 import com.photon.discord.BotEngine;
-import com.photon.discord.DiscordEngine;
+import com.photon.discord.OLDDiscordEngine;
 import com.photon.informations.PhotonInfosManager;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;

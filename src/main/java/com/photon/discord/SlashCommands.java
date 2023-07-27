@@ -1,12 +1,15 @@
 package com.photon.discord;
 
+
 import java.util.ArrayList;
 import java.util.List;
 
 import com.photon.discord.advancedCommands.CustomMute;
 
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -32,7 +35,8 @@ public class SlashCommands {
         .addOption(OptionType.USER , "user", "the user", true, false)
         .addOption(OptionType.INTEGER, "day", "time of mute", false, false)
         .addOption(OptionType.INTEGER, "hours", "time of mute", false, false)
-        .addOption(OptionType.INTEGER, "minutes", "time of mute", false, false));
+        .addOption(OptionType.INTEGER, "minutes", "time of mute", false, false)
+        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.VOICE_MUTE_OTHERS)));
     }
 
     /**

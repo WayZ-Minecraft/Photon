@@ -5,7 +5,7 @@ import java.util.TimerTask;
 
 import com.esotericsoftware.kryonet.Server;
 import com.photon.PhotonEngine;
-import com.photon.discord.DiscordEngine;
+import com.photon.discord.OLDDiscordEngine;
 import com.photon.network.NetworkDirectories.NetworkConfig;
 import com.photon.network.listeners.MessageListenerServer;
 import com.photon.util.ConsoleManager;
@@ -23,7 +23,7 @@ public class NetworkConnectionServer
             server.bind(PhotonEngine.network_Tcp, PhotonEngine.network_Udp);
             server.start();
             server.addListener(new MessageListenerServer());
-            DiscordEngine.showNetworkPanel();
+            OLDDiscordEngine.showNetworkPanel();
         } catch (Exception e) {
         	ConsoleManager.print(EnumLogType.NETWORK, true, "Can't start Network Server: \n - " + e);
         	e.printStackTrace();
@@ -33,9 +33,9 @@ public class NetworkConnectionServer
     private static void closingServices() {
     	ConsoleManager.print(EnumLogType.NETWORK, true, "Network shut down successfully!");
     	if(server !=null) server.close();
-    	if(DiscordEngine.jda !=null) {
+    	if(OLDDiscordEngine.jda !=null) {
     		new Timer().schedule(new TimerTask() {
-    			public void run() { DiscordEngine.jda.shutdownNow(); }
+    			public void run() { OLDDiscordEngine.jda.shutdownNow(); }
     		}, TIME_BEFORE_STOP);
     	}
     }

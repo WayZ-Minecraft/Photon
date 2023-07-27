@@ -18,7 +18,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
-public class DiscordEngine {
+public class OLDDiscordEngine {
 
 	public static JDA jda;
 
@@ -38,7 +38,7 @@ public class DiscordEngine {
         	final JDABuilder builder = JDABuilder.createDefault(PhotonInfosManager.getInfos().discord_bot_token);
         	builder.disableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE);
         	builder.setActivity(Activity.playing("/"));
-        	builder.addEventListeners(new DiscordEventListeners());
+        	builder.addEventListeners(new OLDDiscordEventListeners());
 			jda = builder.build();
 			final InputStream stream = PhotonInfosManager.getGameLogoInputStream();
 			if(stream !=null) jda.getSelfUser().getManager().setAvatar(Icon.from(stream)).complete();

@@ -19,8 +19,12 @@ public class BotEngine extends ListenerAdapter {
     
     public static Guild guild;
 
+    /**
+     * Load the bot, register slash commands and start it
+     * @throws LoginException
+     */
     public static void load() throws LoginException {
-        String token = NetworkDirectories.config.discordBotToken; //TODO : add your token here;
+        String token = NetworkDirectories.config.discordBotToken;
         JDABuilder botBuilder = JDABuilder.createDefault(token);
         botBuilder.setActivity(Activity.playing("/"));
         

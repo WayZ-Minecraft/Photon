@@ -23,7 +23,7 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
-public class DiscordEventListeners extends ListenerAdapter
+public class OLDDiscordEventListeners extends ListenerAdapter
 {
 	@Override
 	public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
@@ -65,10 +65,10 @@ public class DiscordEventListeners extends ListenerAdapter
 //	            ConsoleManager.print(EnumLogType.NETWORK, "A client request news adding: "+request.objNews.authorUUID+"\nDate: "+request.objNews.date + "\nTitle: " + request.objNews.title);
 //	        }
 			final EmbedBuilder updateImgEmbed = new EmbedBuilder();
-			updateImgEmbed.setColor(DiscordEngine.EMBED_THEME_COLOR);
+			updateImgEmbed.setColor(OLDDiscordEngine.EMBED_THEME_COLOR);
 			updateImgEmbed.setImage(NetworkDirectories.config.webUrl+"/project-logo.png");
 			final EmbedBuilder updateContentEmbed = new EmbedBuilder();
-			updateContentEmbed.setColor(DiscordEngine.EMBED_THEME_COLOR);
+			updateContentEmbed.setColor(OLDDiscordEngine.EMBED_THEME_COLOR);
 			switch(subName) {
 			case "news":
 				break;
@@ -98,7 +98,7 @@ public class DiscordEventListeners extends ListenerAdapter
 	public void onButtonInteraction(ButtonInteractionEvent event) {
 		switch(event.getComponentId()) {
 		case "network_restart":
-			final EmbedBuilder embed = DiscordEngine.getNetworkPanel();
+			final EmbedBuilder embed = OLDDiscordEngine.getNetworkPanel();
 			embed.setDescription("Restarted");
 			event.editMessageEmbeds(embed.build()).queue();
 			NetworkConnectionServer.restart();

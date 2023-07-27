@@ -72,6 +72,9 @@ public class SlashCommands {
             case "restart-network":
                 restartNetwork(event);
                 break;
+            case "link-account":
+                linkAccount(event);
+                break;
             default:
                 break;
         }
@@ -132,7 +135,7 @@ public class SlashCommands {
         final String ingameUUID = event.getOption("uuid").getAsString();
         final String AUTHCODE = String.valueOf(event.getOption("authkey").getAsInt());
         if(!ProfileManager.isAuthCodeValid(ingameUUID, AUTHCODE)) {
-            if(ProfileManager.doesProfileExistByUUID(ingameUUID)) event.reply("Error your User Id is wrong or doesn't exist").queue();
+            if(!ProfileManager.doesProfileExistByUUID(ingameUUID)) event.reply("Error your User Id is wrong or doesn't exist").queue();
             else event.reply("Error your authentication Key is wrong").queue();
             return;
         }

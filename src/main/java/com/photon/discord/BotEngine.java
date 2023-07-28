@@ -1,10 +1,7 @@
 package com.photon.discord;
 
 import java.awt.Color;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.Arrays;
 
 import javax.security.auth.login.LoginException;
@@ -14,12 +11,12 @@ import org.jetbrains.annotations.NotNull;
 import com.photon.discord.slashCommands.AutoCompleteCommands;
 import com.photon.discord.slashCommands.SlashCommands;
 import com.photon.network.NetworkDirectories;
-import com.photon.util.ConsoleManager;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -82,7 +79,7 @@ public class BotEngine extends ListenerAdapter {
         embed.setTitle(title);
         embed.setDescription(content.toString());
         guild.getTextChannelById(NetworkDirectories.config.discordBotChannelID_LOG).sendMessageEmbeds(embed.build()).queue();
-        
+
         if (file != null){
             FileUpload uploadfile = FileUpload.fromData(file, "log.txt");
             guild.getTextChannelById(NetworkDirectories.config.discordBotChannelID_LOG).sendFiles(uploadfile).queue();
@@ -95,6 +92,17 @@ public class BotEngine extends ListenerAdapter {
     //     if (event.getAuthor().isBot()) return;
     //     ConsoleManager.create("Discord").displayOnDiscord().withType(ConsoleManager.EnumLogType.INFO).withFile(new File(".gitignore")).end();
     // }
+
+    /**
+     * Send a direct message to a user
+     * @param user The user to send the message to
+     * @param content The content of the message
+     */
+    public void sendDirectMessage(User user, String content) {
+    user.openPrivateChannel()
+        .flatMap(channel -> channel.sendMessage(content))
+        .queue();
+    }
 
     /**
      * Handle slash commands

@@ -12,6 +12,7 @@ import com.photon.discord.slashCommands.AutoCompleteCommands;
 import com.photon.discord.slashCommands.SlashCommands;
 import com.photon.discord.usersInteraction.MemberJoin;
 import com.photon.discord.usersInteraction.data.UsersInfo;
+import com.photon.discord.usersInteraction.language.LanguageChoice;
 import com.photon.network.NetworkDirectories;
 import com.photon.util.ConsoleManager;
 import com.photon.util.TranslationManager;
@@ -25,6 +26,8 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -145,18 +148,24 @@ public class BotEngine extends ListenerAdapter {
     }
 
 
-    // @Override
-    // public void onGuildMemberRoleAdd(@NotNull GuildMemberRoleAddEvent event) {
-    //     ConsoleManager.create("Role added to " + event.getUser().getName()).displayOnDiscord().end();
-    //     System.out.println(event.getRoles().get(0).getName());
+    /**
+     * When a user get a role
+     * @param event The event of a user getting a role
+     */
+    @Override
+    public void onGuildMemberRoleAdd(@NotNull GuildMemberRoleAddEvent event) {
+        LanguageChoice.onMemberRoleAdd(event);
+        MemberJoin.onMemberRoleAdd(event);
+    }
 
-    // }
 
-    // @Override
-    // public void onGuildMemberRoleRemove(@NotNull GuildMemberRoleRemoveEvent event) {
-    //     ConsoleManager.create("Role removed from " + event.getUser().getName()).displayOnDiscord().end();
-    //     System.out.println(event.getRoles().get(0).getName());
-
-    // }
+    /**
+     * When a user lose a role
+     * @param event The event of a user losing a role
+     */
+    @Override
+    public void onGuildMemberRoleRemove(@NotNull GuildMemberRoleRemoveEvent event) {
+        LanguageChoice.onMemberRoleRemove(event);
+    }
 
 }

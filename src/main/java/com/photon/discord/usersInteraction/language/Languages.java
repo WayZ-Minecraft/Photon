@@ -1,4 +1,4 @@
-package com.photon.discord.usersInteraction;
+package com.photon.discord.usersInteraction.language;
 
 /**
  * Enum to manage the languages

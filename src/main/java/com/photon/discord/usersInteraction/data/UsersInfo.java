@@ -3,7 +3,7 @@ package com.photon.discord.usersInteraction.data;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import com.photon.discord.usersInteraction.Languages;
+import com.photon.discord.usersInteraction.language.Languages;
 import com.photon.network.objects.discord.InfoType;
 import com.photon.network.objects.discord.ObjectDiscord;
 import com.photon.network.objects.discord.object_type.GlobalObject;
@@ -54,6 +54,14 @@ public class UsersInfo {
             globalInfo.Users.put(id, userInfo);
         }
         save();
+    }
+    
+    /**
+     * Remove a user from the database
+     * @param id the id of the user
+     */
+    public static void removeUser(String id) {
+        globalInfo.Users.remove(id);
     }
 
     /**
@@ -154,20 +162,36 @@ public class UsersInfo {
             }
         } else {
             addUser(id);
-            removeLanguages(id, languages);
         }
         save();
     }
 
-
-
-
     /**
-     * Remove a user from the database
+     * Add xp to the user
      * @param id the id of the user
+     * @param xp the xp to add
      */
-    public static void removeUser(String id) {
-        globalInfo.Users.remove(id);
+    public static void addXp(String id, int xp) {
+        if (globalInfo.Users.containsKey(id)) {
+            globalInfo.Users.get(id).xp += xp;
+        } else {
+            addUser(id);
+            addXp(id, xp);
+        }
+        save();
     }
 
+    /**
+     * Get the xp of the user
+     * @param id the id of the user
+     * @return int : the xp of the user
+     */
+    public static int getXp(String id) {
+        if (globalInfo.Users.containsKey(id)) {
+            return globalInfo.Users.get(id).xp;
+        } else {
+            addUser(id);
+            return 0;
+        }
+    }
 }

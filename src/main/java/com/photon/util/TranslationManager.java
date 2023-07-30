@@ -42,7 +42,9 @@ public class TranslationManager {
 		try {
 			InputStream stream = FileLocation.loadFile(path + "/lang_" + locale.getLanguage() + ".properties");
 			if(stream == null) return;
-			BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+
+			/* Read the file */
+			final BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
 			String line;
 			properties.clear();
 			while((line = reader.readLine()) !=null) {

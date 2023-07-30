@@ -53,6 +53,11 @@ public class FileLocation {
 		return font.deriveFont(size);
 	}
 	
+	/**
+	 * Load a file from the resources folder
+	 * @param file The path of the file
+	 * @return InputStream of the file
+	 */
 	public static InputStream loadFile(String file) { return ClassLoader.getSystemClassLoader().getResourceAsStream(file); }	
 	
 	public static File getWorkingDirectory(String workDir) {

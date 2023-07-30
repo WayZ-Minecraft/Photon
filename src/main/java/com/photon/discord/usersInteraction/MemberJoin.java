@@ -1,6 +1,7 @@
 package com.photon.discord.usersInteraction;
 
 import com.photon.discord.Roles;
+import com.photon.discord.usersInteraction.data.UsersInfo;
 import com.photon.util.ConsoleManager;
 import com.photon.util.TranslationManager;
 

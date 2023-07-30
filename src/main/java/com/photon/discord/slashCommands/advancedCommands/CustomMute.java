@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.photon.discord.BotEngine;
 import com.photon.discord.Roles;
+import com.photon.discord.usersInteraction.data.MutesInfo;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Role;
@@ -15,7 +16,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class CustomMute {
-    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(0);
     private static final Role muteRole = BotEngine.guild.getRoleById(Roles.MUTE.id);
 
     private static HashMap<String, Integer> muteDuration = new HashMap<String, Integer>(){{
@@ -30,15 +31,51 @@ public class CustomMute {
 
 
     /**
+     * Mute a user (add a role to the user)
+     * @param user The user to mute
+     */
+    public static void mute(User user){
+        BotEngine.guild.addRoleToMember(user, muteRole).queue();
+    }
+
+    /**
+     * Unmute a user (remove mute role to the user)
+     * @param user The user to unmute
+     */
+    public static void unmute(User user){
+        BotEngine.guild.removeRoleFromMember(user, muteRole).queue();
+    }
+
+
+    /**
      * Mute a user for a certain amount of time (add a role to the user)
      * @param user The user to mute
      * @param time The mute duration in minutes
      * @author Mini
      */
     private static void timeMute(User user, int time) {
-        BotEngine.guild.addRoleToMember(user, muteRole).queue();
-        scheduler.schedule(() -> BotEngine.guild.removeRoleFromMember(user, muteRole).queue(), time, TimeUnit.MINUTES);
+        mute(user);
+        MutesInfo.addUser(user.getId(), time);
+
+        // Unmute the user after the time
+        activeUnmute(user, time);
         
+    }
+    
+
+    /**
+     * Unmute a user after a certain amount of time
+     * @param user The user to unmute
+     * @param time The mute duration in minutes
+     * @author Mini
+     * 
+     * @see {@link #timeMute(User, int)} to mute a user
+     * @note this method is used for reactivating the unmute after a bot restart
+     */
+    public static void activeUnmute(User user, int time){
+        scheduler.schedule(() -> {
+            MutesInfo.removeUser(user.getId());
+        }, time, TimeUnit.MINUTES);
     }
 
 

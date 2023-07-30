@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import com.photon.discord.slashCommands.AutoCompleteCommands;
 import com.photon.discord.slashCommands.SlashCommands;
 import com.photon.discord.usersInteraction.MemberJoin;
-import com.photon.discord.usersInteraction.UsersInfo;
+import com.photon.discord.usersInteraction.data.UsersInfo;
 import com.photon.network.NetworkDirectories;
 import com.photon.util.ConsoleManager;
 import com.photon.util.TranslationManager;
@@ -68,7 +68,7 @@ public class BotEngine extends ListenerAdapter {
         SlashCommands.load();
 
         TranslationManager.loadAllLanguages("lang");
-        UsersInfo.load();
+        UsersInfo.init();
     }
 
     /**

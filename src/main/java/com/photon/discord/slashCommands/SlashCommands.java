@@ -38,7 +38,7 @@ public class SlashCommands {
         commands.add(Commands.slash("tempmute", "use to mute a temporaly a specifique player")
         .addOption(OptionType.USER , "user", "the user", true, false)
         .addOption(OptionType.STRING, "duration", "time of mute", true, true)
-        .addOption(OptionType.STRING, "reason", "the reason of the mute", false, false)
+        .addOption(OptionType.STRING, "reason", "the reason of the mute", true, false)
         .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.VOICE_MUTE_OTHERS)));
 
         // Add commands restart network

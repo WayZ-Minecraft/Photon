@@ -17,6 +17,7 @@ public class NetworkDirectories
 	public static File profilesDirectory = new File(baseDirectory + "/profiles/");
 	public static File newsDirectory = new File(baseDirectory + "/news/");
 	public static File logsDirectory = new File(baseDirectory + "/logs/");
+	public static File discordDirectory = new File(baseDirectory + "/discord/");
 
 	public static NetworkConfig config = NetworkConfig.DEFAULT;
 	public static File configFile = new File(baseDirectory + "/config.json");
@@ -28,6 +29,7 @@ public class NetworkDirectories
 		if (!profilesDirectory.exists()) profilesDirectory.mkdirs();
 		if (!newsDirectory.exists()) newsDirectory.mkdirs();
 		if (!logsDirectory.exists()) logsDirectory.mkdirs();
+		if (!discordDirectory.exists()) discordDirectory.mkdirs();
 		
 		try {
 			final Gson gson = new GsonBuilder().setPrettyPrinting().create();

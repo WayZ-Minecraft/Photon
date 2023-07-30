@@ -10,7 +10,11 @@ import org.jetbrains.annotations.NotNull;
 
 import com.photon.discord.slashCommands.AutoCompleteCommands;
 import com.photon.discord.slashCommands.SlashCommands;
+import com.photon.discord.usersInteraction.MemberJoin;
+import com.photon.discord.usersInteraction.UsersInfo;
 import com.photon.network.NetworkDirectories;
+import com.photon.util.ConsoleManager;
+import com.photon.util.TranslationManager;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDABuilder;
@@ -19,11 +23,18 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.FileUpload;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 
+
+/**
+ * Main class of the bot, load the bot and register importante slash commands
+ */
 public class BotEngine extends ListenerAdapter {
     
     public static JDABuilder botBuilder;
@@ -43,12 +54,21 @@ public class BotEngine extends ListenerAdapter {
         
         botBuilder.addEventListeners(new BotEngine());
         botBuilder.addEventListeners(new AutoCompleteCommands());
+        botBuilder.addEventListeners(new MemberJoin());
         botBuilder.enableIntents(GatewayIntent.MESSAGE_CONTENT);
+        botBuilder.enableIntents(GatewayIntent.GUILD_MEMBERS);
+        botBuilder.enableIntents(GatewayIntent.GUILD_PRESENCES);
+        
+        botBuilder.setMemberCachePolicy(MemberCachePolicy.ALL);
 
         if(Arrays.asList(args).contains("--restart")) isRestarting = true;
 
+
         botBuilder.build();
         SlashCommands.load();
+
+        TranslationManager.loadAllLanguages("lang");
+        UsersInfo.load();
     }
 
     /**
@@ -65,6 +85,7 @@ public class BotEngine extends ListenerAdapter {
             isRestarting = false;
         }
     }
+
 
     /**
      * To log something on discord console manager chanel
@@ -85,13 +106,6 @@ public class BotEngine extends ListenerAdapter {
             guild.getTextChannelById(NetworkDirectories.config.discordBotChannelID_LOG).sendFiles(uploadfile).queue();
         };
     }
-
-    // Test consol manager TODO: remove
-    // @Override
-    // public void onMessageReceived(net.dv8tion.jda.api.events.message.MessageReceivedEvent event) {
-    //     if (event.getAuthor().isBot()) return;
-    //     ConsoleManager.create("Discord").displayOnDiscord().withType(ConsoleManager.EnumLogType.INFO).withFile(new File(".gitignore")).end();
-    // }
 
     /**
      * Send a direct message to a user
@@ -114,5 +128,35 @@ public class BotEngine extends ListenerAdapter {
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         SlashCommands.onSlashCommand(event);
     }
+
+    @Override
+    public void onGuildMemberJoin(@NotNull GuildMemberJoinEvent event) {
+        UsersInfo.addUser(event.getUser().getId());
+        ConsoleManager.create(event.getUser().getName()).displayOnDiscord().end();
+    }
+
+    /**
+     * When a user leave the server, remove him from the database
+     * @param event The event of a user leaving the server
+     */
+    @Override
+    public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent event) {
+        UsersInfo.removeUser(event.getUser().getId());
+    }
+
+
+    // @Override
+    // public void onGuildMemberRoleAdd(@NotNull GuildMemberRoleAddEvent event) {
+    //     ConsoleManager.create("Role added to " + event.getUser().getName()).displayOnDiscord().end();
+    //     System.out.println(event.getRoles().get(0).getName());
+
+    // }
+
+    // @Override
+    // public void onGuildMemberRoleRemove(@NotNull GuildMemberRoleRemoveEvent event) {
+    //     ConsoleManager.create("Role removed from " + event.getUser().getName()).displayOnDiscord().end();
+    //     System.out.println(event.getRoles().get(0).getName());
+
+    // }
 
 }

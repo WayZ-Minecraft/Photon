@@ -1,7 +1,10 @@
 package com.photon.discord;
-
+/**
+ * enume to definde roles
+ * @author Mini
+ */
 public enum Roles {
-    /* Class to definde roles */
+    
 
     // Hight staff
     FOUNDER(1091681102495760455L),
@@ -14,7 +17,10 @@ public enum Roles {
     
 
     // Member
-    MUTE(1134122689326485504L);
+    MUTE(1134122689326485504L),
+    FR(1091681759076294736L),
+    EN(1091681719180079104L);
+    
 
     public long id;
 

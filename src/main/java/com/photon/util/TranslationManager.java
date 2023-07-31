@@ -66,7 +66,6 @@ public class TranslationManager {
 			
 			/* Get the file as InputStream from locale */
 			final InputStream stream = FileLocation.loadFile(path + "/lang_" + locale.getLanguage() + ".properties");
-			ConsoleManager.create(path + "/lang_" + locale.getLanguage() + ".properties").end();
 			if(stream == null) return;
 
 			/* Read the file */
@@ -89,7 +88,6 @@ public class TranslationManager {
 			
 			/* Added the properties to then required language */
 			languages.put(locale.getLanguage(), properties);
-			ConsoleManager.create(languages).end();
 
 		} catch (IOException e) {
 			e.printStackTrace();

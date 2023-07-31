@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import com.photon.discord.slashCommands.AutoCompleteCommands;
 import com.photon.discord.slashCommands.SlashCommands;
 import com.photon.discord.usersInteraction.MemberJoin;
+import com.photon.discord.usersInteraction.xpManager;
 import com.photon.discord.usersInteraction.data.UsersInfo;
 import com.photon.discord.usersInteraction.language.LanguageChoice;
 import com.photon.network.NetworkDirectories;
@@ -21,7 +22,6 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
@@ -29,6 +29,7 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.FileUpload;
@@ -71,9 +72,8 @@ public class BotEngine extends ListenerAdapter {
         SlashCommands.load();
 
         TranslationManager.loadAllLanguages("lang");
-        UsersInfo.init();
     }
-
+    
     /**
      * Register slash commands when the bot is ready
      * @param event The event of the bot being ready
@@ -87,6 +87,7 @@ public class BotEngine extends ListenerAdapter {
             guild.getTextChannelById(NetworkDirectories.config.discordBotChannelID).sendMessage("Network restarted").queue();
             isRestarting = false;
         }
+        UsersInfo.init();
     }
 
 
@@ -110,16 +111,6 @@ public class BotEngine extends ListenerAdapter {
         };
     }
 
-    /**
-     * Send a direct message to a user
-     * @param user The user to send the message to
-     * @param content The content of the message
-     */
-    public void sendDirectMessage(User user, String content) {
-    user.openPrivateChannel()
-        .flatMap(channel -> channel.sendMessage(content))
-        .queue();
-    }
 
     /**
      * Handle slash commands
@@ -166,6 +157,20 @@ public class BotEngine extends ListenerAdapter {
     @Override
     public void onGuildMemberRoleRemove(@NotNull GuildMemberRoleRemoveEvent event) {
         LanguageChoice.onMemberRoleRemove(event);
+    }
+
+    /**
+     * When a message is received
+     * @param event The event of a message being received
+     */
+    @Override
+    public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+        if (event.getAuthor().isBot()) return;
+        if (event.getChannel().getId().equals(NetworkDirectories.config.discordBotChannelID)){
+
+            xpManager.onMessageReceived(event);
+        };
+
     }
 
 }

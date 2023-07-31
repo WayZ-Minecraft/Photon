@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.photon.discord.slashCommands.advancedCommands.CustomMute;
+import com.photon.discord.usersInteraction.xpManager;
 import com.photon.network.NetworkEngine;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.objects.ProfileManager;
@@ -49,6 +50,10 @@ public class SlashCommands {
         commands.add(Commands.slash("link-account", "link your minecraft account to your discord account")
         .addOption(OptionType.STRING, "uuid", "your WayZ unique user identity (in game)", true, false)
         .addOption(OptionType.STRING, "authkey", "your authentication Key", true, false));
+
+        //add commands Level
+        commands.add(Commands.slash("level", "show your level")
+        .addOption(OptionType.USER, "user", "the user", false, false));
     }
 
     /**
@@ -75,6 +80,8 @@ public class SlashCommands {
             case "link-account":
                 linkAccount(event);
                 break;
+            case "level":
+                xpManager.levelEmbed(event);
             default:
                 break;
         }

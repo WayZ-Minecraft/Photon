@@ -33,6 +33,8 @@ public class FileLocation {
 		} catch (Exception e) {}
 	}
 
+	public static void playSound(String file) { playSound(file, 0f); }
+
 	public static BufferedImage loadImage(String image) {
 		try {
 			final InputStream stream = loadFile(image);

@@ -3,7 +3,7 @@ package com.photon.network.objects.discord.object_type;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import com.photon.discord.usersInteraction.Languages;
+import com.photon.discord.usersInteraction.language.Languages;
 import com.photon.network.objects.discord.ObjectDiscord;
 
 /**
@@ -20,5 +20,6 @@ public class GlobalObject extends ObjectDiscord {
     public class UserInfo {
         public boolean firstConnection = true;
         public ArrayList<Languages> language = new ArrayList<>();
+        public int xp = 0; 
     }
 }

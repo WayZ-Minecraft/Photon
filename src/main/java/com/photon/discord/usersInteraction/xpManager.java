@@ -10,7 +10,6 @@ import java.net.URL;
 
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 
 import com.photon.discord.usersInteraction.data.UsersInfo;
 import com.photon.network.NetworkDirectories;
@@ -95,12 +94,12 @@ public class xpManager {
         }
     }
 
-    private static JPanel getProgressBar(int Userxp, int MaxLevel){
+    private static JPanel getProgressBar(int Userxp, int XpLevel){
         JPanel panel = new JPanel();
         ColoredProgressbar progressBar = new ColoredProgressbar(Color.WHITE, Color.GREEN);
         progressBar.setBounds(200, 75, 300, 50);
         progressBar.setValue(Userxp);
-        progressBar.setMaximum(MaxLevel);
+        progressBar.setMaximum(XpLevel);
         progressBar.setArcSize(10, 10);
 
         panel.add(progressBar);

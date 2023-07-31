@@ -18,7 +18,6 @@ import java.util.logging.Logger;
 
 import com.photon.PhotonEngine;
 import com.photon.discord.BotEngine;
-import com.photon.discord.OLDDiscordEngine;
 import com.photon.network.NetworkConnectionClient;
 import com.photon.network.messages.requests.ClientRequestSendDiscordLogs;
 
@@ -146,7 +145,6 @@ public class ConsoleManager
 			request.subType = subType;
 			request.content = o;
 			NetworkConnectionClient.sendTCP(request);
-			if(OLDDiscordEngine.jda !=null) OLDDiscordEngine.log(type.color, type+subType, o);
 		}
 	}
 	

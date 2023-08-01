@@ -17,6 +17,7 @@ import java.awt.font.TextLayout;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
 import java.text.AttributedString;
 
 public class PhotonInterfaceUtils {
@@ -149,9 +150,10 @@ public class PhotonInterfaceUtils {
     
     public static BufferedImage colorImage(BufferedImage image, int red, int green, int blue) { return colorImage(image, new Color(red, green, blue, 255)); }
     
-    public static BufferedImage roundImageCorner(Image image, int arcw, int arch) { return roundImageCorner(getImageAsBufferedImage(image), arcw, arch); }
+    public static BufferedImage roundImageCorner(Image image, int arcw, int arch, ImageObserver observer) { return roundImageCorner(getImageAsBufferedImage(image), arcw, arch, observer); }
+    public static BufferedImage roundImageCorner(Image image, int arcw, int arch) { return roundImageCorner(getImageAsBufferedImage(image), arcw, arch, null); }
     
-    public static BufferedImage roundImageCorner(BufferedImage image, int arcw, int arch) {
+    public static BufferedImage roundImageCorner(BufferedImage image, int arcw, int arch, ImageObserver observer) {
         final int w = image.getWidth();
         final int h = image.getHeight();
         BufferedImage output = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
@@ -159,10 +161,11 @@ public class PhotonInterfaceUtils {
         Graphics2D g2 = output.createGraphics();
         g2.setComposite(AlphaComposite.Src);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setColor(Color.WHITE);
+        g2.setColor(new Color(255, 0, 0, 255));
         g2.fill(new RoundRectangle2D.Double(0, 0, w, h, arcw, arch));
-        g2.setComposite(AlphaComposite.SrcAtop);
-        g2.drawImage(image, 0, 0, null);
+        g2.setComposite(AlphaComposite.SrcIn); // Change from SrcAtop to SrcIn to fix transparency
+        g2.drawImage(image, 0, 0, observer);
+        g2.setBackground(new Color(0, 0, 0, 0));
         g2.dispose();
         
         return output;
@@ -188,10 +191,15 @@ public class PhotonInterfaceUtils {
     	g.drawImage(img, x,  (parenth - w) / 2, w, h, null); 
     }
     
-    public static void drawRoundedImage(Graphics g, Image img, int x, int y, int w, int h, int arcw, int arch) {
+    public static void drawRoundedImage(Graphics g, BufferedImage img, int x, int y, int w, int h, int arcw, int arch, ImageObserver observer) {
     	activateSmoothing(g);
-    	g.drawImage(roundImageCorner(img, arcw, arch), x, y, w, h, null);
+    	g.drawImage(roundImageCorner(img, arcw, arch, observer), x, y, w, h, observer);
     }
+
+    public static void drawRoundedImage(Graphics g, BufferedImage img, int x, int y, int w, int h, int arcw, int arch) {
+    	drawRoundedImage(g, img, x, y, w, h, arcw, arch, null);
+    }
+
     
     public static void drawCenteredRoundedImage(Graphics g, Image img, Rectangle parent, int w, int h, int arcw, int arch) {
     	activateSmoothing(g);

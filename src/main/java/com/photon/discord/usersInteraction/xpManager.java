@@ -1,22 +1,26 @@
 package com.photon.discord.usersInteraction;
 
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
 import javax.imageio.ImageIO;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 import com.photon.discord.usersInteraction.data.UsersInfo;
 import com.photon.network.NetworkDirectories;
 import com.photon.ui.PhotonInterfaceUtils;
 import com.photon.ui.components.progressbar.ColoredProgressbar;
+import com.photon.ui.images.RoundedImage;
 
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -46,37 +50,37 @@ public class xpManager {
     }
     
     public static void levelEmbed(SlashCommandInteractionEvent event){
-        User user = event.getOption("user").getAsUser() == null ? event.getUser() : event.getOption("user").getAsUser();
+        final int widthPicture = 500;
+        final int heightPicture = 150;
 
-        BufferedImage image = new BufferedImage(500, 150, BufferedImage.TYPE_INT_ARGB);
+        User user = event.getOption("user") == null ? event.getUser() : event.getOption("user").getAsUser();
+
+        BufferedImage image = new BufferedImage(widthPicture, heightPicture, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = image.createGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        PhotonInterfaceUtils.drawRoundedRect(g2d, 0, 0, widthPicture, heightPicture, 40, 40, new Color(11, 12, 13));
 
-        drawAvatar(g2d,user.getAvatar().getUrl(), 10, 10, 128, 128);
 
-        
+        drawAvatar(g2d,user.getAvatar().getUrl(), 10, 60, 80, 80);
+
         int Userxp = UsersInfo.getXp(user.getId());
-        
+              
+        JPanel pb = getProgressBar(Userxp, 100);
+        pb.paint(g2d);
 
-        
-        PhotonInterfaceUtils.drawTextAlignedRight(g2d, String.format("%s/100", Userxp), 490 , 50, Color.LIGHT_GRAY, new Font("Arial", 0, 25));
-        PhotonInterfaceUtils.drawText(g2d, "Level 1", 200, 50, Color.LIGHT_GRAY, new Font("Arial", 0, 25));
+        JPanel title = drawTitle();
+        title.paint(g2d);
 
-        JPanel panel = getProgressBar(Userxp, 100);
-        panel.paint(g2d);
         g2d.dispose(); // Release resources
-
-
+        
+        
         // Save the BufferedImage as a PNG file
         try {
             File output = new File(NetworkDirectories.discordDirectory,"xpScreen.png");
             ImageIO.write(image, "png", output);
 
-            EmbedBuilder embed = new EmbedBuilder();
-            embed.setTitle(user.getGlobalName() + "'s xp");
-            embed.setImage("attachment://xpScreen.png");
-            embed.setColor(Color.GREEN);
             FileUpload file = FileUpload.fromData(output);
-            event.replyFiles(file).addEmbeds(embed.build()).queue();
+            event.replyFiles(file).queue();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -85,26 +89,66 @@ public class xpManager {
 
     }
 
+    private static JPanel drawTitle(){
+        JPanel panel = new JPanel();
+        RoundedImage roundedImage = new RoundedImage("src/main/resources/logo.png", 30, 30);
+        roundedImage.setBounds(10, 10, 40, 40);
+
+
+        String nameString = "<html><p style='color: white'>NIVEAU DE <span style='color: #8b2628'>Mini</span></p></html>";
+        JLabel titleText = new JLabel(nameString);
+        titleText.setBounds(60, 15, 300, 30);
+        titleText.setFont(new Font("Arial", 0, 20));
+
+        panel.add(titleText);
+        panel.add(roundedImage);
+
+        panel.setSize(500, 50);
+        panel.setBackground(new Color(0, true));
+        return panel;
+    }
+
     private static void drawAvatar(Graphics2D g2d, String url, int x, int y, int width, int height) {
         try {
             BufferedImage avatar = ImageIO.read(new URL(url));
-            g2d.drawImage(avatar, x, y, width, height, null);
+            PhotonInterfaceUtils.drawRoundedImage(g2d, avatar, x, y, width, height, width*2, height*2);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     private static JPanel getProgressBar(int Userxp, int XpLevel){
+        final int decalx = 110;
+        final int decaly = 80;
+        final int boxWidth = 360;
+
         JPanel panel = new JPanel();
-        ColoredProgressbar progressBar = new ColoredProgressbar(Color.WHITE, Color.GREEN);
-        progressBar.setBounds(200, 75, 300, 50);
+        
+        ColoredProgressbar progressBar = new ColoredProgressbar(new Color(24, 26, 28), new Color(139, 38, 40));
+        progressBar.setBounds(0 + decalx, 40 + decaly, boxWidth, 20);
         progressBar.setValue(Userxp);
         progressBar.setMaximum(XpLevel);
         progressBar.setArcSize(10, 10);
+        
+        String levelString = "<html><p style='color: white'>NIVEAU <span style='color: #8b2628'>1</span></p></html>";
+        JLabel level = new JLabel(levelString);
+        level.setBounds(0 + decalx, 0 + decaly, boxWidth/2, 30);
+        level.setFont(new Font("Arial", 0, 20));
+        
+        String xpString = String.format("<html><p style='color: #A4A4A4'>%s <span style='color: white'>/</span> <span style='color: #8b2628'>%s</span></p></html>", Userxp, XpLevel);
+        JLabel xp = new JLabel(xpString);
+        xp.setBounds(decalx + boxWidth/2, decaly, boxWidth/2, 30);
+        xp.setHorizontalAlignment(SwingConstants.RIGHT);
+        xp.setFont(new Font("Arial", 0, 20));
 
+
+        
         panel.add(progressBar);
-        panel.setSize(500, 150);
+        panel.add(level);
+        panel.add(xp);
+
         panel.setBackground(new Color(0, true));
+        panel.setSize(500, 150);
 
         return panel;
     }

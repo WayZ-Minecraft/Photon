@@ -18,6 +18,7 @@ public class MemberJoin extends ListenerAdapter {
      * @author Mini
      */
     public static void onMemberJoin(GuildMemberJoinEvent event) {
+        UsersInfo.setFirstConnection(event.getUser().getId(), false);
         event.getUser().openPrivateChannel().queue(channel -> {
 
             ConsoleManager.create("Welcome message sent to " + event.getUser().getName()).displayOnDiscord().end();

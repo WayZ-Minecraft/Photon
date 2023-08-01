@@ -4,26 +4,39 @@ import java.awt.Color;
 import java.awt.Graphics;
 
 import javax.swing.JComponent;
-import javax.swing.JPanel;
-
+import javax.swing.border.EmptyBorder;
 @SuppressWarnings("serial")
-public abstract class Panel extends JPanel
+public class Panel extends JComponent
 {
-    public static final Color TRANSPARENT = new Color(0, 0, 0, 0);
-    public static final Color LITTLE_TRANSPARENT_WHITE = new Color(255, 255, 255, 50);
-	public Frame frame;
 	
-	public Panel(Frame parent) { this.frame = parent; }
-	
-	public void addComponent(JComponent component) {
-		this.add(component);
+	public Panel() { super(); }
+
+	/**
+	 * Add padding to the panel
+	 * @param paddingTop
+	 * @param paddingRight
+	 * @param paddingBottom
+	 * @param paddingLeft
+	 */
+	public void setPadding(int paddingTop, int paddingRight, int paddingBottom, int paddingLeft) { 
+		this.setBorder(new EmptyBorder(paddingTop, paddingLeft, paddingBottom, paddingRight));
 	}
-		
+
+	public void setPadding(int paddingTopBottom, int paddingLeftRight) { this.setPadding(paddingTopBottom, paddingLeftRight, paddingTopBottom, paddingLeftRight); }
+
+	public void setPadding(int padding) { this.setPadding(padding, padding, padding, padding); }
+	
 	@Override
-    protected void paintComponent(Graphics g) {
-		super.paintComponent(g);
-		this.drawPanel(g);
-	}
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        g.setColor(new Color(18, 200, 0, 50));
+		g.fillRect(0, 0, 100, 150);
+
+		g.setColor(new Color(0, 0, 0, 255));
+		g.drawString("Test Encore oui", 0, 5);
+
+    }
+
 	
-	public abstract void drawPanel(Graphics g);
 }

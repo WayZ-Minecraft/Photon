@@ -1,7 +1,6 @@
 package com.photon.discord.usersInteraction;
 
 import java.awt.Color;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -51,15 +50,14 @@ public class xpManager {
     
     public static void levelEmbed(SlashCommandInteractionEvent event){
         final int widthPicture = 500;
-        final int heightPicture = 150;
+        final int heightPicture = 160;
 
         User user = event.getOption("user") == null ? event.getUser() : event.getOption("user").getAsUser();
 
         BufferedImage image = new BufferedImage(widthPicture, heightPicture, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = image.createGraphics();
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        PhotonInterfaceUtils.drawRoundedRect(g2d, 0, 0, widthPicture, heightPicture, 40, 40, new Color(11, 12, 13));
-
+        PhotonInterfaceUtils.drawRoundedRect(g2d, 0, 0, widthPicture, heightPicture, 40, 40, new Color(24, 26, 28));
 
         drawAvatar(g2d,user.getAvatar().getUrl(), 10, 60, 80, 80);
 
@@ -95,13 +93,21 @@ public class xpManager {
         roundedImage.setBounds(10, 10, 40, 40);
 
 
-        String nameString = "<html><p style='color: white'>NIVEAU DE <span style='color: #8b2628'>Mini</span></p></html>";
+        String nameString = "<html><p style='color: #A4A4A4'>NIVEAU DE <span style='color: #8b2628'>Mini</span></p></html>";
         JLabel titleText = new JLabel(nameString);
         titleText.setBounds(60, 15, 300, 30);
         titleText.setFont(new Font("Arial", 0, 20));
 
+        String rankString = "<html><p style='color: white'>#1</p></html>";
+        JLabel rankText = new JLabel(rankString);
+        rankText.setBounds(310, 15, 150, 30);
+        rankText.setFont(new Font("Arial", 0, 20));
+        rankText.setHorizontalAlignment(SwingConstants.RIGHT);
+
+
         panel.add(titleText);
         panel.add(roundedImage);
+        panel.add(rankText);
 
         panel.setSize(500, 50);
         panel.setBackground(new Color(0, true));
@@ -111,21 +117,22 @@ public class xpManager {
     private static void drawAvatar(Graphics2D g2d, String url, int x, int y, int width, int height) {
         try {
             BufferedImage avatar = ImageIO.read(new URL(url));
-            PhotonInterfaceUtils.drawRoundedImage(g2d, avatar, x, y, width, height, width*2, height*2);
+            PhotonInterfaceUtils.drawRoundedImage(g2d, avatar, x, y, width, height, 200, 200);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     private static JPanel getProgressBar(int Userxp, int XpLevel){
-        final int decalx = 110;
+        final int decalx = 120;
         final int decaly = 80;
-        final int boxWidth = 360;
+        final int boxWidth = 340;
+        final int textSize = 18;
 
         JPanel panel = new JPanel();
         
-        ColoredProgressbar progressBar = new ColoredProgressbar(new Color(24, 26, 28), new Color(139, 38, 40));
-        progressBar.setBounds(0 + decalx, 40 + decaly, boxWidth, 20);
+        ColoredProgressbar progressBar = new ColoredProgressbar(new Color(100, 100, 100), new Color(139, 38, 40));
+        progressBar.setBounds(0 + decalx, 20 + textSize + decaly, boxWidth, 12);
         progressBar.setValue(Userxp);
         progressBar.setMaximum(XpLevel);
         progressBar.setArcSize(10, 10);
@@ -133,13 +140,13 @@ public class xpManager {
         String levelString = "<html><p style='color: white'>NIVEAU <span style='color: #8b2628'>1</span></p></html>";
         JLabel level = new JLabel(levelString);
         level.setBounds(0 + decalx, 0 + decaly, boxWidth/2, 30);
-        level.setFont(new Font("Arial", 0, 20));
+        level.setFont(new Font("Arial", 0, textSize));
         
         String xpString = String.format("<html><p style='color: #A4A4A4'>%s <span style='color: white'>/</span> <span style='color: #8b2628'>%s</span></p></html>", Userxp, XpLevel);
         JLabel xp = new JLabel(xpString);
         xp.setBounds(decalx + boxWidth/2, decaly, boxWidth/2, 30);
         xp.setHorizontalAlignment(SwingConstants.RIGHT);
-        xp.setFont(new Font("Arial", 0, 20));
+        xp.setFont(new Font("Arial", 0, textSize));
 
 
         

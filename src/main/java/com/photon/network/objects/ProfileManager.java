@@ -107,6 +107,12 @@ public class ProfileManager
         return profileFile.exists() && profileFile.length() > 0L;
     }
     
+	/**
+	 * Checks if the profile exists for this UUID and if the auth code corresponds to the profile UUID
+	 * @param givenUUID ingame UUID
+	 * @param givenAuthCode auth code from ingame
+	 * @return Boolean : true if the profile exists and the auth code corresponds to the profile UUID, false otherwise
+	 */
     public static boolean isAuthCodeValid(final String givenUUID, final String givenAuthCode) {
         if (doesProfileExistByUUID(givenUUID)) { return getProfileFromUUID(givenUUID).discordAuthCode.equals(givenAuthCode); }
         return false;

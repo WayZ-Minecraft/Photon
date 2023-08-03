@@ -17,6 +17,8 @@ public class NetworkDirectories
 	public static File profilesDirectory = new File(baseDirectory + "/profiles/");
 	public static File newsDirectory = new File(baseDirectory + "/news/");
 	public static File logsDirectory = new File(baseDirectory + "/logs/");
+	public static File discordDirectory = new File(baseDirectory + "/discord/");
+	public static File sqlDirectory = new File(baseDirectory + "/sql/");
 
 	public static NetworkConfig config = NetworkConfig.DEFAULT;
 	public static File configFile = new File(baseDirectory + "/config.json");
@@ -32,6 +34,8 @@ public class NetworkDirectories
 		if (!profilesDirectory.exists()) profilesDirectory.mkdirs();
 		if (!newsDirectory.exists()) newsDirectory.mkdirs();
 		if (!logsDirectory.exists()) logsDirectory.mkdirs();
+		if (!discordDirectory.exists()) discordDirectory.mkdirs();
+		if (!sqlDirectory.exists()) sqlDirectory.mkdirs();
 		
 		try {
 			final Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -59,7 +63,9 @@ public class NetworkDirectories
 		public String webUser = "";
 		public String webPassword = "";
 		
-		public String discordPrefix = "!";
+		public String discordBotToken = "";
+		public String discordBotChannelID = "";
+		public String discordBotChannelID_LOG = "";
 		public String channelID_LOG = "";
 		public String channelID_GENERAL = "";
 	}

@@ -9,10 +9,21 @@ import java.util.TimerTask;
 
 import javax.swing.JOptionPane;
 
+
+import com.photon.network.NetworkEngine;
+import com.photon.util.ConsoleManager;
+
 public class ApplicationUtils {
 
-	public static void restart(Class<?> clazz, String[] commands) { restart(clazz, 1500L, commands); }
+	public static void restart(Class<?> clazz, String... commands) { restart(clazz, 1500L, commands); }
 	
+
+	/**
+	 * Restart the current app
+	 * @param clazz The class of the app (ex: Network: {@link NetworkEngine#main() NetworkEngine})
+	 * @param time The time in ms before exiting the command line
+	 * @param commands Additionals startup commands
+	 */
 	public static void restart(Class<?> clazz, long time, String[] commands) {
 		try {
 			final File currentJar = new File(clazz.getProtectionDomain().getCodeSource().getLocation().toURI());

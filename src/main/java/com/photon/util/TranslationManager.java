@@ -18,6 +18,8 @@ public class TranslationManager {
 	public static final Locale locale_de = new Locale("de", "DE");
 	public static final Locale locale_ru = new Locale("ru", "RU");
 
+	public static String activeLocale = "en";
+
 	/* The list that contains every locales */
 	private static ArrayList<Locale> locales = new ArrayList<>(){{
 		add(locale_en);
@@ -52,6 +54,7 @@ public class TranslationManager {
 			}
 		}
 		load(locale, path);
+		activeLocale = locale.getLanguage();
 	}
 	
 
@@ -115,6 +118,10 @@ public class TranslationManager {
 		/* Return the Translated key */
 		return prop == null ? key : String.format(prop, obj);
 	}
+
+	public static String format(String key, Object... obj) { return format(activeLocale, key, obj); }
+	
+	public static String format(String key) { return format(activeLocale, key, new Object()); }
 
 
     /**

@@ -11,7 +11,6 @@ import javax.swing.JOptionPane;
 
 
 import com.photon.network.NetworkEngine;
-import com.photon.util.ConsoleManager;
 
 public class ApplicationUtils {
 

@@ -47,12 +47,39 @@ public class xpManager {
         final String message = event.getMessage().getContentDisplay();
         UsersInfo.addXp(user.getId(), xpValue(message));
     }
+
+    /**
+     * Give xp to a user
+     * @param event The event of a SlashCommand
+     */
+    public static void giveXp(SlashCommandInteractionEvent event){
+        final User user = event.getOption("user").getAsUser();
+        final int xp = event.getOption("xp").getAsInt();
+        UsersInfo.addXp(user.getId(), xp);
+        event.reply("Vous avez donné " + xp + " xp à " + user.getGlobalName()).queue();
+    }
+
+    /**re
+     * Remove xp to a user
+     * @param event The event of a SlashCommand
+     */
+    public static void removeXp(SlashCommandInteractionEvent event){
+        final User user = event.getOption("user").getAsUser();
+        final int xp = event.getOption("xp").getAsInt();
+        UsersInfo.removeXp(user.getId(), xp);
+        event.reply("Vous avez retiré " + xp + " xp à " + user.getGlobalName()).queue();
+    }
     
     public static void levelEmbed(SlashCommandInteractionEvent event){
         final int widthPicture = 500;
         final int heightPicture = 160;
 
-        User user = event.getOption("user") == null ? event.getUser() : event.getOption("user").getAsUser();
+        final User user = event.getOption("user") == null ? event.getUser() : event.getOption("user").getAsUser();
+        final String userName = user.getGlobalName();
+        final int userRank = UsersInfo.getRank(user.getId());
+        final int Userxp = UsersInfo.getXp(user.getId());
+        final int userLevel = UsersInfo.getLevel(user.getId());
+        final int userXpToNextLevel = UsersInfo.getXpToNextLevel(user.getId());
 
         BufferedImage image = new BufferedImage(widthPicture, heightPicture, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = image.createGraphics();
@@ -61,12 +88,11 @@ public class xpManager {
 
         drawAvatar(g2d,user.getAvatar().getUrl(), 10, 60, 80, 80);
 
-        int Userxp = UsersInfo.getXp(user.getId());
               
-        JPanel pb = getProgressBar(Userxp, 100);
+        JPanel pb = getProgressBar(Userxp, userXpToNextLevel, userLevel);
         pb.paint(g2d);
 
-        JPanel title = drawTitle();
+        JPanel title = drawTitle(userName, userRank);
         title.paint(g2d);
 
         g2d.dispose(); // Release resources
@@ -87,18 +113,18 @@ public class xpManager {
 
     }
 
-    private static JPanel drawTitle(){
+    private static JPanel drawTitle(String name, int rank){
         JPanel panel = new JPanel();
         RoundedImage roundedImage = new RoundedImage("src/main/resources/logo.png", 30, 30);
         roundedImage.setBounds(10, 10, 40, 40);
 
 
-        String nameString = "<html><p style='color: #A4A4A4'>NIVEAU DE <span style='color: #8b2628'>Mini</span></p></html>";
+        String nameString = "<html><p style='color: #A4A4A4'>NIVEAU DE <span style='color: #8b2628'>"+name+"</span></p></html>";
         JLabel titleText = new JLabel(nameString);
         titleText.setBounds(60, 15, 300, 30);
         titleText.setFont(new Font("Arial", 0, 20));
 
-        String rankString = "<html><p style='color: white'>#1</p></html>";
+        String rankString = "<html><p style='color: white'>#"+rank+"</p></html>";
         JLabel rankText = new JLabel(rankString);
         rankText.setBounds(310, 15, 150, 30);
         rankText.setFont(new Font("Arial", 0, 20));
@@ -123,7 +149,14 @@ public class xpManager {
         }
     }
 
-    private static JPanel getProgressBar(int Userxp, int XpLevel){
+    /**
+     * Create a JPanel with the progress bar
+     * @param Userxp The xp of the user
+     * @param XpLevel The xp needed to level up
+     * @param levelNumber The level of the user
+     * @return JPanel : The JPanel with the progress bar
+     */
+    private static JPanel getProgressBar(int Userxp, int XpLevel, int levelNumber){
         final int decalx = 120;
         final int decaly = 80;
         final int boxWidth = 340;
@@ -137,7 +170,7 @@ public class xpManager {
         progressBar.setMaximum(XpLevel);
         progressBar.setArcSize(10, 10);
         
-        String levelString = "<html><p style='color: white'>NIVEAU <span style='color: #8b2628'>1</span></p></html>";
+        String levelString = "<html><p style='color: white'>NIVEAU <span style='color: #8b2628'>"+levelNumber+"</span></p></html>";
         JLabel level = new JLabel(levelString);
         level.setBounds(0 + decalx, 0 + decaly, boxWidth/2, 30);
         level.setFont(new Font("Arial", 0, textSize));

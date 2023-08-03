@@ -8,6 +8,7 @@ import com.photon.network.objects.discord.InfoType;
 import com.photon.network.objects.discord.ObjectDiscord;
 import com.photon.network.objects.discord.object_type.GlobalObject;
 import com.photon.network.objects.discord.object_type.GlobalObject.UserInfo;
+import com.photon.network.sql.SqlInteract;
 import com.photon.util.ConsoleManager;
 
 /**
@@ -167,18 +168,52 @@ public class UsersInfo {
     }
 
     /**
-     * Add xp to the user
+     * Add xp to the user, if the user have enough xp to level up, it will level up
      * @param id the id of the user
      * @param xp the xp to add
      */
     public static void addXp(String id, int xp) {
-        if (globalInfo.Users.containsKey(id)) {
-            globalInfo.Users.get(id).xp += xp;
+        int xpToNextLevel = getXpToNextLevel(id);
+        final int userXp = getXp(id);
+        int level = getLevel(id);
+        if (userXp + xp >= xpToNextLevel) {
+            while (userXp + xp >= xpToNextLevel) {
+                xp -= xpToNextLevel;
+                level++;
+                xpToNextLevel = SqlInteract.getXpLevel(level);
+            }
+            SqlInteract.setLevel(id, level);
+            SqlInteract.setXp(id, userXp + xp);
         } else {
-            addUser(id);
-            addXp(id, xp);
+            SqlInteract.addXp(id, xp);
         }
-        save();
+    }
+
+    /**
+     * Remove xp to the user, if the user have not enough xp to level down, it will level down
+     * @param id the id of the user
+     * @param xp the xp to remove
+     */
+    public static void removeXp(String id, int xp) {
+        int xpToNextLevel = getXpToNextLevel(id);
+        final int userXp = getXp(id);
+        int level = getLevel(id);
+        if (userXp - xp < 0) {
+            while (userXp - xp < 0 && level > 1) {
+                level--;
+                xpToNextLevel = SqlInteract.getXpLevel(level);
+                xp -= xpToNextLevel;
+            }
+
+            if (level == 1 && userXp - xp < 0) {SqlInteract.setXp(id, 0); SqlInteract.setLevel(id, 1);}
+            else {
+                SqlInteract.setXp(id, userXp - xp);
+                SqlInteract.setLevel(id, level);
+            }
+        }
+        else {
+            SqlInteract.addXp(id, -xp);;
+        }
     }
 
     /**
@@ -187,11 +222,50 @@ public class UsersInfo {
      * @return int : the xp of the user
      */
     public static int getXp(String id) {
-        if (globalInfo.Users.containsKey(id)) {
-            return globalInfo.Users.get(id).xp;
-        } else {
-            addUser(id);
-            return 0;
-        }
+        return SqlInteract.getXp(id);
+    }
+
+    /**
+     * Get the rank of the user
+     * @param id the id of the user
+     * @return int : the rank of the user (-1 if sql error)
+     */
+    public static int getRank(String id) {
+        return SqlInteract.getRank(id);
+    }
+
+    /**
+     * Add a level to the user
+     * @param id the id of the user
+     */
+    public static void addLevel(String id) {
+        SqlInteract.addLevel(id, 1);
+    }
+
+    /**
+     * Remove a level to the user
+     * @param id the id of the user
+     */
+    public static void removeLevel(String id) {
+        if (getLevel(id) > 1) SqlInteract.addLevel(id, -1);
+        
+    }
+
+    /**
+     * Get the level of the user
+     * @param id the id of the user
+     * @return int : the level of the user (-1 if sql error)
+     */
+    public static int getLevel(String id) {
+        return SqlInteract.getLevel(id);
+    }
+
+    /**
+     * Get the xp to the next level of the user
+     * @param id the id of the user
+     * @return int : the xp to the next level of the user (-1 if sql error)
+     */
+    public static int getXpToNextLevel(String id) {
+        return SqlInteract.getXpLevel(getLevel(id));
     }
 }

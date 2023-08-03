@@ -20,6 +20,5 @@ public class GlobalObject extends ObjectDiscord {
     public class UserInfo {
         public boolean firstConnection = true;
         public ArrayList<Languages> language = new ArrayList<>();
-        public int xp = 0; 
     }
 }

@@ -45,6 +45,10 @@ dependencies {
 	/* Discord */
 	implementation("net.dv8tion:JDA:5.0.0-beta.12")
     implementation 'ch.qos.logback:logback-classic:1.4.8'
+
+	// sqlite jdbc
+	implementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.42.0.0'
+
 }
 
 tasks.withType(JavaCompile).configureEach { it.options.release = 17 }

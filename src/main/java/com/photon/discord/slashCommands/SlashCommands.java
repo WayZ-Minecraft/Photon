@@ -54,6 +54,18 @@ public class SlashCommands {
         //add commands Level
         commands.add(Commands.slash("level", "show your level")
         .addOption(OptionType.USER, "user", "the user", false, false));
+
+        //give xp command
+        commands.add(Commands.slash("give-xp", "give xp to a player")
+        .addOption(OptionType.USER, "user", "the user", true, false)
+        .addOption(OptionType.INTEGER, "xp", "the amount of xp", true, false)
+        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+
+        //remove xp command
+        commands.add(Commands.slash("remove-xp", "remove xp to a player")
+        .addOption(OptionType.USER, "user", "the user", true, false)
+        .addOption(OptionType.INTEGER, "xp", "the amount of xp", true, false)
+        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
     }
 
     /**
@@ -82,6 +94,13 @@ public class SlashCommands {
                 break;
             case "level":
                 xpManager.levelEmbed(event);
+                break;
+            case "give-xp":
+                xpManager.giveXp(event);
+                break;
+            case "remove-xp":
+                xpManager.removeXp(event);
+                break;
             default:
                 break;
         }

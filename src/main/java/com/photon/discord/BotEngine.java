@@ -15,6 +15,7 @@ import com.photon.discord.usersInteraction.xpManager;
 import com.photon.discord.usersInteraction.data.UsersInfo;
 import com.photon.discord.usersInteraction.language.LanguageChoice;
 import com.photon.network.NetworkDirectories;
+import com.photon.network.sql.SqlInteract;
 import com.photon.util.ConsoleManager;
 import com.photon.util.TranslationManager;
 
@@ -70,6 +71,7 @@ public class BotEngine extends ListenerAdapter {
 
         botBuilder.build();
         SlashCommands.load();
+        SqlInteract.connect();
 
         TranslationManager.loadAllLanguages("lang");
     }

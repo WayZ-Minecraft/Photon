@@ -21,9 +21,7 @@ public class MessageListenerClient implements Listener
         else if (object instanceof ServerResponseValidAccount) PhotonEngine.clientAccountResponse = (ServerResponseValidAccount)object;
         else if (object instanceof ServerResponseNetworkConfig) NetworkDirectories.config = ((ServerResponseNetworkConfig)object).config;
         for(INetworkMessageListener listener : MessageListenerCommon.listeners) {
-        	if(listener.useOn() == INetworkListenerSide.CLIENT) {
-        		listener.received(connection, object);
-        	}
+        	if(listener.useOn() == INetworkListenerSide.CLIENT) listener.received(connection, object);
         }
     }
 }

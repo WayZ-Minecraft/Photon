@@ -5,4 +5,4 @@ bin
 build/
 .gradle/
 .vscode/
-.settings/
+./settings/

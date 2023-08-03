@@ -16,13 +16,17 @@ import com.photon.util.ConsoleManager.EnumLogType;
 public class NetworkEngine {
 
 	public static void main(final String[] args) {
-		try {			
+		try {
+            /* Register logs file */
+			ConsoleManager.registerFileHandler(new File(NetworkDirectories.logsDirectory, "network.log"));
+            
+            /* Connecting */
 			PhotonEngine.setIP(PhotonInfosManager.getCurrentIP());
-
+            
 			/* Check ip */
-			ConsoleManager.print(EnumLogType.NETWORK, "Starting Network Server on \"" + PhotonEngine.network_Ip + "\"!");
+            ConsoleManager.create("Starting Network Server on \"" + PhotonEngine.network_Ip + "\"!").withType(EnumLogType.NETWORK).end();
 			if(!PhotonEngine.network_Ip.isEmpty() && !PhotonEngine.network_Ip.equalsIgnoreCase(PhotonEngine.network_Ip_Local) && !PhotonInfosManager.isIPEquals(PhotonEngine.network_Ip)) {
-				ConsoleManager.print(EnumLogType.NETWORK, "Ip doesn't match. Closing Network!");
+                ConsoleManager.create("Ip doesn't match. Closing Network!").withType(EnumLogType.NETWORK).error().end();
 				System.exit(0);
 				return;
 			}
@@ -31,14 +35,25 @@ public class NetworkEngine {
 			NetworkDirectories.load();
 			BotEngine.load(Arrays.asList(args).contains("--restart") ? "--restart" : null);
 			NetworkConnectionServer.load();
-
-			/* Register logs file */
-			ConsoleManager.registerFileHandler(new File(NetworkDirectories.logsDirectory, "network.log"));
 		} catch(Exception e) { e.printStackTrace(); }
     }
 	
+    /**
+     * Get the connection of a player
+     * @param uuid : The uuid of the player
+     * @return The connection of the player
+     * @see Connection
+     * @author Niwer
+     */
 	public static Connection getPlayerConnection(String uuid) { return (uuid == null || uuid.isEmpty()) ? null : PhotonEngine.networkConnectionsList.get(uuid); }
 	
+    /**
+     * Get the uuid of a player from his connection
+     * @param uuid : The uuid of the player
+     * @return The connection of the player
+     * @see Connection
+     * @author Niwer
+     */
 	public static String getPlayerUUID(Connection connection) {
         for(Entry<String, Connection> entry : PhotonEngine.networkConnectionsList.entrySet()) {
         	if(entry.getValue().equals(connection)) return entry.getKey();
@@ -46,6 +61,12 @@ public class NetworkEngine {
         return "";
     }
 	
+    /**
+     * Get the list of all connected connections
+     * @return The list of all connected connections
+     * @see Connection
+     * @author Niwer
+     */
 	public static List<Connection> getConnectedConnection() {
     	List<Connection> list = new ArrayList<>();
         for (Entry<String, Connection> entry : PhotonEngine.networkConnectionsList.entrySet()) {

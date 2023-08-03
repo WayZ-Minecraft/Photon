@@ -23,6 +23,10 @@ public class NetworkDirectories
 	public static NetworkConfig config = NetworkConfig.DEFAULT;
 	public static File configFile = new File(baseDirectory + "/config.json");
 	
+    /**
+     * Load all directories and files
+     * @author Niwer
+     */
 	public static void load() {
 		if (!baseDirectory.exists()) baseDirectory.mkdirs();
 		if (!crashDirectory.exists()) crashDirectory.mkdirs();

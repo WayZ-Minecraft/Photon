@@ -29,6 +29,7 @@ public class TranslationManager {
 	/* The list that saves the languages and properties for these languages */
 	private static final HashMap<String, HashMap<String, String>> languages = new HashMap<>();
 	
+
 	/**
 	 * Load all languages from the given path.
 	 * @param path The path to load from.
@@ -53,6 +54,7 @@ public class TranslationManager {
 		load(locale, path);
 	}
 	
+
 	/** 
 	 * Load a language from the given path.
 	 * @param locale The locale to load. (e.g locale_en, locale_fr, locale_ru, ...)
@@ -69,7 +71,8 @@ public class TranslationManager {
 			if(stream == null) return;
 
 			/* Read the file */
-			final BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+
+			final BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
 			String line;
 			while((line = reader.readLine()) !=null) {
 				/* If the line is not empty and not a comment, add it to the list */
@@ -106,16 +109,19 @@ public class TranslationManager {
 		final HashMap<String, String> properties = TranslationManager.languages.get(locale);
 
 		/* Get the propertie for the current key */
+
 		final String prop = properties.get(key);
 
 		/* Return the Translated key */
 		return prop == null ? key : String.format(prop, obj);
 	}
 
-	/**
-	 * Get the OS language as string.
-	 * @return The OS language as id. (e.g en, fr, ru, ...)
-	 */
+
+    /**
+     * Get the system language in locale format
+     * @return the lowercase language code (ex: en, fr, de, ru)
+     * @autor Created by Niwer
+     */
 	public static String getSystem() {
 		String lang = System.getProperty("user.language");
 		switch(lang.toLowerCase()) {

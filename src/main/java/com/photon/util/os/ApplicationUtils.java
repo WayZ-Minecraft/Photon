@@ -9,6 +9,7 @@ import java.util.TimerTask;
 
 import javax.swing.JOptionPane;
 
+
 import com.photon.network.NetworkEngine;
 import com.photon.util.ConsoleManager;
 
@@ -35,6 +36,7 @@ public class ApplicationUtils {
 	 * @param f The file to launch
 	 * @param commands Additionals startup commands
 	 * @param exit Should current app terminate
+     * @autor Created by Niwer
 	 */
 	public static void launch(File f, String[] commands, boolean exit) { launch(f, commands, exit, 1500L); }
 	
@@ -44,6 +46,7 @@ public class ApplicationUtils {
 	 * @param commands Additionals startup commands
 	 * @param exit Should current app terminate
 	 * @param time The time in ms before exiting the command line
+     * @autor Created by Niwer
 	 */
 	public static void launch(File f, String[] commands, boolean exit, long time) {
 		final ArrayList<String> list = new ArrayList<>();
@@ -55,10 +58,7 @@ public class ApplicationUtils {
 		
 		/* Start app */
 		try { new ProcessBuilder(list.toArray(new String[] {})).start(); }
-		catch (Exception e) {
-			ConsoleManager.print("Unable to start the launcher..." + e);
-			e.printStackTrace();
-		}
+		catch (Exception e) { e.printStackTrace(); }
 		if(exit) exitProperly(time);
 	}
     

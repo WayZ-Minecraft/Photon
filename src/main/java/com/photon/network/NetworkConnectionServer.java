@@ -17,16 +17,16 @@ public class NetworkConnectionServer
         try {
             NetworkObjectRegistry.load(server.getKryo());
             server.bind(PhotonEngine.network_Tcp, PhotonEngine.network_Udp);
-            server.start();
+            new Thread(server).start();
             server.addListener(new MessageListenerServer());
         } catch (Exception e) {
-        	ConsoleManager.print(EnumLogType.NETWORK, true, "Can't start Network Server: \n - " + e);
+        	ConsoleManager.create("Can't start Network Server: \n - " + e).withType(EnumLogType.NETWORK).displayOnDiscord().end();
         	e.printStackTrace();
         }
     }
     
     private static void closingServices() {
-    	ConsoleManager.print(EnumLogType.NETWORK, true, "Network shut down successfully!");
+        ConsoleManager.create("Network shut down successfully!").withType(EnumLogType.NETWORK).displayOnDiscord().end();
     	if(server !=null) server.close();
     }
     

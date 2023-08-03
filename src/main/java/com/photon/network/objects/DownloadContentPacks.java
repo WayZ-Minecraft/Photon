@@ -2,7 +2,7 @@ package com.photon.network.objects;
 
 public class DownloadContentPacks {
 	public double size = -1;
-    public int connectionID;
+    public int connectionID = 0;
     public String name = "";
     public boolean isLast = false;
     public boolean dir = false;

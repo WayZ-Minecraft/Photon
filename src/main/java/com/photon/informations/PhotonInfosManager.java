@@ -33,6 +33,7 @@ public class PhotonInfosManager {
 	/**
 	 * Get the current IP of the user using the Amazon AWS service
 	 * @return the current IP of the user
+     * @author Niwer
 	 */
     public static String getCurrentIP() {    	
     	try {
@@ -49,6 +50,7 @@ public class PhotonInfosManager {
 	 * Check if the current IP is equals to the given IP
 	 * @param ip the IP to check
 	 * @return true if the current IP is equals to the given IP
+     * @author Niwer
 	 */
     public static boolean isIPEquals(String ip) { return ip.equalsIgnoreCase(getCurrentIP()); }
     
@@ -58,6 +60,7 @@ public class PhotonInfosManager {
 	 * @return true if the given IP is online
 	 * @throws UnknownHostException : if the IP is not valid
 	 * @throws IOException : if the IP is not reachable
+     * @author Niwer
 	 */
 	public static boolean isOnline(String op) throws UnknownHostException, IOException { return InetAddress.getByName(op).isReachable(100); }
 	
@@ -65,6 +68,7 @@ public class PhotonInfosManager {
 	 * Update the launcher from the given dir
 	 * @param dir the dir where the launcher file is located
 	 * @param ending the extension of the launcher file (JAR, EXE, ...)
+     * @author Niwer
 	 */
 	public static void updateLauncherFromDir(File dir) {
 		if(isUpdating) { ConsoleManager.create("Can't download two files at the same time").end(); return; }
@@ -84,12 +88,14 @@ public class PhotonInfosManager {
 	 * Check if the launcher has an update
 	 * @param actualVersion the actual version of the launcher
 	 * @return true if the launcher has an update
+     * @author Niwer
 	 */
 	public static boolean hasLauncherUpdate(String actualVersion) { return actualVersion.hashCode() != getLatestLauncherUpdate().hashCode(); }
 	
 	/**
 	 * Get the latest version of the launcher
 	 * @return the latest version of the launcher
+     * @author Niwer
 	 */
 	public static String getLatestLauncherUpdate() { return getInfos() == null || getInfos().launcher_version == null ? "UNKNOWN" : getInfos().launcher_version; }
 	
@@ -98,6 +104,7 @@ public class PhotonInfosManager {
 	 * @param fileName the name of the mod file
 	 * @param dir the dir where the mod file is located
 	 * @param currentVersion the current version of the mod
+     * @author Niwer
 	 */
     public static void updateMod(String fileName, File dir, String currentVersion) {
     	if(isUpdating) { ConsoleManager.create("Can't download two files at the same time").end(); return; }
@@ -119,6 +126,7 @@ public class PhotonInfosManager {
 	 * Check if the mod has an update
 	 * @param actualVersion the actual version of the mod
 	 * @return true if the mod has an update
+     * @author Niwer
 	 */
 	public static boolean hasModUpdate(String actualVersion) {
 		final String lastestVersion = getLatestModUpdate();
@@ -128,6 +136,7 @@ public class PhotonInfosManager {
 	/**
 	 * Get the latest version of the mod
 	 * @return the latest version of the mod
+     * @author Niwer
 	 */
 	public static String getLatestModUpdate() { return getInfos() == null || getInfos().mod_version == null ? "UNKNOWN" : getInfos().mod_version; }
 	
@@ -147,7 +156,13 @@ public class PhotonInfosManager {
 		return "UNKNOWN";
 	}
 
-	/* return true if successfull */
+	/** 
+     * Download a file from a given url to a given path
+     * @param remotePath : The url of the file to download
+     * @param localPath : The path where to download the file
+     * @return true if successfull
+     * @author Niwer
+     */
     public static boolean download(final String remotePath, final File localPath) {
         BufferedInputStream in = null;
         FileOutputStream out = null;
@@ -185,6 +200,12 @@ public class PhotonInfosManager {
         return false;
     }
 	
+    /**
+     * Get the game logo from the web
+     * @return the game logo from the web in a BufferedImage
+     * @see getGameLogoInputStream()
+     * @author Niwer
+     */
 	public static BufferedImage getGameLogo() {
 		try {
 			final InputStream stream = getGameLogoInputStream();
@@ -194,6 +215,12 @@ public class PhotonInfosManager {
 		} catch (IOException e) { e.printStackTrace(); return null; }
 	}
 	
+    /**
+     * Get the game logo from the web
+     * @return the game logo from the web in a InputStream
+     * @see getGameLogo()
+     * @author Niwer
+     */
 	public static InputStream getGameLogoInputStream() {
 		try {
 			final URLConnection connection = new URL(NetworkDirectories.config.webUrl + "project-logo.png").openConnection();
@@ -204,6 +231,11 @@ public class PhotonInfosManager {
 		return null;
 	}
 	
+    /**
+     * Get infos from the web
+     * @return All infos from the web in a ObjectInfos
+     * @author Niwer
+     */
 	public static ObjectInfos getInfos() {
         try {
         	final URLConnection connection = new URL(NetworkDirectories.config.webUrl + "infos.json").openConnection();
@@ -213,7 +245,7 @@ public class PhotonInfosManager {
 			final ObjectInfos object = new Gson().fromJson(in, ObjectInfos.class);
 			in.close();
 			return object;
-        } catch (IOException e) { ConsoleManager.create(ConsoleManager.of(e)).withType(EnumLogType.LAUNCHER).error().end(); }
+        } catch (IOException e) { ConsoleManager.create(ConsoleManager.of(e)).withType(EnumLogType.NETWORK).error().end(); }
         return null;
     }
 }

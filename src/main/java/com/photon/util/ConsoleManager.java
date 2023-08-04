@@ -100,7 +100,7 @@ public class ConsoleManager
 			/* Display the error on discord if enabled */
 			if(logOnDiscord) {
 				/* If on network -> Don't send packets */
-				if(BotEngine.botBuilder !=null) BotEngine.log(type.color, type+subTypeName, object, file);
+				if(BotEngine.botBuilder !=null) BotEngine.log(isError? Color.RED :type.color, type+subTypeName, object, file);
 				else {
 					final ClientRequestSendDiscordLogs request = new ClientRequestSendDiscordLogs();
 					request.type = type;

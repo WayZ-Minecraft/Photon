@@ -156,6 +156,29 @@ public class PhotonInfosManager {
 		return "UNKNOWN";
 	}
 
+    /**
+	 * Get the latest version of the API
+	 * @return the latest version of the API
+     * @author Niwer
+	 */
+	public static String getLatestAPIUpdate() { return getInfos() == null || getInfos().api_version == null ? "UNKNOWN" : getInfos().api_version; }
+
+    public static String getLatestAPIURL(String type) { return NetworkDirectories.config.webUrl + "services_updates/" +type+"-" + getLatestAPIUpdate() + ".jar"; }
+
+    public static String getLatestAPISHA1(String type) {
+		try {
+			URL url = new URL(NetworkDirectories.config.webUrl+"services_updates/get_sha1-"+type+".php");
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			ProtectorManager.addProperties(conn);
+			conn.setRequestMethod("GET");
+			BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			String sha1 = reader.readLine();
+			reader.close();
+			return sha1;
+		} catch (IOException e) {}
+		return "UNKNOWN";
+	}
+
 	/** 
      * Download a file from a given url to a given path
      * @param remotePath : The url of the file to download

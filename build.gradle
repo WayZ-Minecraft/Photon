@@ -19,7 +19,6 @@ dependencies {
 	api 'commons-io:commons-io:2.11.0'
 
 	/* Other */
-	api 'net.dv8tion:JDA:5.0.0-beta.12'
 	api 'com.google.code.gson:gson:2.8.8'
 	api 'com.github.crykn:kryonet:2.22.8'
 	api 'com.esotericsoftware:kryo:5.4.1-SNAPSHOT'
@@ -27,15 +26,15 @@ dependencies {
 	/* Mail */
 	api 'com.sun.mail:javax.mail:1.6.2'
 	api 'com.sun.mail:smtp:1.6.2'
-	implementation 'com.sun.mail:pop3:1.6.2'
-	implementation 'com.sun.mail:imap:1.6.2'
+	api 'com.sun.mail:pop3:1.6.2'
+	api 'com.sun.mail:imap:1.6.2'
 	
     /* Discord */
-	implementation("net.dv8tion:JDA:5.0.0-beta.12")
-    implementation 'ch.qos.logback:logback-classic:1.4.8'
+	api 'net.dv8tion:JDA:5.0.0-beta.12'
+    api 'ch.qos.logback:logback-classic:1.4.8'
 
 	/* Sqlite jdbc */
-	implementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.42.0.0'
+	api group: 'org.xerial', name: 'sqlite-jdbc', version: '3.42.0.0'
 
     /* --------------------- */
 
@@ -82,7 +81,17 @@ shadowJar {
    	configurations = [project.configurations.shadow]
    	duplicatesStrategy 'exclude'
 	archiveClassifier.set('')
-    archiveFileName = "network.jar"
+    archiveFileName = "network-${version}.jar"
 }
 
-tasks.build.dependsOn shadowJar
+task apiJar(type: Jar) {
+   	dependsOn shadowJar
+    from zipTree(shadowJar.outputs.files.singleFile)
+    exclude 'sqlite-jbdc.properties', 'natives/**', 'lang/**', 'font/**', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'net/dv8tion/**', 'ch/qos/logback/**', 'com/sun/mail/**', 'javax/mail/**', 'tomp2p/**', 'clib/**'
+    archiveFileName = "api-${version}.jar"
+    manifest {
+        attributes([ "Main-Class": "com.photon.network.NetworkEngine" ])
+    }
+}
+
+tasks.build.dependsOn shadowJar, apiJar

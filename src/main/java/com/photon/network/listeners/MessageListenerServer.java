@@ -150,7 +150,7 @@ public class MessageListenerServer implements Listener
 	            final ServerResponseNetworkConfig response = new ServerResponseNetworkConfig();
 	            response.config = NetworkDirectories.config;
 	            connection.sendTCP(response);
-	        } 
+	        }
 	        
 	        else if (object instanceof ClientRequestAddClass request) NetworkObjectRegistry.addClass(request.name, request.bytes);
 	        else if (object instanceof ClientRequestAddListener request) MessageListenerCommon.addListener(request.listener);

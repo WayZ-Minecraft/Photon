@@ -2,6 +2,7 @@ package com.photon.informations;
 
 public class ObjectInfos
 {
+	public String api_version;
 	public String mod_version;
 	public String launcher_version;
 	

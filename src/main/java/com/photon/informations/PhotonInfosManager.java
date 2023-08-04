@@ -165,6 +165,29 @@ public class PhotonInfosManager {
 
     public static String getLatestAPIURL(String type) { return NetworkDirectories.config.webUrl + "services_updates/" +type+"-" + getLatestAPIUpdate() + ".jar"; }
 
+    /**
+	 * Update the launcher from the given dir
+	 * @param dir the dir where the launcher file is located
+	 * @param ending the extension of the launcher file (JAR, EXE, ...)
+     * @author Niwer
+	 */
+	public static void updateAPIFromDir(File dir) {
+		if(isUpdating) { ConsoleManager.create("Can't download two files at the same time").end(); return; }
+		isUpdating = true;
+		updateFinished = false;
+        download(NetworkDirectories.config.webUrl+"services_updates/network-"+getLatestAPIUpdate()+".jar", new File(dir, "/network.jar"));
+        isUpdating = false;
+        updateFinished = true;
+	}
+
+    /**
+	 * Check if the API has an update
+	 * @param actualVersion the actual version of the API
+	 * @return true if the API has an update
+     * @author Niwer
+	 */
+	public static boolean hasAPIUpdate(String actualVersion) { return actualVersion.hashCode() != getLatestAPIUpdate().hashCode(); }
+
     public static String getLatestAPISHA1(String type) {
 		try {
 			URL url = new URL(NetworkDirectories.config.webUrl+"services_updates/get_sha1-"+type+".php");

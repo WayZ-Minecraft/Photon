@@ -1,15 +1,10 @@
 package com.photon;
 
-import java.awt.Desktop;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-
-import javax.swing.JOptionPane;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.network.NetworkConnectionClient;
@@ -19,31 +14,58 @@ import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.objects.ObjectServer;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
-import com.photon.util.os.OperatingSystem;
 
 public class PhotonEngine {
 	
+    /* API Version */
+	public static final String VERSION = "1.0.0";
+
+    /* Default network values */
 	public static final String network_Ip_Local = "localhost";
 	public static String network_Ip = network_Ip_Local;
     public static int network_Tcp = 54556;
     public static int network_Udp = 54556;
     
+    /* Allow access to the player profile if requested before */
     public static ObjectPlayerAccount clientPlayerProfile;
+
+    /* Allow access to the player account if requested before */
     public static ServerResponseValidAccount clientAccountResponse;
+    
+    /* Allow access to the news list if requested before */
     public static ArrayList<ObjectNews> clientNewsList = new ArrayList<>();
+
+    /* Allow access to the servers list if requested before */
     public static ArrayList<ObjectServer> clientServerList = new ArrayList<>();
     
+    /* Network saves */
     public static ArrayList<ObjectNews> networkNewsList = new ArrayList<>();
     public static ArrayList<ObjectServer> networkServerList = new ArrayList<>();
     public static HashMap<String, Connection> networkConnectionsList = new HashMap<>();
 
-    public static String getDate(boolean showTime) { return getDate(showTime, null); }
+    /**
+     * Get the current date in the official format
+     * @param showTime if true, the time will be added to the date
+     * @param date the date to format, if null, the current date will be used
+     * @return The formatted current date as a String
+     */
+    public static String getDate(boolean showTime) { return getDate(showTime, new Date()); }
     
+    /**
+     * Get the date in the official format
+     * @param showTime if true, the time will be added to the date
+     * @param date the date to format, if null, the current date will be used
+     * @return The formatted date as a String
+     */
     public static String getDate(boolean showTime, Date date) {
-        if(date == null) date = new Date();
         return new SimpleDateFormat("dd-mm-yyyy"+(showTime?"_HH-mm-ss":"")).format(date);
     }
 
+    /**
+     * This allow to connect to the network, if unable to connect to the server, it will try to connect to the local server
+     * @param ip the IP of the server (V.P.S)
+     * @throws IOException if the connection failed on the local server too
+     */
     public static void loadClient(String ip) throws IOException {
     	try {
     		PhotonEngine.setIP(ip);
@@ -64,21 +86,13 @@ public class PhotonEngine {
      */
     public static void setIP(String ip) { network_Ip = ip; }
     
+    /**
+     * Set the ports of the network
+     * @param tcp The TCP protocol port
+     * @param udp The UDP protocol port
+     */
     public static void setPorts(int tcp, int udp) {
     	network_Tcp = tcp;
     	network_Udp = udp;
-    }
-    
-    public static void openURL(String url) {
-    	try { openURL(new URI(url)); } catch (URISyntaxException e) { ConsoleManager.create("Can't open URL : " + e).error().end(); }
-    }
-    
-    public static void openURL(URI url) {
-    	try {
-    		if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) { Desktop.getDesktop().browse(url); }
-            else if (OperatingSystem.getCurrentPlatform() == OperatingSystem.LINUX) { Runtime.getRuntime().exec(new String[] { "xdg-open", url.getPath() }); }
-            else if (OperatingSystem.getCurrentPlatform() == OperatingSystem.OSX) { Runtime.getRuntime().exec(new String[] { "open", url.getPath() }); }
-            else { JOptionPane.showMessageDialog(null, "Unable to open browser, please visit the URL:\n" + url, "Unable to open browser", 0); }
-        } catch (IOException | RuntimeException e) {}
     }
 }

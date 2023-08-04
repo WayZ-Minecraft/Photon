@@ -14,12 +14,15 @@ import javax.sound.sampled.FloatControl;
 
 public class FileLocation {
 	
+	private static boolean mute = false;
+
 	/**
 	 * Play a sound of wav format
 	 * @param file The path of the sound
 	 * @param volume The volume impact of the sound (eg: -10f for -10db or 10f for +10db)
 	 */
 	public static void playSound(String file, float volume) {
+		if(mute) return;
 		try {
 			final AudioInputStream audioIn = AudioSystem.getAudioInputStream(ClassLoader.getSystemClassLoader().getResource(file + (file.contains(".wav") ? "" : ".wav")));
 			final Clip clip = AudioSystem.getClip();
@@ -35,6 +38,8 @@ public class FileLocation {
 
 	public static void playSound(String file) { playSound(file, 0f); }
 
+	public static void muteSound(boolean activeMute){ mute = activeMute;}
+
 	public static BufferedImage loadImage(String image) {
 		try {
 			final InputStream stream = loadFile(image);
@@ -49,10 +54,10 @@ public class FileLocation {
 		Font font = null;
 		try {
 			final InputStream stream = loadFile(path);
-			font = Font.createFont(Font.TRUETYPE_FONT, stream).deriveFont(Font.PLAIN, 15f);
+			font = Font.createFont(Font.TRUETYPE_FONT, stream).deriveFont(Font.PLAIN, size);
 			stream.close();
 		} catch (Exception e) {}
-		return font.deriveFont(size);
+		return font;
 	}
 	
 	/**

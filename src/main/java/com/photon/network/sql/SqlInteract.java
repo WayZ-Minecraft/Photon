@@ -44,6 +44,16 @@ public class SqlInteract {
         }
     }
 
+    private static void reconnect() {
+        if (connexion != null) {
+            try {
+                connexion.close();
+            } catch (SQLException ignore) {
+            }
+        }
+        connect();
+    }
+
     /**
      * Give a list of the xp leaderboard
      * @param top the number of user to get
@@ -73,6 +83,8 @@ public class SqlInteract {
             }
         } catch (SQLException e) {
             ConsoleManager.create("Erreur on geting leaderboad : " + e.getMessage()).error().end();
+            reconnect();
+            return getLeaderboard(top);
         } finally {
             // Fermeture de la connexion
             closeStatement(statement, resultat);
@@ -99,6 +111,8 @@ public class SqlInteract {
 
         } catch (SQLException e) {
             ConsoleManager.create("Erreur on add a new User : " + e.getMessage()).error().end();
+            reconnect();
+            addUser(id);
         } finally {
             // Fermeture de la connexionJ
             closeStatement(statement, resultat);
@@ -129,6 +143,8 @@ public class SqlInteract {
             setXp(id, number);
         } catch (SQLException e) {
             ConsoleManager.create("Erreur on set xp to "+id+" : " + e.getMessage()).error().end();
+            reconnect();
+            setXp(id, number);
         } finally {
             // Fermeture de la connexion
             closeStatement(statement, resultat);
@@ -160,6 +176,8 @@ public class SqlInteract {
             addXp(id, number);
         } catch (SQLException e) {
             ConsoleManager.create("Erreur on add xp to "+id+" : " + e.getMessage()).error().end();
+            reconnect();
+            addXp(id, number);
         } finally {
             // Fermeture de la connexion
             closeStatement(statement, resultat);
@@ -191,12 +209,13 @@ public class SqlInteract {
             return 0;
         } catch (SQLException e) {
             ConsoleManager.create("Erreur on get level of "+id+" : " + e.getMessage()).error().end();
+            reconnect();
+            return getLevel(id);
         } finally {
             // Fermeture de la connexion
             closeStatement(statement, resultat);
         }
 
-        return 0;
     }
 
     /**
@@ -222,6 +241,8 @@ public class SqlInteract {
             setLevel(id, level);
         } catch (SQLException e) {
             ConsoleManager.create("Erreur on set level to "+id+" : " + e.getMessage()).error().end();
+            reconnect();
+            setLevel(id, level);
         } finally {
             // Fermeture de la connexion
             closeStatement(statement, resultat);
@@ -252,6 +273,8 @@ public class SqlInteract {
             addUser(id);
         } catch (SQLException e) {
             ConsoleManager.create("Erreur on add level to "+id+" : " + e.getMessage()).error().end();
+            reconnect();
+            addLevel(id, level);
         } finally {
             // Fermeture de la connexion
             closeStatement(statement, resultat);
@@ -279,15 +302,16 @@ public class SqlInteract {
 
         } catch (LevelNotFoundExepction e) {
             ConsoleManager.create("Erreur on get xp level of "+level+" : " + e.getMessage()).error().displayOnDiscord().end();
-            return 5000;
+            return 500000;
         } catch (SQLException e) {
             ConsoleManager.create("Erreur on get xp level of "+level+" : " + e.getMessage()).error().end();
+            reconnect();
+            return getXpLevel(level);
         } finally {
             // Fermeture de la connexion
             closeStatement(statement, resultat);
         }
 
-        return 0;
     }
 
     /**
@@ -315,12 +339,12 @@ public class SqlInteract {
             return 0;
         } catch (SQLException e) {
             ConsoleManager.create("Erreur on get xp of "+id+" : " + e.getMessage()).error().end();
+            reconnect();
+            return getXp(id);
         } finally {
             // Fermeture de la connexion
             closeStatement(statement, resultat);
         }
-
-        return 0;
 
     }
 
@@ -349,7 +373,7 @@ public class SqlInteract {
 
         } catch (SQLException e) {
             ConsoleManager.create("Erreur on get xp of "+id+" : " + e.getMessage()).error().end();
-            connect();
+            reconnect();
             return getXpToNextLevel(id);
         } finally {
             // Fermeture de la connexion
@@ -382,7 +406,7 @@ public class SqlInteract {
     
             } catch (SQLException e) {
                 ConsoleManager.create("Erreur on get rank of "+id+" : " + e.getMessage()).error().end();
-                connect();
+                reconnect();
                 return getRank(id);
             } catch (PlayerNotFoundException e) {
                 addUser(id);

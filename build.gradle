@@ -1,6 +1,5 @@
 buildscript {
     repositories { mavenCentral() }
-    dependencies { classpath 'com.guardsquare:proguard-gradle:7.3.2' }
 }
 
 plugins {
@@ -20,7 +19,7 @@ dependencies {
 	api 'commons-io:commons-io:2.11.0'
 
 	/* Other */
-	api 'net.dv8tion:JDA:5.0.0-beta.5'
+	api 'net.dv8tion:JDA:5.0.0-beta.12'
 	api 'com.google.code.gson:gson:2.8.8'
 	api 'com.github.crykn:kryonet:2.22.8'
 	api 'com.esotericsoftware:kryo:5.4.1-SNAPSHOT'
@@ -31,12 +30,20 @@ dependencies {
 	implementation 'com.sun.mail:pop3:1.6.2'
 	implementation 'com.sun.mail:imap:1.6.2'
 	
+    /* Discord */
+	implementation("net.dv8tion:JDA:5.0.0-beta.12")
+    implementation 'ch.qos.logback:logback-classic:1.4.8'
+
+	/* Sqlite jdbc */
+	implementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.42.0.0'
+
+    /* --------------------- */
+
 	/* Shadow Apache */
     shadow 'commons-codec:commons-codec:1.15'
 	shadow 'commons-io:commons-io:2.11.0'
 
 	/* Shadow Other */
-	shadow 'net.dv8tion:JDA:5.0.0-beta.12'
 	shadow 'com.google.code.gson:gson:2.8.8'
 	shadow 'com.github.crykn:kryonet:2.22.8'
 	shadow 'com.esotericsoftware:kryo:5.4.1-SNAPSHOT'
@@ -47,13 +54,12 @@ dependencies {
 	shadow 'com.sun.mail:pop3:1.6.2'
 	shadow 'com.sun.mail:imap:1.6.2'
 
-	/* Discord */
-	implementation("net.dv8tion:JDA:5.0.0-beta.12")
-    implementation 'ch.qos.logback:logback-classic:1.4.8'
+    /* Discord */
+	shadow 'net.dv8tion:JDA:5.0.0-beta.12'
+    shadow 'ch.qos.logback:logback-classic:1.4.8'
 
-	// sqlite jdbc
-	implementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.42.0.0'
-
+    /* Sqlite jdbc */
+    shadow group: 'org.xerial', name: 'sqlite-jdbc', version: '3.42.0.0'
 }
 
 tasks.withType(JavaCompile).configureEach { it.options.release = 17 }
@@ -75,18 +81,8 @@ jar {
 shadowJar {
    	configurations = [project.configurations.shadow]
    	duplicatesStrategy 'exclude'
-	archiveClassifier.set('unobfuscated')
+	archiveClassifier.set('')
     archiveFileName = "network.jar"
 }
 
-tasks.register('proguard', proguard.gradle.ProGuardTask) {
-    dependsOn jar
-    dependsOn shadowJar
-    configuration file('obfuscate.pro')
-    injars(tasks.named("shadowJar").flatMap { it.archiveFile })
-    outjars(layout.buildDirectory.file("libs/${archivesBaseName}.jar"))
-    libraryjars(configurations.shadow.filter { it.exists() })
-}
-proguard.shouldRunAfter shadowJar
-
-tasks.build.dependsOn proguard
+tasks.build.dependsOn shadowJar

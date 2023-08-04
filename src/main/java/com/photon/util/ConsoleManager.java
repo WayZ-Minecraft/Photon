@@ -89,7 +89,6 @@ public class ConsoleManager
 		private File file;
 
 		public void end() {
-			if(object == null) throw new Error("Wait ! Object can't be null");
 			final String subTypeName = (isError?" : "+ConsoleManager.ANSI_RED+"ERROR"+type.consoleColor:"");
 
 			/* Changing log format */

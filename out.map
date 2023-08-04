@@ -17685,8 +17685,6 @@ com.photon.network.NetworkDirectories$NetworkConfig -> com.photon.network.Networ
     java.lang.String discordBotToken -> discordBotToken
     java.lang.String discordBotChannelID -> discordBotChannelID
     java.lang.String discordBotChannelID_LOG -> discordBotChannelID_LOG
-    java.lang.String channelID_LOG -> channelID_LOG
-    java.lang.String channelID_GENERAL -> channelID_GENERAL
     void <init>() -> <init>
     void <clinit>() -> <clinit>
     void toJson$0(com.google.gson.Gson,com.google.gson.stream.JsonWriter,proguard.optimize.gson._OptimizedJsonWriter) -> a

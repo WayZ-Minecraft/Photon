@@ -6,3 +6,4 @@ build/
 .gradle/
 .vscode/
 ./settings/
+out.map

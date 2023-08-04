@@ -24,7 +24,7 @@ public class SqlInteract {
 
         try {
             // db parameters
-            String url = "jdbc:sqlite:"+NetworkDirectories.sqlDirectory+"\\test.db";
+            String url = "jdbc:sqlite:"+NetworkDirectories.sqlDirectory+"/main.db";
             // create a connection to the database
             connexion = DriverManager.getConnection(url);
             

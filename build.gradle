@@ -87,7 +87,9 @@ shadowJar {
 task apiJar(type: Jar) {
    	dependsOn shadowJar
     from zipTree(shadowJar.outputs.files.singleFile)
-    exclude 'sqlite-jbdc.properties', 'natives/**', 'lang/**', 'font/**', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'net/dv8tion/**', 'ch/qos/logback/**', 'com/sun/mail/**', 'javax/mail/**', 'tomp2p/**', 'clib/**'
+    exclude 'sqlite-jbdc.properties', 'natives/**', 'lang/**', 'font/**', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 
+        'net/dv8tion/**', 'ch/qos/logback/**', 'com/sun/mail/**', 'javax/mail/**', 'tomp2p/**', 'clib/**',
+        'com/photon/discord/**', 'com/photon/network/NetworkEngine', 'com/photon/ui/**'
     archiveFileName = "api-${version}.jar"
     manifest {
         attributes([ "Main-Class": "com.photon.network.NetworkEngine" ])

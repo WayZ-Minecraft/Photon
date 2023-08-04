@@ -38,7 +38,7 @@ import net.dv8tion.jda.api.utils.MemberCachePolicy;
 
 
 /**
- * Main class of the bot, load the bot and register importante slash commands
+ * Main class of the bot, load the bot and register important slash commands
  */
 public class BotEngine extends ListenerAdapter {
     

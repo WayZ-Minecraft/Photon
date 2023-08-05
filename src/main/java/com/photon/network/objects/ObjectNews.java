@@ -1,6 +1,10 @@
 package com.photon.network.objects;
 
-import java.sql.Date;
+
+import java.util.Date;
+import java.util.HashMap;
+
+import net.dv8tion.jda.api.EmbedBuilder;
 
 
 
@@ -8,7 +12,7 @@ public class ObjectNews
 {
 	public int id;
 	public String title;
-	public String content;
+	public HashMap<String, String> content = new HashMap<String, String>();
 	public Date date;
 	public String imageUrl;
 	
@@ -19,9 +23,10 @@ public class ObjectNews
 	 * @param date the date when the news is create
 	 * @param image the image of the news
 	 */
-	public ObjectNews(String title, String content, Date date, String imageUrl){
+	public ObjectNews(String title, String contentEn, String contentFr, Date date, String imageUrl){
 		this.title = title;
-		this.content = content;
+		this.content.put("en", contentEn);
+		this.content.put("fr", contentFr);
 		this.date = date;
 		this.imageUrl = imageUrl;
 	}
@@ -34,8 +39,8 @@ public class ObjectNews
 	 * @param date the date when the news is create
 	 * @param image the image of the news
 	 */
-	public ObjectNews(int id, String title, String content, Date date, String imageUrl){
-		this(title, content, date, imageUrl);
+	public ObjectNews(int id, String title, String contentEn, String contentFr, Date date, String imageUrl){
+		this(title, contentEn, contentFr, date, imageUrl);
 		this.id = id;
 	}
 	/**
@@ -53,10 +58,15 @@ public class ObjectNews
 	}
 
 	/**
+	 * Return a HashMap with the content of the news (key: language, value: content)
 	 * @return the content of the news
 	 */
-	public String getContent(){
+	public HashMap<String, String> getContent(){
 		return this.content;
+	}
+
+	public String getContent(String language){
+		return this.content.get(language);
 	}
 
 	/**
@@ -71,6 +81,19 @@ public class ObjectNews
 	 */
 	public String getImageUrl(){
 		return this.imageUrl;
+	}
+
+	/**
+	 * Create an embed with the news
+	 * @return the embed of the news
+	 */
+	public EmbedBuilder getEmbed(){
+		EmbedBuilder embed = new EmbedBuilder();
+		embed.setTitle(this.title);
+		embed.setDescription("🇬🇧"+this.content.get("en")+"\n\n🇫🇷"+this.content.get("fr"));
+		embed.setImage(this.imageUrl);
+		embed.setTimestamp(this.date.toInstant());
+		return embed;
 	}
 	
 

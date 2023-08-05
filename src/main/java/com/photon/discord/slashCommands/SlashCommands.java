@@ -87,7 +87,8 @@ public class SlashCommands {
         // Add commands news
         commands.add(Commands.slash("create-news", "create a news")
         .addOption(OptionType.STRING, "title", "the title of the news", true, false)
-        .addOption(OptionType.STRING, "content", "the content of the news", true, false)
+        .addOption(OptionType.STRING, "content-en", "the content of the news", true, false)
+        .addOption(OptionType.STRING, "content-fr", "the content of the news in french", true, false)
         .addOption(OptionType.ATTACHMENT, "image", "the image of the news", true, false)
         .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
 

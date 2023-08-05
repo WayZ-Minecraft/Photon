@@ -86,7 +86,7 @@ public class BotEngine extends ListenerAdapter {
         guild = event.getGuild();
         guild.updateCommands().addCommands(SlashCommands.commands).queue();
         if (isRestarting) {
-            guild.getTextChannelById(NetworkDirectories.config.discordBotChannelID).sendMessage("Network restarted").queue();
+            guild.getTextChannelById(Channels.CONSOLE_NETWROK.id).sendMessage("Network restarted").queue();
             isRestarting = false;
         }
         UsersInfo.init();
@@ -105,11 +105,11 @@ public class BotEngine extends ListenerAdapter {
         embed.setColor(color);
         embed.setTitle(title);
         embed.setDescription(content.toString());
-        guild.getTextChannelById(NetworkDirectories.config.discordBotChannelID_LOG).sendMessageEmbeds(embed.build()).queue();
+        guild.getTextChannelById(Channels.CONSOLE_NETWROK.id).sendMessageEmbeds(embed.build()).queue();
 
         if (file != null){
             FileUpload uploadfile = FileUpload.fromData(file, "log.txt");
-            guild.getTextChannelById(NetworkDirectories.config.discordBotChannelID_LOG).sendFiles(uploadfile).queue();
+            guild.getTextChannelById(Channels.CONSOLE_NETWROK.id).sendFiles(uploadfile).queue();
         };
     }
 

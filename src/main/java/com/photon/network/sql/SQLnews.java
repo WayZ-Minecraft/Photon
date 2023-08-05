@@ -17,8 +17,9 @@ public class SQLnews extends SqlInteract{
     public static void createNews(ObjectNews news) throws SQLException {
 
         final String title = news.getTitle().replace("'", "''");
-        final String content = news.getContent().replace("'", "''");
-        final Date date = news.getDate();
+        final String contentEn = news.getContent("en").replace("'", "''");
+        final String contentFr = news.getContent("fr").replace("'", "''");
+        final Date date = new Date(news.getDate().getTime());
         final String imageUrl = news.getImageUrl();
 
         Statement statement = null;
@@ -26,7 +27,7 @@ public class SQLnews extends SqlInteract{
         statement = connexion.createStatement();
 
         // Exécution de la requête
-        String sqlUpdate = "INSERT INTO News (title, content, date, imagepath) VALUES ('"+title+"', '"+content+"', '"+date+"', '"+imageUrl+"')";
+        String sqlUpdate = "INSERT INTO News (title, contentEn, contentFr, date, imagepath) VALUES ('"+title+"', '"+contentEn+"', '"+contentFr+"', '"+date+"', '"+imageUrl+"')";
         statement.executeUpdate(sqlUpdate);
 
 

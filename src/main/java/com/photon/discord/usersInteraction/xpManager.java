@@ -18,14 +18,13 @@ import com.photon.discord.usersInteraction.data.UsersInfo;
 import com.photon.network.NetworkDirectories;
 import com.photon.ui.PhotonInterfaceUtils;
 import com.photon.ui.components.progressbar.ColoredProgressbar;
-import com.photon.ui.images.RoundedImage;
 
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.utils.FileUpload;
 
-public class xpManager {
+public class XpManager {
 
     /**
      * Calculate the xp value of a message
@@ -70,6 +69,10 @@ public class xpManager {
         event.reply("Vous avez retiré " + xp + " xp à " + user.getGlobalName()).queue();
     }
     
+    /**
+     * Create the picture of the level of a user, and reply it to the user
+     * @param event The event of a SlashCommand
+     */
     public static void levelEmbed(SlashCommandInteractionEvent event){
         final int widthPicture = 500;
         final int heightPicture = 160;
@@ -115,13 +118,11 @@ public class xpManager {
 
     private static JPanel drawTitle(String name, int rank){
         JPanel panel = new JPanel();
-        RoundedImage roundedImage = new RoundedImage("src/main/resources/logo.png", 30, 30);
-        roundedImage.setBounds(10, 10, 40, 40);
 
 
         String nameString = "<html><p style='color: #A4A4A4'>NIVEAU DE <span style='color: #8b2628'>"+name+"</span></p></html>";
         JLabel titleText = new JLabel(nameString);
-        titleText.setBounds(60, 15, 300, 30);
+        titleText.setBounds(20, 15, 300, 30);
         titleText.setFont(new Font("Arial", 0, 20));
 
         String rankString = "<html><p style='color: white'>#"+rank+"</p></html>";
@@ -132,7 +133,6 @@ public class xpManager {
 
 
         panel.add(titleText);
-        panel.add(roundedImage);
         panel.add(rankText);
 
         panel.setSize(500, 50);

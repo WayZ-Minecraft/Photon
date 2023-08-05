@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import com.photon.discord.slashCommands.AutoCompleteCommands;
 import com.photon.discord.slashCommands.SlashCommands;
 import com.photon.discord.usersInteraction.MemberJoin;
-import com.photon.discord.usersInteraction.xpManager;
+import com.photon.discord.usersInteraction.XpManager;
 import com.photon.discord.usersInteraction.data.UsersInfo;
 import com.photon.discord.usersInteraction.language.LanguageChoice;
 import com.photon.network.NetworkDirectories;
@@ -168,10 +168,8 @@ public class BotEngine extends ListenerAdapter {
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         if (event.getAuthor().isBot()) return;
-        if (event.getChannel().getId().equals(NetworkDirectories.config.discordBotChannelID)){
+        XpManager.onMessageReceived(event);
 
-            xpManager.onMessageReceived(event);
-        };
 
     }
 

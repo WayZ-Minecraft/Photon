@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.photon.discord.slashCommands.advancedCommands.CustomMute;
-import com.photon.discord.usersInteraction.xpManager;
+import com.photon.discord.slashCommands.advancedCommands.NewsManager;
+import com.photon.discord.usersInteraction.XpManager;
 import com.photon.network.NetworkEngine;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.objects.ProfileManager;
@@ -26,9 +27,13 @@ public class SlashCommands {
      * @author Mini
      */
     public static void load() {
+
+        /*
+         * Utility Commands for discord server
+         */
+
         // Add commands here
         commands.add(Commands.slash("hello", "say hello to the bot"));
-
 
         // Add commands clear
         commands.add(Commands.slash("clear", "clear a number of message")
@@ -42,6 +47,10 @@ public class SlashCommands {
         .addOption(OptionType.STRING, "reason", "the reason of the mute", true, false)
         .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.VOICE_MUTE_OTHERS)));
 
+        /*
+         * Network Commands
+         */
+
         // Add commands restart network
         commands.add(Commands.slash("restart-network", "restart the network")
         .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
@@ -50,6 +59,10 @@ public class SlashCommands {
         commands.add(Commands.slash("link-account", "link your minecraft account to your discord account")
         .addOption(OptionType.STRING, "uuid", "your WayZ unique user identity (in game)", true, false)
         .addOption(OptionType.STRING, "authkey", "your authentication Key", true, false));
+
+        /* 
+        * Xp Commands
+        */
 
         //add commands Level
         commands.add(Commands.slash("level", "show your level")
@@ -66,6 +79,18 @@ public class SlashCommands {
         .addOption(OptionType.USER, "user", "the user", true, false)
         .addOption(OptionType.INTEGER, "xp", "the amount of xp", true, false)
         .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+
+        /*
+         * News
+         */
+
+        // Add commands news
+        commands.add(Commands.slash("create-news", "create a news")
+        .addOption(OptionType.STRING, "title", "the title of the news", true, false)
+        .addOption(OptionType.STRING, "content", "the content of the news", true, false)
+        .addOption(OptionType.ATTACHMENT, "image", "the image of the news", true, false)
+        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+
     }
 
     /**
@@ -93,13 +118,16 @@ public class SlashCommands {
                 linkAccount(event);
                 break;
             case "level":
-                xpManager.levelEmbed(event);
+                XpManager.levelEmbed(event);
                 break;
             case "give-xp":
-                xpManager.giveXp(event);
+                XpManager.giveXp(event);
                 break;
             case "remove-xp":
-                xpManager.removeXp(event);
+                XpManager.removeXp(event);
+                break;
+            case "create-news":
+                NewsManager.createNews(event);
                 break;
             default:
                 break;

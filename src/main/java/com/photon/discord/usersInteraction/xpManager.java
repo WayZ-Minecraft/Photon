@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.sql.SQLException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JLabel;
@@ -18,6 +19,8 @@ import com.photon.discord.usersInteraction.data.UsersInfo;
 import com.photon.network.NetworkDirectories;
 import com.photon.ui.PhotonInterfaceUtils;
 import com.photon.ui.components.progressbar.ColoredProgressbar;
+import com.photon.util.ConsoleManager;
+import com.photon.util.ConsoleManager.EnumLogType;
 
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -44,7 +47,11 @@ public class XpManager {
     public static void onMessageReceived(MessageReceivedEvent event){
         final User user = event.getAuthor();
         final String message = event.getMessage().getContentDisplay();
-        UsersInfo.addXp(user.getId(), xpValue(message));
+        try {
+            UsersInfo.addXp(user.getId(), xpValue(message));
+        } catch (SQLException ignor) {
+            ConsoleManager.create("An error occured while adding xp to " + user.getGlobalName()+"Please check").error().withType(EnumLogType.NETWORK).displayOnDiscord().end();
+        }
     }
 
     /**
@@ -54,8 +61,12 @@ public class XpManager {
     public static void giveXp(SlashCommandInteractionEvent event){
         final User user = event.getOption("user").getAsUser();
         final int xp = event.getOption("xp").getAsInt();
-        UsersInfo.addXp(user.getId(), xp);
-        event.reply("Vous avez donné " + xp + " xp à " + user.getGlobalName()).queue();
+        try {
+            UsersInfo.addXp(user.getId(), xp);
+        } catch (SQLException e) {
+            event.reply("An error occured while giving xp to " + user.getGlobalName()).queue();
+        }
+        event.reply("You have give " + xp + " xp to" + user.getGlobalName()).queue();
     }
 
     /**re
@@ -65,8 +76,12 @@ public class XpManager {
     public static void removeXp(SlashCommandInteractionEvent event){
         final User user = event.getOption("user").getAsUser();
         final int xp = event.getOption("xp").getAsInt();
-        UsersInfo.removeXp(user.getId(), xp);
-        event.reply("Vous avez retiré " + xp + " xp à " + user.getGlobalName()).queue();
+        try {
+            UsersInfo.removeXp(user.getId(), xp);
+        } catch (SQLException e) {
+            event.reply("An error occured while removing xp to " + user.getGlobalName()).queue();
+        }
+        event.reply("You have remove " + xp + " xp to " + user.getGlobalName()).queue();
     }
     
     /**
@@ -76,33 +91,33 @@ public class XpManager {
     public static void levelEmbed(SlashCommandInteractionEvent event){
         final int widthPicture = 500;
         final int heightPicture = 160;
-
-        final User user = event.getOption("user") == null ? event.getUser() : event.getOption("user").getAsUser();
-        final String userName = user.getGlobalName();
-        final int userRank = UsersInfo.getRank(user.getId());
-        final int Userxp = UsersInfo.getXp(user.getId());
-        final int userLevel = UsersInfo.getLevel(user.getId());
-        final int userXpToNextLevel = UsersInfo.getXpToNextLevel(user.getId());
-
-        BufferedImage image = new BufferedImage(widthPicture, heightPicture, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = image.createGraphics();
-        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        PhotonInterfaceUtils.drawRoundedRect(g2d, 0, 0, widthPicture, heightPicture, 40, 40, new Color(24, 26, 28));
-
-        drawAvatar(g2d,user.getAvatar().getUrl(), 10, 60, 80, 80);
-
-              
-        JPanel pb = getProgressBar(Userxp, userXpToNextLevel, userLevel);
-        pb.paint(g2d);
-
-        JPanel title = drawTitle(userName, userRank);
-        title.paint(g2d);
-
-        g2d.dispose(); // Release resources
         
-        
-        // Save the BufferedImage as a PNG file
         try {
+            final User user = event.getOption("user") == null ? event.getUser() : event.getOption("user").getAsUser();
+            final String userName = user.getGlobalName();
+            final int userRank = UsersInfo.getRank(user.getId());
+            final int Userxp = UsersInfo.getXp(user.getId());
+            final int userLevel = UsersInfo.getLevel(user.getId());
+            final int userXpToNextLevel = UsersInfo.getXpToNextLevel(user.getId());
+
+            BufferedImage image = new BufferedImage(widthPicture, heightPicture, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2d = image.createGraphics();
+            g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            PhotonInterfaceUtils.drawRoundedRect(g2d, 0, 0, widthPicture, heightPicture, 40, 40, new Color(24, 26, 28));
+
+            drawAvatar(g2d,user.getAvatar().getUrl(), 10, 60, 80, 80);
+
+                
+            JPanel pb = getProgressBar(Userxp, userXpToNextLevel, userLevel);
+            pb.paint(g2d);
+
+            JPanel title = drawTitle(userName, userRank);
+            title.paint(g2d);
+
+            g2d.dispose(); // Release resources
+        
+        
+            // Save the BufferedImage as a PNG file
             File output = new File(NetworkDirectories.discordDirectory,"xpScreen.png");
             ImageIO.write(image, "png", output);
 
@@ -111,6 +126,9 @@ public class XpManager {
 
         } catch (IOException e) {
             e.printStackTrace();
+            event.reply("An error occured while getting the level of " + event.getUser().getGlobalName() + "Please retry later. (Staff is notified)").queue();
+        } catch (SQLException e) {
+            event.reply("An error occured while getting the level of " + event.getUser().getGlobalName() + "Please retry later. (Staff is notified)").queue();
         }
 
 

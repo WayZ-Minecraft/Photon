@@ -40,14 +40,29 @@ public class SqlInteract {
         }
     }
 
-    protected static void reconnect() {
-        if (connexion != null) {
-            try {
-                connexion.close();
-            } catch (SQLException ignore) {
-            }
+    /**
+     * If the connection is closed, reconnect
+     * @return true if the connection was closed
+     */
+    protected static boolean reconnect() {
+        if (connexion == null) {
+            connect();
+            return true;
         }
-        connect();
+        return false;
+    }
+
+    public static void testTime(){
+        long startTime = System.currentTimeMillis();
+        for (int i = 0; i < 10000; i++) {
+            try {
+                SQLxp.getXp("");
+                
+            } catch (Exception ignore) {}
+        }
+
+        long endTime = System.currentTimeMillis();
+        ConsoleManager.create("That took " + (endTime - startTime) + " milliseconds").withType(EnumLogType.NETWORK).end();
     }
 
     

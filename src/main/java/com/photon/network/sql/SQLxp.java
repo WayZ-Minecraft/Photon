@@ -16,8 +16,10 @@ public class SQLxp extends SqlInteract {
      * Give a list of the xp leaderboard
      * @param top the number of user to get
      * @return List<String[]> : the list of the user id and xp [id, level, xp]
+     * 
+     * @throws SQLException
      */
-    public static List<String[]> getLeaderboard(int top) {
+    public static List<String[]> getLeaderboard(int top) throws SQLException {
 
         ArrayList<String[]> leadboard = new ArrayList<>();
 
@@ -40,9 +42,11 @@ public class SQLxp extends SqlInteract {
                 leadboard.add(user);
             }
         } catch (SQLException e) {
-            ConsoleManager.create("Erreur on geting leaderboad : " + e.getMessage()).error().end();
-            SqlInteract.reconnect();
-            return getLeaderboard(top);
+            if (reconnect()) return getLeaderboard(top);
+            else {
+                ConsoleManager.create("Erreur on geting leaderboad : " + e.getMessage()).error().end();
+                throw e;
+            }
         } finally {
             // Fermeture de la connexion
             closeStatement(statement, resultat);
@@ -67,9 +71,8 @@ public class SQLxp extends SqlInteract {
             statement.executeUpdate("INSERT INTO User (id, xp) VALUES ('"+id+"', 0);");
 
         } catch (SQLException e) {
-            ConsoleManager.create("Erreur on add a new User : " + e.getMessage()).error().end();
-            reconnect();
-            addUser(id);
+            if (reconnect()) addUser(id);
+            else ConsoleManager.create("Erreur on add a new User : " + e.getMessage()).error().end();
         } finally {
             // Fermeture de la connexionJ
             closeStatement(statement, null);
@@ -99,9 +102,8 @@ public class SQLxp extends SqlInteract {
             addUser(id);
             setXp(id, number);
         } catch (SQLException e) {
-            ConsoleManager.create("Erreur on set xp to "+id+" : " + e.getMessage()).error().end();
-            reconnect();
-            setXp(id, number);
+            if (reconnect()) setXp(id, number);
+            else ConsoleManager.create("Erreur on set xp to "+id+" : " + e.getMessage()).error().end();
         } finally {
             // Fermeture de la connexion
             closeStatement(statement, resultat);
@@ -132,9 +134,8 @@ public class SQLxp extends SqlInteract {
             addUser(id);
             addXp(id, number);
         } catch (SQLException e) {
-            ConsoleManager.create("Erreur on add xp to "+id+" : " + e.getMessage()).error().end();
-            reconnect();
-            addXp(id, number);
+            if (reconnect()) addXp(id, number);
+            else ConsoleManager.create("Erreur on add xp to "+id+" : " + e.getMessage()).error().end();
         } finally {
             // Fermeture de la connexion
             closeStatement(statement, resultat);
@@ -146,7 +147,7 @@ public class SQLxp extends SqlInteract {
      * @param id the discord id of the user
      * @return int : the level of the user
      */
-    public static int getLevel(String id){
+    public static int getLevel(String id) throws SQLException{
             
         Statement statement = null;
         ResultSet resultat = null;
@@ -163,11 +164,13 @@ public class SQLxp extends SqlInteract {
 
         } catch (PlayerNotFoundException e) {
             addUser(id);
-            return 0;
+            return 1;
         } catch (SQLException e) {
-            ConsoleManager.create("Erreur on get level of "+id+" : " + e.getMessage()).error().end();
-            reconnect();
-            return getLevel(id);
+            if (reconnect()) return getLevel(id);
+            else {
+                ConsoleManager.create("Erreur on get level of "+id+" : " + e.getMessage()).error().end();
+                throw e;
+            }
         } finally {
             // Fermeture de la connexion
             closeStatement(statement, resultat);
@@ -197,9 +200,8 @@ public class SQLxp extends SqlInteract {
             addUser(id);
             setLevel(id, level);
         } catch (SQLException e) {
-            ConsoleManager.create("Erreur on set level to "+id+" : " + e.getMessage()).error().end();
-            reconnect();
-            setLevel(id, level);
+            if (reconnect()) setLevel(id, level);
+            else ConsoleManager.create("Erreur on set level to "+id+" : " + e.getMessage()).error().end();
         } finally {
             // Fermeture de la connexion
             closeStatement(statement, resultat);
@@ -229,9 +231,8 @@ public class SQLxp extends SqlInteract {
         } catch (PlayerNotFoundException e) {
             addUser(id);
         } catch (SQLException e) {
-            ConsoleManager.create("Erreur on add level to "+id+" : " + e.getMessage()).error().end();
-            reconnect();
-            addLevel(id, level);
+            if (reconnect()) addLevel(id, level);
+            else ConsoleManager.create("Erreur on add level to "+id+" : " + e.getMessage()).error().end();
         } finally {
             // Fermeture de la connexion
             closeStatement(statement, resultat);
@@ -242,8 +243,10 @@ public class SQLxp extends SqlInteract {
      * Get the xp to pass to the next level
      * @param level the level of the user
      * @return int : the xp to pass to the next level
+     * 
+     * @throws SQLException
      */
-    public static int getXpLevel(int level){
+    public static int getXpLevel(int level) throws SQLException{
         Statement statement = null;
         ResultSet resultat = null;
         
@@ -261,9 +264,11 @@ public class SQLxp extends SqlInteract {
             ConsoleManager.create("Erreur on get xp level of "+level+" : " + e.getMessage()).error().displayOnDiscord().end();
             return 500000;
         } catch (SQLException e) {
-            ConsoleManager.create("Erreur on get xp level of "+level+" : " + e.getMessage()).error().end();
-            reconnect();
-            return getXpLevel(level);
+            if (reconnect()) return getXpLevel(level);
+            else {
+                ConsoleManager.create("Erreur on get xp level of "+level+" : " + e.getMessage()).error().end();
+                throw e;
+            }
         } finally {
             // Fermeture de la connexion
             closeStatement(statement, resultat);
@@ -275,8 +280,10 @@ public class SQLxp extends SqlInteract {
      * Get the xp of a user
      * @param id the discord id of the user
      * @return int : the xp of the user
+     * 
+     * @throws SQLException
      */
-    public static int getXp(String id){
+    public static int getXp(String id) throws SQLException{
 
         Statement statement = null;
         ResultSet resultat = null;
@@ -295,9 +302,11 @@ public class SQLxp extends SqlInteract {
             addUser(id);
             return 0;
         } catch (SQLException e) {
-            ConsoleManager.create("Erreur on get xp of "+id+" : " + e.getMessage()).error().end();
-            reconnect();
-            return getXp(id);
+            if (reconnect()) return getXp(id);
+            else {
+                ConsoleManager.create("Erreur on get xp of "+id+" : " + e.getMessage()).error().end();
+                throw e;
+            }
         } finally {
             // Fermeture de la connexion
             closeStatement(statement, resultat);
@@ -312,8 +321,11 @@ public class SQLxp extends SqlInteract {
      * @return int : the xp to pass to the next level
      * 
      * @note equivalent to getXpLevel(getLevel(id)) but use less request
+     * 
+     * @throws LevelNotFoundExepction
+     * @throws SQLException
      */
-    public static int getXpToNextLevel(String id) throws LevelNotFoundExepction{
+    public static int getXpToNextLevel(String id) throws LevelNotFoundExepction, SQLException{
         
         Statement statement = null;
         ResultSet resultat = null;
@@ -329,9 +341,11 @@ public class SQLxp extends SqlInteract {
             else throw new LevelNotFoundExepction("Level not found");
 
         } catch (SQLException e) {
-            ConsoleManager.create("Erreur on get xp of "+id+" : " + e.getMessage()).error().end();
-            reconnect();
-            return getXpToNextLevel(id);
+            if (reconnect()) return getXpToNextLevel(id);
+            else {
+                ConsoleManager.create("Erreur on get xp of "+id+" : " + e.getMessage()).error().end();
+                throw e;
+            }
         } finally {
             // Fermeture de la connexion
             closeStatement(statement, resultat);
@@ -342,8 +356,10 @@ public class SQLxp extends SqlInteract {
      * Get the rank of a user
      * @param id the discord id of the user
      * @return int : the rank of the user
+     * 
+     * @throws SQLException
      */
-    public static int getRank(String id){
+    public static int getRank(String id) throws SQLException{
             
             Statement statement = null;
             ResultSet resultat = null;
@@ -362,9 +378,11 @@ public class SQLxp extends SqlInteract {
                 return rank;
     
             } catch (SQLException e) {
-                ConsoleManager.create("Erreur on get rank of "+id+" : " + e.getMessage()).error().end();
-                reconnect();
-                return getRank(id);
+                if (reconnect()) return getRank(id);
+                else {
+                    ConsoleManager.create("Erreur on get rank of "+id+" : " + e.getMessage()).error().end();
+                    throw e;
+                }
             } catch (PlayerNotFoundException e) {
                 addUser(id);
                 return getRank(id);

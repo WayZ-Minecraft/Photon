@@ -1,5 +1,6 @@
 package com.photon.discord.usersInteraction.data;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -171,8 +172,10 @@ public class UsersInfo {
      * Add xp to the user, if the user have enough xp to level up, it will level up
      * @param id the id of the user
      * @param xp the xp to add
+     * 
+     * @throws SQLException
      */
-    public static void addXp(String id, int xp) {
+    public static void addXp(String id, int xp) throws SQLException {
         int xpToNextLevel = getXpToNextLevel(id);
         final int userXp = getXp(id);
         int level = getLevel(id);
@@ -193,8 +196,10 @@ public class UsersInfo {
      * Remove xp to the user, if the user have not enough xp to level down, it will level down
      * @param id the id of the user
      * @param xp the xp to remove
+     * 
+     * @throws SQLException
      */
-    public static void removeXp(String id, int xp) {
+    public static void removeXp(String id, int xp) throws SQLException {
         int xpToNextLevel = getXpToNextLevel(id);
         final int userXp = getXp(id);
         int level = getLevel(id);
@@ -221,7 +226,7 @@ public class UsersInfo {
      * @param id the id of the user
      * @return int : the xp of the user
      */
-    public static int getXp(String id) {
+    public static int getXp(String id) throws SQLException {
         return SQLxp.getXp(id);
     }
 
@@ -230,7 +235,7 @@ public class UsersInfo {
      * @param id the id of the user
      * @return int : the rank of the user (-1 if sql error)
      */
-    public static int getRank(String id) {
+    public static int getRank(String id) throws SQLException {
         return SQLxp.getRank(id);
     }
 
@@ -246,7 +251,7 @@ public class UsersInfo {
      * Remove a level to the user
      * @param id the id of the user
      */
-    public static void removeLevel(String id) {
+    public static void removeLevel(String id) throws SQLException {
         if (getLevel(id) > 1) SQLxp.addLevel(id, -1);
         
     }
@@ -256,7 +261,7 @@ public class UsersInfo {
      * @param id the id of the user
      * @return int : the level of the user (-1 if sql error)
      */
-    public static int getLevel(String id) {
+    public static int getLevel(String id) throws SQLException {
         return SQLxp.getLevel(id);
     }
 
@@ -265,7 +270,7 @@ public class UsersInfo {
      * @param id the id of the user
      * @return int : the xp to the next level of the user (-1 if sql error)
      */
-    public static int getXpToNextLevel(String id) {
+    public static int getXpToNextLevel(String id) throws SQLException {
         return SQLxp.getXpLevel(getLevel(id));
     }
 }

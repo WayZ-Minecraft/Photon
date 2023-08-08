@@ -4,6 +4,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import com.photon.discord.BotEngine;
+import com.photon.discord.Roles;
 import com.photon.discord.usersInteraction.language.Languages;
 import com.photon.network.objects.discord.InfoType;
 import com.photon.network.objects.discord.ObjectDiscord;
@@ -101,15 +103,16 @@ public class UsersInfo {
      * @return Languages[] : the language of the user
      */
     public static ArrayList<Languages> getLanguage(String id) {
-        if (globalInfo.Users.containsKey(id)) {
-            return globalInfo.Users.get(id).language;
-        } else {
+        if (!globalInfo.Users.containsKey(id)) {
             ConsoleManager.create("Error while getting language of " + id).displayOnDiscord().error().end();
             addUser(id);
-            return new ArrayList<Languages>(){{
-                add(Languages.ENGLISH);
-            }};
+            BotEngine.guild.getMemberById(id).getRoles().forEach(role -> {
+                if (role.getIdLong() == Roles.FR.id) addLanguages(id, Languages.FRENCH);
+                else if (role.getIdLong() == Roles.EN.id) addLanguages(id, Languages.ENGLISH);
+            });
         }
+        
+        return globalInfo.Users.get(id).language;
     }
 
     /**

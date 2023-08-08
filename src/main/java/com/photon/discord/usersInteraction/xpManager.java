@@ -20,6 +20,7 @@ import com.photon.network.NetworkDirectories;
 import com.photon.ui.PhotonInterfaceUtils;
 import com.photon.ui.components.progressbar.ColoredProgressbar;
 import com.photon.util.ConsoleManager;
+import com.photon.util.TranslationManager;
 import com.photon.util.ConsoleManager.EnumLogType;
 
 import net.dv8tion.jda.api.entities.User;
@@ -138,7 +139,7 @@ public class XpManager {
         JPanel panel = new JPanel();
 
 
-        String nameString = "<html><p style='color: #A4A4A4'>NIVEAU DE <span style='color: #8b2628'>"+name+"</span></p></html>";
+        String nameString = "<html><p style='color: #A4A4A4'>"+TranslationManager.format("discord.levelMessage.title")+"<span style='color: #8b2628'>"+name+"</span></p></html>";
         JLabel titleText = new JLabel(nameString);
         titleText.setBounds(20, 15, 300, 30);
         titleText.setFont(new Font("Arial", 0, 20));
@@ -188,7 +189,7 @@ public class XpManager {
         progressBar.setMaximum(XpLevel);
         progressBar.setArcSize(10, 10);
         
-        String levelString = "<html><p style='color: white'>NIVEAU <span style='color: #8b2628'>"+levelNumber+"</span></p></html>";
+        String levelString = "<html><p style='color: white'>"+TranslationManager.format("discord.levelMessage.description")+"<span style='color: #8b2628'>"+levelNumber+"</span></p></html>";
         JLabel level = new JLabel(levelString);
         level.setBounds(0 + decalx, 0 + decaly, boxWidth/2, 30);
         level.setFont(new Font("Arial", 0, textSize));

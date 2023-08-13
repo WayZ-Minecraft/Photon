@@ -1,6 +1,7 @@
 package com.photon.discord.slashCommands;
 
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +11,8 @@ import com.photon.discord.usersInteraction.xpManager;
 import com.photon.network.NetworkEngine;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.objects.ProfileManager;
+import com.photon.network.sql.SqlInteract;
+import com.photon.util.ConsoleManager;
 import com.photon.util.os.ApplicationUtils;
 
 import net.dv8tion.jda.api.Permission;
@@ -91,7 +94,16 @@ public class SlashCommands {
         .addOption(OptionType.STRING, "content-fr", "the content of the news in french", true, false)
         .addOption(OptionType.ATTACHMENT, "image", "the image of the news", true, false)
         .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
-
+        
+        
+        
+        /*
+        * Sql commande
+        */
+        commands.add(Commands.slash("execute-sql", "execute a sql command")
+        .addOption(OptionType.STRING, "command", "sql command", true, false)
+        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+            
     }
 
     /**
@@ -129,6 +141,9 @@ public class SlashCommands {
                 break;
             case "create-news":
                 NewsManager.createNews(event);
+                break;
+            case "execute-sql":
+                executeSql(event);
                 break;
             default:
                 break;
@@ -187,5 +202,18 @@ public class SlashCommands {
         profile.discordAuthCode = AUTHCODE;
 
         event.reply("Your account has been linked").queue();
+    }
+
+    protected static void executeSql(SlashCommandInteractionEvent event){
+        String command = event.getOption("command").getAsString();
+        try {
+            String result = SqlInteract.commandSql(command);
+            event.reply(result).queue();
+        } catch (SQLException e) {
+            event.reply("Error with Sql commande :" + e).queue();
+        } catch (Exception e) {
+            event.reply(e.toString()).queue();
+        }
+
     }
 }

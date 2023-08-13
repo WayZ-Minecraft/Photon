@@ -9,8 +9,9 @@ import java.util.TimerTask;
 
 import javax.swing.JOptionPane;
 
-
 import com.photon.network.NetworkEngine;
+import com.photon.util.ConsoleManager;
+import com.photon.util.ConsoleManager.EnumLogType;
 
 public class ApplicationUtils {
 
@@ -54,9 +55,14 @@ public class ApplicationUtils {
 		if(f.getName().endsWith(".jar")) list.addAll(Arrays.asList("java", "-jar", f.getAbsolutePath()));
 		else list.add(f.getPath());
 		list.addAll(Arrays.asList(commands));
-		
+
 		/* Start app */
-		try { new ProcessBuilder(list.toArray(new String[] {})).start(); }
+		try {
+            final ProcessBuilder builder = new ProcessBuilder(list.toArray(new String[] {}));
+            final Process process = builder.start();
+            final int exitVal = process.waitFor();
+            ConsoleManager.create("Exit with "+exitVal).withType(EnumLogType.LAUNCHER).end();
+        }
 		catch (Exception e) { e.printStackTrace(); }
 		if(exit) exitProperly(time);
 	}

@@ -28,7 +28,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.utils.FileUpload;
 
-public class XpManager {
+public class xpManager {
 
     /**
      * Calculate the xp value of a message

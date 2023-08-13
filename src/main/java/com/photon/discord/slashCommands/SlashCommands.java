@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.photon.discord.slashCommands.advancedCommands.CustomMute;
 import com.photon.discord.slashCommands.advancedCommands.NewsManager;
-import com.photon.discord.usersInteraction.XpManager;
+import com.photon.discord.usersInteraction.xpManager;
 import com.photon.network.NetworkEngine;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.objects.ProfileManager;
@@ -119,13 +119,13 @@ public class SlashCommands {
                 linkAccount(event);
                 break;
             case "level":
-                XpManager.levelEmbed(event);
+                xpManager.levelEmbed(event);
                 break;
             case "give-xp":
-                XpManager.giveXp(event);
+                xpManager.giveXp(event);
                 break;
             case "remove-xp":
-                XpManager.removeXp(event);
+                xpManager.removeXp(event);
                 break;
             case "create-news":
                 NewsManager.createNews(event);

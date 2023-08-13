@@ -45,6 +45,13 @@ public class ConsoleManager
 		logger.addHandler(consoleHandler);
 	}
 	
+	public static String of(Throwable t) {
+		final StringWriter sw = new StringWriter();
+		final PrintWriter pw = new PrintWriter(sw);
+		t.printStackTrace(pw);
+		return sw.toString();
+	}
+
 	public static String of(Exception e) {
 		final StringWriter sw = new StringWriter();
 		final PrintWriter pw = new PrintWriter(sw);
@@ -56,10 +63,9 @@ public class ConsoleManager
 		/* Adding file handler */
 		try {
     		final FileHandler fh = new FileHandler(file.getPath());
-            Thread.UncaughtExceptionHandler exceptionHandler = (t, e) -> {
-                logger.log(Level.SEVERE, "Uncaught exception in thread " + t.getName(), e);
-            };
-            Thread.setDefaultUncaughtExceptionHandler(exceptionHandler);
+            Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+                ConsoleManager.create("Uncaught exception in thread " + t.getName() +"\n"+ of(e)).error().end();
+            });
             logger.addHandler(fh);
             fh.setFormatter(new ConsoleFormatter(null));
             

@@ -23,7 +23,7 @@ public class MemberJoin extends ListenerAdapter {
 
             ConsoleManager.create("Welcome message sent to " + event.getUser().getName()).displayOnDiscord().end();
 
-            EmbedBuilder embed = buildEmbed(UsersInfo.getLanguage(event.getUser().getId()).get(0));
+            EmbedBuilder embed = buildEmbed(UsersInfo.getLanguages(event.getUser().getId()).get(0));
             channel.sendMessageEmbeds(embed.build()).queue();
         });
     }

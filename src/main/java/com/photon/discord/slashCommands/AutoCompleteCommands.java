@@ -10,7 +10,8 @@ import net.dv8tion.jda.api.interactions.commands.Command;
 
 public class AutoCompleteCommands extends ListenerAdapter{
     /* Class to manage commande auto-completion */
-    private static String[] keys = new String[]{"10 minutes", "30 minutes", "1 hour", "6 hour", "1 day", "1 week", "1 month"};
+    private static String[] keysTime = new String[]{"10 minutes", "30 minutes", "1 hour", "6 hour", "1 day", "1 week", "1 month"};
+    private static String[] keysFile = new String[]{"mod", "launcher", "api", "network"};
     
 
     /**
@@ -19,10 +20,20 @@ public class AutoCompleteCommands extends ListenerAdapter{
      */
     @Override
     public void onCommandAutoCompleteInteraction(CommandAutoCompleteInteractionEvent event) {
-        System.out.println(keys);
+        
+        // Tempmute command
         if (event.getName().equals("tempmute") && event.getFocusedOption().getName().equals("duration")) {
-            List<Command.Choice> options = Stream.of(keys)
+            List<Command.Choice> options = Stream.of(keysTime)
                 .filter(key -> key.startsWith(event.getFocusedOption().getValue())) // only display words that start with the user's current input
+                .map(key -> new Command.Choice(key, key))
+                .collect(Collectors.toList());
+            event.replyChoices(options).queue();
+        }
+
+        // Network File Update command
+        else if (event.getName().equals("post-update") && event.getFocusedOption().getName().equals("filetype")) {
+            List<Command.Choice> options = Stream.of(keysFile)
+                .filter(key -> key.startsWith(event.getFocusedOption().getValue()))
                 .map(key -> new Command.Choice(key, key))
                 .collect(Collectors.toList());
             event.replyChoices(options).queue();

@@ -102,9 +102,9 @@ public class UsersInfo {
      * @param id the id of the user
      * @return Languages[] : the language of the user
      */
-    public static ArrayList<Languages> getLanguage(String id) {
+    public static ArrayList<Languages> getLanguages(String id) {
         if (!globalInfo.Users.containsKey(id)) {
-            ConsoleManager.create("Error while getting language of " + id).displayOnDiscord().error().end();
+            ConsoleManager.create("Error while getting language of " + id + "User doesn't exist").displayOnDiscord().error().end();
             addUser(id);
             BotEngine.guild.getMemberById(id).getRoles().forEach(role -> {
                 if (role.getIdLong() == Roles.FR.id) addLanguages(id, Languages.FRENCH);
@@ -113,6 +113,17 @@ public class UsersInfo {
         }
         
         return globalInfo.Users.get(id).language;
+    }
+
+    /**
+     * Get the first language of the user
+     * @param id the id of the user
+     * @return Languages : the first language of the user, if the user doesn't have any language, it will return english
+     */
+    public static Languages getLanguage(String id) {
+        ArrayList<Languages> userFirstLanguage = getLanguages(id);
+        if (userFirstLanguage.isEmpty()) return Languages.ENGLISH;
+        else return userFirstLanguage.get(0);
     }
 
     /**

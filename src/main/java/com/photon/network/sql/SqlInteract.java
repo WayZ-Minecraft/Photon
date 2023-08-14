@@ -65,6 +65,23 @@ public class SqlInteract {
         ConsoleManager.create("That took " + (endTime - startTime) + " milliseconds").withType(EnumLogType.NETWORK).end();
     }
 
+    public static String commandSql(String command) throws SQLException {
+        Statement statement = connexion.createStatement();
+        ResultSet result = statement.executeQuery(command);
+
+        int columnCount = result.getMetaData().getColumnCount();
+        String resultString = "";
+        while(result.next()) {
+            for (int i = 1; i <= columnCount; i++) {
+                resultString += result.getString(i);
+                resultString += (i != columnCount) ? " | " : "\n";
+            }
+        }
+
+        closeStatement(statement, result);
+        return resultString;
+    }
+
     
 
 

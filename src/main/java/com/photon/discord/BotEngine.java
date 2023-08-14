@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import com.photon.discord.slashCommands.AutoCompleteCommands;
 import com.photon.discord.slashCommands.SlashCommands;
 import com.photon.discord.usersInteraction.MemberJoin;
+import com.photon.discord.usersInteraction.Security;
 import com.photon.discord.usersInteraction.xpManager;
 import com.photon.discord.usersInteraction.data.UsersInfo;
 import com.photon.discord.usersInteraction.language.LanguageChoice;
@@ -31,6 +32,8 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.FileUpload;
@@ -74,6 +77,14 @@ public class BotEngine extends ListenerAdapter {
         SqlInteract.connect();
 
         TranslationManager.loadAllLanguages("lang");
+    }
+
+    /**
+     * When the bot is ready, register global slash commands
+     */
+    @Override
+    public void onReady(ReadyEvent event) {
+        event.getJDA().updateCommands().addCommands(SlashCommands.globalCommand).queue();
     }
     
     /**
@@ -169,6 +180,23 @@ public class BotEngine extends ListenerAdapter {
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         if (event.getAuthor().isBot()) return;
         xpManager.onMessageReceived(event);
+    }
+
+    /**
+     * When a message is updated
+     * @param event The event of a message being update
+     */
+    @Override
+    public void onMessageUpdate(@NotNull MessageUpdateEvent event) {
+        if (event.getAuthor().isBot()) return;
+        boolean isLink = Security.checkLink(event.getMessage().getContentRaw());
+        if (isLink) {
+            event.getMessage().delete().queue();
+
+            event.getAuthor().openPrivateChannel().queue((channel) -> {
+                channel.sendMessage(TranslationManager.format(UsersInfo.getLanguage(event.getAuthor().getId()).code, "discord.securityMessage.updateMessage")).queue();
+            });
+        }
     }
 
 }

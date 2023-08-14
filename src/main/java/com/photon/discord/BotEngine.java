@@ -33,6 +33,7 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.FileUpload;
@@ -76,6 +77,14 @@ public class BotEngine extends ListenerAdapter {
         SqlInteract.connect();
 
         TranslationManager.loadAllLanguages("lang");
+    }
+
+    /**
+     * When the bot is ready, register global slash commands
+     */
+    @Override
+    public void onReady(ReadyEvent event) {
+        event.getJDA().updateCommands().addCommands(SlashCommands.globalCommand).queue();
     }
     
     /**

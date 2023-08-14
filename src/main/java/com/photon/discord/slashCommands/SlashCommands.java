@@ -34,6 +34,7 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 public class SlashCommands {
     public static List<CommandData> commands = new ArrayList<>();
+    public static List<CommandData> globalCommand = new ArrayList<>();
 
     /**
      * Load slash commands, to be registered in discord slash commands interface
@@ -46,7 +47,7 @@ public class SlashCommands {
          */
 
         // Add commands here
-        commands.add(Commands.slash("hello", "say hello to the bot"));
+        globalCommand.add(Commands.slash("hello", "say hello to the bot"));
 
         // Add commands clear
         commands.add(Commands.slash("clear", "clear a number of message")

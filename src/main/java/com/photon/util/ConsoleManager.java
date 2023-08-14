@@ -45,6 +45,13 @@ public class ConsoleManager
 		logger.addHandler(consoleHandler);
 	}
 	
+	public static String of(Throwable t) {
+		final StringWriter sw = new StringWriter();
+		final PrintWriter pw = new PrintWriter(sw);
+		t.printStackTrace(pw);
+		return sw.toString();
+	}
+
 	public static String of(Exception e) {
 		final StringWriter sw = new StringWriter();
 		final PrintWriter pw = new PrintWriter(sw);
@@ -56,9 +63,12 @@ public class ConsoleManager
 		/* Adding file handler */
 		try {
     		final FileHandler fh = new FileHandler(file.getPath());
+            Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+                ConsoleManager.create("Uncaught exception in thread " + t.getName() +"\n"+ of(e)).error().end();
+            });
             logger.addHandler(fh);
             fh.setFormatter(new ConsoleFormatter(null));
-
+            
 			/* Save file after closing launcher */
 			Runtime.getRuntime().addShutdownHook(new Thread(() -> { savePreviousFile(file); }));
         } catch (SecurityException | IOException e) {}
@@ -72,14 +82,7 @@ public class ConsoleManager
 
 	public static Log create(Object obj) { return new Log().withObject(obj); }
 
-    @Deprecated
-	public static void print(Object o) { print(EnumLogType.INFO, false, o); }
-	
-    @Deprecated
-	public static void print(EnumLogType type, Object o) { print(type, false, o); }
-	
-    @Deprecated
-	public static void print(EnumLogType type, boolean discordLog, Object o) { printLine(type, "", discordLog, o); }
+	public static void debug(Object o) { System.out.println(o); }
 	
 	public static class Log {
 		private EnumLogType type = EnumLogType.INFO;
@@ -134,19 +137,6 @@ public class ConsoleManager
 		public Log withFile(File file) {
 			this.file = file;
 			return this;
-		}
-	}
-
-	@Deprecated
-	private static void printLine(EnumLogType type, String subType, boolean discordLog, Object o) {
-		consoleHandler.setFormatter(new ConsoleFormatter(type)); /* Set log format */
-		logger.log(Level.OFF, "["+type+subType+"] " + o);
-		if(discordLog == true) {
-			final ClientRequestSendDiscordLogs request = new ClientRequestSendDiscordLogs();
-			request.type = type;
-			request.subType = subType;
-			request.content = o;
-			NetworkConnectionClient.sendTCP(request);
 		}
 	}
 	

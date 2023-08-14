@@ -110,5 +110,27 @@ public class CustomMute {
         });
     }
 
+    /**
+     * Voice mute all user in the voice channel of the user who triggered the command
+     * @param event The event that triggered this command
+     */
+    public static void silence(SlashCommandInteractionEvent event) {
+        int time = event.getOption("duration") == null ? 5 : (int) event.getOption("duration").getAsInt();
+        event.reply("Silence !").queue();
+        event.getGuild().getVoiceChannelById(event.getMember().getVoiceState().getChannel().getId()).getMembers().forEach(member -> {
+            if(!member.getUser().isBot()){
+                member.mute(true).queue();
+            }
+        });
+
+        scheduler.schedule(() -> {
+            event.getGuild().getVoiceChannelById(event.getMember().getVoiceState().getChannel().getId()).getMembers().forEach(member -> {
+                if(!member.getUser().isBot()){
+                    member.mute(false).queue();
+                }
+            });
+        }, time, TimeUnit.SECONDS);
+    }
+
 
 }

@@ -60,6 +60,11 @@ public class SlashCommands {
         .addOption(OptionType.STRING, "reason", "the reason of the mute", true, false)
         .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.VOICE_MUTE_OTHERS)));
 
+        // Add commands silence
+        commands.add(Commands.slash("silence", "mute all the users in the voice channel")
+        .addOption(OptionType.INTEGER, "duration", "time of mute in seconde", false, false)
+        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.VOICE_MUTE_OTHERS)));
+
         /*
          * Network Commands
          */
@@ -163,6 +168,9 @@ public class SlashCommands {
                 break;
             case "post-update":
                 postUpdate(event);
+                break;
+            case "silence":
+                CustomMute.silence(event);
                 break;
             default:
                 break;

@@ -4,8 +4,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.intellij.lang.annotations.Language;
-
 import com.photon.discord.BotEngine;
 import com.photon.discord.Roles;
 import com.photon.discord.usersInteraction.language.Languages;

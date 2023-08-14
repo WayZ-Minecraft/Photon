@@ -5,9 +5,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashMap;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.photon.informations.PhotonUpdaterManager.UpdateFileType;
 
 public class NetworkDirectories
 {
@@ -49,6 +51,24 @@ public class NetworkDirectories
 			config = gson.fromJson(reader, NetworkConfig.class);
 			reader.close();
 		} catch (IOException e) {}
+
+		
+	}
+
+	/**
+	 * Save all directories and files
+	 * @note He save the config file
+	 * @see {@link #configFile}
+	 * @see {@link #config}
+	 */
+	public static void save() {
+		try {
+			final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+			final FileWriter writer = new FileWriter(configFile);
+			writer.write(gson.toJson(config));
+			writer.close();
+		} catch (IOException e) {
+		}
 	}
 	
 	public static class NetworkConfig {
@@ -58,6 +78,8 @@ public class NetworkDirectories
 
 		public static int writeBufferSize = 10 * 1024 * 1024;
 		public static int objectBufferSize = 10 * 1024 * 1024;
+
+		public HashMap<UpdateFileType, String> filePaths = new HashMap<UpdateFileType, String>();
 		
 		public String webUrl = "";
 		public String webUser = "";

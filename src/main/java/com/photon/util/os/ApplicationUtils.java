@@ -36,7 +36,7 @@ public class ApplicationUtils {
 	 * @param f The file to launch
 	 * @param commands Additionals startup commands
 	 * @param exit Should current app terminate
-     * @autor Created by Niwer
+     * @author Created by Niwer
 	 */
 	public static void launch(File f, String[] commands, boolean exit) { launch(f, commands, exit, 1500L); }
 	
@@ -46,7 +46,7 @@ public class ApplicationUtils {
 	 * @param commands Additionals startup commands
 	 * @param exit Should current app terminate
 	 * @param time The time in ms before exiting the command line
-     * @autor Created by Niwer
+     * @author Created by Niwer
 	 */
 	public static void launch(File f, String[] commands, boolean exit, long time) {
 		final ArrayList<String> list = new ArrayList<>();

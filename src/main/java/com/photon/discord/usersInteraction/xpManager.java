@@ -37,6 +37,7 @@ public class xpManager {
      */
     private static int xpValue(String message){
         final double x = Math.log(message.length()) / Math.log(5);
+        ConsoleManager.debug(x);
         return (int) Math.floor(x) + 1;
     }
 
@@ -49,7 +50,7 @@ public class xpManager {
         final User user = event.getAuthor();
         final String message = event.getMessage().getContentDisplay();
         try {
-            UsersInfo.addXp(user.getId(), xpValue(message));
+            if (message.length() != 0) UsersInfo.addXp(user.getId(), xpValue(message));
         } catch (SQLException ignor) {
             ConsoleManager.create("An error occured while adding xp to " + user.getGlobalName()+"Please check").error().withType(EnumLogType.NETWORK).displayOnDiscord().end();
         }
@@ -62,12 +63,13 @@ public class xpManager {
     public static void giveXp(SlashCommandInteractionEvent event){
         final User user = event.getOption("user").getAsUser();
         final int xp = event.getOption("xp").getAsInt();
+        final String userName = user.getGlobalName() == null ? user.getName() : user.getGlobalName();
         try {
             UsersInfo.addXp(user.getId(), xp);
         } catch (SQLException e) {
-            event.reply("An error occured while giving xp to " + user.getGlobalName()).queue();
+            event.reply("An error occured while giving xp to " + userName).queue();
         }
-        event.reply("You have give " + xp + " xp to" + user.getGlobalName()).queue();
+        event.reply("You have give " + xp + " xp to " + userName).queue();
     }
 
     /**re
@@ -77,12 +79,14 @@ public class xpManager {
     public static void removeXp(SlashCommandInteractionEvent event){
         final User user = event.getOption("user").getAsUser();
         final int xp = event.getOption("xp").getAsInt();
+        final String userName = user.getGlobalName() == null ? user.getName() : user.getGlobalName();
+
         try {
             UsersInfo.removeXp(user.getId(), xp);
         } catch (SQLException e) {
-            event.reply("An error occured while removing xp to " + user.getGlobalName()).queue();
+            event.reply("An error occured while removing xp to " + userName).queue();
         }
-        event.reply("You have remove " + xp + " xp to " + user.getGlobalName()).queue();
+        event.reply("You have remove " + xp + " xp to " + userName).queue();
     }
     
     /**
@@ -95,7 +99,7 @@ public class xpManager {
         
         try {
             final User user = event.getOption("user") == null ? event.getUser() : event.getOption("user").getAsUser();
-            final String userName = user.getGlobalName();
+            final String userName = user.getGlobalName() == null ? user.getName() : user.getGlobalName();
             final int userRank = UsersInfo.getRank(user.getId());
             final int Userxp = UsersInfo.getXp(user.getId());
             final int userLevel = UsersInfo.getLevel(user.getId());

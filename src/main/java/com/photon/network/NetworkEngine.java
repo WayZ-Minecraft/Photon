@@ -34,14 +34,16 @@ public class NetworkEngine {
             /* Load features */
 			NetworkDirectories.load();
 
+            
             /* Register logs file */
 			ConsoleManager.registerFileHandler(new File(NetworkDirectories.logsDirectory, "network.log"));
-
-            /* Auto-update the network */
-            if(PhotonUpdaterManager.hasUpdate(UpdateFileType.NETWORK, new File("network.jar"))) {
-                ApplicationUtils.exitProperly();
-                return;
-            }
+            
+            // /* Auto-update the network */
+            // if(PhotonUpdaterManager.hasUpdate(UpdateFileType.NETWORK, new File("network.jar"))) {
+            //     ApplicationUtils.exitProperly();
+            //     return;
+            // }
+            ConsoleManager.debug("Starting Network Server!");
             
             /* Connecting */
 			PhotonEngine.setIP(PhotonInfosManager.getCurrentIP());

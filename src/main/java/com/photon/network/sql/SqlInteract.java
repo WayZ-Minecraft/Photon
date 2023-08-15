@@ -52,17 +52,30 @@ public class SqlInteract {
         return false;
     }
 
-    public static void testTime(){
-        long startTime = System.currentTimeMillis();
-        for (int i = 0; i < 10000; i++) {
-            try {
-                SQLxp.getXp("");
-                
-            } catch (Exception ignore) {}
-        }
+    /**
+     * Add a user to the database
+     * 
+     * @param id the discord id of the user
+     */
+    public static void addUser(String id) {
 
-        long endTime = System.currentTimeMillis();
-        ConsoleManager.create("That took " + (endTime - startTime) + " milliseconds").withType(EnumLogType.NETWORK).end();
+        Statement statement = null;
+
+        try {
+            statement = connexion.createStatement();
+
+            // Exécution de la requête
+            statement.executeUpdate("INSERT INTO User (id, xp) VALUES ('" + id + "', 0);");
+
+        } catch (SQLException e) {
+            if (reconnect())
+                addUser(id);
+            else
+                ConsoleManager.create("Erreur on add a new User : " + e.getMessage()).error().end();
+        } finally {
+            // Fermeture de la connexionJ
+            closeStatement(statement, null);
+        }
     }
 
     public static String commandSql(String command) throws SQLException {

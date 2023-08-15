@@ -56,29 +56,6 @@ public class SQLxp extends SqlInteract {
    
     }
 
-    /**
-     * Add a user to the database
-     * @param id the discord id of the user
-     */
-    public static void addUser(String id){
-
-        Statement statement = null;
-        
-        try {
-            statement = connexion.createStatement();
-
-            // Exécution de la requête
-            statement.executeUpdate("INSERT INTO User (id, xp) VALUES ('"+id+"', 0);");
-
-        } catch (SQLException e) {
-            if (reconnect()) addUser(id);
-            else ConsoleManager.create("Erreur on add a new User : " + e.getMessage()).error().end();
-        } finally {
-            // Fermeture de la connexionJ
-            closeStatement(statement, null);
-        }
-    }
-
 
     /**
      * set the xp of a user

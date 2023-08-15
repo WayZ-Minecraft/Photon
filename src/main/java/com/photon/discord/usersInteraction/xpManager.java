@@ -17,6 +17,7 @@ import javax.swing.SwingConstants;
 
 import com.photon.discord.usersInteraction.data.UsersInfo;
 import com.photon.network.NetworkDirectories;
+import com.photon.network.objects.discord.object_type.GlobalObject.UserInfo;
 import com.photon.ui.PhotonInterfaceUtils;
 import com.photon.ui.components.progressbar.ColoredProgressbar;
 import com.photon.util.ConsoleManager;
@@ -37,7 +38,7 @@ public class xpManager {
      */
     private static int xpValue(String message){
         final double x = Math.log(message.length()) / Math.log(5);
-        ConsoleManager.debug(x);
+        if (x < 1) return 1;
         return (int) Math.floor(x) + 1;
     }
 
@@ -50,7 +51,7 @@ public class xpManager {
         final User user = event.getAuthor();
         final String message = event.getMessage().getContentDisplay();
         try {
-            if (message.length() != 0) UsersInfo.addXp(user.getId(), xpValue(message));
+            UsersInfo.addXp(user.getId(), xpValue(message));
         } catch (SQLException ignor) {
             ConsoleManager.create("An error occured while adding xp to " + user.getGlobalName()+"Please check").error().withType(EnumLogType.NETWORK).displayOnDiscord().end();
         }
@@ -113,10 +114,10 @@ public class xpManager {
             drawAvatar(g2d,user.getAvatar().getUrl(), 10, 60, 80, 80);
 
                 
-            JPanel pb = getProgressBar(Userxp, userXpToNextLevel, userLevel);
+            JPanel pb = getProgressBar(Userxp, userXpToNextLevel, userLevel, user);
             pb.paint(g2d);
 
-            JPanel title = drawTitle(userName, userRank);
+            JPanel title = drawTitle(userName, userRank, user);
             title.paint(g2d);
 
             g2d.dispose(); // Release resources
@@ -139,11 +140,11 @@ public class xpManager {
 
     }
 
-    private static JPanel drawTitle(String name, int rank){
+    private static JPanel drawTitle(String name, int rank, User user){
         JPanel panel = new JPanel();
 
 
-        String nameString = "<html><p style='color: #A4A4A4'>"+TranslationManager.format("discord.levelMessage.title")+"<span style='color: #8b2628'>"+name+"</span></p></html>";
+        String nameString = "<html><p style='color: #A4A4A4'>"+TranslationManager.format(UsersInfo.getLanguage(user.getId()).code,"discord.levelMessage.title")+" <span style='color: #8b2628'>"+name+"</span></p></html>";
         JLabel titleText = new JLabel(nameString);
         titleText.setBounds(20, 15, 300, 30);
         titleText.setFont(new Font("Arial", 0, 20));
@@ -179,7 +180,7 @@ public class xpManager {
      * @param levelNumber The level of the user
      * @return JPanel : The JPanel with the progress bar
      */
-    private static JPanel getProgressBar(int Userxp, int XpLevel, int levelNumber){
+    private static JPanel getProgressBar(int Userxp, int XpLevel, int levelNumber, User user){
         final int decalx = 120;
         final int decaly = 80;
         final int boxWidth = 340;
@@ -193,7 +194,7 @@ public class xpManager {
         progressBar.setMaximum(XpLevel);
         progressBar.setArcSize(10, 10);
         
-        String levelString = "<html><p style='color: white'>"+TranslationManager.format("discord.levelMessage.description")+"<span style='color: #8b2628'>"+levelNumber+"</span></p></html>";
+        String levelString = "<html><p style='color: white'>"+TranslationManager.format(UsersInfo.getLanguage(user.getId()).code,"discord.levelMessage.description")+" <span style='color: #8b2628'>"+levelNumber+"</span></p></html>";
         JLabel level = new JLabel(levelString);
         level.setBounds(0 + decalx, 0 + decaly, boxWidth/2, 30);
         level.setFont(new Font("Arial", 0, textSize));

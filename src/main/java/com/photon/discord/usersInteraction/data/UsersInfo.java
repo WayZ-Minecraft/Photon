@@ -7,10 +7,7 @@ import java.util.Arrays;
 import com.photon.discord.BotEngine;
 import com.photon.discord.Roles;
 import com.photon.discord.usersInteraction.language.Languages;
-import com.photon.network.objects.discord.InfoType;
-import com.photon.network.objects.discord.ObjectDiscord;
-import com.photon.network.objects.discord.object_type.GlobalObject;
-import com.photon.network.objects.discord.object_type.GlobalObject.UserInfo;
+import com.photon.network.sql.SQLuser;
 import com.photon.network.sql.SQLxp;
 import com.photon.util.ConsoleManager;
 
@@ -21,52 +18,6 @@ import com.photon.util.ConsoleManager;
  * @author Mini
  */
 public class UsersInfo {
-    public static GlobalObject globalInfo;
-
-
-    /**
-     * Init the user information
-     * 
-     * @note He load all the user information (mute, global, etc...)
-     */
-    public static void init() {
-        load();
-        MutesInfo.init();
-    }
-
-    /**
-     * Load the user information
-     */
-    public static void load() {
-        globalInfo = (GlobalObject)ObjectDiscord.load(InfoType.GLOBAL);
-    }
-
-    /**
-     * Save the user information
-     */
-    public static void save() {
-        ObjectDiscord.save(globalInfo, InfoType.GLOBAL);
-    }
-
-    /**
-     * Add a user to the user information, if the user already exist, it will do nothing
-     * @param id the id of the user
-     */
-    public static void addUser(String id) {
-        if (!globalInfo.Users.containsKey(id)) {
-            UserInfo userInfo = globalInfo.new UserInfo();
-            globalInfo.Users.put(id, userInfo);
-        }
-        save();
-    }
-    
-    /**
-     * Remove a user from the database
-     * @param id the id of the user
-     */
-    public static void removeUser(String id) {
-        globalInfo.Users.remove(id);
-    }
 
     /**
      * Check if it's the first connection of the user
@@ -75,11 +26,7 @@ public class UsersInfo {
      * @return boolean : true if it's the first connection, false if not
      */
     public static boolean isFirstConnection(String id) {
-        if (globalInfo.Users.containsKey(id)) {
-            return globalInfo.Users.get(id).firstConnection;
-        } else {
-            return true;
-        }
+        return SQLuser.getFirstConnection(id);
     }
 
     /**
@@ -88,13 +35,11 @@ public class UsersInfo {
      * @param firstConnection true if it's the first connection, false if not
      */
     public static void setFirstConnection(String id, boolean firstConnection) {
-        if (globalInfo.Users.containsKey(id)) {
-            globalInfo.Users.get(id).firstConnection = firstConnection;
-        } else {
-            addUser(id);
-            setFirstConnection(id, firstConnection);
+        try {
+            SQLuser.setFirstConnection(id, firstConnection);
+        } catch (SQLException e) {
+            ConsoleManager.create("Error while setting first connection of user: " + id + e).displayOnDiscord().error().end();
         }
-        save();
     }
 
     /**
@@ -103,16 +48,23 @@ public class UsersInfo {
      * @return Languages[] : the language of the user
      */
     public static ArrayList<Languages> getLanguages(String id) {
-        if (!globalInfo.Users.containsKey(id)) {
-            ConsoleManager.create("Error while getting language of " + id + "User doesn't exist").displayOnDiscord().error().end();
-            addUser(id);
-            BotEngine.guild.getMemberById(id).getRoles().forEach(role -> {
-                if (role.getIdLong() == Roles.FR.id) addLanguages(id, Languages.FRENCH);
-                else if (role.getIdLong() == Roles.EN.id) addLanguages(id, Languages.ENGLISH);
-            });
+        try {
+            ArrayList<Languages> languages = SQLuser.getLanguages(id);
+            if (languages == null) {
+                final ArrayList<Languages> language = new ArrayList<Languages>();
+                BotEngine.guild.getMemberById(id).getRoles().forEach(role -> {
+                    if (role.getIdLong() == Roles.FR.id) language.add(Languages.FRENCH);
+                    else if (role.getIdLong() == Roles.EN.id) language.add(Languages.ENGLISH);
+                });
+                SQLuser.setLanguages(id, language);
+                return language;
+            }
+            
+            return languages;      
+        } catch (SQLException e) {
+            ConsoleManager.create("Error while getting languages of user: " + id + e).displayOnDiscord().error().end();
+            return new ArrayList<Languages>();
         }
-        
-        return globalInfo.Users.get(id).language;
     }
 
     /**
@@ -132,13 +84,11 @@ public class UsersInfo {
      * @param language the language of the user
      */
     public static void setLanguage(String id, Languages[] language) {
-        if (globalInfo.Users.containsKey(id)) {
-            globalInfo.Users.get(id).language = new ArrayList<Languages>(Arrays.asList(language));
-        } else {
-            addUser(id);
-            setLanguage(id, language);
+        try {
+            SQLuser.setLanguages(id, new ArrayList<Languages>(Arrays.asList(language)));
+        } catch (SQLException e) {
+            ConsoleManager.create("Error while setting language of user: " + id + e).displayOnDiscord().error().end();
         }
-        save();
     }
 
     /**
@@ -149,17 +99,21 @@ public class UsersInfo {
      * @note if the user already have the language, it will do nothing
      */
     public static void addLanguages(String id, Languages... languages) {
-        if (globalInfo.Users.containsKey(id)) {
+        try {
+            ArrayList<Languages> userLanguages = SQLuser.getLanguages(id);
+            if (userLanguages == null) {
+                getLanguages(id); // Will add all the languages roles of the user
+                return;
+            }
             for (Languages language : languages) {
-                if (!globalInfo.Users.get(id).language.contains(language)) {
-                    globalInfo.Users.get(id).language.add(language);
+                if (!userLanguages.contains(language)) {
+                    userLanguages.add(language);
                 }
             }
-        } else {
-            addUser(id);
-            addLanguages(id, languages);
+            SQLuser.setLanguages(id, userLanguages);
+        } catch (SQLException e) {
+            ConsoleManager.create("Error while adding languages to user: " + id + e).displayOnDiscord().error().end();
         }
-        save();
     }
 
     /**
@@ -170,16 +124,21 @@ public class UsersInfo {
      * @note if the user doesn't have the language, it will do nothing
      */
     public static void removeLanguages(String id, Languages... languages) {
-        if (globalInfo.Users.containsKey(id)) {
+        try {
+            ArrayList<Languages> userLanguages = SQLuser.getLanguages(id);
+            if (userLanguages == null) {
+                getLanguages(id); // Will add all the languages roles of the user
+                return;
+            }
             for (Languages language : languages) {
-                if (globalInfo.Users.get(id).language.contains(language)) {
-                    globalInfo.Users.get(id).language.remove(language);
+                if (userLanguages.contains(language)) {
+                    userLanguages.remove(language);
                 }
             }
-        } else {
-            addUser(id);
+            SQLuser.setLanguages(id, userLanguages);
+        } catch (SQLException e) {
+            ConsoleManager.create("Error while removing languages to user: " + id + e).displayOnDiscord().error().end();
         }
-        save();
     }
 
     /**

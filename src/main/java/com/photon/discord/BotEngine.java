@@ -2,6 +2,7 @@ package com.photon.discord;
 
 import java.awt.Color;
 import java.io.File;
+import java.sql.SQLException;
 import java.util.Arrays;
 
 import javax.security.auth.login.LoginException;
@@ -16,6 +17,7 @@ import com.photon.discord.usersInteraction.xpManager;
 import com.photon.discord.usersInteraction.data.UsersInfo;
 import com.photon.discord.usersInteraction.language.LanguageChoice;
 import com.photon.network.NetworkDirectories;
+import com.photon.network.sql.SQLuser;
 import com.photon.network.sql.SqlInteract;
 import com.photon.util.ConsoleManager;
 import com.photon.util.TranslationManager;
@@ -100,7 +102,6 @@ public class BotEngine extends ListenerAdapter {
             guild.getTextChannelById(Channels.CONSOLE_NETWROK.id).sendMessage("Network restarted").queue();
             isRestarting = false;
         }
-        UsersInfo.init();
     }
 
 
@@ -138,7 +139,6 @@ public class BotEngine extends ListenerAdapter {
 
     @Override
     public void onGuildMemberJoin(@NotNull GuildMemberJoinEvent event) {
-        UsersInfo.addUser(event.getUser().getId());
         ConsoleManager.create(event.getUser().getName()).displayOnDiscord().end();
     }
 
@@ -148,7 +148,11 @@ public class BotEngine extends ListenerAdapter {
      */
     @Override
     public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent event) {
-        UsersInfo.removeUser(event.getUser().getId());
+        try {
+            SQLuser.setLanguages(event.getUser().getId(), null);
+        } catch (SQLException e) {
+            ConsoleManager.create("Error while removing user from database" + e).error().displayOnDiscord().end();
+        }
     }
 
 

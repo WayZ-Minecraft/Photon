@@ -13,6 +13,7 @@ import org.apache.commons.io.IOUtils;
 import com.esotericsoftware.kryo.Kryo;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
+import com.photon.informations.PhotonUpdaterManager;
 import com.photon.network.NetworkDirectories.NetworkConfig;
 import com.photon.network.listeners.INetworkMessageListener;
 import com.photon.network.messages.requests.ClientRequestAddClass;
@@ -112,6 +113,9 @@ public class NetworkObjectRegistry {
         kryo.register(Byte.class);
         kryo.register(byte[].class);
         kryo.register(byte.class);
+
+        kryo.register(PhotonUpdaterManager.class);
+        kryo.register(PhotonUpdaterManager.UpdateFileType.class);
 
         kryo.register(ObjectPlayerAccount.class);
         kryo.register(ClientRequestAccount.class);

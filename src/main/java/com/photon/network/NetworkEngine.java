@@ -18,11 +18,8 @@ import com.esotericsoftware.kryonet.Connection;
 import com.photon.PhotonEngine;
 import com.photon.discord.BotEngine;
 import com.photon.informations.PhotonInfosManager;
-import com.photon.informations.PhotonUpdaterManager;
-import com.photon.informations.PhotonUpdaterManager.UpdateFileType;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
-import com.photon.util.os.ApplicationUtils;
 
 public class NetworkEngine {
 
@@ -37,13 +34,6 @@ public class NetworkEngine {
             
             /* Register logs file */
 			ConsoleManager.registerFileHandler(new File(NetworkDirectories.logsDirectory, "network.log"));
-            
-            // /* Auto-update the network */
-            // if(PhotonUpdaterManager.hasUpdate(UpdateFileType.NETWORK, new File("network.jar"))) {
-            //     ApplicationUtils.exitProperly();
-            //     return;
-            // }
-            ConsoleManager.debug("Starting Network Server!");
             
             /* Connecting */
 			PhotonEngine.setIP(PhotonInfosManager.getCurrentIP());

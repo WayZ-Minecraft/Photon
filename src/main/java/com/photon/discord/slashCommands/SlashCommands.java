@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.photon.discord.slashCommands.advancedCommands.CustomMute;
+import com.photon.discord.slashCommands.advancedCommands.KineticCommands;
 import com.photon.discord.slashCommands.advancedCommands.NewsManager;
 import com.photon.discord.usersInteraction.xpManager;
 import com.photon.informations.PhotonUpdaterManager.UpdateFileType;
@@ -53,6 +54,11 @@ public class SlashCommands {
         commands.add(Commands.slash("clear", "clear a number of message")
         .addOption(OptionType.INTEGER, "number", "number of message to delete", false, false)
         .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MESSAGE_MANAGE)));
+
+        // Kinetic commands
+        commands.add(Commands.slash("convert", "Convert a nebulae files or OBJ, images, ANIM files")
+        .addOption(OptionType.ATTACHMENT, "file", "The file to convert", true, false)
+        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
 
         // Add commands time mute
         commands.add(Commands.slash("tempmute", "use to mute a temporaly a specifique player")
@@ -173,6 +179,9 @@ public class SlashCommands {
             case "silence":
                 CustomMute.silence(event);
                 break;
+            case "convert":
+                KineticCommands.covnertFile(event);
+                break;
             default:
                 break;
         }
@@ -281,13 +290,9 @@ public class SlashCommands {
                 File fileOutput = new File(outputPath.toString()).getParentFile();
                 fileOutput.mkdirs();
                 Files.copy(inputStream, outputPath);
-            } 
+            } finally { inputStream.close();}
         } catch (Exception e) {
             event.reply("Error with file :" + e).queue();
         }
-
     }
-        
-
-        
 }

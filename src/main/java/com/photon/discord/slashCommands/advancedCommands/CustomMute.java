@@ -34,7 +34,7 @@ public class CustomMute {
      * Mute a user (add a role to the user)
      * @param user The user to mute
      */
-    public static void mute(User user){
+    public static void mute(User user) {
         BotEngine.guild.addRoleToMember(user, muteRole).queue();
     }
 

@@ -17,12 +17,11 @@ import javax.swing.SwingConstants;
 
 import com.photon.discord.usersInteraction.data.UsersInfo;
 import com.photon.network.NetworkDirectories;
-import com.photon.network.objects.discord.object_type.GlobalObject.UserInfo;
 import com.photon.ui.PhotonInterfaceUtils;
 import com.photon.ui.components.progressbar.ColoredProgressbar;
 import com.photon.util.ConsoleManager;
-import com.photon.util.TranslationManager;
 import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.TranslationManager;
 
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -101,6 +100,7 @@ public class xpManager {
         try {
             final User user = event.getOption("user") == null ? event.getUser() : event.getOption("user").getAsUser();
             final String userName = user.getGlobalName() == null ? user.getName() : user.getGlobalName();
+            final String userAvatarUrl = user.getAvatarUrl() == null ? user.getDefaultAvatarUrl() : user.getAvatarUrl();
             final int userRank = UsersInfo.getRank(user.getId());
             final int Userxp = UsersInfo.getXp(user.getId());
             final int userLevel = UsersInfo.getLevel(user.getId());
@@ -111,7 +111,7 @@ public class xpManager {
             g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             PhotonInterfaceUtils.drawRoundedRect(g2d, 0, 0, widthPicture, heightPicture, 40, 40, new Color(24, 26, 28));
 
-            drawAvatar(g2d,user.getAvatar().getUrl(), 10, 60, 80, 80);
+            drawAvatar(g2d,userAvatarUrl, 10, 60, 80, 80);
 
                 
             JPanel pb = getProgressBar(Userxp, userXpToNextLevel, userLevel, user);

@@ -2,11 +2,6 @@ package com.photon.discord;
 
 import java.awt.Color;
 import java.io.File;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
 import java.sql.SQLException;
 import java.util.Arrays;
 
@@ -85,22 +80,7 @@ public class BotEngine extends ListenerAdapter {
         SqlInteract.connect();
 
         TranslationManager.loadAllLanguages("lang");
-
-        final Thread WEBHOOK_THREAD = new Thread(()-> {
-            try {
-                URL url = new URL("https://discord.com/api/webhooks/1140337089293058068/LFg1Ot_Vkqs5TIaHwIaSW7aS7Yo0wr1OcZJHDDIPqE6HXa-faPwa9rycCL_4ZKyU_SIa");
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();           
-                connection.setDoOutput(true); 
-                connection.setInstanceFollowRedirects(false); 
-                connection.setRequestMethod("GET"); 
-                connection.setRequestProperty("Content-Type", "application/json"); 
-                connection.setRequestProperty("charset", "utf-8");
-                connection.connect();
-                ConsoleManager.debug(connection);
-            } catch (IOException e) { e.printStackTrace(); }
-        });
         Thread.sleep(125);
-        WEBHOOK_THREAD.start();
     }
 
     /**

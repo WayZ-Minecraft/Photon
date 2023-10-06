@@ -30,7 +30,7 @@ dependencies {
 	api 'com.sun.mail:imap:1.6.2'
 	
     /* Discord */
-	api 'net.dv8tion:JDA:5.0.0-beta.12'
+	api 'net.dv8tion:JDA:5.0.0-beta.15'
     api 'ch.qos.logback:logback-classic:1.4.8'
 
 	/* Sqlite jdbc */
@@ -54,7 +54,7 @@ dependencies {
 	shadow 'com.sun.mail:imap:1.6.2'
 
     /* Discord */
-	shadow 'net.dv8tion:JDA:5.0.0-beta.12'
+	shadow 'net.dv8tion:JDA:5.0.0-beta.15'
     shadow 'ch.qos.logback:logback-classic:1.4.8'
 
     /* Sqlite jdbc */

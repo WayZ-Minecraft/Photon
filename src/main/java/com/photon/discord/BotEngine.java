@@ -32,6 +32,7 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
+import net.dv8tion.jda.api.events.http.HttpRequestEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
@@ -79,6 +80,14 @@ public class BotEngine extends ListenerAdapter {
         SqlInteract.connect();
 
         TranslationManager.loadAllLanguages("lang");
+    }
+
+    /**
+     * When a http request is made
+     */
+    @Override
+    public void onHttpRequest(HttpRequestEvent event) {
+        ConsoleManager.debug("hey");
     }
 
     /**

@@ -2,6 +2,11 @@ package com.photon.discord;
 
 import java.awt.Color;
 import java.io.File;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.sql.SQLException;
 import java.util.Arrays;
 
@@ -32,7 +37,6 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
-import net.dv8tion.jda.api.events.http.HttpRequestEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
@@ -57,8 +61,9 @@ public class BotEngine extends ListenerAdapter {
     /**
      * Load the bot, register slash commands and start it
      * @throws LoginException
+     * @throws InterruptedException
      */
-    public static void load(String... args) throws LoginException {
+    public static void load(String... args) throws LoginException, InterruptedException {
         String token = NetworkDirectories.config.discordBotToken;
         botBuilder = JDABuilder.createDefault(token);
         botBuilder.setActivity(Activity.playing("/"));
@@ -80,14 +85,22 @@ public class BotEngine extends ListenerAdapter {
         SqlInteract.connect();
 
         TranslationManager.loadAllLanguages("lang");
-    }
 
-    /**
-     * When a http request is made
-     */
-    @Override
-    public void onHttpRequest(HttpRequestEvent event) {
-        ConsoleManager.debug("hey");
+        final Thread WEBHOOK_THREAD = new Thread(()-> {
+            try {
+                URL url = new URL("https://discord.com/api/webhooks/1140337089293058068/LFg1Ot_Vkqs5TIaHwIaSW7aS7Yo0wr1OcZJHDDIPqE6HXa-faPwa9rycCL_4ZKyU_SIa");
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();           
+                connection.setDoOutput(true); 
+                connection.setInstanceFollowRedirects(false); 
+                connection.setRequestMethod("GET"); 
+                connection.setRequestProperty("Content-Type", "application/json"); 
+                connection.setRequestProperty("charset", "utf-8");
+                connection.connect();
+                ConsoleManager.debug(connection);
+            } catch (IOException e) { e.printStackTrace(); }
+        });
+        Thread.sleep(125);
+        WEBHOOK_THREAD.start();
     }
 
     /**

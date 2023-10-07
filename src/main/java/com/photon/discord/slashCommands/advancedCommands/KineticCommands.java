@@ -21,13 +21,13 @@ public class KineticCommands {
         FileUpload upload = null;
         switch(file.getFileExtension()) {
         case "obj":
-            upload = compress("nebluae", file);
+            upload = compress("nebulae", file);
             break;
         case "png":
-            upload = compress("nebluae-image", file);
+            upload = compress("nebulae-image", file);
             break;
         case "anim":
-            upload = compress("nebluae-anim", file);
+            upload = compress("nebulae-anim", file);
             break;
 
         case "nebulae":

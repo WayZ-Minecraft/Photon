@@ -15,8 +15,10 @@ public class MultiThreadWorker
 
     private MultiThreadWorker(ThreadCallback cb) { this.callback = cb; }
 
-    public void run() {
-        final ThreadWorker[] WORKERS = new ThreadWorker[Runtime.getRuntime().availableProcessors()];
+    public void run() { run(Runtime.getRuntime().availableProcessors()); }
+
+    public void run(final int threads) {
+        final ThreadWorker[] WORKERS = new ThreadWorker[threads];
         for (int i = 0; i < WORKERS.length; ++i) {
             final ThreadWorker worker = new ThreadWorker();
             worker.setDaemon(true);

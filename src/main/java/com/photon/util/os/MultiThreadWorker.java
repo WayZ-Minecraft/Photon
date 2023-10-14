@@ -2,25 +2,46 @@ package com.photon.util.os;
 
 import com.photon.util.ConsoleManager;
 
-public abstract class MultiThreadWorker
+public class MultiThreadWorker
 {
+    private final ThreadCallback callback;
+
+    /**
+     * Create a multi-threaded worker that will run the given callback in parallel
+     * @param cb the callback to run
+     * @return the worker
+     */
+    public static MultiThreadWorker createWorker(ThreadCallback cb) { return new MultiThreadWorker(cb); }
+
+    private MultiThreadWorker(ThreadCallback cb) { this.callback = cb; }
+
     public void run() {
-        final ThreadWorker[] workers = new ThreadWorker[Runtime.getRuntime().availableProcessors()];
-        for (int i = 0; i < workers.length; ++i) {
+        final ThreadWorker[] WORKERS = new ThreadWorker[Runtime.getRuntime().availableProcessors()];
+        for (int i = 0; i < WORKERS.length; ++i) {
             final ThreadWorker worker = new ThreadWorker();
             worker.setDaemon(true);
-            (workers[i] = worker).start();
+            (WORKERS[i] = worker).start();
         }
         try {
-            for (int i = 0; i < workers.length; ++i) workers[i].join();
+            for (int i = 0; i < WORKERS.length; ++i) WORKERS[i].join();
         } catch (InterruptedException e) { ConsoleManager.create(e).error().end(); }
     }
     
-    protected abstract boolean work();
-    
     private class ThreadWorker extends Thread {
         @Override public void run() {
-        	while (MultiThreadWorker.this.work()) {}
+        	try {
+                while (MultiThreadWorker.this.callback.work()) {}
+            } catch (Exception e) { e.printStackTrace(); }
         }
+    }
+
+    @FunctionalInterface
+    public static interface ThreadCallback {
+        /**
+         * 
+         * @return true if there is more work to do, false otherwise
+         * @throws Exception
+         */
+        public boolean work() throws Exception;
     }
 }

@@ -47,6 +47,22 @@ public class ProtectorManager {
 		return hash(toEncrypt);
     }
 	
+	public static String hash(InputStream toHash, String algorithm) {
+        if(toHash == null) return "unknown";
+		DigestInputStream stream = null;
+		try {
+			stream = new DigestInputStream(toHash, MessageDigest.getInstance(algorithm));
+			byte[] ignored = new byte[65536];
+			int read;
+			do { read = stream.read(ignored); } while (read > 0);
+			return String.format("%1$0" + 16 + "x", new Object[] { new BigInteger(1, stream.getMessageDigest().digest()) });
+		} catch (Exception localException) {
+		} finally {
+			try { stream.close(); } catch (IOException e) { e.printStackTrace(); }
+		}
+        return null;
+    }
+
 	public static String hash(File toHash, String algorithm) {
 		if(toHash == null) return "unknown";
 		DigestInputStream stream = null;

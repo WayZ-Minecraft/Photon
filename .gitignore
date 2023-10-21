@@ -6,4 +6,5 @@ build/
 .gradle/
 .vscode/
 ./settings/
+.sync/
 out.map

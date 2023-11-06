@@ -80,6 +80,7 @@ jar {
 shadowJar {
    	configurations = [project.configurations.shadow]
    	duplicatesStrategy 'exclude'
+	exclude 'natives/**'
 	archiveClassifier.set('')
     archiveFileName = "network.jar"
 }
@@ -87,7 +88,7 @@ shadowJar {
 task apiJar(type: Jar) {
    	dependsOn shadowJar
     from zipTree(shadowJar.outputs.files.singleFile)
-    exclude 'sqlite-jbdc.properties', 'natives/**', 'lang/**', 'font/**', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 
+    exclude 'sqlite-jbdc.properties', 'natives/**', 'lang/**', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 
         'net/**', 'ch/**', 'com/sun/mail/**', 'javax/mail/**', 'tomp2p/**', 'club/**', 'org/sqlite/**',
         'com/photon/discord/**', 'com/photon/network/NetworkEngine', 'com/photon/ui/**'
     archiveFileName = "api.jar"

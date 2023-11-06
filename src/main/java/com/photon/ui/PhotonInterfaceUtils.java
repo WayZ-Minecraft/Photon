@@ -74,7 +74,7 @@ public class PhotonInterfaceUtils {
     
     public static void drawText(Graphics g, String text, int x, int y, Color color, Font font)
     {
-    	if(font == null) { font = g.getFont(); } else { g.setFont(font);}
+    	if(font == null) { font = g.getFont(); } else { g.setFont(font); }
         if(color !=null) { g.setColor(color); }
         g.drawString(text, x, y);
     }

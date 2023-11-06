@@ -8,7 +8,6 @@ import java.awt.geom.Rectangle2D;
 import com.photon.ui.PhotonInterfaceUtils;
 import com.photon.ui.components.utils.AbstractButton;
 
-@SuppressWarnings("serial")
 public class ColoredButton extends AbstractButton {
 
     private Color color;

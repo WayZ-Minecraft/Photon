@@ -61,14 +61,29 @@ public class PhotonUpdaterManager {
     }
 
     /**
-     * Check if an update is available then download it
+     * Check if an update is available for specicifc type then download it.
+     * E.G : You can update the MOD for the STABLE channel
+     * @note This method don't care about the channel, it will always download the latest STABLE version !
      * @param type The type of the update (e.g MOD, LAUNCHER, API, NETWORK)
      * @param file The file to compare with
+     * @param callback The callback to call when the download is finished
      * @return True if the file has been downloaded, false otherwise
      */
     public static boolean update(UpdateFileType type, File file, RunnableTask<Integer, Integer> callback) {
+        return update(type, UpdateChannel.STABLE, file, callback);
+    }
+
+    /**
+     * Check if an update is available for specicifc type and channel then download it.
+     * E.G : You can update the MOD for the STABLE or DEV channel
+     * @param type The type of the update (e.g MOD, LAUNCHER, API, NETWORK)
+     * @param channel The channel of the update (e.g STABLE, DEV)
+     * @param file The file to compare with
+     * @return True if the file has been downloaded, false otherwise
+     */
+    public static boolean update(UpdateFileType type, UpdateChannel channel, File file, RunnableTask<Integer, Integer> callback) {
         boolean hasFinished = false;
-        if(hasUpdate(type, file)) hasFinished = download(type, file, callback);
+        if(hasUpdate(type, file)) hasFinished = download(type, channel, file, callback);
         else hasFinished = true;
 
         if(hasFinished) downloader = Executors.newFixedThreadPool(5);
@@ -76,15 +91,23 @@ public class PhotonUpdaterManager {
     }
 
     /**
-     * Get the latest URL of the chosen update type
+     * Get the latest URL of the chosen update type and channel in the format 
+     * https://.../services_updates/{type}-{channel}.jar (e.g https://.../services_updates/mod-dev.jar)
+     * EXCEPT if the channel is STABLE, then the format will be 
+     * https://.../services_updates/{type}.jar (e.g https://.../services_updates/mod.jar)
      * @param type The type of the update (e.g MOD, LAUNCHER, API, NETWORK)
      * @return The url of the update if there is one, UNKNOWN otherwise
      */
-    public static String getURL(UpdateFileType type) { return url+"services_updates/"+type.name().toLowerCase()+".jar"; }
+    public static String getURL(UpdateFileType type, UpdateChannel channel) {
+        return url+"services_updates/" +
+            type.name().toLowerCase() +
+            (channel != UpdateChannel.STABLE ? "-" + channel.name().toLowerCase() : "") +
+            ".jar";
+    }
 
-    private static boolean download(UpdateFileType type, File file, RunnableTask<Integer, Integer> callback) {
+    private static boolean download(UpdateFileType type, UpdateChannel channel, File file, RunnableTask<Integer, Integer> callback) {
         try {
-            downloader.submit(new UpdateDownloader(file, getURL(type), callback));
+            downloader.submit(new UpdateDownloader(file, getURL(type, channel), callback));
             downloader.shutdown();
             downloader.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
             return true;
@@ -158,6 +181,8 @@ public class PhotonUpdaterManager {
 	}
 
     public static enum UpdateFileType { MOD, LAUNCHER, API, NETWORK; }
+
+    public static enum UpdateChannel { STABLE, DEV; }
 
     @FunctionalInterface
     public interface RunnableTask<T, X> {

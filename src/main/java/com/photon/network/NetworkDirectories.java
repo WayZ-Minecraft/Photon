@@ -9,6 +9,7 @@ import java.util.HashMap;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.photon.informations.PhotonUpdaterManager.UpdateChannel;
 import com.photon.informations.PhotonUpdaterManager.UpdateFileType;
 
 public class NetworkDirectories
@@ -79,7 +80,7 @@ public class NetworkDirectories
 		public static int writeBufferSize = 10 * 1024 * 1024;
 		public static int objectBufferSize = 10 * 1024 * 1024;
 
-		public HashMap<UpdateFileType, String> filePaths = new HashMap<UpdateFileType, String>();
+		public HashMap<UpdateFileType, HashMap<UpdateChannel, String>> filePaths = new HashMap<>();
 		
 		public String webUrl = "";
 		public String webUser = "";

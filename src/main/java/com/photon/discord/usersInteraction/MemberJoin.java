@@ -20,8 +20,7 @@ public class MemberJoin extends ListenerAdapter {
     public static void onMemberJoin(GuildMemberJoinEvent event) {
         UsersInfo.setFirstConnection(event.getUser().getId(), false);
         event.getUser().openPrivateChannel().queue(channel -> {
-
-            ConsoleManager.create("Welcome message sent to " + event.getUser().getName()).displayOnDiscord().end();
+            ConsoleManager.create("Welcome message sent to " + event.getUser().getName()).end();
 
             EmbedBuilder embed = buildEmbed(UsersInfo.getLanguages(event.getUser().getId()).get(0));
             channel.sendMessageEmbeds(embed.build()).queue();

@@ -99,7 +99,8 @@ public class MessageListenerServer implements Listener
 	            final BufferedWriter writer = new BufferedWriter(new FileWriter(crashReportFile));
 	            writer.write(request.fileMessage);
 	            writer.close();
-                ConsoleManager.create("Received a new Crash Report from Client: " + request.userUUID).displayOnDiscord().withType(EnumLogType.NETWORK).end();
+                ConsoleManager.create("Received a new Crash Report from Client: " + request.userUUID).displayOnDiscord().withType(EnumLogType.NETWORK)
+					.withFile(crashReportFile).end();
 	        }
 	        
 	        else if (object instanceof ClientRequestAnticheat request) {

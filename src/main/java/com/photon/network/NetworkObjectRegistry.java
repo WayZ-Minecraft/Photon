@@ -116,6 +116,7 @@ public class NetworkObjectRegistry {
 
         kryo.register(PhotonUpdaterManager.class);
         kryo.register(PhotonUpdaterManager.UpdateFileType.class);
+        kryo.register(PhotonUpdaterManager.UpdateChannel.class);
 
         kryo.register(ObjectPlayerAccount.class);
         kryo.register(ClientRequestAccount.class);

@@ -81,7 +81,7 @@ public class NetworkDirectories
 		public static int objectBufferSize = 10 * 1024 * 1024;
 
 		public HashMap<UpdateFileType, HashMap<UpdateChannel, String>> filePaths = new HashMap<>();
-		
+
 		public String webUrl = "";
 		public String webUser = "";
 		public String webPassword = "";

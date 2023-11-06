@@ -39,7 +39,7 @@ public class ConsoleManager
 		/* Remove existing handlers */
 		Logger rootLogger = LogManager.getLogManager().getLogger("");
 		Handler[] handlers = rootLogger.getHandlers();
-		for (Handler handler : handlers) { rootLogger.removeHandler(handler); }
+		for (Handler handler : handlers) rootLogger.removeHandler(handler);
 		
 		/* Adding console handler */
 		logger.addHandler(consoleHandler);
@@ -166,8 +166,10 @@ public class ConsoleManager
         public String format(LogRecord record) {
             StringBuffer sb = new StringBuffer();
             if(type !=null) sb.append(type.consoleColor);
+
             sb.append(record.getMessage());
             sb.append("\n");
+
 			if(type !=null) sb.append(ANSI_WHITE);
             return sb.toString();
         }

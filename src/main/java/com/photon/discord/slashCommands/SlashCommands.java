@@ -17,6 +17,7 @@ import com.photon.discord.slashCommands.advancedCommands.CustomMute;
 import com.photon.discord.slashCommands.advancedCommands.KineticCommands;
 import com.photon.discord.slashCommands.advancedCommands.NewsManager;
 import com.photon.discord.usersInteraction.xpManager;
+import com.photon.informations.PhotonUpdaterManager.UpdateChannel;
 import com.photon.informations.PhotonUpdaterManager.UpdateFileType;
 import com.photon.network.NetworkDirectories;
 import com.photon.network.NetworkEngine;
@@ -88,7 +89,8 @@ public class SlashCommands {
         // Add commands to update the network
         commands.add(Commands.slash("post-update", "post an update on the network")
         .addOption(OptionType.ATTACHMENT, "file", "the build file", true, false)
-        .addOption(OptionType.STRING, "filetype", "the file to update (ex: mod, launcher)", false, true)
+        .addOption(OptionType.STRING, "channel", "the channel (e.g: stable, dev)", false, true)
+        .addOption(OptionType.STRING, "filetype", "the file to update (e.g: mod, launcher)", false, true)
         .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
 
         /* 
@@ -269,6 +271,9 @@ public class SlashCommands {
         String fileType;
         if (event.getOption("type") == null) fileType = file.getFileName().split("\\.")[0];
         else fileType = event.getOption("type").getAsString();
+        
+        String channelType = "stable";
+        if (event.getOption("channel") != null) channelType = event.getOption("channel").getAsString();
 
 
         HashMap<String, UpdateFileType> fileTypeKeys = new HashMap<>(){{
@@ -278,7 +283,13 @@ public class SlashCommands {
             put("network", UpdateFileType.NETWORK);
         }};
 
-        Path outputPath = Path.of(NetworkDirectories.config.filePaths.get(fileTypeKeys.get(fileType)));
+        HashMap<String, UpdateChannel> channelTypeKeys = new HashMap<>(){{
+            put("stable", UpdateChannel.STABLE);
+            put("dev", UpdateChannel.DEV);
+        }};
+
+        HashMap<UpdateChannel, String> channelsPaths = NetworkDirectories.config.filePaths.get(fileTypeKeys.get(fileType));
+        Path outputPath = Path.of(channelsPaths.get(channelTypeKeys.get(channelType)));
         
         InputStream inputStream;
         try {

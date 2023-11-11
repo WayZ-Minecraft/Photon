@@ -23,17 +23,18 @@ import com.photon.util.ProtectorManager;
 public class PhotonUpdaterManager {
 
     public static String url = NetworkDirectories.config.webUrl;
-    private static ExecutorService downloader = Executors.newFixedThreadPool(5);
+    public static final int DEFAULT_DOWNLOADER_THREADS_COUNT = 5;
+    private static ExecutorService downloader = null;
 
     /**
      * Get the latest SHA1 of the chosen update type
      * @param type The type of the update (e.g MOD, LAUNCHER, API, NETWORK)
      * @return The sha1 of the update if there is one, UNKNOWN otherwise
      */
-    public static String getSHA1(UpdateFileType type) {
+    public static String getSHA1(UpdateFileType type, UpdateChannel channel) {
         /* If we can't reach the site, disable download */
         try {
-			final URL url = new URL(NetworkDirectories.config.webUrl+"services_updates/the-sha.php?type="+type.name().toLowerCase());
+			final URL url = new URL(NetworkDirectories.config.webUrl+"services_updates/the-sha.php?type="+type.name().toLowerCase()+"&channel="+channel.name().toLowerCase());
 			final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			ProtectorManager.addProperties(conn);
 			conn.setRequestMethod("GET");
@@ -53,8 +54,8 @@ public class PhotonUpdaterManager {
      * @param file The file to compare with
      * @return True if there is an update, false otherwise
      */
-    public static boolean hasUpdate(UpdateFileType type, final File file) {
-        final String sha1 = getSHA1(type);
+    public static boolean hasUpdate(UpdateFileType type, UpdateChannel channel, final File file) {
+        final String sha1 = getSHA1(type, channel);
         if(!file.exists()) return true;
         if(!sha1.equalsIgnoreCase("UNKNOWN") && !getDigest(file, "SHA", 40).equals(sha1)) return true;
         return false;
@@ -82,11 +83,16 @@ public class PhotonUpdaterManager {
      * @return True if the file has been downloaded, false otherwise
      */
     public static boolean update(UpdateFileType type, UpdateChannel channel, File file, RunnableTask<Integer, Integer> callback) {
+        /* If the downloader is not defined set it to default value */
+        if(downloader == null) downloader = Executors.newFixedThreadPool(DEFAULT_DOWNLOADER_THREADS_COUNT);
+
+        /* Download */
         boolean hasFinished = false;
-        if(hasUpdate(type, file)) hasFinished = download(type, channel, file, callback);
+        if(hasUpdate(type, channel, file)) hasFinished = download(type, channel, file, callback);
         else hasFinished = true;
 
-        if(hasFinished) downloader = Executors.newFixedThreadPool(5);
+        /* Reset downloader */
+        if(hasFinished) downloader = null;
         return hasFinished;
     }
 
@@ -103,6 +109,14 @@ public class PhotonUpdaterManager {
             type.name().toLowerCase() +
             (channel != UpdateChannel.STABLE ? "-" + channel.name().toLowerCase() : "") +
             ".jar";
+    }
+
+    /**
+     * Allow to choose the ammount of threads used to download the update of a file
+     * @param downloaderThreadsCount The ammount of threads to use
+     */
+    public static void setDownloaderThreadsCount(int downloaderThreadsCount) {
+        if(downloader == null) downloader = Executors.newFixedThreadPool(downloaderThreadsCount);
     }
 
     private static boolean download(UpdateFileType type, UpdateChannel channel, File file, RunnableTask<Integer, Integer> callback) {
@@ -144,7 +158,7 @@ public class PhotonUpdaterManager {
                     int read;
                     int total = 0;
                     while ((read = bufferedInputStream.read(data, 0, size)) != -1) {
-                        if(callback != null) callback.run(total+=read, urlConnection.getContentLength());
+                        if(callback != null) callback.run(total += read, urlConnection.getContentLength());
                         fileOutputStream.write(data, 0, read);
                     }
                 } finally {

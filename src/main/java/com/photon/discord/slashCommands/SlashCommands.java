@@ -2,6 +2,7 @@ package com.photon.discord.slashCommands;
 
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
@@ -53,25 +54,34 @@ public class SlashCommands {
 
         // Add commands clear
         commands.add(Commands.slash("clear", "clear a number of message")
-        .addOption(OptionType.INTEGER, "number", "number of message to delete", false, false)
-        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MESSAGE_MANAGE)));
+            .addOption(OptionType.INTEGER, "number", "number of message to delete", false, false)
+            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MESSAGE_MANAGE)));
 
         // Kinetic commands
-        commands.add(Commands.slash("convert", "Convert a nebulae files or OBJ, images, ANIM files")
-        .addOption(OptionType.ATTACHMENT, "file", "The file to convert", true, false)
-        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+        {
+            commands.add(Commands.slash("convert", "Convert a nebulae files or OBJ, images, ANIM files")
+                .addOption(OptionType.ATTACHMENT, "file", "The file to convert", true, false)
+                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+    
+            commands.add(Commands.slash("opacity-map", "Cobine a texture with opacity map to get the transparent texture")
+                .addOption(OptionType.ATTACHMENT, "texture", "The non-transparent texture", true, false)
+                .addOption(OptionType.ATTACHMENT, "opacity_map", "The opacity map", true, false)
+                .addOption(OptionType.BOOLEAN, "reversed_colors", "True if you want to use resversed colors (Black instead of white)", false, false)
+                .addOption(OptionType.BOOLEAN, "custom_format", "True if you want to get a nebulae-image file format", false, false)
+                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+        }
 
         // Add commands time mute
         commands.add(Commands.slash("tempmute", "use to mute a temporaly a specifique player")
-        .addOption(OptionType.USER , "user", "the user", true, false)
-        .addOption(OptionType.STRING, "duration", "time of mute", true, true)
-        .addOption(OptionType.STRING, "reason", "the reason of the mute", true, false)
-        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.VOICE_MUTE_OTHERS)));
+            .addOption(OptionType.USER , "user", "the user", true, false)
+            .addOption(OptionType.STRING, "duration", "time of mute", true, true)
+            .addOption(OptionType.STRING, "reason", "the reason of the mute", true, false)
+            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.VOICE_MUTE_OTHERS)));
 
         // Add commands silence
         commands.add(Commands.slash("silence", "mute all the users in the voice channel")
-        .addOption(OptionType.INTEGER, "duration", "time of mute in seconde", false, false)
-        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.VOICE_MUTE_OTHERS)));
+            .addOption(OptionType.INTEGER, "duration", "time of mute in seconde", false, false)
+            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.VOICE_MUTE_OTHERS)));
 
         /*
          * Network Commands
@@ -79,19 +89,19 @@ public class SlashCommands {
 
         // Add commands restart network
         commands.add(Commands.slash("restart-network", "restart the network")
-        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
 
         // Add commands link-account
         commands.add(Commands.slash("link-account", "link your minecraft account to your discord account")
-        .addOption(OptionType.STRING, "uuid", "your WayZ unique user identity (in game)", true, false)
-        .addOption(OptionType.STRING, "authkey", "your authentication Key", true, false));
+            .addOption(OptionType.STRING, "uuid", "your WayZ unique user identity (in game)", true, false)
+            .addOption(OptionType.STRING, "authkey", "your authentication Key", true, false));
 
         // Add commands to update the network
         commands.add(Commands.slash("post-update", "post an update on the network")
-        .addOption(OptionType.ATTACHMENT, "file", "the build file", true, false)
-        .addOption(OptionType.STRING, "channel", "the channel (e.g: stable, dev)", false, true)
-        .addOption(OptionType.STRING, "filetype", "the file to update (e.g: mod, launcher)", false, true)
-        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+            .addOption(OptionType.ATTACHMENT, "file", "the build file", true, false)
+            .addOption(OptionType.STRING, "channel", "the channel (e.g: stable, dev)", false, true)
+            .addOption(OptionType.STRING, "filetype", "the file to update (e.g: mod, launcher)", false, true)
+            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
 
         /* 
         * Xp Commands
@@ -99,19 +109,19 @@ public class SlashCommands {
 
         //add commands Level
         commands.add(Commands.slash("level", "show your level")
-        .addOption(OptionType.USER, "user", "the user", false, false));
+            .addOption(OptionType.USER, "user", "the user", false, false));
 
         //give xp command
         commands.add(Commands.slash("give-xp", "give xp to a player")
-        .addOption(OptionType.USER, "user", "the user", true, false)
-        .addOption(OptionType.INTEGER, "xp", "the amount of xp", true, false)
-        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+            .addOption(OptionType.USER, "user", "the user", true, false)
+            .addOption(OptionType.INTEGER, "xp", "the amount of xp", true, false)
+            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
 
         //remove xp command
         commands.add(Commands.slash("remove-xp", "remove xp to a player")
-        .addOption(OptionType.USER, "user", "the user", true, false)
-        .addOption(OptionType.INTEGER, "xp", "the amount of xp", true, false)
-        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+            .addOption(OptionType.USER, "user", "the user", true, false)
+            .addOption(OptionType.INTEGER, "xp", "the amount of xp", true, false)
+            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
 
         /*
          * News
@@ -119,11 +129,11 @@ public class SlashCommands {
 
         // Add commands news
         commands.add(Commands.slash("create-news", "create a news")
-        .addOption(OptionType.STRING, "title", "the title of the news", true, false)
-        .addOption(OptionType.STRING, "content-en", "the content of the news", true, false)
-        .addOption(OptionType.STRING, "content-fr", "the content of the news in french", true, false)
-        .addOption(OptionType.ATTACHMENT, "image", "the image of the news", true, false)
-        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+            .addOption(OptionType.STRING, "title", "the title of the news", true, false)
+            .addOption(OptionType.STRING, "content-en", "the content of the news", true, false)
+            .addOption(OptionType.STRING, "content-fr", "the content of the news in french", true, false)
+            .addOption(OptionType.ATTACHMENT, "image", "the image of the news", true, false)
+            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
         
         
         
@@ -131,8 +141,8 @@ public class SlashCommands {
         * Sql commande
         */
         commands.add(Commands.slash("execute-sql", "execute a sql command")
-        .addOption(OptionType.STRING, "command", "sql command", true, false)
-        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+            .addOption(OptionType.STRING, "command", "sql command", true, false)
+            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
             
     }
 
@@ -182,7 +192,10 @@ public class SlashCommands {
                 CustomMute.silence(event);
                 break;
             case "convert":
-                KineticCommands.covnertFile(event);
+                KineticCommands.convertFile(event);
+                break;
+            case "opacity-map":
+                try { KineticCommands.opacityImage(event); } catch (IOException e) { e.printStackTrace(); }
                 break;
             default:
                 break;

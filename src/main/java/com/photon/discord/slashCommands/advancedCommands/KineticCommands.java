@@ -1,23 +1,88 @@
 package com.photon.discord.slashCommands.advancedCommands;
 
+import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+
+import javax.imageio.ImageIO;
 
 import com.photon.util.ProtectorManager;
 
 import net.dv8tion.jda.api.entities.Message.Attachment;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.utils.FileUpload;
 
 public class KineticCommands {
+
+    public static void opacityImage(SlashCommandInteractionEvent event) throws IOException {
+        /* Get attachments */
+        Attachment textureAttachment = event.getOption("texture").getAsAttachment();
+        Attachment opacityMapAttachment = event.getOption("opacity_map").getAsAttachment();
+        OptionMapping customFormatOption = event.getOption("custom_format");
+        OptionMapping reversedColorsOption = event.getOption("reversed_colors");
+        boolean customFormat = customFormatOption !=null ? customFormatOption.getAsBoolean() : false;
+        boolean reversedColors = reversedColorsOption !=null ? reversedColorsOption.getAsBoolean() : false;
+        
+        /* Read images */
+        InputStream textureStream = new URL(textureAttachment.getUrl()).openStream();
+        BufferedImage texture = ImageIO.read(textureStream);
+        InputStream opacityMapStream = new URL(opacityMapAttachment.getUrl()).openStream();
+        BufferedImage opacityMap = ImageIO.read(opacityMapStream);
+        
+        /* Creating the result */
+        BufferedImage result = new BufferedImage(texture.getWidth(), texture.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        for(int x = 0; x < result.getWidth(); x++) {
+            for(int y = 0; y < result.getHeight(); y++) {
+                /* Get colors */
+                Color overlayPxColor = new Color(opacityMap.getRGB(x, y));
+                Color pxColor = new Color(texture.getRGB(x, y));
+                int rgb = pxColor.getRGB();
+                
+                /* Calculate the new color */
+                if(reversedColors ? overlayPxColor.equals(Color.white) : overlayPxColor.equals(Color.black))
+                    rgb = new Color(0, 0, 0, 0).getRGB(); /* Color is fully equals to the full WHITE or BLACK, we set 0 opacity */
+                if(checkColor(overlayPxColor))
+                    rgb = new Color(overlayPxColor.getRed(), overlayPxColor.getGreen(), overlayPxColor.getBlue(), pxColor.getRed()).getRGB();
+                
+                /* Set the new color */
+                result.setRGB(x, y, rgb);
+            }
+        }
+
+        /* Creating the result */
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        String fileName = textureAttachment.getFileName().replace("."+textureAttachment.getFileExtension(), "");
+        ImageIO.write(result, "PNG", out);
+        FileUpload file = FileUpload.fromData(out.toByteArray(), fileName+"_opacity_map"+(customFormat ? ".nebulae-image" : ".png"));
+
+        /* Closing resources */
+        textureStream.close();
+        opacityMapStream.close();
+        out.close();
+
+        /* Sending result */
+        event.replyFiles(file).queue();
+    }
+
+    /**
+     * Check if the color is between 0 and 255
+     * @param c The color to check
+     * @return true if the color is between 0 and 255
+     */
+    private static boolean checkColor(Color c) {
+        return c.getRed() > 0 && c.getRed() < 255 && c.getGreen() > 0 && c.getGreen() < 255 && c.getBlue() > 0 && c.getBlue() < 255;
+    }
 
     /**
      * This allow a converting files from NEBULAE (+varients) to orignial files and the revert
      * @param event The event that triggered a SlashCommandInteractionEvent
      */
-    public static void covnertFile(SlashCommandInteractionEvent event) {
-        final Attachment file = event.getOption("file").getAsAttachment();
+    public static void convertFile(SlashCommandInteractionEvent event) {
+        Attachment file = event.getOption("file").getAsAttachment();
         FileUpload upload = null;
         switch(file.getFileExtension()) {
         case "obj":

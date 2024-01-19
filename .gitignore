@@ -5,6 +5,7 @@ bin
 build/
 .gradle/
 .vscode/
-./settings/
+.settings/
 .sync/
 out.map
+*.launch

@@ -73,7 +73,6 @@ public class BotEngine extends ListenerAdapter {
 
         if(Arrays.asList(args).contains("--restart")) isRestarting = true;
 
-
         botBuilder.build();
         SlashCommands.load();
         SqlInteract.connect();

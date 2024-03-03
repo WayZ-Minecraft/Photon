@@ -93,7 +93,7 @@ public class ConsoleManager
             Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
                 ConsoleManager.create("Uncaught exception in thread " + t.getName() +"\n"+ of(e)).error().end();
             });
-			if(container != null) container.getHandler().setFormatter(new ConsoleFormatter(null));
+			if(container != null) container.getLogger().addHandler(fh);
 			else defaultLogger.addHandler(fh);
             fh.setFormatter(new ConsoleFormatter(null));
             

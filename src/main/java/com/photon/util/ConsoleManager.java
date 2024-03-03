@@ -7,6 +7,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Formatter;
@@ -23,8 +25,12 @@ import com.photon.network.messages.requests.ClientRequestSendDiscordLogs;
 
 public class ConsoleManager
 {  	
-	private static final ConsoleHandler consoleHandler = new ConsoleHandler();
-	private static final Logger logger = Logger.getLogger("");
+	private static final ConsoleHandler defaultHandler = new ConsoleHandler();
+	private static final Logger defaultLogger = Logger.getLogger("");
+	private static final Map<String, ConsoleHandler> handlers = new HashMap<>();
+	private static final Map<String, Logger> loggers = new HashMap<>();
+
+	/* Colors */
 	protected static final String ANSI_RESET = "\u001B[241m";
 	protected static final String ANSI_BLACK = "\u001B[30m";
 	protected static final String ANSI_RED = "\u001B[31m";
@@ -42,31 +48,53 @@ public class ConsoleManager
 		for (Handler handler : handlers) rootLogger.removeHandler(handler);
 		
 		/* Adding console handler */
-		logger.addHandler(consoleHandler);
+		defaultLogger.addHandler(defaultHandler);
 	}
 	
+	public static ConsoleContainer createManager(String id) {
+		Logger logger = Logger.getLogger("");
+		ConsoleHandler handler = new ConsoleHandler();
+
+		logger.addHandler(handler);
+
+		loggers.put(id, logger);
+		handlers.put(id, handler);
+
+		return new ConsoleContainer(id, handler, logger);
+	}
+
 	public static String of(Throwable t) {
 		final StringWriter sw = new StringWriter();
-		final PrintWriter pw = new PrintWriter(sw);
-		t.printStackTrace(pw);
+		t.printStackTrace(new PrintWriter(sw));
 		return sw.toString();
 	}
-
+	
 	public static String of(Exception e) {
 		final StringWriter sw = new StringWriter();
-		final PrintWriter pw = new PrintWriter(sw);
-		e.printStackTrace(pw);
+		e.printStackTrace(new PrintWriter(sw));
 		return sw.toString();
 	}
 
-	public static void registerFileHandler(File file) {
+	/**
+	 * Register a file handler to save logs (This will be the default handler)
+	 * @param file The file to save logs
+	 */
+	public static void registerFileHandler(File file) { registerFileHandler(file, null); }
+
+	/**
+	 * Register a file handler to save logs
+	 * @param file The file to save logs
+	 * @param handler The handler to use
+	 */
+	public static void registerFileHandler(File file, ConsoleContainer container) {
 		/* Adding file handler */
 		try {
     		final FileHandler fh = new FileHandler(file.getPath());
             Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
                 ConsoleManager.create("Uncaught exception in thread " + t.getName() +"\n"+ of(e)).error().end();
             });
-            logger.addHandler(fh);
+			if(container != null) container.getHandler().setFormatter(new ConsoleFormatter(null));
+			else defaultLogger.addHandler(fh);
             fh.setFormatter(new ConsoleFormatter(null));
             
 			/* Save file after closing launcher */
@@ -90,15 +118,24 @@ public class ConsoleManager
 		private boolean logOnDiscord = false;
 		private Object object;
 		private File file;
+		private ConsoleContainer container;
 
 		public void end() {
 			final String subTypeName = (isError?" : "+ConsoleManager.ANSI_RED+"ERROR"+type.consoleColor:"");
 
-			/* Changing log format */
-			consoleHandler.setFormatter(new ConsoleFormatter(type));
+			if(container !=null) {
+				/* Changing log format */
+				container.getHandler().setFormatter(new ConsoleFormatter(type));
 
-			/* Log */
-			logger.log(Level.OFF, "["+type+subTypeName+"] "+object);
+				/* Log */
+				container.getLogger().log(Level.OFF, "["+type+subTypeName+"] "+object);
+			} else {
+				/* Changing log format */
+				defaultHandler.setFormatter(new ConsoleFormatter(type));
+	
+				/* Log */
+				defaultLogger.log(Level.OFF, "["+type+subTypeName+"] "+object);
+			}
 
 			/* Display the error on discord if enabled */
 			if(logOnDiscord) {
@@ -112,6 +149,11 @@ public class ConsoleManager
 					NetworkConnectionClient.sendTCP(request);
 				}
 			}
+		}
+
+		public Log withContainer(ConsoleContainer container) {
+			this.container = container;
+			return this;
 		}
 
 		public Log displayOnDiscord() {
@@ -174,4 +216,22 @@ public class ConsoleManager
             return sb.toString();
         }
     }
+
+	public static class ConsoleContainer {
+		private final String id;
+		private final ConsoleHandler handler;
+		private final Logger logger;
+
+		public ConsoleContainer(String id, ConsoleHandler handler, Logger logger) {
+			this.id = id;
+			this.handler = handler;
+			this.logger = logger;
+		}
+
+		public String getId() { return id; }
+
+		public ConsoleHandler getHandler() { return handler; }
+
+		public Logger getLogger() { return logger; }
+	}
 }

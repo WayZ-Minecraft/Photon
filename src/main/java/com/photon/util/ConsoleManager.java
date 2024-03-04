@@ -26,7 +26,7 @@ import com.photon.network.messages.requests.ClientRequestSendDiscordLogs;
 public class ConsoleManager
 {  	
 	private static final ConsoleHandler defaultHandler = new ConsoleHandler();
-	private static final Logger defaultLogger = Logger.getLogger("");
+	private static final Logger defaultLogger = Logger.getLogger("default");
 	private static final Map<String, ConsoleHandler> handlers = new HashMap<>();
 	private static final Map<String, Logger> loggers = new HashMap<>();
 
@@ -52,7 +52,7 @@ public class ConsoleManager
 	}
 	
 	public static ConsoleContainer createManager(String id) {
-		Logger logger = Logger.getLogger("");
+		Logger logger = Logger.getLogger(id);
 		ConsoleHandler handler = new ConsoleHandler();
 
 		logger.addHandler(handler);
@@ -108,10 +108,43 @@ public class ConsoleManager
 		} catch (IOException e) {}
 	}
 
+	/**
+	 * Create a log to be displayed in the console
+	 * @param obj The object to display
+	 * @return The log for personnalization
+	 */
 	public static Log create(Object obj) { return new Log().withObject(obj); }
 
+	/**
+	 * Display a message in the console
+	 * @param o The message to display
+	 */
 	public static void debug(Object o) { System.out.println(o); }
 	
+	private static boolean elipsedTime = false;
+	private static long startTime = 0;
+	
+	/**
+	 * Start the time elapsed
+	 * @see #endTime(String)
+	 */
+	public static void startTime() {
+		elipsedTime = true;
+		startTime = System.currentTimeMillis();
+	}
+
+	/**
+	 * Display the time elapsed since the last startTime() call
+	 * @param message The message to display
+	 * @see #startTime()
+	 */
+	public static void endTime(String message) {
+		if(elipsedTime) {
+			elipsedTime = false;
+			ConsoleManager.create(message+" ("+(System.currentTimeMillis()-startTime)+"ms)").end();
+		}
+	}
+
 	public static class Log {
 		private EnumLogType type = EnumLogType.INFO;
 		private boolean isError = false;
@@ -122,16 +155,16 @@ public class ConsoleManager
 
 		public void end() {
 			final String subTypeName = (isError?" : "+ConsoleManager.ANSI_RED+"ERROR"+type.consoleColor:"");
-
+			
 			if(container !=null) {
 				/* Changing log format */
-				container.getHandler().setFormatter(new ConsoleFormatter(type));
-
+				if(!(container.getHandler().getFormatter() instanceof ConsoleFormatter)) container.getHandler().setFormatter(new ConsoleFormatter(type));
+				
 				/* Log */
 				container.getLogger().log(Level.OFF, "["+type+subTypeName+"] "+object);
 			} else {
 				/* Changing log format */
-				defaultHandler.setFormatter(new ConsoleFormatter(type));
+				if(!(defaultHandler.getFormatter() instanceof ConsoleFormatter)) defaultHandler.setFormatter(new ConsoleFormatter(type));
 	
 				/* Log */
 				defaultLogger.log(Level.OFF, "["+type+subTypeName+"] "+object);

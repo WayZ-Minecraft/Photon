@@ -20,7 +20,7 @@ public class NetworkConnectionClient {
         NetworkObjectRegistry.load(client.getKryo());
     	new Thread(client).start();
     	client.setKeepAliveTCP(ProtectorManager.TIME_OUT);
-    	client.connect(5000, PhotonEngine.network_Ip, PhotonEngine.network_Tcp, PhotonEngine.network_Udp);
+        client.connect(5000, PhotonEngine.network_Ip, PhotonEngine.network_Tcp, PhotonEngine.network_Udp);
     	client.addListener(new MessageListenerClient());
     	client.addListener(new MessageListenerCommon());
         try {

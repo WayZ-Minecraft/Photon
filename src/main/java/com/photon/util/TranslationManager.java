@@ -65,34 +65,21 @@ public class TranslationManager {
 	 * @see TranslationManager#load(String, String)
 	 */
 	private static void load(Locale locale, String path) {
-		try {
-			/* Create a list to save the properties (keys and value) for this locale */
-			final HashMap<String, String> properties = new HashMap<String, String>();
-			
-			/* Get the file as InputStream from locale */
-			final InputStream stream = FileLocation.loadFile(path + "/lang_" + locale.getLanguage() + ".properties");
-			if(stream == null) return;
+		try (InputStream stream = FileLocation.loadFile(path + "/lang_" + locale.getLanguage() + ".properties");
+			 BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"))) {
 
-			/* Read the file */
+			final HashMap<String, String> properties = new HashMap<>();
 
-			final BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
 			String line;
-			while((line = reader.readLine()) !=null) {
-				/* If the line is not empty and not a comment, add it to the list */
-				if(!line.isEmpty() && line.charAt(0) != '#' && (line.charAt(0) != '/' && line.charAt(1) != '/')) {
-					properties.put(
-						/* Get the line from 0 to the first '=' */
-						line.substring(0, line.indexOf("=")),
-						/* Get the line from '=' to the end */
-						line.substring(line.indexOf("=") + 1)
-						);
+			while ((line = reader.readLine()) != null) {
+				if (!line.isEmpty() && !line.startsWith("#") && !line.startsWith("//")) {
+					String[] keyValue = line.split("=", 2);
+					if (keyValue.length == 2) {
+						properties.put(keyValue[0], keyValue[1]);
 					}
 				}
-			/* Close everything ! :) */
-			stream.close();
-			reader.close();
-			
-			/* Added the properties to then required language */
+			}
+
 			languages.put(locale.getLanguage(), properties);
 
 		} catch (IOException e) {

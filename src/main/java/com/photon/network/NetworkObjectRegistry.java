@@ -20,6 +20,7 @@ import com.photon.network.messages.requests.ClientRequestAddClass;
 import com.photon.network.messages.requests.ClientRequestAddListener;
 import com.photon.network.messages.requests.ClientRequestAnticheat;
 import com.photon.network.messages.requests.ClientRequestCrashReport;
+import com.photon.network.messages.requests.ClientRequestHWID;
 import com.photon.network.messages.requests.ClientRequestNetworkConfig;
 import com.photon.network.messages.requests.ClientRequestRegisterConnection;
 import com.photon.network.messages.requests.ClientRequestSendDiscordLogs;
@@ -37,6 +38,7 @@ import com.photon.network.messages.response.ServerResponseSyncContentPack;
 import com.photon.network.messages.response.account.ServerResponseAccount;
 import com.photon.network.messages.response.account.ServerResponseValidAccount;
 import com.photon.network.objects.DownloadContentPacks;
+import com.photon.network.objects.ObjectHWIDs;
 import com.photon.network.objects.ObjectNews;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.objects.ObjectServer;
@@ -151,6 +153,10 @@ public class NetworkObjectRegistry {
         kryo.register(ClientRequestSyncContentPacks.class);
         kryo.register(DownloadContentPacks.class);
         kryo.register(ServerResponseSyncContentPack.class);
+
+        kryo.register(ObjectHWIDs.class);
+        kryo.register(ObjectHWIDs.HWID.class);
+        kryo.register(ClientRequestHWID.class);
     }
 	
 	public static class ByteArrayClassLoader extends ClassLoader {

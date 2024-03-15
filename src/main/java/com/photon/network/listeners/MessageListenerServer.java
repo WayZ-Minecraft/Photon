@@ -17,6 +17,7 @@ import com.photon.network.messages.requests.ClientRequestAddClass;
 import com.photon.network.messages.requests.ClientRequestAddListener;
 import com.photon.network.messages.requests.ClientRequestAnticheat;
 import com.photon.network.messages.requests.ClientRequestCrashReport;
+import com.photon.network.messages.requests.ClientRequestHWID;
 import com.photon.network.messages.requests.ClientRequestNetworkConfig;
 import com.photon.network.messages.requests.ClientRequestRegisterConnection;
 import com.photon.network.messages.requests.ClientRequestSendDiscordLogs;
@@ -34,6 +35,7 @@ import com.photon.network.messages.response.ServerResponseSyncContentPack;
 import com.photon.network.messages.response.account.ServerResponseAccount;
 import com.photon.network.messages.response.account.ServerResponseValidAccount;
 import com.photon.network.objects.DownloadContentPacks;
+import com.photon.network.objects.ObjectHWIDs;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.objects.ObjectServer;
 import com.photon.network.objects.ProfileManager;
@@ -114,6 +116,20 @@ public class MessageListenerServer implements Listener
 	            writer.close();
                 ConsoleManager.create("Cheater: "+request.userUUID+"\nOperating System: "+request.operatingSystem + "\nReason: " + request.fileMessage).displayOnDiscord().withType(EnumLogType.NETWORK).end();
 	        }
+			else if (object instanceof ClientRequestHWID request) {
+                    final File HWIDsFile = new File(NetworkDirectories.baseDirectory, "HWIDs.json");
+                    if (!HWIDsFile.exists()) {
+                        HWIDsFile.createNewFile();
+                        ObjectHWIDs.create(HWIDsFile);
+                    }
+                    ObjectHWIDs hwids = ObjectHWIDs.load(HWIDsFile);
+                    if (hwids == null) {
+                        hwids = new ObjectHWIDs();
+                    }
+                    hwids.hwids.add(new ObjectHWIDs.HWID(request.userName, request.userUUID, request.userHWID, request.operatingSystem));
+                    hwids.save(HWIDsFile);
+                    ConsoleManager.create("A new HWID recived for " + request.userUUID + "\nOperating System: " + request.operatingSystem + "\nHWID: " + request.userHWID).withType(ConsoleManager.EnumLogType.NETWORK).end();
+                }
     		
 	        else if (object instanceof ClientRequestNewsList) {
 	            final ServerResponseNewsList response = new ServerResponseNewsList();

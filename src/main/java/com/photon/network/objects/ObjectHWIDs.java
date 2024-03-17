@@ -6,8 +6,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -16,10 +16,10 @@ import com.google.gson.JsonIOException;
 public class ObjectHWIDs
 {
     private static final Gson GSON;
-    public List<HWID> hwids;
+    public Set<HWID> hwids;
     
     public ObjectHWIDs() {
-        this.hwids = new ArrayList<HWID>();
+        this.hwids = new HashSet<HWID>();
     }
     
     public static void create(final File file) {
@@ -63,6 +63,13 @@ public class ObjectHWIDs
             this.userUUID = userUUID;
             this.userHWID = userHWID;
             this.operatingSystem = operatingSystem;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if(obj instanceof HWID hwid)
+                return hwid.userName.equals(this.userName) && hwid.userUUID.equals(this.userUUID) && hwid.userHWID.equals(this.userHWID) && hwid.operatingSystem.equals(this.operatingSystem);
+            return super.equals(obj);
         }
     }
 }

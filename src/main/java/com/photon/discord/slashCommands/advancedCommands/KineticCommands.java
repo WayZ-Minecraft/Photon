@@ -7,7 +7,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
 
 import com.photon.util.ProtectorManager;
 
@@ -107,6 +110,39 @@ public class KineticCommands {
         }
         if(upload !=null) event.replyFiles(upload).queue();
         else event.reply("Failed to convert file").queue();
+    }
+
+    public static void imageQuality(SlashCommandInteractionEvent event) throws IOException {
+        Attachment file = event.getOption("image").getAsAttachment();
+        int qualityPercentage = event.getOption("percentage").getAsInt();
+        if(qualityPercentage < 0 || qualityPercentage > 100) {
+            event.reply("The quality percentage must be between 0 and 100").queue();
+            return;
+        }
+        try {
+            /* Open stream and read image */
+            InputStream inputStream = new URL(file.getUrl()).openStream();
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            BufferedImage image = ImageIO.read(inputStream);
+            
+            /* Create the new file */
+            ImageWriter writer = ImageIO.getImageWritersByFormatName("PNG").next();
+            ImageWriteParam param = writer.getDefaultWriteParam();
+            param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+            param.setCompressionQuality(qualityPercentage / 100f);
+            writer.setOutput(out);
+            writer.write(null, new IIOImage(image, null, null), param);
+
+            /* Reply with the new file */
+            FileUpload upload = FileUpload.fromData(out.toByteArray(), file.getFileName());
+            event.replyFiles(upload).queue();
+            
+            /* Close streams */
+            inputStream.close();
+            out.close();
+        } catch (Exception e) {
+            event.reply("Failed to compress image").queue();
+        }
     }
 
     private static FileUpload decompress(String extention, Attachment attach) {

@@ -63,11 +63,16 @@ public class SlashCommands {
                 .addOption(OptionType.ATTACHMENT, "file", "The file to convert", true, false)
                 .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
     
-            commands.add(Commands.slash("opacity-map", "Cobine a texture with opacity map to get the transparent texture")
+            commands.add(Commands.slash("opacity-map", "Combine a texture with opacity map to get the transparent texture")
                 .addOption(OptionType.ATTACHMENT, "texture", "The non-transparent texture", true, false)
                 .addOption(OptionType.ATTACHMENT, "opacity_map", "The opacity map", true, false)
                 .addOption(OptionType.BOOLEAN, "reversed_colors", "True if you want to use resversed colors (Black instead of white)", false, false)
                 .addOption(OptionType.BOOLEAN, "custom_format", "True if you want to get a nebulae-image file format", false, false)
+                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+
+            commands.add(Commands.slash("image-quality", "Change the quality of an image to a specific percentage (0-100)")
+                .addOption(OptionType.ATTACHMENT, "image", "The image to update", true, false)
+                .addOption(OptionType.INTEGER, "percentage", "Percentage of quality (0 - 100) where 0 is more compressed but less 'beautiful'", true, false)
                 .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
         }
 
@@ -196,6 +201,9 @@ public class SlashCommands {
                 break;
             case "opacity-map":
                 try { KineticCommands.opacityImage(event); } catch (IOException e) { e.printStackTrace(); }
+                break;
+            case "image-quality":
+                try { KineticCommands.imageQuality(event); } catch (IOException e) { e.printStackTrace(); }
                 break;
             default:
                 break;

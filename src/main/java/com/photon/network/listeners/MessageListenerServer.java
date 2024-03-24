@@ -69,13 +69,16 @@ public class MessageListenerServer implements Listener
 	        }
 	        else if (object instanceof ClientRequestAccountCreation request) {
 	        	final ServerResponseValidAccount response = new ServerResponseValidAccount();
-	        	if(ProfileManager.doesProfileExistByEMail(request.email)) { response.isEmailAlreadyUsed = true; return; }
-	    		if(ProfileManager.doesProfileExistByUsername(request.username)) { response.isUsernameAlreadyUsed = true; return; }
-	        	final ObjectPlayerAccount profile = ProfileManager.createPlayerProfile(request.username, request.email, request.password);
-	        	if(response.exist = profile != null) {
-	        		response.profile = profile;
-                    ConsoleManager.create("A new user created an account! (" + profile.username + ")").displayOnDiscord().withType(EnumLogType.NETWORK).end();
-	        	}
+	        	if(ProfileManager.doesProfileExistByEMail(request.email)) response.isEmailAlreadyUsed = true;
+	    		if(ProfileManager.doesProfileExistByUsername(request.username)) response.isUsernameAlreadyUsed = true;
+
+				if(!response.isEmailAlreadyUsed && !response.isUsernameAlreadyUsed) {
+					final ObjectPlayerAccount profile = ProfileManager.createPlayerProfile(request.username, request.email, request.password);
+					if(response.exist = profile != null) {
+						response.profile = profile;
+						ConsoleManager.create("A new user created an account! (" + profile.username + ")").displayOnDiscord().withType(EnumLogType.NETWORK).end();
+					}
+				}
 	        	connection.sendTCP(response);
 	        }
 			

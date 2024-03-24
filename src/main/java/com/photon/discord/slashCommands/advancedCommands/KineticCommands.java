@@ -11,6 +11,7 @@ import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 
 import com.photon.util.ProtectorManager;
 
@@ -122,7 +123,8 @@ public class KineticCommands {
         try {
             /* Open stream and read image */
             InputStream inputStream = new URL(file.getUrl()).openStream();
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageOutputStream ios = ImageIO.createImageOutputStream(baos);
             BufferedImage image = ImageIO.read(inputStream);
             
             /* Create the new file */
@@ -130,18 +132,20 @@ public class KineticCommands {
             ImageWriteParam param = writer.getDefaultWriteParam();
             param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
             param.setCompressionQuality(qualityPercentage / 100f);
-            writer.setOutput(out);
+            writer.setOutput(ios);
             writer.write(null, new IIOImage(image, null, null), param);
 
             /* Reply with the new file */
-            FileUpload upload = FileUpload.fromData(out.toByteArray(), file.getFileName());
+            FileUpload upload = FileUpload.fromData(baos.toByteArray(), file.getFileName());
             event.replyFiles(upload).queue();
             
             /* Close streams */
             inputStream.close();
-            out.close();
+            baos.close();
+            ios.close();
         } catch (Exception e) {
-            event.reply("Failed to compress image").queue();
+            e.printStackTrace();
+            event.reply("Failed to compress image : "+e.getMessage()).queue();
         }
     }
 

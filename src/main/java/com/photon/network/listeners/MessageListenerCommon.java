@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.photon.network.NetworkConnectionClient;
+import com.photon.network.NetworkDirectories;
 import com.photon.network.listeners.INetworkMessageListener.INetworkListenerSide;
 import com.photon.network.messages.requests.ClientRequestAddListener;
 
@@ -17,6 +18,20 @@ public class MessageListenerCommon implements Listener
         new Thread(() -> NetworkConnectionClient.attemptReconnectionFromClient()).start();
     }
     
+    /**
+     * Notify an object as received
+     * @param object The object to notify
+     */
+    public static void notifyObjectAsReceived(Object object) {
+        synchronized (object) {
+            object.notify();
+        }
+    }
+
+    /**
+     * Register a listener to the network
+     * @param listener The listener to register
+     */
     public static void registerListener(INetworkMessageListener listener) {
     	if(listener.applyTo() == INetworkListenerSide.CLIENT) addListener(listener);
     	else {

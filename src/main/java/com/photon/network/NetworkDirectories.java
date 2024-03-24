@@ -23,6 +23,7 @@ public class NetworkDirectories
 	public static File discordDirectory = new File(baseDirectory + "/discord/");
 	public static File sqlDirectory = new File(baseDirectory + "/sql/");
 
+	public static final Object configWaiter = new Object();
 	public static NetworkConfig config = NetworkConfig.DEFAULT;
 	public static File configFile = new File(baseDirectory + "/config.json");
 	

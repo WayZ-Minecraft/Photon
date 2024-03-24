@@ -27,15 +27,19 @@ public class PhotonEngine {
     public static int network_Udp = 54556;
     
     /* Allow access to the player profile if requested before */
-    public static ObjectPlayerAccount clientPlayerProfile;
+    public static final Object clientPlayerProfileWaiter = new Object();
+    public static ObjectPlayerAccount clientPlayerProfile = new ObjectPlayerAccount();
 
     /* Allow access to the player account if requested before */
-    public static ServerResponseValidAccount clientAccountResponse;
+    public static final Object clientAccountResponseWaiter = new Object();
+    public static ServerResponseValidAccount clientAccountResponse = new ServerResponseValidAccount();
     
     /* Allow access to the news list if requested before */
+    public static final Object clientNewsListWaiter = new Object();
     public static ArrayList<ObjectNews> clientNewsList = new ArrayList<>();
 
     /* Allow access to the servers list if requested before */
+    public static final Object clientServerListWaiter = new Object();
     public static ArrayList<ObjectServer> clientServerList = new ArrayList<>();
     
     /* Network saves */

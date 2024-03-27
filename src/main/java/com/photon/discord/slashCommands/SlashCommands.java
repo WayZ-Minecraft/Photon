@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.StringJoiner;
 
 import com.photon.discord.slashCommands.advancedCommands.CustomMute;
 import com.photon.discord.slashCommands.advancedCommands.KineticCommands;
@@ -25,6 +26,7 @@ import com.photon.network.NetworkEngine;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.objects.ProfileManager;
 import com.photon.network.sql.SqlInteract;
+import com.photon.util.ConsoleManager;
 import com.photon.util.os.ApplicationUtils;
 
 import net.dv8tion.jda.api.Permission;
@@ -34,6 +36,7 @@ import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.utils.FileUpload;
 
 public class SlashCommands {
     public static List<CommandData> commands = new ArrayList<>();
@@ -140,8 +143,21 @@ public class SlashCommands {
             .addOption(OptionType.ATTACHMENT, "image", "the image of the news", true, false)
             .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
         
+        /**
+         * Accounts
+         */
+        commands.add(Commands.slash("account", "Manager accounts")
+            .addOption(OptionType.STRING, "type", "can be : uuid, discordid, email or username", true, false)
+            .addOption(OptionType.STRING, "getter", "The email/username/... according to the type", true, false)
+            .addOption(OptionType.STRING, "action", "Can be get, edit or delete", true, false)
+            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+
+        commands.add(Commands.slash("list-accounts", "List all existing accounts")
+            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
         
-        
+        commands.add(Commands.slash("delete-accounts", "Delete all existing accounts")
+            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+
         /*
         * Sql commande
         */
@@ -205,7 +221,71 @@ public class SlashCommands {
             case "image-quality":
                 try { KineticCommands.imageQuality(event); } catch (IOException e) { e.printStackTrace(); }
                 break;
+            case "account":
+                String type = event.getOption("type").getAsString();
+                String getter = event.getOption("getter").getAsString();
+                ObjectPlayerAccount profile = null;
+                switch (type.toLowerCase()) {
+                    case "discordid":
+                        profile = ProfileManager.getProfileFromDiscordID(getter);
+                        break;
+                    case "uuid":
+                        profile = ProfileManager.getProfileFromUUID(getter);
+                        break;
+                    case "email":
+                        profile = ProfileManager.getProfileFromEMail(getter);
+                        ConsoleManager.debug(getter);
+                        break;
+                    case "username":
+                        profile = ProfileManager.getProfileFromUsername(getter);
+                        break;
+                }
+                managerAccount(event, profile, event.getOption("action").getAsString());
+                break;
+            case "list-accounts":
+                try {
+                    List<ObjectPlayerAccount> list = ProfileManager.getAllPorifles();
+                    if(list.isEmpty()) event.reply("No accounts found").queue();
+
+                    StringJoiner joiner = new StringJoiner(System.lineSeparator(), "", System.lineSeparator());
+                    for(ObjectPlayerAccount account : list) {
+                        if(account == null) continue;
+                        joiner.add("{").add(account.email).add(account.username).add(account.uuid).add("}");
+                    }
+                    
+                    FileUpload upload = FileUpload.fromData(joiner.toString().getBytes(), "account.txt");
+                    event.reply("List of all accounts").addFiles(upload).queue();
+                }
+                catch(Exception e) {
+                    event.reply("Error with the list of accounts").queue();
+                }
+                break;
+            case "delete-accounts":
+                for(ObjectPlayerAccount account : ProfileManager.getAllPorifles())
+                    ProfileManager.deleteProfile(account);
+                
+                event.reply("All accounts have been deleted !").queue();
+                break;
             default:
+                break;
+        }
+    }
+
+    private static void managerAccount(SlashCommandInteractionEvent event, ObjectPlayerAccount profile, String action) {
+        if(profile == null) {
+            event.reply("Error, the profile doesn't exist").queue();
+            return;
+        }
+        switch (action.toLowerCase()) {
+            case "get":
+                FileUpload upload = FileUpload.fromData(ProfileManager.getGson().toJson(profile).getBytes(), profile.username+".json");
+                event.reply("The info for the user : " + profile.username+"("+profile.email+")").addFiles(upload).queue();
+                break;
+            case "edit":
+                break;
+            case "delete":
+                ProfileManager.deleteProfile(profile);
+                event.reply("The profile has been deleted !").queue();
                 break;
         }
     }

@@ -13,18 +13,27 @@ import java.util.UUID;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.photon.network.NetworkDirectories;
+import com.photon.util.ConsoleManager;
 
 public class ProfileManager
 {
-	private static Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    private static SecureRandom random = new SecureRandom();
+	private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private static final SecureRandom random = new SecureRandom();
     
+	public static Gson getGson() { return gson; }
+
     public static String getTokenFromEMail(final String email) {
     	final long longToken = Math.abs(random.nextLong());
 		final String random = Long.toString(longToken, 16);
     	return email + ":" + random;
     }
     
+	public static void deleteProfile(final ObjectPlayerAccount profile) {
+		final File profileFile = new File(NetworkDirectories.profilesDirectory, profile.uuid + ".json");
+		if (profileFile.exists()) profileFile.delete();
+		ConsoleManager.debug(profileFile);
+	}
+
     public static ArrayList<ObjectPlayerAccount> getAllPorifles() {
     	final ArrayList<ObjectPlayerAccount> list = new ArrayList<>();
     	try {
@@ -34,13 +43,13 @@ public class ProfileManager
         		br.close();
         		list.add(profile);
     		}
-    	} catch (IOException e) {}
+    	} catch (IOException e) { e.printStackTrace(); }
         return list;
     }
     
     public static ObjectPlayerAccount getProfileFromEMail(final String email) {
     	for(ObjectPlayerAccount profile : getAllPorifles()) {
-    		if(profile.email.equals(email)) return profile;
+    		if(profile.email.equalsIgnoreCase(email)) return profile;
     	}
     	return null;
     }
@@ -54,8 +63,8 @@ public class ProfileManager
     
     public static ObjectPlayerAccount getProfileFromUUID(final String givenUUID) {
         try {
-        	final File profileFile = new File(NetworkDirectories.profilesDirectory, givenUUID + ".json");
-        	if (doesProfileExistByUUID(givenUUID)) {
+			if (doesProfileExistByUUID(givenUUID)) {
+				final File profileFile = new File(NetworkDirectories.profilesDirectory, givenUUID + ".json");
         		final BufferedReader br = new BufferedReader(new FileReader(profileFile));
         		final ObjectPlayerAccount profile = ProfileManager.gson.<ObjectPlayerAccount>fromJson(br, ObjectPlayerAccount.class);
         		br.close();
@@ -65,6 +74,14 @@ public class ProfileManager
         return null;
     }
     
+	public static ObjectPlayerAccount getProfileFromUsername(final String username) {
+		if(!doesProfileExistByUsername(username)) return null;
+		for(ObjectPlayerAccount profile : getAllPorifles()) {
+			if(profile.username.equalsIgnoreCase(username)) return profile;
+		}
+		return null;
+	}
+
     public static ObjectPlayerAccount createPlayerProfile(final String username, final String email, final String password) {
     	try {
     		if(doesProfileExistByEMail(email)) return null;
@@ -97,7 +114,7 @@ public class ProfileManager
     
     public static boolean doesProfileExistByUsername(final String username) {
     	for(ObjectPlayerAccount profile : getAllPorifles()) {
-    		if(profile.username.equals(username)) return true;
+    		if(profile.username.equalsIgnoreCase(username)) return true;
     	}
     	return false;
     }

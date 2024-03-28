@@ -46,15 +46,15 @@ public class NetworkConnectionClient {
     }
 
     public static void attemptReconnectionFromClient() {
-        new Thread() {
-            @Override
-            public void run() {
+        ConsoleManager.debug("Disconnected from server, attempting reconnection...");
+        new Thread(() -> {
+            while(!isConnected()) {
                 try {
                     client.stop();
                     client.start();
                     client.reconnect();
-                } catch (IOException ex) { ex.printStackTrace(); }
+                } catch (IOException ex) {}
             }
-        }.start();
+        }, "Network-disconnected-thread").start();
     }
 }

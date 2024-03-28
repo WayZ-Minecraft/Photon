@@ -376,7 +376,6 @@ public class SlashCommands {
         String channelType = "stable";
         if (event.getOption("channel") != null) channelType = event.getOption("channel").getAsString();
 
-
         HashMap<String, UpdateFileType> fileTypeKeys = new HashMap<>(){{
             put("mod", UpdateFileType.MOD);
             put("launcher", UpdateFileType.LAUNCHER);
@@ -391,18 +390,22 @@ public class SlashCommands {
 
         HashMap<UpdateChannel, String> channelsPaths = NetworkDirectories.config.filePaths.get(fileTypeKeys.get(fileType));
         Path outputPath = Path.of(channelsPaths.get(channelTypeKeys.get(channelType)));
-        
+
         InputStream inputStream;
         try {
             inputStream = new URL(file.getUrl()).openStream();
             try {
                 Files.copy(inputStream, outputPath, StandardCopyOption.REPLACE_EXISTING);
-                event.reply("File updated").queue();
             } catch (NoSuchFileException e) {
                 File fileOutput = new File(outputPath.toString()).getParentFile();
                 fileOutput.mkdirs();
                 Files.copy(inputStream, outputPath);
-            } finally { inputStream.close();}
+            } finally {
+                inputStream.close();
+                event.reply("File updated").queue();
+                if(UpdateFileType.LAUNCHER.name().equalsIgnoreCase(fileType))
+                    ApplicationUtils.restart(NetworkEngine.class, "--restart");
+            }
         } catch (Exception e) {
             event.reply("Error with file :" + e).queue();
         }

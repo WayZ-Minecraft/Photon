@@ -134,7 +134,7 @@ public class GameAuth
             if(!file.exists()) file.createNewFile();
 
             /* Write into the file */
-            final String content = email+"/"+password;
+            final String content = email+"/"+ProtectorManager.hash(password);
             ProtectorManager.writeCompressedFile(new FileOutputStream(file), content.getBytes());
         } catch (IOException e) { e.printStackTrace(); }
     }

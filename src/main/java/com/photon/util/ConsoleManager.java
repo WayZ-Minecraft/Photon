@@ -79,14 +79,15 @@ public class ConsoleManager
 	 * Register a file handler to save logs (This will be the default handler)
 	 * @param file The file to save logs
 	 */
-	public static void registerFileHandler(File file) { registerFileHandler(file, null); }
+	public static void registerFileHandler(File file, String savedFileName) { registerFileHandler(file, null, savedFileName); }
 
 	/**
 	 * Register a file handler to save logs
 	 * @param file The file to save logs
 	 * @param handler The handler to use
+	 * @param savedFileName The name of the file to save (The result will be  SAVED_FILE_NAME-DATE.log)
 	 */
-	public static void registerFileHandler(File file, ConsoleContainer container) {
+	public static void registerFileHandler(File file, ConsoleContainer container, String savedFileName) {
 		/* Adding file handler */
 		try {
     		final FileHandler fh = new FileHandler(file.getPath());
@@ -98,13 +99,13 @@ public class ConsoleManager
             fh.setFormatter(new ConsoleFormatter(null));
             
 			/* Save file after closing launcher */
-			Runtime.getRuntime().addShutdownHook(new Thread(() -> { savePreviousFile(file); }));
+			Runtime.getRuntime().addShutdownHook(new Thread(() -> { savePreviousFile(file, savedFileName); }));
         } catch (SecurityException | IOException e) {}
 	}
 	
-	private static void savePreviousFile(File file) {
+	private static void savePreviousFile(File file, String savedFileName) {
 		try {
-			Files.copy(Path.of(file.getPath()), Path.of(new File(file.getParent(), "launcher-"+PhotonEngine.getDate(true)+".log").getPath()));
+			Files.copy(Path.of(file.getPath()), Path.of(new File(file.getParent(), savedFileName+"-"+PhotonEngine.getDate(true)+".log").getPath()));
 		} catch (IOException e) {}
 	}
 

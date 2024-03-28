@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.photon.network.NetworkConnectionClient;
-import com.photon.network.NetworkDirectories;
 import com.photon.network.listeners.INetworkMessageListener.INetworkListenerSide;
 import com.photon.network.messages.requests.ClientRequestAddListener;
 
@@ -15,7 +14,7 @@ public class MessageListenerCommon implements Listener
 	
     @Override
     public void disconnected(final Connection connection) {
-        new Thread(() -> NetworkConnectionClient.attemptReconnectionFromClient()).start();
+        NetworkConnectionClient.attemptReconnectionFromClient();
     }
     
     /**

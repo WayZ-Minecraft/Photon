@@ -33,7 +33,7 @@ public class NetworkEngine {
 
             
             /* Register logs file */
-			ConsoleManager.registerFileHandler(new File(NetworkDirectories.logsDirectory, "network.log"));
+			ConsoleManager.registerFileHandler(new File(NetworkDirectories.logsDirectory, "network.log"), "network");
             
             /* Connecting */
 			PhotonEngine.setIP(PhotonInfosManager.getCurrentIP());

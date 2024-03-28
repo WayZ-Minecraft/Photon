@@ -78,12 +78,12 @@ jar {
 
 /* Add all dependcies to the jar */
 shadowJar {
+	minimize();
    	configurations = [project.configurations.shadow]
-   	duplicatesStrategy 'exclude'
+   	// duplicatesStrategy 'exclude'
 	exclude 'natives/**', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
 	archiveFileName = "network.jar"
 	archiveClassifier.set('')
-    archiveFileName = "network.jar"
 }
 
 task apiJar(type: Jar) {

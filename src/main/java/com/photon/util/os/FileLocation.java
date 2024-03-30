@@ -80,7 +80,7 @@ public class FileLocation {
 				workingDirectory = new File(userHome + "\\AppData\\Roaming\\." + workDir);
 				break;
 			case OSX:
-				workingDirectory = new File(userHome + "/Library/Application Support/" + workDir);
+				workingDirectory = new File(userHome + "/Library/" + workDir);
 				break;
 			default:
 				workingDirectory = new File(userHome + "/." + workDir);

@@ -22,7 +22,7 @@ import com.photon.network.NetworkDirectories;
 
 public class ProtectorManager {
 
-	public static int TIME_OUT = 300;
+	public static int TIME_OUT = 15000;
 
 	private static byte[] getInfo() { return Base64.getEncoder().encode((NetworkDirectories.config.webUser + ":" + NetworkDirectories.config.webPassword).getBytes()); }
 	

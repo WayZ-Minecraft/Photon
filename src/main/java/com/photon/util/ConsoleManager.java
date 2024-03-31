@@ -121,6 +121,11 @@ public class ConsoleManager
 	 * @param o The message to display
 	 */
 	public static void debug(Object o) { System.out.println(o); }
+
+	public static void debug(boolean newLineOnEachObject, Object... objects) {
+		for(Object o : objects) System.out.print(o + (newLineOnEachObject ? "\n" : " "));
+		System.out.println();
+	}
 	
 	private static boolean elipsedTime = false;
 	private static long startTime = 0;

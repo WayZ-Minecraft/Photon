@@ -13,7 +13,6 @@ import java.util.UUID;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.photon.network.NetworkDirectories;
-import com.photon.util.ConsoleManager;
 
 public class ProfileManager
 {
@@ -22,16 +21,14 @@ public class ProfileManager
     
 	public static Gson getGson() { return gson; }
 
-    public static String getTokenFromEMail(final String email) {
+    public static String getTokenFromEMail(final String name) {
     	final long longToken = Math.abs(random.nextLong());
-		final String random = Long.toString(longToken, 16);
-    	return email + ":" + random;
+    	return name + ":" + Long.toString(longToken, 16);
     }
     
 	public static void deleteProfile(final ObjectPlayerAccount profile) {
 		final File profileFile = new File(NetworkDirectories.profilesDirectory, profile.uuid + ".json");
 		if (profileFile.exists()) profileFile.delete();
-		ConsoleManager.debug(profileFile);
 	}
 
     public static ArrayList<ObjectPlayerAccount> getAllPorifles() {

@@ -10,8 +10,8 @@ import com.photon.network.listeners.MessageListenerCommon;
 import com.photon.network.messages.requests.ClientRequestNetworkConfig;
 import com.photon.network.messages.requests.ClientRequestRegisterConnection;
 import com.photon.util.ConsoleManager;
-import com.photon.util.ProtectorManager;
 import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.ProtectorManager;
 
 public class NetworkConnectionClient {
     protected static Client client = new Client(NetworkConfig.writeBufferSize, NetworkConfig.objectBufferSize);
@@ -19,8 +19,9 @@ public class NetworkConnectionClient {
     public static void load() throws IOException {
         NetworkObjectRegistry.load(client.getKryo());
     	new Thread(client).start();
-    	client.setKeepAliveTCP(ProtectorManager.TIME_OUT);
         client.connect(5000, PhotonEngine.network_Ip, PhotonEngine.network_Tcp, PhotonEngine.network_Udp);
+    	// client.setKeepAliveTCP(ProtectorManager.TIME_OUT); // Theses are causing disconnections for some reason
+        // client.setKeepAliveUDP(ProtectorManager.TIME_OUT);
     	client.addListener(new MessageListenerClient());
     	client.addListener(new MessageListenerCommon());
         try {
@@ -44,10 +45,10 @@ public class NetworkConnectionClient {
         if(!isConnected()) return;
         client.sendUDP(obj);
     }
-
+    
     public static void attemptReconnectionFromClient() {
-        ConsoleManager.debug("Disconnected from server, attempting reconnection...");
-        new Thread(() -> {
+        ConsoleManager.create("Disconnected from server, attempting reconnection...").error().withType(EnumLogType.NETWORK).end();
+        Thread t = new Thread(() -> {
             while(!isConnected()) {
                 try {
                     client.stop();
@@ -55,6 +56,8 @@ public class NetworkConnectionClient {
                     client.reconnect();
                 } catch (IOException ex) {}
             }
-        }, "Network-disconnected-thread").start();
+        }, "Network-disconnected-thread");
+        t.setDaemon(true);
+        t.start();
     }
 }

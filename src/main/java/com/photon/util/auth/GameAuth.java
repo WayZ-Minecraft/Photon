@@ -53,7 +53,7 @@ public class GameAuth
 				if(!PhotonEngine.clientAccountResponse.exist) setError(AuthError.ACCOUNT_NOT_FOUND);
 				else {
 					if(!PhotonEngine.clientAccountResponse.isValidPassword) setError(AuthError.PASSWORD_NOT_VALID);
-					else setSession(getProfile().username, PhotonEngine.clientAccountResponse.profile.uuid);
+					else setSession(getProfile().username, getProfile().uuid);
 				}
 
 				if(callback != null) callback.run();
@@ -148,11 +148,11 @@ public class GameAuth
 
 	public static ObjectPlayerAccount getProfile() { return PhotonEngine.clientAccountResponse.profile; }
 
-	private synchronized static void setSession(String email, String id) {
+	private synchronized static void setSession(String name, String uuid) {
 		synchronized(session) {
-			session.setUsername(email);
-			session.setToken(ProfileManager.getTokenFromEMail(email));
-			session.setUuid(id);
+			session.setUsername(name);
+			session.setToken(ProfileManager.getTokenFromEMail(name));
+			session.setUuid(uuid);
 			setAuthed(true);
 			setError(AuthError.SUCCESS);
 		}

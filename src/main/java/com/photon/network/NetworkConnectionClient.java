@@ -11,7 +11,6 @@ import com.photon.network.messages.requests.ClientRequestNetworkConfig;
 import com.photon.network.messages.requests.ClientRequestRegisterConnection;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
-import com.photon.util.ProtectorManager;
 
 public class NetworkConnectionClient {
     protected static Client client = new Client(NetworkConfig.writeBufferSize, NetworkConfig.objectBufferSize);
@@ -25,9 +24,9 @@ public class NetworkConnectionClient {
     	client.addListener(new MessageListenerClient());
     	client.addListener(new MessageListenerCommon());
         try {
-            if(NetworkDirectories.config.isEmpty()) {
+            if(NetworkDirectories.config == null || NetworkDirectories.config.isEmpty()) {
                 NetworkConnectionClient.sendTCP(new ClientRequestNetworkConfig());
-                Thread.sleep(ProtectorManager.TIME_OUT);
+                synchronized (NetworkDirectories.configWaiter) { NetworkDirectories.configWaiter.wait(); }
             }
         } catch (InterruptedException e) { ConsoleManager.create(ConsoleManager.of(e)).withType(EnumLogType.NETWORK).error().end(); }
         NetworkConnectionClient.sendTCP(new ClientRequestRegisterConnection());

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
@@ -108,6 +109,7 @@ public class NetworkObjectRegistry {
         kryo.register(JsonDeserializationContext.class);
         kryo.register(Map.Entry.class);
         kryo.register(Map.class);
+        kryo.register(LinkedHashMap.class);
         kryo.register(JsonElement.class);
         kryo.register(Date.class);
         kryo.register(Boolean.TYPE);

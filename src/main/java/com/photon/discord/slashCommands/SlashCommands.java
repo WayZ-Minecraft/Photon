@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -107,7 +106,7 @@ public class SlashCommands {
         // Add commands to update the network
         commands.add(Commands.slash("post-update", "post an update on the network")
             .addOption(OptionType.ATTACHMENT, "file", "the build file", true, false)
-            .addOption(OptionType.STRING, "channel", "the channel (e.g: stable, dev)", false, true)
+            .addOption(OptionType.STRING, "channel", "the channel (e.g: stable, dev or test)", false, true)
             .addOption(OptionType.STRING, "filetype", "the file to update (e.g: mod, launcher)", false, true)
             .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
 
@@ -367,29 +366,15 @@ public class SlashCommands {
      * @param event The event that triggered a SlashCommandInteractionEvent
      */
     protected static void postUpdate(SlashCommandInteractionEvent event){
-        Attachment file = event.getOption("file").getAsAttachment();
+        final Attachment file = event.getOption("file").getAsAttachment();
+        final String[] fileName = file.getFileName().split("\\.|\\-");
+        final String fileTypeString = event.getOption("type") == null ? fileName[0] : event.getOption("type").getAsString();
+        final String channelTypeString = event.getOption("channel") == null ? fileName.length >= 3 ? fileName[1] : "stable" : event.getOption("channel").getAsString();
         
-        String fileType;
-        if (event.getOption("type") == null) fileType = file.getFileName().split("\\.")[0];
-        else fileType = event.getOption("type").getAsString();
-        
-        String channelType = "stable";
-        if (event.getOption("channel") != null) channelType = event.getOption("channel").getAsString();
-
-        HashMap<String, UpdateFileType> fileTypeKeys = new HashMap<>(){{
-            put("mod", UpdateFileType.MOD);
-            put("launcher", UpdateFileType.LAUNCHER);
-            put("api", UpdateFileType.API);
-            put("network", UpdateFileType.NETWORK);
-        }};
-
-        HashMap<String, UpdateChannel> channelTypeKeys = new HashMap<>(){{
-            put("stable", UpdateChannel.STABLE);
-            put("dev", UpdateChannel.DEV);
-        }};
-
-        HashMap<UpdateChannel, String> channelsPaths = NetworkDirectories.config.filePaths.get(fileTypeKeys.get(fileType));
-        Path outputPath = Path.of(channelsPaths.get(channelTypeKeys.get(channelType)));
+        /* Data to download the file */
+        final UpdateFileType fileType = UpdateFileType.valueOf(fileTypeString.toUpperCase());
+        final UpdateChannel channelType = UpdateChannel.valueOf(channelTypeString.toUpperCase());
+        final Path outputPath = Path.of(NetworkDirectories.getPath(fileType, channelType));
 
         InputStream inputStream;
         try {
@@ -402,8 +387,8 @@ public class SlashCommands {
                 Files.copy(inputStream, outputPath);
             } finally {
                 inputStream.close();
-                event.reply("File updated").queue();
-                if(UpdateFileType.LAUNCHER.name().equalsIgnoreCase(fileType))
+                event.reply("File updated into : " + outputPath).queue();
+                if(UpdateFileType.LAUNCHER == fileType)
                     ApplicationUtils.restart(NetworkEngine.class, "--restart");
             }
         } catch (Exception e) {

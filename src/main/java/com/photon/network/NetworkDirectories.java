@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.Map;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -53,8 +53,10 @@ public class NetworkDirectories
 			config = gson.fromJson(reader, NetworkConfig.class);
 			reader.close();
 		} catch (IOException e) {}
+	}
 
-		
+	public static String getPath(UpdateFileType type, UpdateChannel channel) {
+		return NetworkDirectories.config.filePaths.get(type).get(channel);
 	}
 
 	/**
@@ -69,8 +71,7 @@ public class NetworkDirectories
 			final FileWriter writer = new FileWriter(configFile);
 			writer.write(gson.toJson(config));
 			writer.close();
-		} catch (IOException e) {
-		}
+		} catch (IOException e) {}
 	}
 	
 	public static class NetworkConfig {
@@ -81,12 +82,35 @@ public class NetworkDirectories
 		public static int writeBufferSize = 10 * 1024 * 1024;
 		public static int objectBufferSize = 10 * 1024 * 1024;
 
-		public HashMap<UpdateFileType, HashMap<UpdateChannel, String>> filePaths = new HashMap<>();
+		public Map<UpdateFileType, Map<UpdateChannel, String>> filePaths = Map.of(
+			UpdateFileType.MOD, Map.of(
+				UpdateChannel.STABLE, baseDirectory.getPath()+"/services_update/mod.jar",
+				UpdateChannel.DEV, baseDirectory.getPath()+"/services_update/mod-dev.jar",
+				UpdateChannel.TEST, baseDirectory.getPath()+"/services_update/mod-test.jar"
+			),
+			UpdateFileType.API, Map.of(
+				UpdateChannel.STABLE, baseDirectory.getPath()+"/services_update/api.jar",
+				UpdateChannel.DEV, baseDirectory.getPath()+"/services_update/api-dev.jar",
+				UpdateChannel.TEST, baseDirectory.getPath()+"/services_update/api-test.jar"
+			),
+			UpdateFileType.NETWORK, Map.of(
+				UpdateChannel.STABLE, baseDirectory.getPath()+"/services_update/network.jar",
+				UpdateChannel.DEV, baseDirectory.getPath()+"/services_update/network-dev.jar",
+				UpdateChannel.TEST, baseDirectory.getPath()+"/services_update/network-test.jar"
+			),
+			UpdateFileType.LAUNCHER, Map.of(
+				UpdateChannel.STABLE, baseDirectory.getPath()+"/services_update/launcher.jar",
+				UpdateChannel.DEV, baseDirectory.getPath()+"/services_update/launcher-dev.jar",
+				UpdateChannel.TEST, baseDirectory.getPath()+"/services_update/launcher-test.jar"
+			)
+		);
 
 		public String webUrl = "";
 		public String webUser = "";
 		public String webPassword = "";
 		
 		public String discordBotToken = "";
+
+		public String channelsActiavtionKey = "FlKm1J2n3FgggE1*45$$f=1"; // Default activation key
 	}
 }

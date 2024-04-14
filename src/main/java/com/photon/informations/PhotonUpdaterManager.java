@@ -18,6 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import com.photon.network.NetworkDirectories;
+import com.photon.util.ConsoleManager;
 import com.photon.util.ProtectorManager;
 
 public class PhotonUpdaterManager {
@@ -105,10 +106,21 @@ public class PhotonUpdaterManager {
      * @return The url of the update if there is one, UNKNOWN otherwise
      */
     public static String getURL(UpdateFileType type, UpdateChannel channel) {
-        return url+"services_updates/" +
+        String result = url+"services_updates/" +
             type.name().toLowerCase() +
             (channel != UpdateChannel.STABLE ? "-" + channel.name().toLowerCase() : "") +
             ".jar";
+
+        try {
+            URL resultUrl = new URL(result);
+            HttpURLConnection resultConn = (HttpURLConnection) resultUrl.openConnection();
+            resultConn.setRequestMethod("HEAD");
+            if (resultConn.getResponseCode() == HttpURLConnection.HTTP_OK) return result;
+            else ConsoleManager.create("Unable to fetch : " + result + ", fallback on the stable channel").error().end();
+        } catch (IOException e) {
+            ConsoleManager.create("Unable to fetch : " + result + ", fallback on the stable channel").error().end();
+        }
+        return getURL(type, UpdateChannel.STABLE);
     }
 
     /**
@@ -196,7 +208,7 @@ public class PhotonUpdaterManager {
 
     public static enum UpdateFileType { MOD, LAUNCHER, API, NETWORK; }
 
-    public static enum UpdateChannel { STABLE, DEV; }
+    public static enum UpdateChannel { STABLE, DEV, TEST; }
 
     @FunctionalInterface
     public interface RunnableTask<T, X> {

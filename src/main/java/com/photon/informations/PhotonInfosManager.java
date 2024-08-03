@@ -83,7 +83,7 @@ public class PhotonInfosManager {
      */
 	public static InputStream getGameLogoInputStream() {
 		try {
-			final URLConnection connection = new URL(NetworkDirectories.config.webUrl + "project-logo.png").openConnection();
+			final URLConnection connection = new URL(NetworkDirectories.getConfig().webUrl + "project-logo.png").openConnection();
 			ProtectorManager.addProperties(connection);
 			connection.connect();
 			return connection.getInputStream();
@@ -98,7 +98,7 @@ public class PhotonInfosManager {
      */
 	public static ObjectInfos getInfos() {
         try {
-        	final URLConnection connection = new URL(NetworkDirectories.config.webUrl + "infos.json").openConnection();
+        	final URLConnection connection = new URL(NetworkDirectories.getConfig().webUrl + "infos.json").openConnection();
         	ProtectorManager.addProperties(connection);
     		connection.connect();
 			final BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));

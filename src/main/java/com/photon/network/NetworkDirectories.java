@@ -27,6 +27,10 @@ public class NetworkDirectories
 	public static NetworkConfig config = NetworkConfig.DEFAULT;
 	public static File configFile = new File(baseDirectory + "/config.json");
 	
+	public static NetworkConfig getConfig() {
+		return config == null ? NetworkConfig.DEFAULT : config;
+	}
+
     /**
      * Load all directories and files
      * @author Niwer
@@ -56,7 +60,7 @@ public class NetworkDirectories
 	}
 
 	public static String getPath(UpdateFileType type, UpdateChannel channel) {
-		return NetworkDirectories.config.filePaths.get(type).get(channel);
+		return NetworkDirectories.getConfig().filePaths.get(type).get(channel);
 	}
 
 	/**

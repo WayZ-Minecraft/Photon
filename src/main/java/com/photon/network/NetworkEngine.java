@@ -47,7 +47,7 @@ public class NetworkEngine {
 			}
 
             /* Satrting the discord bot if token avalible */
-			if(NetworkDirectories.config.discordBotToken !=null && !NetworkDirectories.config.discordBotToken.isEmpty())
+			if(NetworkDirectories.getConfig().discordBotToken !=null && !NetworkDirectories.getConfig().discordBotToken.isEmpty())
                 BotEngine.load(Arrays.asList(args).contains("--restart") ? "--restart" : null);
 
 			NetworkConnectionServer.load();
@@ -114,7 +114,7 @@ public class NetworkEngine {
                 PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
                 String request = reader.readLine();
                 if(request.equalsIgnoreCase("getInfos")) {
-                    final String response = NetworkDirectories.config.webUrl+";"+NetworkDirectories.config.webPassword+";"+NetworkDirectories.config.webUser;
+                    final String response = NetworkDirectories.getConfig().webUrl+";"+NetworkDirectories.getConfig().webPassword+";"+NetworkDirectories.getConfig().webUser;
                     writer.println(response);
                 }
                 clientSocket.close();

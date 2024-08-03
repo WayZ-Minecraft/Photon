@@ -168,7 +168,7 @@ public class MessageListenerServer implements Listener
 	        
 	        else if (object instanceof ClientRequestNetworkConfig) {
 	            final ServerResponseNetworkConfig response = new ServerResponseNetworkConfig();
-	            response.config = NetworkDirectories.config;
+	            response.config = NetworkDirectories.getConfig();
 	            connection.sendTCP(response);
 	        }
 	        

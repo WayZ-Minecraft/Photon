@@ -24,7 +24,7 @@ public class NetworkConnectionClient {
     	client.addListener(new MessageListenerClient());
     	client.addListener(new MessageListenerCommon());
         try {
-            if(NetworkDirectories.config == null || NetworkDirectories.config.isEmpty()) {
+            if(NetworkDirectories.getConfig() == null || NetworkDirectories.getConfig().isEmpty()) {
                 NetworkConnectionClient.sendTCP(new ClientRequestNetworkConfig());
                 synchronized (NetworkDirectories.configWaiter) { NetworkDirectories.configWaiter.wait(); }
             }

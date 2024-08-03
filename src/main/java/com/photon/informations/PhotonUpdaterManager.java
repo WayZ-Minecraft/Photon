@@ -23,7 +23,7 @@ import com.photon.util.ProtectorManager;
 
 public class PhotonUpdaterManager {
 
-    public static String url = NetworkDirectories.config.webUrl;
+    public static String url = NetworkDirectories.getConfig().webUrl;
     public static final int DEFAULT_DOWNLOADER_THREADS_COUNT = 5;
     private static ExecutorService downloader = null;
 
@@ -35,7 +35,7 @@ public class PhotonUpdaterManager {
     public static String getSHA1(UpdateFileType type, UpdateChannel channel) {
         /* If we can't reach the site, disable download */
         try {
-			final URL url = new URL(NetworkDirectories.config.webUrl+"services_updates/the-sha.php?type="+type.name().toLowerCase()+"&channel="+channel.name().toLowerCase());
+			final URL url = new URL(NetworkDirectories.getConfig().webUrl+"services_updates/the-sha.php?type="+type.name().toLowerCase()+"&channel="+channel.name().toLowerCase());
 			final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			ProtectorManager.addProperties(conn);
 			conn.setRequestMethod("GET");

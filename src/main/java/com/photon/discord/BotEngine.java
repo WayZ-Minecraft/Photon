@@ -58,7 +58,7 @@ public class BotEngine extends ListenerAdapter {
      * @throws InterruptedException
      */
     public static void load(String... args) throws LoginException, InterruptedException {
-        String token = NetworkDirectories.config.discordBotToken;
+        String token = NetworkDirectories.getConfig().discordBotToken;
         botBuilder = JDABuilder.createDefault(token);
         botBuilder.setActivity(Activity.playing("/"));
         

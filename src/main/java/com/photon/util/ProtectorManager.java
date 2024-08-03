@@ -24,7 +24,7 @@ public class ProtectorManager {
 
 	public static int TIME_OUT = 15000;
 
-	private static byte[] getInfo() { return Base64.getEncoder().encode((NetworkDirectories.config.webUser + ":" + NetworkDirectories.config.webPassword).getBytes()); }
+	private static byte[] getInfo() { return Base64.getEncoder().encode((NetworkDirectories.getConfig().webUser + ":" + NetworkDirectories.getConfig().webPassword).getBytes()); }
 	
 	private static String getAuth() { return "Basic " + new String(getInfo()); }
 	
@@ -36,7 +36,7 @@ public class ProtectorManager {
 			if(connection.getURL().toString().contains(ex)) return connection;
 		}
 		Authenticator.setDefault(new Authenticator() {
-		    @Override protected PasswordAuthentication getPasswordAuthentication() { return new PasswordAuthentication(NetworkDirectories.config.webUser, NetworkDirectories.config.webPassword.toCharArray()); }
+		    @Override protected PasswordAuthentication getPasswordAuthentication() { return new PasswordAuthentication(NetworkDirectories.getConfig().webUser, NetworkDirectories.getConfig().webPassword.toCharArray()); }
 		});
 		if(new String(getInfo()).equalsIgnoreCase(":")) connection.setRequestProperty("Authorization", ProtectorManager.getAuth());
 		return connection;

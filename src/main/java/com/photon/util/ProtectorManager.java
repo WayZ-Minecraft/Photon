@@ -1,5 +1,6 @@
 package com.photon.util;
 
+import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -22,12 +23,21 @@ import com.photon.network.NetworkDirectories;
 
 public class ProtectorManager {
 
-	public static int TIME_OUT = 15000;
+	private static final int FILE_FORMAT_VERSION_V1 = 0;
+	private static int currentFormatVersion = FILE_FORMAT_VERSION_V1;
+	
+	public static final int TIME_OUT = 15000;
 
 	private static byte[] getInfo() { return Base64.getEncoder().encode((NetworkDirectories.getConfig().webUser + ":" + NetworkDirectories.getConfig().webPassword).getBytes()); }
 	
 	private static String getAuth() { return "Basic " + new String(getInfo()); }
 	
+	/**
+	 * Adds properties to the URLConnection
+	 * @param connection URLConnection
+	 * @param exceptions URLs to exclude
+	 * @return URLConnection
+	 */
 	public static URLConnection addProperties(URLConnection connection, String... exceptions) {
 		connection.setConnectTimeout(TIME_OUT);
 
@@ -42,11 +52,21 @@ public class ProtectorManager {
 		return connection;
 	}
 	
+	/**
+	 * Gets the HWID of the computer
+	 * @return HWID
+	 */
 	public static String getHWID() {
 		final String toEncrypt = System.getenv("COMPUTERNAME") + System.getProperty("user.name") + System.getenv("PROCESSOR_IDENTIFIER") + System.getenv("PROCESSOR_LEVEL");
 		return hash(toEncrypt);
     }
 	
+	/**
+	 * Hashes the input stream
+	 * @param toHash InputStream
+	 * @param algorithm Algorithm
+	 * @return Hash
+	 */
 	public static String hash(InputStream toHash, String algorithm) {
         if(toHash == null) return "unknown";
 		DigestInputStream stream = null;
@@ -63,6 +83,12 @@ public class ProtectorManager {
         return null;
     }
 
+	/**
+	 * Hashes the file
+	 * @param toHash File
+	 * @param algorithm Algorithm
+	 * @return Hash
+	 */
 	public static String hash(File toHash, String algorithm) {
 		if(toHash == null) return "unknown";
 		DigestInputStream stream = null;
@@ -79,8 +105,19 @@ public class ProtectorManager {
 		return null;
 	}
 
+	/**
+	 * Hashes the string with SHA-1
+	 * @param toHash String
+	 * @return Hash
+	 */
 	public static String hash(String toHash) { return hash(toHash, "SHA-1"); }
 
+	/**
+	 * Hashes the string with the specified algorithm
+	 * @param toHash String
+	 * @param algorithm Algorithm
+	 * @return Hash
+	 */
 	public static String hash(String toHash, String algorithm) {
         try {
             MessageDigest md = MessageDigest.getInstance(algorithm);
@@ -91,20 +128,61 @@ public class ProtectorManager {
             return hashtext;
         } catch (NoSuchAlgorithmException e) { return ""; } 
 	}
-	
+
+	/**
+	 * Compress data and write it to the stream
+	 * @param stream OutputStream to write to
+	 * @param buffer Buffer to write
+	 * @throws IOException
+	 */
 	public static void writeCompressedFile(OutputStream stream, byte[] buffer) throws IOException {
-		final DataOutputStream output = new DataOutputStream(new GZIPOutputStream(stream));
-		output.writeInt(buffer.length);
-		output.write(buffer);
-		output.flush();
-		output.close();
+		final DataOutputStream DOS = new DataOutputStream(stream);
+		DOS.writeByte(currentFormatVersion);
+		DOS.flush();
+
+		OutputStream compressedStream;
+		if(currentFormatVersion == FILE_FORMAT_VERSION_V1) compressedStream = new GZIPOutputStream(DOS);
+		else throw new IOException("Unsupported file format version: " + currentFormatVersion);
+
+		final DataOutputStream COMPRESSED_DOS = new DataOutputStream(compressedStream);
+		COMPRESSED_DOS.writeInt(buffer.length);
+		COMPRESSED_DOS.write(buffer);
+
+		/* Flush and close */
+		COMPRESSED_DOS.flush();
+		COMPRESSED_DOS.close();
 	}
 	
+	/**
+	 * Read compressed data from the stream
+	 * @param stream InputStream to read from
+	 * @return byte[] of the data
+	 * @throws IOException
+	 */
 	public static byte[] readCompressedFile(InputStream stream) throws IOException {
-		final DataInputStream reader = new DataInputStream(new GZIPInputStream(stream));
-		final byte[] buffer = new byte[reader.readInt()];
-		reader.readFully(buffer);
-		reader.close();
-		return buffer;
+		BufferedInputStream bufferedStream = new BufferedInputStream(stream);
+		bufferedStream.mark(1);
+		final DataInputStream DIS = new DataInputStream(bufferedStream);
+		final byte VERSION = DIS.readByte();
+		
+		/* Choose the compression format */
+		InputStream decompressedStream;
+		if (VERSION == FILE_FORMAT_VERSION_V1) {
+			decompressedStream = new GZIPInputStream(DIS);
+		} else if (VERSION == 31 /* If it's an older version of nebulae */) {
+			// Reset the stream and treat it as if it has no version byte
+			bufferedStream.reset();
+			decompressedStream = new GZIPInputStream(DIS);
+		}
+		else throw new IOException("Unsupported file format version: " + VERSION);
+
+		/* Read the compressed data */
+		final DataInputStream READER = new DataInputStream(decompressedStream);
+		final byte[] BUFFER = new byte[READER.readInt()];
+		READER.readFully(BUFFER);
+
+		/* Flush and close */
+		READER.close();
+		return BUFFER;
 	}
 }

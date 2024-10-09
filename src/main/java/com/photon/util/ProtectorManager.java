@@ -23,7 +23,7 @@ import com.photon.network.NetworkDirectories;
 
 public class ProtectorManager {
 
-	private static final int FILE_FORMAT_VERSION_V1 = 0;
+	public static final int FILE_FORMAT_VERSION_V1 = 0;
 	private static int currentFormatVersion = FILE_FORMAT_VERSION_V1;
 	
 	public static final int TIME_OUT = 15000;
@@ -160,6 +160,16 @@ public class ProtectorManager {
 	 * @throws IOException
 	 */
 	public static byte[] readCompressedFile(InputStream stream) throws IOException {
+		return decodeFile(stream).b;
+	}
+
+	/**
+	 * Decode the file from the stream
+	 * @param stream InputStream to read from
+	 * @return Pair of the version and the data
+	 * @throws IOException
+	 */
+	public static Pair<Integer, byte[]> decodeFile(InputStream stream) throws IOException {
 		BufferedInputStream bufferedStream = new BufferedInputStream(stream);
 		bufferedStream.mark(1);
 		final DataInputStream DIS = new DataInputStream(bufferedStream);
@@ -183,6 +193,26 @@ public class ProtectorManager {
 
 		/* Flush and close */
 		READER.close();
-		return BUFFER;
+		return Pair.of((int) VERSION, BUFFER);
+	}
+	
+	/**
+	 * Get the format version of the stream
+	 * @param stream InputStream to read from
+	 * @return The format version of the file in the stream
+	 * @throws IOException
+	 */
+	public static int getFormatVersion(InputStream stream) throws IOException { return decodeFile(stream).a; }
+
+	public static final class Pair<A, B> {
+		public final A a;
+		public final B b;
+
+		public Pair(A a, B b) {
+			this.a = a;
+			this.b = b;
+		}
+
+		public static <A, B> Pair<A, B> of(A a, B b) { return new Pair<>(a, b); }
 	}
 }

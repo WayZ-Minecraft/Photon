@@ -18,12 +18,15 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import com.photon.network.NetworkDirectories;
 
 public class ProtectorManager {
 
-	public static final int FILE_FORMAT_VERSION_V1 = 0;
+	public static final int FILE_FORMAT_VERSION_V1 = 0; // GZIP compression
+	// public static final int FILE_FORMAT_VERSION_V2 = 1; // Zstd compression
 	private static int currentFormatVersion = FILE_FORMAT_VERSION_V1;
 	
 	public static final int TIME_OUT = 15000;
@@ -61,6 +64,41 @@ public class ProtectorManager {
 		return hash(toEncrypt);
     }
 	
+	/**
+	 * Hashes the ZIP entry
+	 * @param entry ZipEntry
+	 * @param zipFile ZipFile
+	 * @param algorithm Algorithm
+	 * @return Hash
+	 */
+	public static String hash(ZipEntry entry, ZipFile zipFile, String algorithm) {
+		try {
+			MessageDigest digest = MessageDigest.getInstance(algorithm);
+
+			// Ouvrir le flux pour lire l'entrée spécifique dans le fichier ZIP
+			try (InputStream is = zipFile.getInputStream(entry);
+				DigestInputStream dis = new DigestInputStream(is, digest)) {
+
+				// Lire le contenu pour mettre à jour le hachage
+				byte[] buffer = new byte[4096];
+				while (dis.read(buffer) != -1) {
+					// Les données sont lues et hachées en même temps
+				}
+			}
+
+			// Convertir le hachage final en chaîne hexadécimale
+			StringBuilder hexString = new StringBuilder();
+			for (byte b : digest.digest()) {
+				hexString.append(String.format("%02x", b));
+			}
+			return hexString.toString();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 	/**
 	 * Hashes the input stream
 	 * @param toHash InputStream
@@ -139,9 +177,10 @@ public class ProtectorManager {
 		final DataOutputStream DOS = new DataOutputStream(stream);
 		DOS.writeByte(currentFormatVersion);
 		DOS.flush();
-
+		
 		OutputStream compressedStream;
 		if(currentFormatVersion == FILE_FORMAT_VERSION_V1) compressedStream = new GZIPOutputStream(DOS);
+		// else if(currentFormatVersion == FILE_FORMAT_VERSION_V2) compressedStream = new ZstdCompressorOutputStream(DOS);
 		else throw new IOException("Unsupported file format version: " + currentFormatVersion);
 
 		final DataOutputStream COMPRESSED_DOS = new DataOutputStream(compressedStream);
@@ -177,13 +216,13 @@ public class ProtectorManager {
 		
 		/* Choose the compression format */
 		InputStream decompressedStream;
-		if (VERSION == FILE_FORMAT_VERSION_V1) {
-			decompressedStream = new GZIPInputStream(DIS);
-		} else if (VERSION == 31 /* If it's an older version of nebulae */) {
+		if (VERSION == FILE_FORMAT_VERSION_V1) decompressedStream = new GZIPInputStream(DIS);
+		else if (VERSION == 31 /* If it's an older version of nebulae */) {
 			// Reset the stream and treat it as if it has no version byte
 			bufferedStream.reset();
 			decompressedStream = new GZIPInputStream(DIS);
 		}
+		// else if (VERSION == FILE_FORMAT_VERSION_V2) decompressedStream = new ZstdCompressorInputStream(DIS);
 		else throw new IOException("Unsupported file format version: " + VERSION);
 
 		/* Read the compressed data */

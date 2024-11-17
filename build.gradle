@@ -17,6 +17,8 @@ dependencies {
     /* Apache */
     api 'commons-codec:commons-codec:1.15'
 	api 'commons-io:commons-io:2.11.0'
+	// implementation 'org.apache.commons:commons-compress:1.27.1'
+	// implementation 'com.github.luben:zstd-jni:1.5.6-7'
 
 	/* Other */
 	api 'com.google.code.gson:gson:2.8.8'
@@ -41,6 +43,8 @@ dependencies {
 	/* Shadow Apache */
     shadow 'commons-codec:commons-codec:1.15'
 	shadow 'commons-io:commons-io:2.11.0'
+	// shadow 'org.apache.commons:commons-compress:1.27.1'
+	// shadow 'com.github.luben:zstd-jni:1.5.6-7'
 
 	/* Shadow Other */
 	shadow 'com.google.code.gson:gson:2.8.8'

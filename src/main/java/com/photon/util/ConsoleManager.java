@@ -3,8 +3,10 @@ package com.photon.util;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -49,11 +51,17 @@ public class ConsoleManager
 		
 		/* Adding console handler */
 		defaultLogger.addHandler(defaultHandler);
+
+		// System.setOut(new PrintStream(System.out, true, StandardCharsets.UTF_8));
 	}
 	
 	public static ConsoleContainer createManager(String id) {
 		Logger logger = Logger.getLogger(id);
 		ConsoleHandler handler = new ConsoleHandler();
+
+		/* Encode to UTF-8 */
+		try { handler.setEncoding("UTF-8"); }
+		catch (IOException e) { e.printStackTrace(); }
 
 		logger.addHandler(handler);
 
@@ -64,16 +72,16 @@ public class ConsoleManager
 	}
 
 	public static String of(Throwable t) {
-		final StringWriter sw = new StringWriter();
-		t.printStackTrace(new PrintWriter(sw));
-		return sw.toString();
+		try {
+			final StringWriter sw = new StringWriter();
+			t.printStackTrace(new PrintWriter(sw));
+			String result = sw.toString();
+			sw.close();
+			return new String(result.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
+		} catch (IOException e) { return null; }
 	}
 	
-	public static String of(Exception e) {
-		final StringWriter sw = new StringWriter();
-		e.printStackTrace(new PrintWriter(sw));
-		return sw.toString();
-	}
+	public static String of(Exception e) { return of((Throwable)e); }
 
 	/**
 	 * Register a file handler to save logs (This will be the default handler)
@@ -246,12 +254,15 @@ public class ConsoleManager
         @Override
         public String format(LogRecord record) {
             StringBuffer sb = new StringBuffer();
-            if(type !=null) sb.append(type.consoleColor);
-
-            sb.append(record.getMessage());
-            sb.append("\n");
-
-			if(type !=null) sb.append(ANSI_WHITE);
+            if(type !=null) {
+				sb.append(type.consoleColor);
+				sb.append(record.getMessage());
+				sb.append("\n");
+				sb.append(ANSI_WHITE);
+			} else {
+				sb.append(new String(record.getMessage().getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
+				sb.append("\n");
+			}
             return sb.toString();
         }
     }

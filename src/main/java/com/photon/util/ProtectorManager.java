@@ -1,6 +1,8 @@
 package com.photon.util;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -165,6 +167,46 @@ public class ProtectorManager {
             while (hashtext.length() < 32) hashtext = "0" + hashtext;
             return hashtext;
         } catch (NoSuchAlgorithmException e) { return ""; } 
+	}
+
+	/**
+	 * Compress a string and return it as a byte array
+	 * @param str String to compress
+	 * @return byte[] of the compressed data
+	 * @throws IOException
+	 */
+	public static byte[] compressFromString(String str) throws IOException { return compress(str.getBytes()); }
+
+	/**
+	 * Compress data and return it as a byte array
+	 * @param buffer Buffer to compress
+	 * @return byte[] of the compressed data
+	 * @throws IOException
+	 */
+	public static byte[] compress(byte[] buffer) throws IOException {
+		var output = new ByteArrayOutputStream();
+		writeCompressedFile(output, buffer);
+		return output.toByteArray();
+	}
+
+	/**
+	 * Decompress a string and return it
+	 * @param buffer Buffer to decompress
+	 * @return String of the decompressed data
+	 * @throws IOException
+	 */
+	public static String decompressToString(byte[] buffer) throws IOException {
+		return new String(decompress(buffer));
+	}
+
+	/**
+	 * Decompress data and return it as a byte array
+	 * @param buffer Buffer to decompress
+	 * @return byte[] of the decompressed data
+	 * @throws IOException
+	 */
+	public static byte[] decompress(byte[] buffer) throws IOException {
+		return readCompressedFile(new ByteArrayInputStream(buffer));
 	}
 
 	/**

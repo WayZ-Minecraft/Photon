@@ -70,16 +70,26 @@ public class PhotonEngine {
      * @param ip the IP of the server (V.P.S)
      * @throws IOException if the connection failed on the local server too
      */
-    public static void loadClient(String ip) throws IOException {
-    	try {
+    public static void loadClient(String ip) throws IOException { loadClient(ip, false); }
+
+    /**
+     * This allow to connect to the network, if unable to connect to the server, it will try to connect to the local server (Development mode)
+     * @param ip the IP of the server (V.P.S)
+     * @param localHostFallback if true, the local server will be used if the connection failed
+     * @throws IOException if the connection failed on the local server too
+     */
+    public static void loadClient(String ip, boolean localHostFallback) throws IOException {
+        try {
     		PhotonEngine.setIP(ip);
     		NetworkConnectionClient.load();
     	} catch (IOException e) {
-            ConsoleManager.create(ConsoleManager.of(e)).withType(EnumLogType.NETWORK).error().end();
-    		try {
-    			PhotonEngine.setIP(network_Ip_Local);
-    			NetworkConnectionClient.load();
-    		} catch(IOException ex) { throw ex; }
+            ConsoleManager.create("Unable to connect to "+ip+ (localHostFallback ? ". Fallback to localhost" : "")).withType(EnumLogType.NETWORK).error().end();
+    		if(localHostFallback) {
+                try {
+                    PhotonEngine.setIP(network_Ip_Local);
+                    NetworkConnectionClient.load();
+                } catch(IOException ex) { throw ex; }
+            }
     	}
     }
     

@@ -74,28 +74,14 @@ public class ProtectorManager {
 	 * @return Hash
 	 */
 	public static String hash(ZipEntry entry, ZipFile zipFile, String algorithm) {
-		try {
-			MessageDigest digest = MessageDigest.getInstance(algorithm);
+		try (InputStream is = zipFile.getInputStream(entry); DigestInputStream dis = new DigestInputStream(is, MessageDigest.getInstance(algorithm))) {
 
-			// Ouvrir le flux pour lire l'entrée spécifique dans le fichier ZIP
-			try (InputStream is = zipFile.getInputStream(entry);
-				DigestInputStream dis = new DigestInputStream(is, digest)) {
-
-				// Lire le contenu pour mettre à jour le hachage
-				byte[] buffer = new byte[4096];
-				while (dis.read(buffer) != -1) {
-					// Les données sont lues et hachées en même temps
-				}
+			byte[] buffer = new byte[4096];
+			while (dis.read(buffer) != -1) {
+				// Reading and hashing simultaneously
 			}
-
-			// Convertir le hachage final en chaîne hexadécimale
-			StringBuilder hexString = new StringBuilder();
-			for (byte b : digest.digest()) {
-				hexString.append(String.format("%02x", b));
-			}
-			return hexString.toString();
-		}
-		catch (Exception e) {
+			return String.format("%032x", new BigInteger(1, dis.getMessageDigest().digest()));
+		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -108,19 +94,17 @@ public class ProtectorManager {
 	 * @return Hash
 	 */
 	public static String hash(InputStream toHash, String algorithm) {
-        if(toHash == null) return "unknown";
-		DigestInputStream stream = null;
-		try {
-			stream = new DigestInputStream(toHash, MessageDigest.getInstance(algorithm));
-			byte[] ignored = new byte[65536];
-			int read;
-			do { read = stream.read(ignored); } while (read > 0);
-			return String.format("%1$0" + 16 + "x", new Object[] { new BigInteger(1, stream.getMessageDigest().digest()) });
-		} catch (Exception localException) {
-		} finally {
-			try { stream.close(); } catch (IOException e) { e.printStackTrace(); }
+		if (toHash == null) return "unknown";
+		try (DigestInputStream stream = new DigestInputStream(toHash, MessageDigest.getInstance(algorithm))) {
+			byte[] buffer = new byte[65536];
+			while (stream.read(buffer) > 0) {
+				// Reading and hashing simultaneously
+			}
+			return String.format("%032x", new BigInteger(1, stream.getMessageDigest().digest()));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
 		}
-        return null;
     }
 
 	/**
@@ -130,19 +114,17 @@ public class ProtectorManager {
 	 * @return Hash
 	 */
 	public static String hash(File toHash, String algorithm) {
-		if(toHash == null) return "unknown";
-		DigestInputStream stream = null;
-		try {
-			stream = new DigestInputStream(new FileInputStream(toHash), MessageDigest.getInstance(algorithm));
-			byte[] ignored = new byte[65536];
-			int read;
-			do { read = stream.read(ignored); } while (read > 0);
-			return String.format("%1$0" + 16 + "x", new Object[] { new BigInteger(1, stream.getMessageDigest().digest()) });
-		} catch (Exception localException) {
-		} finally {
-			try { stream.close(); } catch (IOException e) { e.printStackTrace(); }
+		if (toHash == null) return "unknown";
+		try (DigestInputStream stream = new DigestInputStream(new FileInputStream(toHash), MessageDigest.getInstance(algorithm))) {
+			byte[] buffer = new byte[65536];
+			while (stream.read(buffer) > 0) {
+				// Reading and hashing simultaneously
+			}
+			return String.format("%032x", new BigInteger(1, stream.getMessageDigest().digest()));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
 		}
-		return null;
 	}
 
 	/**
@@ -160,12 +142,11 @@ public class ProtectorManager {
 	 */
 	public static String hash(String toHash, String algorithm) {
         try {
-            MessageDigest md = MessageDigest.getInstance(algorithm);
-            byte[] messageDigest = md.digest(toHash.getBytes());
-            BigInteger no = new BigInteger(1, messageDigest);
-            String hashtext = no.toString(16);
-            while (hashtext.length() < 32) hashtext = "0" + hashtext;
-            return hashtext;
+			MessageDigest md = MessageDigest.getInstance(algorithm);
+			byte[] messageDigest = md.digest(toHash.getBytes());
+			StringBuilder hashtext = new StringBuilder(new BigInteger(1, messageDigest).toString(16));
+			while (hashtext.length() < 32) hashtext.insert(0, '0');
+			return hashtext.toString();
         } catch (NoSuchAlgorithmException e) { return ""; } 
 	}
 

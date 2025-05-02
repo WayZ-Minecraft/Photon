@@ -105,7 +105,9 @@ public class PhotonInfosManager {
 			final ObjectInfos object = new Gson().fromJson(in, ObjectInfos.class);
 			in.close();
 			return object;
-        } catch (IOException e) { ConsoleManager.create(ConsoleManager.of(e)).withType(EnumLogType.NETWORK).error().end(); }
+        } catch (IOException e) {
+			ConsoleManager.create("Error when loading info.json file. If your not connected to the network, then it's the reason why.").withType(EnumLogType.NETWORK).error().end();
+		}
         return null;
     }
 }

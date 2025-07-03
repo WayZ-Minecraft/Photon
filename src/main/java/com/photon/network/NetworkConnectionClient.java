@@ -17,7 +17,7 @@ public class NetworkConnectionClient {
     
     public static void load() throws IOException {
         NetworkObjectRegistry.load(client.getKryo());
-    	new Thread(client).start();
+    	new Thread(client, "Client Network Connection").start();
         client.connect(5000, PhotonEngine.network_Ip, PhotonEngine.network_Tcp, PhotonEngine.network_Udp);
     	// client.setKeepAliveTCP(ProtectorManager.TIME_OUT); // Theses are causing disconnections for some reason
         // client.setKeepAliveUDP(ProtectorManager.TIME_OUT);

@@ -14,6 +14,7 @@ import java.math.BigInteger;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URLConnection;
+import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -106,6 +107,14 @@ public class ProtectorManager {
 			return null;
 		}
     }
+
+	/**
+	 * Hashes the file
+	 * @param toHash Path
+	 * @param algorithm Algorithm
+	 * @return Hash
+	 */
+	public static String hash(Path toHash, String algorithm) { return toHash == null ? "unknown" : hash(toHash.toFile(), algorithm); }
 
 	/**
 	 * Hashes the file
@@ -276,5 +285,15 @@ public class ProtectorManager {
 		}
 
 		public static <A, B> Pair<A, B> of(A a, B b) { return new Pair<>(a, b); }
+
+		public A getA() { return a; }
+
+		public B getB() { return b; }
+
+		public boolean equals(Object o) { return this == o || (o instanceof Pair<?, ?> pair && a.equals(pair.a) && b.equals(pair.b)); }
+
+		public int hashCode() { return 31 * a.hashCode() + b.hashCode(); }
+
+		public String toString() { return "Pair{a=" + a + ", b=" + b + '}'; }
 	}
 }

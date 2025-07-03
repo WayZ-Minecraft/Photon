@@ -16,7 +16,6 @@ import javax.swing.text.DefaultEditorKit;
 import com.photon.ui.PhotonInterfaceUtils;
 import com.photon.util.os.FileLocation;
 
-@SuppressWarnings("serial")
 public class ColoredTextField extends JTextField implements KeyListener, MouseListener
 {	
 	private JComponent nextComponent;

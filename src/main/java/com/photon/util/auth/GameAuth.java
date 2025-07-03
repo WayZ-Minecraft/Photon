@@ -58,8 +58,7 @@ public class GameAuth
 
 				if(callback != null) callback.run();
 			}
-		});
-		connectionThread.setName("Connection Thread");
+		}, "Connection Thread");
 		connectionThread.setDaemon(true);
 		connectionThread.start();
 
@@ -99,8 +98,7 @@ public class GameAuth
 				else setError(AuthError.SUCCESS);
 				if(callback != null) callback.run();
 			}
-		});
-		connectionThread.setName("Connection Thread");
+		},"Connection Thread");
 		connectionThread.setDaemon(true);
 		connectionThread.start();
 	}

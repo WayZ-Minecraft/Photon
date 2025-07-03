@@ -106,7 +106,7 @@ public class ConsoleManager
             fh.setFormatter(new ConsoleFormatter(null));
             
 			/* Save file after closing launcher */
-			Runtime.getRuntime().addShutdownHook(new Thread(() -> { savePreviousFile(file, savedFileName); }));
+			Runtime.getRuntime().addShutdownHook(new Thread(() -> { savePreviousFile(file, savedFileName); }, "ConsoleManager-SavePreviousFile"));
         } catch (SecurityException | IOException e) {}
 	}
 	

@@ -30,6 +30,13 @@ public class MultiThreadWorker
     }
     
     private class ThreadWorker extends Thread {
+        private static int id = 0;
+
+        private ThreadWorker() {
+            super("MultiThreadWorker-" + (++id));
+            this.setPriority(Thread.MIN_PRIORITY);
+        }
+
         @Override public void run() {
         	try {
                 while (MultiThreadWorker.this.callback.work()) {}

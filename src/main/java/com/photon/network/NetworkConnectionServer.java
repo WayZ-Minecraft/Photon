@@ -17,7 +17,7 @@ public class NetworkConnectionServer
         try {
             NetworkObjectRegistry.load(server.getKryo());
             server.bind(PhotonEngine.network_Tcp, PhotonEngine.network_Udp);
-            new Thread(server).start();
+            new Thread(server, "Server Network Connection").start();
             server.addListener(new MessageListenerServer());
         } catch (Exception e) {
         	ConsoleManager.create("Can't start Network Server: \n - " + e).withType(EnumLogType.NETWORK).displayOnDiscord().end();

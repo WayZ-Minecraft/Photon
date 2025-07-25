@@ -6,7 +6,6 @@ import java.awt.Graphics;
 import com.photon.ui.PhotonInterfaceUtils;
 import com.photon.ui.components.utils.AbstractProgressbar;
 
-@SuppressWarnings("serial")
 public class ColoredProgressbar extends AbstractProgressbar {
 
     private Color background;

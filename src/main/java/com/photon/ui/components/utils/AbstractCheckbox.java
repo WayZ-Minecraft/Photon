@@ -11,7 +11,6 @@ import com.photon.ui.base.EventListener;
 import com.photon.ui.base.EventListener.PhotonEvent;
 import com.photon.util.os.FileLocation;
 
-@SuppressWarnings("serial")
 public class AbstractCheckbox extends JComponent implements MouseListener {
 	
 	private boolean checked;

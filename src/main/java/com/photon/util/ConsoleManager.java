@@ -19,6 +19,8 @@ import java.util.logging.LogManager;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.photon.PhotonEngine;
 import com.photon.discord.BotEngine;
 import com.photon.network.NetworkConnectionClient;
@@ -124,13 +126,38 @@ public class ConsoleManager
 	public static Log create(Object obj) { return new Log().withObject(obj); }
 
 	/**
-	 * Display a message in the console
-	 * @param o The message to display
+	 * Get the line caller of the current thread
+	 * @return The line caller in the format [FileName:LineNumber] + " " (Space at the end)
 	 */
-	public static void debug(Object o) { System.out.println(o); }
+	public static String getLineCaller() {
+		final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+		if (stackTrace.length > 4) {
+			final StackTraceElement caller = stackTrace[4];
+			return ANSI_YELLOW+"[" + caller.getFileName() + ":" + caller.getLineNumber() + "] "+ANSI_WHITE;
+		}
+		return "[Unknown] ";
+	}
+	
+	/**
+	 * Display a message in the console
+	 * @param b The boolean to display
+	 * 
+	 * N.B : This method is used to avoid abiguous method call with the other debug methods
+	 */
+	public static void debug(boolean b) { debug(false, new Object[] {b}); }
 
-	public static void debug(boolean newLineOnEachObject, Object... objects) {
-		for(Object o : objects) System.out.print(o + (newLineOnEachObject ? "\n" : " "));
+	/**
+	 * Display a message in the console
+	 * @param objects The message to display
+	 */
+	public static void debug(@Nullable Object... objects) { debug(false, objects); }
+	
+	public static void debug(boolean newLineOnEachObject, @Nullable Object... objects) {
+		System.out.print(getLineCaller());
+		System.out.print(ANSI_CYAN+"[" + java.time.LocalTime.now().withNano(0) + "] "+ANSI_WHITE);
+		if(objects != null) {
+			for(Object o : objects) System.out.print(o + (newLineOnEachObject ? "\n" : " "));
+		} else System.out.print("null");
 		System.out.println();
 	}
 	

@@ -4,7 +4,6 @@ import java.awt.Color;
 
 import javax.swing.JComponent;
 
-@SuppressWarnings("serial")
 public abstract class AbstractProgressbar extends JComponent {
 	
 	private int arcWidth = 0;

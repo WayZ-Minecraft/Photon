@@ -10,7 +10,6 @@ import javax.swing.text.PlainDocument;
 import com.photon.ui.components.utils.AbstractButton;
 import com.photon.ui.components.utils.AbstractCheckbox;
 
-@SuppressWarnings("serial")
 public class FieldCharLimit extends PlainDocument {
 	
 	public int limit;

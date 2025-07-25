@@ -13,7 +13,6 @@ import com.photon.ui.base.EventListener;
 import com.photon.ui.base.EventListener.PhotonEvent;
 import com.photon.util.os.FileLocation;
 
-@SuppressWarnings("serial")
 public abstract class AbstractButton extends JComponent implements MouseListener {
 
 	private int arcWidth = 0;

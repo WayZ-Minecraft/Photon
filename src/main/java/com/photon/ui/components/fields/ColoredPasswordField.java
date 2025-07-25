@@ -15,7 +15,6 @@ import javax.swing.JPasswordField;
 import com.photon.ui.PhotonInterfaceUtils;
 import com.photon.util.os.FileLocation;
 
-@SuppressWarnings("serial")
 public class ColoredPasswordField extends JPasswordField implements KeyListener, MouseListener
 {	
 	private JComponent prevComponent;

@@ -5,7 +5,7 @@ import java.awt.Graphics;
 
 import javax.swing.JComponent;
 import javax.swing.border.EmptyBorder;
-@SuppressWarnings("serial")
+
 public class Panel extends JComponent
 {
 	

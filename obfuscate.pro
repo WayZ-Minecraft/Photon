@@ -1,4 +1,4 @@
--printmapping out.map
+-printmapping build/tmp/out.map
 -flattenpackagehierarchy ''
 
 # Warns

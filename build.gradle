@@ -22,8 +22,8 @@ dependencies {
 
 	/* Other */
 	api 'com.google.code.gson:gson:2.8.8'
-	api 'com.github.crykn:kryonet:2.22.8'
-	api 'com.esotericsoftware:kryo:5.4.1-SNAPSHOT'
+	api 'com.github.crykn:kryonet:2.22.9'
+	api 'com.esotericsoftware:kryo:5.6.2'
 	
 	/* Mail */
 	api 'com.sun.mail:javax.mail:1.6.2'
@@ -48,8 +48,8 @@ dependencies {
 
 	/* Shadow Other */
 	shadow 'com.google.code.gson:gson:2.8.8'
-	shadow 'com.github.crykn:kryonet:2.22.8'
-	shadow 'com.esotericsoftware:kryo:5.4.1-SNAPSHOT'
+	shadow 'com.github.crykn:kryonet:2.22.9'
+	shadow 'com.esotericsoftware:kryo:5.6.2'
 	
 	/* Shadow Mail */
 	shadow 'com.sun.mail:javax.mail:1.6.2'

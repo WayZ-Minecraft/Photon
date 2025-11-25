@@ -100,7 +100,7 @@ public class SlashCommands {
 
         // Add commands link-account
         commands.add(Commands.slash("link-account", "link your minecraft account to your discord account")
-            .addOption(OptionType.STRING, "uuid", "your WayZ unique user identity (in game)", true, false)
+            .addOption(OptionType.STRING, "uuid", "your unique user identity (in game)", true, false)
             .addOption(OptionType.STRING, "authkey", "your authentication Key", true, false));
 
         // Add commands to update the network

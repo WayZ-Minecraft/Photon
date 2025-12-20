@@ -1,6 +1,5 @@
 package com.photon.discord.slashCommands;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,7 +16,7 @@ import java.util.StringJoiner;
 import com.photon.discord.slashCommands.advancedCommands.CustomMute;
 import com.photon.discord.slashCommands.advancedCommands.KineticCommands;
 import com.photon.discord.slashCommands.advancedCommands.NewsManager;
-import com.photon.discord.usersInteraction.xpManager;
+// import com.photon.discord.usersInteraction.xpManager;
 import com.photon.informations.PhotonUpdaterManager.UpdateChannel;
 import com.photon.informations.PhotonUpdaterManager.UpdateFileType;
 import com.photon.network.NetworkDirectories;
@@ -43,6 +42,7 @@ public class SlashCommands {
 
     /**
      * Load slash commands, to be registered in discord slash commands interface
+     * 
      * @author Mini
      */
     public static void load() {
@@ -56,39 +56,45 @@ public class SlashCommands {
 
         // Add commands clear
         commands.add(Commands.slash("clear", "clear a number of message")
-            .addOption(OptionType.INTEGER, "number", "number of message to delete", false, false)
-            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MESSAGE_MANAGE)));
+                .addOption(OptionType.INTEGER, "number", "number of message to delete", false, false)
+                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MESSAGE_MANAGE)));
 
         // Kinetic commands
         {
             commands.add(Commands.slash("convert", "Convert a nebulae files or OBJ, images, ANIM files")
-                .addOption(OptionType.ATTACHMENT, "file", "The file to convert", true, false)
-                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
-    
-            commands.add(Commands.slash("opacity-map", "Combine a texture with opacity map to get the transparent texture")
-                .addOption(OptionType.ATTACHMENT, "texture", "The non-transparent texture", true, false)
-                .addOption(OptionType.ATTACHMENT, "opacity_map", "The opacity map", true, false)
-                .addOption(OptionType.BOOLEAN, "reversed_colors", "True if you want to use resversed colors (Black instead of white)", false, false)
-                .addOption(OptionType.BOOLEAN, "custom_format", "True if you want to get a nebulae-image file format", false, false)
-                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+                    .addOption(OptionType.ATTACHMENT, "file", "The file to convert", true, false)
+                    .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
 
-            commands.add(Commands.slash("image-quality", "Change the quality of an image to a specific percentage (0-100)")
-                .addOption(OptionType.ATTACHMENT, "image", "The image to update", true, false)
-                .addOption(OptionType.INTEGER, "percentage", "Percentage of quality (0 - 100) where 0 is more compressed but less 'beautiful'", true, false)
-                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+            commands.add(
+                    Commands.slash("opacity-map", "Combine a texture with opacity map to get the transparent texture")
+                            .addOption(OptionType.ATTACHMENT, "texture", "The non-transparent texture", true, false)
+                            .addOption(OptionType.ATTACHMENT, "opacity_map", "The opacity map", true, false)
+                            .addOption(OptionType.BOOLEAN, "reversed_colors",
+                                    "True if you want to use resversed colors (Black instead of white)", false, false)
+                            .addOption(OptionType.BOOLEAN, "custom_format",
+                                    "True if you want to get a nebulae-image file format", false, false)
+                            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+
+            commands.add(
+                    Commands.slash("image-quality", "Change the quality of an image to a specific percentage (0-100)")
+                            .addOption(OptionType.ATTACHMENT, "image", "The image to update", true, false)
+                            .addOption(OptionType.INTEGER, "percentage",
+                                    "Percentage of quality (0 - 100) where 0 is more compressed but less 'beautiful'",
+                                    true, false)
+                            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
         }
 
         // Add commands time mute
         commands.add(Commands.slash("tempmute", "use to mute a temporaly a specifique player")
-            .addOption(OptionType.USER , "user", "the user", true, false)
-            .addOption(OptionType.STRING, "duration", "time of mute", true, true)
-            .addOption(OptionType.STRING, "reason", "the reason of the mute", true, false)
-            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.VOICE_MUTE_OTHERS)));
+                .addOption(OptionType.USER, "user", "the user", true, false)
+                .addOption(OptionType.STRING, "duration", "time of mute", true, true)
+                .addOption(OptionType.STRING, "reason", "the reason of the mute", true, false)
+                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.VOICE_MUTE_OTHERS)));
 
         // Add commands silence
         commands.add(Commands.slash("silence", "mute all the users in the voice channel")
-            .addOption(OptionType.INTEGER, "duration", "time of mute in seconde", false, false)
-            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.VOICE_MUTE_OTHERS)));
+                .addOption(OptionType.INTEGER, "duration", "time of mute in seconde", false, false)
+                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.VOICE_MUTE_OTHERS)));
 
         /*
          * Network Commands
@@ -96,39 +102,39 @@ public class SlashCommands {
 
         // Add commands restart network
         commands.add(Commands.slash("restart-network", "restart the network")
-            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
 
         // Add commands link-account
         commands.add(Commands.slash("link-account", "link your minecraft account to your discord account")
-            .addOption(OptionType.STRING, "uuid", "your unique user identity (in game)", true, false)
-            .addOption(OptionType.STRING, "authkey", "your authentication Key", true, false));
+                .addOption(OptionType.STRING, "uuid", "your unique user identity (in game)", true, false)
+                .addOption(OptionType.STRING, "authkey", "your authentication Key", true, false));
 
         // Add commands to update the network
         commands.add(Commands.slash("post-update", "post an update on the network")
-            .addOption(OptionType.ATTACHMENT, "file", "the build file", true, false)
-            .addOption(OptionType.STRING, "channel", "the channel (e.g: stable, dev or test)", false, true)
-            .addOption(OptionType.STRING, "filetype", "the file to update (e.g: mod, launcher)", false, true)
-            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+                .addOption(OptionType.ATTACHMENT, "file", "the build file", true, false)
+                .addOption(OptionType.STRING, "channel", "the channel (e.g: stable, dev or test)", false, true)
+                .addOption(OptionType.STRING, "filetype", "the file to update (e.g: mod, launcher)", false, true)
+                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
 
-        /* 
-        * Xp Commands
-        */
+        /*
+         * Xp Commands
+         */
 
-        //add commands Level
+        // add commands Level
         commands.add(Commands.slash("level", "show your level")
-            .addOption(OptionType.USER, "user", "the user", false, false));
+                .addOption(OptionType.USER, "user", "the user", false, false));
 
-        //give xp command
+        // give xp command
         commands.add(Commands.slash("give-xp", "give xp to a player")
-            .addOption(OptionType.USER, "user", "the user", true, false)
-            .addOption(OptionType.INTEGER, "xp", "the amount of xp", true, false)
-            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+                .addOption(OptionType.USER, "user", "the user", true, false)
+                .addOption(OptionType.INTEGER, "xp", "the amount of xp", true, false)
+                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
 
-        //remove xp command
+        // remove xp command
         commands.add(Commands.slash("remove-xp", "remove xp to a player")
-            .addOption(OptionType.USER, "user", "the user", true, false)
-            .addOption(OptionType.INTEGER, "xp", "the amount of xp", true, false)
-            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+                .addOption(OptionType.USER, "user", "the user", true, false)
+                .addOption(OptionType.INTEGER, "xp", "the amount of xp", true, false)
+                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
 
         /*
          * News
@@ -136,42 +142,43 @@ public class SlashCommands {
 
         // Add commands news
         commands.add(Commands.slash("create-news", "create a news")
-            .addOption(OptionType.STRING, "title", "the title of the news", true, false)
-            .addOption(OptionType.STRING, "content-en", "the content of the news", true, false)
-            .addOption(OptionType.STRING, "content-fr", "the content of the news in french", true, false)
-            .addOption(OptionType.ATTACHMENT, "image", "the image of the news", true, false)
-            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
-        
+                .addOption(OptionType.STRING, "title", "the title of the news", true, false)
+                .addOption(OptionType.STRING, "content-en", "the content of the news", true, false)
+                .addOption(OptionType.STRING, "content-fr", "the content of the news in french", true, false)
+                .addOption(OptionType.ATTACHMENT, "image", "the image of the news", true, false)
+                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+
         /**
          * Accounts
          */
         commands.add(Commands.slash("account", "Manager accounts")
-            .addOption(OptionType.STRING, "type", "can be : uuid, discordid, email or username", true, false)
-            .addOption(OptionType.STRING, "getter", "The email/username/... according to the type", true, false)
-            .addOption(OptionType.STRING, "action", "Can be get, edit or delete", true, false)
-            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+                .addOption(OptionType.STRING, "type", "can be : uuid, discordid, email or username", true, false)
+                .addOption(OptionType.STRING, "getter", "The email/username/... according to the type", true, false)
+                .addOption(OptionType.STRING, "action", "Can be get, edit or delete", true, false)
+                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
 
         commands.add(Commands.slash("list-accounts", "List all existing accounts")
-            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
-        
+                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+
         commands.add(Commands.slash("delete-accounts", "Delete all existing accounts")
-            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
 
         /*
-        * Sql commande
-        */
+         * Sql commande
+         */
         commands.add(Commands.slash("execute-sql", "execute a sql command")
-            .addOption(OptionType.STRING, "command", "sql command", true, false)
-            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
-            
+                .addOption(OptionType.STRING, "command", "sql command", true, false)
+                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)));
+
     }
 
     /**
      * Handle slash commands
+     * 
      * @param event The event that triggered this command
      * @author Mini
      */
-    public static void onSlashCommand(SlashCommandInteractionEvent event){
+    public static void onSlashCommand(SlashCommandInteractionEvent event) {
         final String name = event.getName();
 
         switch (name) {
@@ -190,15 +197,18 @@ public class SlashCommands {
             case "link-account":
                 linkAccount(event);
                 break;
-            case "level":
-                xpManager.levelEmbed(event);
-                break;
-            case "give-xp":
-                xpManager.giveXp(event);
-                break;
-            case "remove-xp":
-                xpManager.removeXp(event);
-                break;
+            /*
+             * deactivation of the exp for the moment, awaiting modularity
+             * case "level":
+             * xpManager.levelEmbed(event);
+             * break;
+             * case "give-xp":
+             * xpManager.giveXp(event);
+             * break;
+             * case "remove-xp":
+             * xpManager.removeXp(event);
+             * break;
+             */
             case "create-news":
                 NewsManager.createNews(event);
                 break;
@@ -215,10 +225,18 @@ public class SlashCommands {
                 KineticCommands.convertFile(event);
                 break;
             case "opacity-map":
-                try { KineticCommands.opacityImage(event); } catch (IOException e) { e.printStackTrace(); }
+                try {
+                    KineticCommands.opacityImage(event);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             case "image-quality":
-                try { KineticCommands.imageQuality(event); } catch (IOException e) { e.printStackTrace(); }
+                try {
+                    KineticCommands.imageQuality(event);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             case "account":
                 String type = event.getOption("type").getAsString();
@@ -244,25 +262,26 @@ public class SlashCommands {
             case "list-accounts":
                 try {
                     List<ObjectPlayerAccount> list = ProfileManager.getAllPorifles();
-                    if(list.isEmpty()) event.reply("No accounts found").queue();
+                    if (list.isEmpty())
+                        event.reply("No accounts found").queue();
 
                     StringJoiner joiner = new StringJoiner(System.lineSeparator(), "", System.lineSeparator());
-                    for(ObjectPlayerAccount account : list) {
-                        if(account == null) continue;
+                    for (ObjectPlayerAccount account : list) {
+                        if (account == null)
+                            continue;
                         joiner.add("{").add(account.email).add(account.username).add(account.uuid).add("}");
                     }
-                    
+
                     FileUpload upload = FileUpload.fromData(joiner.toString().getBytes(), "account.txt");
                     event.reply("List of all accounts").addFiles(upload).queue();
-                }
-                catch(Exception e) {
+                } catch (Exception e) {
                     event.reply("Error with the list of accounts").queue();
                 }
                 break;
             case "delete-accounts":
-                for(ObjectPlayerAccount account : ProfileManager.getAllPorifles())
+                for (ObjectPlayerAccount account : ProfileManager.getAllPorifles())
                     ProfileManager.deleteProfile(account);
-                
+
                 event.reply("All accounts have been deleted !").queue();
                 break;
             default:
@@ -271,14 +290,16 @@ public class SlashCommands {
     }
 
     private static void managerAccount(SlashCommandInteractionEvent event, ObjectPlayerAccount profile, String action) {
-        if(profile == null) {
+        if (profile == null) {
             event.reply("Error, the profile doesn't exist").queue();
             return;
         }
         switch (action.toLowerCase()) {
             case "get":
-                FileUpload upload = FileUpload.fromData(ProfileManager.getGson().toJson(profile).getBytes(), profile.username+".json");
-                event.reply("The info for the user : " + profile.username+"("+profile.email+")").addFiles(upload).queue();
+                FileUpload upload = FileUpload.fromData(ProfileManager.getGson().toJson(profile).getBytes(),
+                        profile.username + ".json");
+                event.reply("The info for the user : " + profile.username + "(" + profile.email + ")").addFiles(upload)
+                        .queue();
                 break;
             case "edit":
                 break;
@@ -291,6 +312,7 @@ public class SlashCommands {
 
     /**
      * Say hello to the user in the channel (/hello)
+     * 
      * @param event The event that triggered this command
      * @author Mini
      */
@@ -298,9 +320,9 @@ public class SlashCommands {
         event.reply("Hello, " + event.getUser().getAsMention() + "!").queue();
     }
 
-
     /**
      * Clear a number of messages in the channel (/clear number)
+     * 
      * @param event The event that triggered this command
      * @author Mini
      */
@@ -310,9 +332,9 @@ public class SlashCommands {
         event.reply(String.format("Clearing %s messages...", number)).queue();
     }
 
-
     /**
      * Restart the network (/restart-network)
+     * 
      * @param event The event that triggered this command
      * @author Mini
      */
@@ -321,18 +343,20 @@ public class SlashCommands {
         ApplicationUtils.restart(NetworkEngine.class, "--restart");
     }
 
-
     /**
      * Link a discord account to a minecraft account (/link-account uuid authkey)
+     * 
      * @param event The event that triggered this command
      * @author Mini
      */
     protected static void linkAccount(SlashCommandInteractionEvent event) {
         final String ingameUUID = event.getOption("uuid").getAsString();
         final String AUTHCODE = String.valueOf(event.getOption("authkey").getAsInt());
-        if(!ProfileManager.isAuthCodeValid(ingameUUID, AUTHCODE)) {
-            if(!ProfileManager.doesProfileExistByUUID(ingameUUID)) event.reply("Error your User Id is wrong or doesn't exist").queue();
-            else event.reply("Error your authentication Key is wrong").queue();
+        if (!ProfileManager.isAuthCodeValid(ingameUUID, AUTHCODE)) {
+            if (!ProfileManager.doesProfileExistByUUID(ingameUUID))
+                event.reply("Error your User Id is wrong or doesn't exist").queue();
+            else
+                event.reply("Error your authentication Key is wrong").queue();
             return;
         }
 
@@ -345,9 +369,10 @@ public class SlashCommands {
 
     /**
      * To execute a sql command (e.g. /execute-sql "SELECT * FROM users")
+     * 
      * @param event The event that triggered a SlashCommandInteractionEvent
      */
-    protected static void executeSql(SlashCommandInteractionEvent event){
+    protected static void executeSql(SlashCommandInteractionEvent event) {
         String command = event.getOption("command").getAsString();
         try {
             String result = SqlInteract.commandSql(command);
@@ -360,17 +385,20 @@ public class SlashCommands {
 
     }
 
-
     /**
      * Post an update to the network
+     * 
      * @param event The event that triggered a SlashCommandInteractionEvent
      */
-    protected static void postUpdate(SlashCommandInteractionEvent event){
+    protected static void postUpdate(SlashCommandInteractionEvent event) {
         final Attachment file = event.getOption("file").getAsAttachment();
         final String[] fileName = file.getFileName().split("\\.|\\-");
-        final String fileTypeString = event.getOption("type") == null ? fileName[0] : event.getOption("type").getAsString();
-        final String channelTypeString = event.getOption("channel") == null ? fileName.length >= 3 ? fileName[1] : "stable" : event.getOption("channel").getAsString();
-        
+        final String fileTypeString = event.getOption("type") == null ? fileName[0]
+                : event.getOption("type").getAsString();
+        final String channelTypeString = event.getOption("channel") == null
+                ? fileName.length >= 3 ? fileName[1] : "stable"
+                : event.getOption("channel").getAsString();
+
         /* Data to download the file */
         final UpdateFileType fileType = UpdateFileType.valueOf(fileTypeString.toUpperCase());
         final UpdateChannel channelType = UpdateChannel.valueOf(channelTypeString.toUpperCase());
@@ -388,7 +416,7 @@ public class SlashCommands {
             } finally {
                 inputStream.close();
                 event.reply("File updated into : " + outputPath).queue();
-                if(UpdateFileType.LAUNCHER == fileType)
+                if (UpdateFileType.LAUNCHER == fileType)
                     ApplicationUtils.restart(NetworkEngine.class, "--restart");
             }
         } catch (Exception e) {

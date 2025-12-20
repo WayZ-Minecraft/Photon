@@ -1,31 +1,31 @@
 package com.photon.discord;
+
 /**
  * enume to definde roles
+ * 
  * @author Mini
  */
 public enum Roles {
-    
 
     // Hight staff
-    FOUNDER(1091681102495760455L),
-    ADMIN(1108485032135364608L),
-    HIGHSTAFF(1107039473180622931L),
+    FOUNDER(1323747260667789344L),
+    ADMIN(1323747265583775877L),
+    HIGHSTAFF(1323747262995628075L),
 
     // Staff
-    DEVELOPER(1091683885143826542L),
-    STAFF(1091683847206359040L),
-    
+    DEVELOPER(1324719792397094952L),
+    STAFF(1323747270193316051L),
 
     // Member
-    MUTE(1134122689326485504L),
-    FR(1091681759076294736L),
-    EN(1091681719180079104L);
-    
+    MUTE(1324033956118663310L),
+    FR(1323747272244203562L),
+    EN(1323747272244203562L);
 
     public long id;
 
     /**
      * create a role
+     * 
      * @param id the id of the role
      */
     private Roles(long id) {

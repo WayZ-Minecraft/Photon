@@ -1,8 +1,8 @@
 package com.photon.network.sql;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 
 import com.google.gson.Gson;
@@ -10,25 +10,30 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.photon.discord.usersInteraction.language.Languages;
 import com.photon.network.sql.customExeption.PlayerNotFoundException;
+import com.photon.util.ConsoleManager;
 
 public class SQLuser extends SqlInteract {
 
-    static Gson  gson = new GsonBuilder().create();
+    static Gson gson = new GsonBuilder().create();
     
     /**
-     * Get an array of the languages of a user
-     * @param id the id of the user
-     * @return an array of the languages of a user
-     * @throws SQLException
+     * Retrieve language preferences for a user.
+     * 
+     * @param id The discord id of the user
+     * @return List of Languages or null if user has no preferences
+     * @throws SQLException if query execution fails
      */
     public static ArrayList<Languages> getLanguages(String id) throws SQLException{
-
-        Statement statement = connexion.createStatement();
-        ResultSet result = statement.executeQuery("SELECT languages FROM User WHERE id = '" + id + "'");
-
-        TypeToken<ArrayList<Languages>> typeToken = new TypeToken<ArrayList<Languages>>() {};
+        PreparedStatement statement = null;
+        ResultSet result = null;
 
         try {
+            statement = connexion.prepareStatement("SELECT languages FROM User WHERE id = ?");
+            statement.setString(1, id);
+            result = statement.executeQuery();
+
+            TypeToken<ArrayList<Languages>> typeToken = new TypeToken<ArrayList<Languages>>() {};
+
             ArrayList<Languages> languages = null;
             if(result.next()){
                 String languagesString = result.getString("languages");
@@ -44,21 +49,24 @@ public class SQLuser extends SqlInteract {
         } finally {
             closeStatement(statement, result);
         }
-
     }
 
     /**
-     * Set the languages of a user
-     * @param id the id of the user
-     * @param language the language to add
-     * @throws SQLException
+     * Update language preferences for a user.
+     * 
+     * @param id The discord id of the user
+     * @param languages List of Languages to set
+     * @throws SQLException if query execution fails
      */
     public static void setLanguages(String id, ArrayList<Languages> languages) throws SQLException{
+        PreparedStatement statement = null;
 
-        Statement statement = connexion.createStatement();
         try {
-            int nb = statement.executeUpdate("UPDATE User SET languages = '" + gson.toJson(languages) + "' WHERE id = '" + id + "'");
-    
+            statement = connexion.prepareStatement("UPDATE User SET languages = ? WHERE id = ?");
+            statement.setString(1, gson.toJson(languages));
+            statement.setString(2, id);
+            
+            int nb = statement.executeUpdate();
             if(nb == 0) throw new PlayerNotFoundException("User not found");
             
         } catch (PlayerNotFoundException e) {
@@ -67,20 +75,23 @@ public class SQLuser extends SqlInteract {
         } finally {
             closeStatement(statement, null);
         }
-        
     }
 
     /**
-     * is the first connection of the user
-     * @param id the id of the user
-     * @return true if it's the first connection, false if not
+     * Check if this is the user's first connection.
+     * 
+     * @param id The discord id of the user
+     * @return true if first connection, false otherwise
      */
     public static boolean getFirstConnection(String id) {
-        Statement statement = null;
+        PreparedStatement statement = null;
         ResultSet result = null;
+
         try {
-            statement = connexion.createStatement();
-            result = statement.executeQuery("SELECT firstConnection FROM User WHERE id = '" + id + "'");
+            statement = connexion.prepareStatement("SELECT firstConnection FROM User WHERE id = ?");
+            statement.setString(1, id);
+            result = statement.executeQuery();
+
             if(result.next()){
                 return result.getBoolean("firstConnection");
             }
@@ -90,26 +101,29 @@ public class SQLuser extends SqlInteract {
             addUser(id);
             return true;
         } catch (SQLException e) {
-            e.printStackTrace();
+            ConsoleManager.create("Error getting first connection for " + id + ": " + e.getMessage()).error().end();
             return false;
         } finally {
             closeStatement(statement, result);
         }
-
     }
 
     /**
-     * Set the first connection of the user
-     * @param id the id of the user
-     * @param firstConnection the first connection of the user
-     * @throws SQLException
+     * Update first connection status for a user.
+     * 
+     * @param id The discord id of the user
+     * @param firstConnection The new status
+     * @throws SQLException if query execution fails
      */
     public static void setFirstConnection(String id, boolean firstConnection) throws SQLException{
+        PreparedStatement statement = null;
 
-        Statement statement = connexion.createStatement();
         try {
-            int nb = statement.executeUpdate("UPDATE User SET firstConnection = '" + firstConnection + "' WHERE id = '" + id + "'");
-    
+            statement = connexion.prepareStatement("UPDATE User SET firstConnection = ? WHERE id = ?");
+            statement.setInt(1, firstConnection ? 1 : 0);
+            statement.setString(2, id);
+            
+            int nb = statement.executeUpdate();
             if(nb == 0) throw new PlayerNotFoundException("User not found");
             
         } catch (PlayerNotFoundException e) {
@@ -119,5 +133,4 @@ public class SQLuser extends SqlInteract {
             closeStatement(statement, null);
         }
     }
-
 }

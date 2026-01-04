@@ -10,28 +10,39 @@ import com.photon.network.NetworkDirectories;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
 
-
+/**
+ * SQLite database interaction handler.
+ * Manages connection, reconnection and basic database operations.
+ * 
+ * @author noz43
+ * @version 1.0
+ */
 public class SqlInteract {
-     /**
-     * Connect to a sample database
-     */
     protected static Connection connexion = null;
+    
+    /**
+     * Establish connection to SQLite database and initialize tables.
+     */
     public static void connect() {
-
         try {
-            // db parameters
-            String url = "jdbc:sqlite:"+NetworkDirectories.sqlDirectory+"/main.db";
-            // create a connection to the database
+            String url = "jdbc:sqlite:" + NetworkDirectories.sqlDirectory + "/main.db";
             connexion = DriverManager.getConnection(url);
             
             ConsoleManager.create("Connection to SQLite has been established.").withType(EnumLogType.NETWORK).end();
             
+            DatabaseInit.initializeTables();
+            
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            ConsoleManager.create("Database connection error: " + e.getMessage()).error().end();
         }
-
     }
 
+    /**
+     * Close statement and result set safely.
+     * 
+     * @param statement The statement to close
+     * @param resultat The result set to close
+     */
     protected static void closeStatement(Statement statement, ResultSet resultat) {
         try {
             if (statement != null) statement.close();
@@ -41,8 +52,9 @@ public class SqlInteract {
     }
 
     /**
-     * If the connection is closed, reconnect
-     * @return true if the connection was closed
+     * Reconnect to database if connection is null.
+     * 
+     * @return true if reconnection was needed, false otherwise
      */
     protected static boolean reconnect() {
         if (connexion == null) {
@@ -53,31 +65,34 @@ public class SqlInteract {
     }
 
     /**
-     * Add a user to the database
+     * Add a new user to the database with default values.
      * 
-     * @param id the discord id of the user
+     * @param id The discord id of the user
      */
     public static void addUser(String id) {
-
         Statement statement = null;
 
         try {
             statement = connexion.createStatement();
-
-            // Exécution de la requête
             statement.executeUpdate("INSERT INTO User (id, xp) VALUES ('" + id + "', 0);");
 
         } catch (SQLException e) {
             if (reconnect())
                 addUser(id);
             else
-                ConsoleManager.create("Erreur on add a new User : " + e.getMessage()).error().end();
+                ConsoleManager.create("Error adding user " + id + ": " + e.getMessage()).error().end();
         } finally {
-            // Fermeture de la connexionJ
             closeStatement(statement, null);
         }
     }
 
+    /**
+     * Execute a custom SQL command and return results as formatted string.
+     * 
+     * @param command The SQL command to execute
+     * @return Formatted result string with columns separated by " | "
+     * @throws SQLException if query execution fails
+     */
     public static String commandSql(String command) throws SQLException {
         Statement statement = connexion.createStatement();
         ResultSet result = statement.executeQuery(command);
@@ -94,9 +109,4 @@ public class SqlInteract {
         closeStatement(statement, result);
         return resultString;
     }
-
-    
-
-
 }
-

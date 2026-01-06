@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.photon.discord.BotEngine;
 import com.photon.discord.Roles;
+import com.photon.discord.slashCommands.AutoCompleteRegistry;
 import com.photon.discord.usersInteraction.data.MutesInfo;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -17,7 +18,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class CustomMute {
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(0);
-    private static final Role muteRole = BotEngine.guild.getRoleById(Roles.MUTE.id);
+
 
     private static HashMap<String, Integer> muteDuration = new HashMap<String, Integer>(){{
         put("10 minutes", 10);
@@ -31,11 +32,30 @@ public class CustomMute {
 
 
     /**
+     * Get the mute role from the guild
+     * Lazy initialization to avoid null pointer when class is loaded
+     * @return The mute role
+     */
+    private static Role getMuteRole() {
+        if (BotEngine.guild == null) {
+            throw new IllegalStateException("Guild not initialized yet");
+        }
+        return BotEngine.guild.getRoleById(Roles.MUTE.id);
+    }
+    /**
+     * Register autocomplete providers for this command
+     * Should be called during bot initialization
+     */
+    public static void registerAutoComplete() {
+        AutoCompleteRegistry.registerFromCollection("tempmute", "duration", v -> muteDuration.keySet());
+    }
+
+    /**
      * Mute a user (add a role to the user)
      * @param user The user to mute
      */
     public static void mute(User user) {
-        BotEngine.guild.addRoleToMember(user, muteRole).queue();
+        BotEngine.guild.addRoleToMember(user, getMuteRole()).queue();
     }
 
     /**
@@ -43,7 +63,7 @@ public class CustomMute {
      * @param user The user to unmute
      */
     public static void unmute(User user){
-        BotEngine.guild.removeRoleFromMember(user, muteRole).queue();
+        BotEngine.guild.removeRoleFromMember(user, getMuteRole()).queue();
     }
 
 

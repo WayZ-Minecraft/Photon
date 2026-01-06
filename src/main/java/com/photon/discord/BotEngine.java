@@ -18,8 +18,8 @@ import com.photon.discord.usersInteraction.data.UsersInfo;
 import com.photon.discord.usersInteraction.language.LanguageChoice;
 import com.photon.network.NetworkDirectories;
 import com.photon.network.sql.SQLuser;
-import com.photon.network.sql.SqlInteract;
 import com.photon.util.ConsoleManager;
+import com.photon.util.ConsoleManager.EnumLogType;
 import com.photon.util.TranslationManager;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -59,6 +59,8 @@ public class BotEngine extends ListenerAdapter {
      */
     public static void load(String... args) throws LoginException, InterruptedException {
         String token = NetworkDirectories.getConfig().discordBotToken;
+        ConsoleManager.create("Initializing Discord Bot...").withType(EnumLogType.NETWORK).end();
+        
         botBuilder = JDABuilder.createDefault(token);
         botBuilder.setActivity(Activity.playing("/"));
 
@@ -71,15 +73,29 @@ public class BotEngine extends ListenerAdapter {
 
         botBuilder.setMemberCachePolicy(MemberCachePolicy.ALL);
 
-        if (Arrays.asList(args).contains("--restart"))
+        if (args != null && Arrays.asList(args).contains("--restart"))
             isRestarting = true;
 
         botBuilder.build();
+        ConsoleManager.create("Discord Bot connection established").withType(EnumLogType.NETWORK).end();
+        
         SlashCommands.load();
-        SqlInteract.connect();
+        
+        // Register all autocomplete providers
+        registerAllAutoComplete();
 
         TranslationManager.loadAllLanguages("lang");
         Thread.sleep(125);
+    }
+    
+    /**
+     * Register all autocomplete providers from commands
+     * Called during bot initialization
+     */
+    private static void registerAllAutoComplete() {
+        com.photon.discord.slashCommands.advancedCommands.CustomMute.registerAutoComplete();
+        // Add more command autocomplete registrations here as needed
+        // Example: YourCommand.registerAutoComplete();
     }
 
     /**
@@ -144,6 +160,7 @@ public class BotEngine extends ListenerAdapter {
      * 
      * @param event The event of a user leaving the server
      */
+    /*
     @Override
     public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent event) {
         try {
@@ -152,6 +169,7 @@ public class BotEngine extends ListenerAdapter {
             ConsoleManager.create("Error while removing user from database" + e).error().displayOnDiscord().end();
         }
     }
+    */
 
     /**
      * When a user get a role
@@ -170,10 +188,12 @@ public class BotEngine extends ListenerAdapter {
      * 
      * @param event The event of a user losing a role
      */
+    /*
     @Override
     public void onGuildMemberRoleRemove(@NotNull GuildMemberRoleRemoveEvent event) {
         LanguageChoice.onMemberRoleRemove(event);
     }
+    */
 
     /**
      * When a message is received

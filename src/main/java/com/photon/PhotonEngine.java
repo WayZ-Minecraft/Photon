@@ -32,7 +32,7 @@ public class PhotonEngine {
 
     /* Allow access to the player account if requested before */
     public static final Object clientAccountResponseWaiter = new Object();
-    public static ServerResponseValidAccount clientAccountResponse = new ServerResponseValidAccount();
+    public static ServerResponseValidAccount clientAccountResponse;
     
     /* Allow access to the news list if requested before */
     public static final Object clientNewsListWaiter = new Object();

@@ -11,6 +11,7 @@ import com.photon.network.messages.requests.ClientRequestNetworkConfig;
 import com.photon.network.messages.requests.ClientRequestRegisterConnection;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.ProtectorManager;
 
 public class NetworkConnectionClient {
     protected static Client client = new Client(NetworkConfig.writeBufferSize, NetworkConfig.objectBufferSize);
@@ -19,8 +20,6 @@ public class NetworkConnectionClient {
         NetworkObjectRegistry.load(client.getKryo());
     	new Thread(client, "Client Network Connection").start();
         client.connect(5000, PhotonEngine.network_Ip, PhotonEngine.network_Tcp, PhotonEngine.network_Udp);
-    	// client.setKeepAliveTCP(ProtectorManager.TIME_OUT); // Theses are causing disconnections for some reason
-        // client.setKeepAliveUDP(ProtectorManager.TIME_OUT);
     	client.addListener(new MessageListenerClient());
     	client.addListener(new MessageListenerCommon());
         try {
@@ -29,14 +28,13 @@ public class NetworkConnectionClient {
                 synchronized (NetworkDirectories.configWaiter) { NetworkDirectories.configWaiter.wait(); }
             }
         } catch (InterruptedException e) { ConsoleManager.create(ConsoleManager.of(e)).withType(EnumLogType.NETWORK).error().end(); }
-        NetworkConnectionClient.sendTCP(new ClientRequestRegisterConnection());
+        NetworkConnectionClient.sendTCP(new ClientRequestRegisterConnection(ProtectorManager.getHWID()));
     }
     
     public static boolean isConnected() { return client !=null && client.isConnected(); }
 
     public static void sendTCP(Object obj) {
         if(!isConnected()) return;
-        ConsoleManager.create("Sending : "+obj).withType(EnumLogType.NETWORK).end();
         client.sendTCP(obj);
     }
     

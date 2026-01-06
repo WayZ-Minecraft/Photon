@@ -23,7 +23,6 @@ import com.photon.util.ProtectorManager;
 
 public class PhotonUpdaterManager {
 
-    public static String url = NetworkDirectories.getConfig().webUrl;
     public static final int DEFAULT_DOWNLOADER_THREADS_COUNT = 5;
     private static ExecutorService downloader = null;
 
@@ -106,7 +105,7 @@ public class PhotonUpdaterManager {
      * @return The url of the update if there is one, UNKNOWN otherwise
      */
     public static String getURL(UpdateFileType type, UpdateChannel channel) {
-        String result = url+"services_updates/" +
+        String result = NetworkDirectories.getConfig().webUrl + "services_updates/" +
             type.name().toLowerCase() +
             (channel != UpdateChannel.STABLE ? "-" + channel.name().toLowerCase() : "") +
             ".jar";

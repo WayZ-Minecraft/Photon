@@ -2,6 +2,7 @@ package com.photon.network.sql;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -70,11 +71,12 @@ public class SqlInteract {
      * @param id The discord id of the user
      */
     public static void addUser(String id) {
-        Statement statement = null;
+        PreparedStatement statement = null;
 
         try {
-            statement = connexion.createStatement();
-            statement.executeUpdate("INSERT INTO User (id, xp) VALUES ('" + id + "', 0);");
+            statement = connexion.prepareStatement("INSERT INTO User (id, xp) VALUES (?, 0)");
+            statement.setString(1, id);
+            statement.executeUpdate();
 
         } catch (SQLException e) {
             if (reconnect())
@@ -88,6 +90,10 @@ public class SqlInteract {
 
     /**
      * Execute a custom SQL command and return results as formatted string.
+     * 
+     * WARNING: This method should NEVER be called with user input!
+     * Only use with hardcoded queries or admin-only commands.
+     * Use PreparedStatement methods in other SQL classes for user-facing queries.
      * 
      * @param command The SQL command to execute
      * @return Formatted result string with columns separated by " | "

@@ -12,10 +12,7 @@ import java.net.UnknownHostException;
 
 import javax.imageio.ImageIO;
 
-import com.google.gson.Gson;
 import com.photon.network.NetworkDirectories;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
 import com.photon.util.ProtectorManager;
 
 public class PhotonInfosManager {
@@ -69,6 +66,7 @@ public class PhotonInfosManager {
 	public static BufferedImage getGameLogo() {
 		try {
 			final InputStream stream = getGameLogoInputStream();
+			if (stream == null) return null;
 			final BufferedImage img = ImageIO.read(stream);
 			stream.close();
 			return img;
@@ -90,24 +88,4 @@ public class PhotonInfosManager {
 		} catch (IOException e) {}
 		return null;
 	}
-	
-    /**
-     * Get infos from the web
-     * @return All infos from the web in a ObjectInfos
-     * @author Niwer
-     */
-	public static ObjectInfos getInfos() {
-        try {
-        	final URLConnection connection = new URL(NetworkDirectories.getConfig().webUrl + "infos.json").openConnection();
-        	ProtectorManager.addProperties(connection);
-    		connection.connect();
-			final BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-			final ObjectInfos object = new Gson().fromJson(in, ObjectInfos.class);
-			in.close();
-			return object;
-        } catch (IOException e) {
-			ConsoleManager.create("Error when loading info.json file. If your not connected to the network, then it's the reason why.").withType(EnumLogType.NETWORK).error().end();
-		}
-        return null;
-    }
 }

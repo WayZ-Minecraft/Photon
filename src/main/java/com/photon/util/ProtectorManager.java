@@ -11,20 +11,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
 import java.net.URLConnection;
 import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import com.photon.network.NetworkDirectories;
 
 public class ProtectorManager {
 
@@ -33,10 +28,6 @@ public class ProtectorManager {
 	private static int currentFormatVersion = FILE_FORMAT_VERSION_V1;
 	
 	public static final int TIME_OUT = 15000;
-
-	private static byte[] getInfo() { return Base64.getEncoder().encode((NetworkDirectories.getConfig().webUser + ":" + NetworkDirectories.getConfig().webPassword).getBytes()); }
-	
-	private static String getAuth() { return "Basic " + new String(getInfo()); }
 	
 	/**
 	 * Adds properties to the URLConnection
@@ -46,15 +37,7 @@ public class ProtectorManager {
 	 */
 	public static URLConnection addProperties(URLConnection connection, String... exceptions) {
 		connection.setConnectTimeout(TIME_OUT);
-
 		connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
-		for(String ex : exceptions) {
-			if(connection.getURL().toString().contains(ex)) return connection;
-		}
-		Authenticator.setDefault(new Authenticator() {
-		    @Override protected PasswordAuthentication getPasswordAuthentication() { return new PasswordAuthentication(NetworkDirectories.getConfig().webUser, NetworkDirectories.getConfig().webPassword.toCharArray()); }
-		});
-		if(new String(getInfo()).equalsIgnoreCase(":")) connection.setRequestProperty("Authorization", ProtectorManager.getAuth());
 		return connection;
 	}
 	

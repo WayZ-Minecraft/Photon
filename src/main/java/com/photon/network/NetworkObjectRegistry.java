@@ -51,12 +51,6 @@ public class NetworkObjectRegistry {
 	private static ArrayList<Class<?>> classList = new ArrayList<>();
 	private static ByteArrayClassLoader loader = new ByteArrayClassLoader();
 	
-    /**
-     * Add a class to the list of classes to be registered for serialization
-     * @param name : The name of the class to add to the list of classes to be registered for serialization
-     * @param bytes : The bytes of the class to add to the list of classes to be registered for serialization
-     * @author Niwer
-     */
 	public static void addClass(String name, byte[] bytes) {
 		if(bytes == null) { return; }
 		Class<?> clazz = loader.findClass(name, bytes);
@@ -69,11 +63,6 @@ public class NetworkObjectRegistry {
 		}
 	}
 	
-    /**
-     * Add a class to the list of classes to be registered for serialization
-     * @param type : The class to add to the list of classes to be registered for serialization
-     * @author Niwer
-     */
 	public static void addClass(Class<?> type) {
 		if(type == null) { return; }
 		if(!classList.contains(type)) {
@@ -81,22 +70,18 @@ public class NetworkObjectRegistry {
 			if(kryo !=null) kryo.register(type);
 		}
 		if(NetworkConnectionClient.client !=null) {
-			final ClientRequestAddClass packet = new ClientRequestAddClass();
-			packet.name = type.getName();
 			try {
-				final InputStream iStream = type.getClassLoader().getResourceAsStream(packet.name.replace('.', '/') + ".class");
-				packet.bytes = IOUtils.toByteArray(iStream);
+				final String name = type.getName();
+				final InputStream iStream = type.getClassLoader().getResourceAsStream(name.replace('.', '/') + ".class");
+				final byte[] bytes = IOUtils.toByteArray(iStream);
 				iStream.close();
+				
+				final ClientRequestAddClass packet = new ClientRequestAddClass(name, bytes);
+				NetworkConnectionClient.client.sendTCP(packet);
 			} catch(IOException e) { ConsoleManager.create(ConsoleManager.of(e)).withType(EnumLogType.NETWORK).error().end(); }
-			NetworkConnectionClient.client.sendTCP(packet);
 		}
 	}
 	
-    /**
-     * Load all objects for serialization
-     * @param kryo : The kryo instance
-     * @author : Niwer
-     */
 	public static void load(final Kryo kryo) {
 		if(NetworkObjectRegistry.kryo == null) NetworkObjectRegistry.kryo = kryo;
         kryo.register(String.class);

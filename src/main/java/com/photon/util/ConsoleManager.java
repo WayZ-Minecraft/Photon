@@ -215,10 +215,7 @@ public class ConsoleManager
 				/* If on network -> Don't send packets */
 				if(BotEngine.botBuilder !=null) BotEngine.log(isError? Color.RED :type.color, type+subTypeName, object, file);
 				else {
-					final ClientRequestSendDiscordLogs request = new ClientRequestSendDiscordLogs();
-					request.type = type;
-					request.subType = subTypeName;
-					request.content = object;
+				final ClientRequestSendDiscordLogs request = new ClientRequestSendDiscordLogs(type, subTypeName, object, file);
 					NetworkConnectionClient.sendTCP(request);
 				}
 			}

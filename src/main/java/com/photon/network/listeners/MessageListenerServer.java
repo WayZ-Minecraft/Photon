@@ -7,11 +7,12 @@ import java.io.IOException;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
-import com.photon.PhotonEngine;
 import com.photon.discord.BotEngine;
-import com.photon.network.NetworkConnectionServer;
 import com.photon.network.NetworkDirectories;
+import com.photon.network.NetworkEngine;
+import com.photon.network.NetworkLinkManager;
 import com.photon.network.NetworkObjectRegistry;
+import com.photon.network.ProfileManager;
 import com.photon.network.listeners.INetworkMessageListener.INetworkListenerSide;
 import com.photon.network.messages.requests.ClientRequestAddClass;
 import com.photon.network.messages.requests.ClientRequestAddListener;
@@ -34,11 +35,10 @@ import com.photon.network.messages.response.ServerResponseServerList;
 import com.photon.network.messages.response.ServerResponseSyncContentPack;
 import com.photon.network.messages.response.account.ServerResponseAccount;
 import com.photon.network.messages.response.account.ServerResponseValidAccount;
-import com.photon.network.objects.DownloadContentPacks;
+import com.photon.network.objects.ObjectContentPack;
 import com.photon.network.objects.ObjectHWIDs;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.objects.ObjectServer;
-import com.photon.network.objects.ProfileManager;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
 
@@ -80,7 +80,7 @@ public class MessageListenerServer implements Listener {
         else if (object instanceof ClientRequestSyncContentPacks request) {
             handleContentPackSync(request);
         }
-        else if (object instanceof DownloadContentPacks request) {
+        else if (object instanceof ObjectContentPack request) {
             handleContentPackDownload(request);
         }
         else if (object instanceof ClientRequestCrashReport request) {
@@ -116,8 +116,8 @@ public class MessageListenerServer implements Listener {
     }
     
     private void handleConnectionRegistration(Connection connection, ClientRequestRegisterConnection request) {
-        PhotonEngine.networkConnectionsList.remove(request.getUuid());
-        PhotonEngine.networkConnectionsList.put(request.getUuid(), connection);
+        NetworkEngine.CONNECTED_CLIENTS_LIST.remove(request.getUuid());
+        NetworkEngine.CONNECTED_CLIENTS_LIST.put(request.getUuid(), connection);
         
         ConsoleManager.create("Connection registered: " + request.getUuid())
             .withType(EnumLogType.NETWORK)
@@ -190,7 +190,7 @@ public class MessageListenerServer implements Listener {
     }
     
     private void handleContentPackSync(ClientRequestSyncContentPacks request) {
-        for (ObjectServer server : PhotonEngine.networkServerList) {
+        for (ObjectServer server : NetworkEngine.SAVED_SERVER_LIST) {
             if (server.serverIP.equalsIgnoreCase(request.getIp()) && server.serverPort == request.getPort()) {
                 ServerResponseSyncContentPack response = new ServerResponseSyncContentPack(
                     server.connectionID,
@@ -198,14 +198,14 @@ public class MessageListenerServer implements Listener {
                     request.getSha1()
                 );
                 
-                NetworkConnectionServer.server.sendToTCP(server.connectionID, response);
+                NetworkLinkManager.SERVER.sendToTCP(server.connectionID, response);
                 break;
             }
         }
     }
     
-    private void handleContentPackDownload(DownloadContentPacks request) {
-        NetworkConnectionServer.server.sendToTCP(request.connectionID, request);
+    private void handleContentPackDownload(ObjectContentPack request) {
+        NetworkLinkManager.SERVER.sendToTCP(request.connectionID(), request);
     }
     
     private void handleCrashReport(ClientRequestCrashReport request) throws IOException {
@@ -286,7 +286,7 @@ public class MessageListenerServer implements Listener {
     }
     
     private void handleNewsListRequest(Connection connection) {
-        ServerResponseNewsList response = new ServerResponseNewsList(PhotonEngine.networkNewsList);
+        ServerResponseNewsList response = new ServerResponseNewsList(NetworkEngine.SAVED_NEWS_LIST);
         connection.sendTCP(response);
     }
     
@@ -341,7 +341,7 @@ public class MessageListenerServer implements Listener {
         
         boolean serverExists = false;
         
-        for (ObjectServer server : PhotonEngine.networkServerList) {
+        for (ObjectServer server : NetworkEngine.SAVED_SERVER_LIST) {
             if (server.serverIP.equals(clientServer.serverIP) && 
                 server.serverPort == clientServer.serverPort) {
                 
@@ -361,7 +361,7 @@ public class MessageListenerServer implements Listener {
             clientServer.serverName = sanitizeString(clientServer.serverName);
             clientServer.serverMOTD = sanitizeString(clientServer.serverMOTD);
             
-            PhotonEngine.networkServerList.add(clientServer);
+            NetworkEngine.SAVED_SERVER_LIST.add(clientServer);
             
             ConsoleManager.create("Server registered: " + 
                 clientServer.serverIP + ":" + clientServer.serverPort + 
@@ -383,7 +383,7 @@ public class MessageListenerServer implements Listener {
     }
     
     private void handleServerListRequest(Connection connection) {
-        ServerResponseServerList response = new ServerResponseServerList(PhotonEngine.networkServerList);
+        ServerResponseServerList response = new ServerResponseServerList(NetworkEngine.SAVED_SERVER_LIST);
         connection.sendTCP(response);
     }
     

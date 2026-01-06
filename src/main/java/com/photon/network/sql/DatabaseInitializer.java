@@ -13,7 +13,7 @@ import com.photon.util.ConsoleManager.EnumLogType;
  * @author noz43
  * @version 1.0
  */
-public class DatabaseInit extends SqlInteract {
+public class DatabaseInitializer extends SqlInteract {
 
     /**
      * Initialize all database tables and populate with default data.

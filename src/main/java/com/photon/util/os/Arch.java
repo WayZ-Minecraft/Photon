@@ -1,19 +1,15 @@
 package com.photon.util.os;
 
-@SuppressWarnings("unused")
 public enum Arch {
 	x86(32), x64(64), UNKNOWN(0);
 
 	public static final Arch CURRENT = getCurrent();
-
 	public static final int MIN_MEMORY = 512;
 
 	private final int bit;
-
 	private final int arch;
 
 	private final String sBit;
-
 	private final String sArch;
 
 	private Arch(int bit) {
@@ -28,23 +24,21 @@ public enum Arch {
 		}
 	}
 
-	public String getBit() {
-		return this.sBit;
-	}
+	public String getBitAsString() { return this.sBit; }
 
-	public boolean isCurrent() {
-		return this == CURRENT;
-	}
+	public String getArchAsString() { return this.sArch; }
+
+	public int getBit() { return this.bit; }
+
+	public int getArch() { return this.arch; }
+
+	public boolean isCurrent() { return this == CURRENT; }
 
 	private static Arch getCurrent() {
-		String curArch = System.getProperty("sun.arch.data.model");
-		Arch[] var4;
-		int var3 = (var4 = values()).length;
-		for (int var2 = 0; var2 < var3; var2++) {
-			Arch arch = var4[var2];
-			if (arch.sBit.equals(curArch)) {
-				return arch;
-			}
+		final String currentArch = System.getProperty("sun.arch.data.model");
+
+		for (Arch arch : values()) {
+			if (arch.sBit.equals(currentArch)) return arch;
 		}
 		return UNKNOWN;
 	}

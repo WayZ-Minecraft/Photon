@@ -1,10 +1,9 @@
-package com.photon.network.objects.discord.object_type;
+package com.photon.discord;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.photon.discord.usersInteraction.language.Languages;
-import com.photon.network.objects.discord.ObjectDiscord;
 
 /**
  * Class that contains the global information about user for the Discord bot

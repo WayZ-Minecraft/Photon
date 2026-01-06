@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.List;
 
 public enum OperatingSystem {
 
@@ -40,33 +38,19 @@ public enum OperatingSystem {
 		this.aliases = aliases;
 	}
 
-	/**
-	 * @return The name
-	 */
-	public String getName() {
-		return this.name;
-	}
+	public String getName() { return this.name; }
+
+	public String[] getAliases() { return this.aliases; }
 
 	/**
-	 * @return The aliases as a String[]
+	 * @return If the current OS is a supported OS
 	 */
-	public String[] getAliases() {
-		return this.aliases;
-	}
+	public boolean isSupported() { return this != OperatingSystem.UNKNOWN; }
 
 	/**
-	 * @return If is supported OS
+	 * @return If is the current OS is an unsupported OS
 	 */
-	public boolean isSupported() {
-		return this != OperatingSystem.UNKNOWN;
-	}
-
-	/**
-	 * @return If is unsupported OS
-	 */
-	public boolean isUnsupported() {
-		return this == UNKNOWN;
-	}
+	public boolean isUnsupported() { return this == UNKNOWN; }
 
 	/**
 	 * @return The Java Path
@@ -82,9 +66,7 @@ public enum OperatingSystem {
 	public String getJavaDir() {
 		final String separator = System.getProperty("file.separator");
 		final String path = System.getProperty("java.home") + separator + "bin" + separator;
-		if (getCurrentPlatform() == OperatingSystem.WINDOWS && new File(path + "javaw.exe").isFile()) {
-			return path + "javaw.exe";
-		}
+		if (getCurrentPlatform() == OperatingSystem.WINDOWS && new File(path + "javaw.exe").isFile()) return path + "javaw.exe";
 		return path + "java";
 	}
 
@@ -95,9 +77,7 @@ public enum OperatingSystem {
 		final String osName = System.getProperty("os.name").toLowerCase();
 		for (final OperatingSystem os : values()) {
 			for (final String alias : os.getAliases()) {
-				if (osName.contains(alias)) {
-					return os;
-				}
+				if (osName.contains(alias)) return os;
 			}
 		}
 		return OperatingSystem.UNKNOWN;
@@ -109,14 +89,9 @@ public enum OperatingSystem {
 	 * @return If it match
 	 */
 	public static boolean match(String part) {
-		if (part.contains(getCurrentPlatform().getName())) {
-			return true;
-		}
-		List<String> aliases = Arrays.asList(getCurrentPlatform().getAliases());
-		for (String alias : aliases) {
-			if (part.contains(alias)) {
-				return true;
-			}
+		if (part.contains(getCurrentPlatform().getName())) return true;
+		for (String alias : getCurrentPlatform().getAliases()) {
+			if (part.contains(alias)) return true;
 		}
 		return false;
 	}
@@ -125,18 +100,10 @@ public enum OperatingSystem {
 	 * @return The current Platform
 	 */
 	public static OperatingSystem getCurrent() {
-		String osName = NAME.toLowerCase();
-		OperatingSystem[] var4;
-		int var3 = (var4 = values()).length;
-		for (int var2 = 0; var2 < var3; var2++) {
-			OperatingSystem os = var4[var2];
-			String[] var8 = os.aliases;
-			int var7 = os.aliases.length;
-			for (int var6 = 0; var6 < var7; var6++) {
-				String alias = var8[var6];
-				if (osName.contains(alias)) {
-					return os;
-				}
+		final String osName = NAME.toLowerCase();
+		for (OperatingSystem os : values()) {
+			for (String alias : os.aliases) {
+				if (osName.contains(alias)) return os;
 			}
 		}
 		return UNKNOWN;
@@ -145,7 +112,7 @@ public enum OperatingSystem {
 	public static String getCurrentNativesForOs(String nativeName) {
 		final String osName = System.getProperty("os.name").toLowerCase();
 		if (nativeName.contains(osName)) {
-			
+			//TODO: Check arch too
 		}
 		return "natives-windows";
 	}
@@ -181,8 +148,7 @@ public enum OperatingSystem {
 	 */
 	public static Arch getJavaBit() {
 		String res = System.getProperty("sun.arch.data.model");
-		if (res != null && res.equalsIgnoreCase("64"))
-			return Arch.x64;
+		if (res != null && res.equalsIgnoreCase("64")) return Arch.x64;
 		return Arch.x86;
 	}
 
@@ -212,8 +178,7 @@ public enum OperatingSystem {
 		}
 		try {
 			final Class<?> desktopClass = Class.forName("java.awt.Desktop");
-			final Object desktop = desktopClass.getMethod("getDesktop", (Class[]) new Class[0]).invoke(null,
-					new Object[0]);
+			final Object desktop = desktopClass.getMethod("getDesktop", new Class[0]).invoke(null, new Object[0]);
 			desktopClass.getMethod("browse", URI.class).invoke(desktop, path.toURI());
 		} catch (Throwable e3) {
 			System.out.println("Couldn't open " + path + " through Desktop.browse()");

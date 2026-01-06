@@ -8,22 +8,22 @@ import java.util.Random;
 import java.util.regex.Pattern;
 
 import com.photon.PhotonEngine;
-import com.photon.network.NetworkConnectionClient;
+import com.photon.network.ClientLinkManager;
+import com.photon.network.ProfileManager;
 import com.photon.network.messages.requests.account.ClientRequestAccountCreation;
 import com.photon.network.messages.requests.account.ClientRequestAccountVerification;
 import com.photon.network.objects.ObjectPlayerAccount;
-import com.photon.network.objects.ProfileManager;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
 import com.photon.util.ProtectorManager;
 
-public class GameAuth
+public class PhotonUserAuthManager
 {
 	public static boolean isAuthed = false;
 	private static AuthError error = AuthError.NO_RESPONSE;	
-	private static Session session = new Session();
+	private static PhotonAuthSession session = new PhotonAuthSession();
 	
-		/**
+	/**
 	 * Try to authenticate the user.
 	 * @param email The email of the account
 	 * @param password The password of the account
@@ -43,7 +43,7 @@ public class GameAuth
 					email,
 					hashPassword ? ProtectorManager.hash(password) : password
 				);
-				NetworkConnectionClient.sendTCP(REQUEST_ACCOUNT_CHECK);
+				ClientLinkManager.sendTCP(REQUEST_ACCOUNT_CHECK);
 
 				try {
 					PhotonEngine.clientAccountResponseWaiter.wait();
@@ -86,7 +86,7 @@ public class GameAuth
 					email,
 					ProtectorManager.hash(password)
 				);
-				NetworkConnectionClient.sendTCP(REQUEST_ACCOUNT_CREATE);
+				ClientLinkManager.sendTCP(REQUEST_ACCOUNT_CREATE);
 				
 				try {
 					PhotonEngine.clientAccountResponseWaiter.wait(); // Wait for the response
@@ -162,7 +162,7 @@ public class GameAuth
 
 	public static boolean isLogged() { return isAuthed; }
 	
-	public static Session getSession() { return session; }
+	public static PhotonAuthSession getSession() { return session; }
 	
 	public static AuthError getError() { return error; }
 	
@@ -173,9 +173,9 @@ public class GameAuth
         return pattern.matcher(email).matches();
 	}
 
-	private synchronized static void setError(AuthError error) { GameAuth.error = error; }
+	private synchronized static void setError(AuthError error) { PhotonUserAuthManager.error = error; }
 
-	private synchronized static void setAuthed(boolean authed) { GameAuth.isAuthed = authed; }
+	private synchronized static void setAuthed(boolean authed) { PhotonUserAuthManager.isAuthed = authed; }
 	
 	public enum AuthError {
 		SUCCESS,

@@ -1,15 +1,17 @@
 package com.photon.network.messages.response;
 
 import java.util.ArrayList;
+import java.util.List;
+
 import com.photon.network.objects.ObjectNews;
 
 /**
  * @author noz43
  */
 public class ServerResponseNewsList {
-    private final ArrayList<ObjectNews> newsObjects;
+    private final List<ObjectNews> newsObjects;
     
-    public ServerResponseNewsList(ArrayList<ObjectNews> newsObjects) {
+    public ServerResponseNewsList(List<ObjectNews> newsObjects) {
         this.newsObjects = new ArrayList<>(newsObjects);
     }
     

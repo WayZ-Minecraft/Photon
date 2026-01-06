@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.photon.PhotonEngine;
 import com.photon.discord.BotEngine;
-import com.photon.network.NetworkConnectionClient;
+import com.photon.network.ClientLinkManager;
 import com.photon.network.messages.requests.ClientRequestSendDiscordLogs;
 
 public class ConsoleManager
@@ -216,7 +216,7 @@ public class ConsoleManager
 				if(BotEngine.botBuilder !=null) BotEngine.log(isError? Color.RED :type.color, type+subTypeName, object, file);
 				else {
 				final ClientRequestSendDiscordLogs request = new ClientRequestSendDiscordLogs(type, subTypeName, object, file);
-					NetworkConnectionClient.sendTCP(request);
+					ClientLinkManager.sendTCP(request);
 				}
 			}
 		}

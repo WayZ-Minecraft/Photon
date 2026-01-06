@@ -4,6 +4,9 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 
+/**
+ * Can't use record here, Too complex object for record
+ */
 public class ObjectPlayerAccount {
 	public String username;
 	public String email;

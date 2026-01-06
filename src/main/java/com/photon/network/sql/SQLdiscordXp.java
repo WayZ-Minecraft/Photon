@@ -6,8 +6,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.photon.network.sql.customExeption.LevelNotFoundExepction;
-import com.photon.network.sql.customExeption.PlayerNotFoundException;
+import com.photon.network.sql.exceptions.LevelNotFoundExepction;
+import com.photon.network.sql.exceptions.PlayerNotFoundException;
 import com.photon.util.ConsoleManager;
 
 /**
@@ -17,7 +17,7 @@ import com.photon.util.ConsoleManager;
  * @author noz43
  * @version 1.0
  */
-public class SQLxp extends SqlInteract {
+public class SQLdiscordXp extends SqlInteract {
 
     /**
      * Retrieve the top players by level and XP.

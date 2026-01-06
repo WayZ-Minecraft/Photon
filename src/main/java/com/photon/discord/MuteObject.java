@@ -1,8 +1,6 @@
-package com.photon.network.objects.discord.object_type;
+package com.photon.discord;
 
 import java.util.HashMap;
-
-import com.photon.network.objects.discord.ObjectDiscord;
 
 /**
  * Class that contains the mute information of the users in the discord server

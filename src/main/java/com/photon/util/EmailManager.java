@@ -14,6 +14,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+@NetworkOnly
 public class EmailManager { //TODO EMAILs SENDER
 	
 	public final static String style = "#body { background: blue; }";

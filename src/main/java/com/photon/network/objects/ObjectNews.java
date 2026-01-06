@@ -3,18 +3,17 @@ package com.photon.network.objects;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 
-
-
 public class ObjectNews
 {
-	public int id;
-	public String title;
-	public HashMap<String, String> content = new HashMap<String, String>();
-	public Date date;
-	public String imageUrl;
+	private int id;
+	private final String title;
+	private final Map<String, String> content = new HashMap<String, String>();
+	private final Date date;
+	private final String imageUrl;
 	
 	/**
 	 * Make a news object
@@ -61,7 +60,7 @@ public class ObjectNews
 	 * Return a HashMap with the content of the news (key: language, value: content)
 	 * @return the content of the news
 	 */
-	public HashMap<String, String> getContent(){
+	public Map<String, String> getContent(){
 		return this.content;
 	}
 
@@ -95,6 +94,4 @@ public class ObjectNews
 		embed.setTimestamp(this.date.toInstant());
 		return embed;
 	}
-	
-
 }

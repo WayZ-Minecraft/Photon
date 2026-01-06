@@ -1,4 +1,4 @@
-package com.photon.network.objects;
+package com.photon.network;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,8 +12,10 @@ import java.util.UUID;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.photon.network.NetworkDirectories;
+import com.photon.network.objects.ObjectPlayerAccount;
+import com.photon.util.NetworkOnly;
 
+@NetworkOnly
 public class ProfileManager
 {
 	private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();

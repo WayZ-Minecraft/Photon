@@ -1,17 +1,24 @@
 package com.photon.network;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Map;
+
+import javax.imageio.ImageIO;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
-import com.photon.informations.PhotonUpdaterManager.UpdateChannel;
-import com.photon.informations.PhotonUpdaterManager.UpdateFileType;
+import com.photon.util.ProtectorManager;
+import com.photon.util.updater.UpdateChannel;
+import com.photon.util.updater.UpdateFileType;
 
 public class NetworkDirectories
 {
@@ -60,9 +67,7 @@ public class NetworkDirectories
 		} catch (IOException e) {}
 	}
 
-	public static String getPath(UpdateFileType type, UpdateChannel channel) {
-		return NetworkDirectories.getConfig().filePaths.get(type).get(channel);
-	}
+	public static String getPathForUpdateChannel(UpdateFileType type, UpdateChannel channel) { return NetworkDirectories.getConfig().filePaths.get(type).get(channel); }
 
 	/**
 	 * Save all directories and files
@@ -79,13 +84,45 @@ public class NetworkDirectories
 		} catch (IOException e) {}
 	}
 	
+	/**
+     * Get the game logo from the web
+     * @return the game logo from the web in a BufferedImage
+     * @see getGameLogoInputStream()
+     * @author Niwer
+     */
+	public static BufferedImage getGameLogo() {
+		try {
+			final InputStream stream = getGameLogoInputStream();
+			if (stream == null) return null;
+			final BufferedImage img = ImageIO.read(stream);
+			stream.close();
+			return img;
+		} catch (IOException e) { e.printStackTrace(); return null; }
+	}
+	
+    /**
+     * Get the game logo from the web
+     * @return the game logo from the web in a InputStream
+     * @see getGameLogo()
+     * @author Niwer
+     */
+	public static InputStream getGameLogoInputStream() {
+		try {
+			final URLConnection connection = new URL(NetworkDirectories.getConfig().webUrl + "project-logo.png").openConnection();
+			ProtectorManager.addProperties(connection);
+			connection.connect();
+			return connection.getInputStream();
+		} catch (IOException e) {}
+		return null;
+	}
+
 	public static class NetworkConfig {
-		protected static NetworkConfig DEFAULT = new NetworkConfig();
+		protected static final NetworkConfig DEFAULT = new NetworkConfig();
 
 		public boolean isEmpty() { return this.equals(DEFAULT); }
 
-		public static int writeBufferSize = 10 * 1024 * 1024;
-		public static int objectBufferSize = 10 * 1024 * 1024;
+		public static final int WRITE_BUFFER_SIZE = 10 * 1024 * 1024;
+		public static final int OBJECT_BUFFER_SIZE = 10 * 1024 * 1024;
 
 		public Map<UpdateFileType, Map<UpdateChannel, String>> filePaths = Map.of(
 			UpdateFileType.MOD, Map.of(
@@ -112,40 +149,23 @@ public class NetworkDirectories
 
 		public String webUrl = "";
 		
-		@SerializedName("discord_bot_token")
-		public String discordBotToken = "";
-
-		public String channelsActiavtionKey = "FlKm1J2n3FgggE1*45$$f=1"; // Default activation key
+		/* Bot infos */
+		@SerializedName("discord_bot_token") public String discordBotToken = ""; // TODO : Maybe allow multiple bots in the future to allow other creator to receive updates/events/etc on their own server
+		@SerializedName("discord_bot_id") public String discord_bot_id = ""; // N.B : discord_bot_id shouldn't be support multiple bots since it's only used for Rich Presence ? But this can be useful ?
 		
-		@SerializedName("api_version")
-		public String api_version = "1.0.0";
-		@SerializedName("mod_version")
-		public String mod_version = "1.0.0";
-		@SerializedName("launcher_version")
-		public String launcher_version = "1.0.0";
+		/* Versions infos */
+		@SerializedName("api_version") public String api_version = "1.0.0";
+		@SerializedName("mod_version") public String mod_version = "1.0.0";
+		@SerializedName("launcher_version") public String launcher_version = "1.0.0";
 
-		@SerializedName("discord_bot_id")
-		public String discord_bot_id = "";
+		/* This may be removed since the mod is now Niwer's Engine and the official launcher is ditch to allow external creators to have their own launchers */
+		@Deprecated @SerializedName("project_name") public String project_name = "MyProject";
+		@Deprecated @SerializedName("project_id") public String project_id = "myproject";
 
-		@SerializedName("project_name")
-		public String project_name = "MyProject";
-		@SerializedName("project_id")
-		public String project_id = "myproject";
-
-		@SerializedName("twitter_url")
-		public String twitter_url = "https://twitter.com/";
-		@SerializedName("twitch_url")
-		public String twitch_url = "https://twitch.tv/";
-		@SerializedName("youtube_url")
-		public String youtube_url = "https://youtube.com/";
-		@SerializedName("discord_url")
-		public String discord_url = "https://discord.gg/";
-		@SerializedName("website_url")
-		public String website_url = "https://example.com";
-
-		@SerializedName("bootstrap_width")
-		public int bootstrap_width = 1280;
-		@SerializedName("bootstrap_height")
-		public int bootstrap_height = 720;
+		@SerializedName("twitter_url") public String twitter_url = "https://twitter.com/";
+		@SerializedName("twitch_url") public String twitch_url = "https://twitch.tv/";
+		@SerializedName("youtube_url") public String youtube_url = "https://youtube.com/";
+		@SerializedName("discord_url") public String discord_url = "https://discord.gg/";
+		@SerializedName("website_url") public String website_url = "https://example.com";
 	}
 }

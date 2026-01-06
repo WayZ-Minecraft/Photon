@@ -10,15 +10,9 @@ public interface INetworkMessageListener {
     
     void received(Connection connection, Object object);
     
-    default int getPriority() {
-        return 0;
-    }
+    default int getPriority() { return 0; }
     
-    default boolean canHandle(Class<?> messageClass) {
-        return true;
-    }
+    default boolean canHandle(Class<?> messageClass) { return true; }
     
-    enum INetworkListenerSide {
-        CLIENT, SERVER
-    }
+    enum INetworkListenerSide { CLIENT, SERVER }
 }

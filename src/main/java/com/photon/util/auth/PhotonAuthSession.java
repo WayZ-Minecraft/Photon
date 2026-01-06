@@ -1,20 +1,20 @@
 package com.photon.util.auth;
 
-public class Session {
+public class PhotonAuthSession {
 
 	public String username;
 	public String token;
 	public String uuId;
 
-	public Session() {}
+	public PhotonAuthSession() {}
 
-	public Session(String user, String tken, String uid) {
+	public PhotonAuthSession(String user, String tken, String uid) {
 		this.username = user;
 		this.token = tken;
 		this.uuId = uid;
 	}
 
-	public Session(Session s) {
+	public PhotonAuthSession(PhotonAuthSession s) {
 		this.username = s.username;
 		this.token = s.token;
 		this.uuId = s.uuId;

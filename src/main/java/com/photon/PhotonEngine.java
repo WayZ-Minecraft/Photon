@@ -1,13 +1,16 @@
 package com.photon;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 
-import com.esotericsoftware.kryonet.Connection;
-import com.photon.network.NetworkConnectionClient;
+import com.photon.network.ClientLinkManager;
 import com.photon.network.messages.response.account.ServerResponseValidAccount;
 import com.photon.network.objects.ObjectNews;
 import com.photon.network.objects.ObjectPlayerAccount;
@@ -17,9 +20,6 @@ import com.photon.util.ConsoleManager.EnumLogType;
 
 public class PhotonEngine {
 	
-    /* API Version */
-	public static final String VERSION = "1.0.0";
-
     /* Default network values */
 	public static final String network_Ip_Local = "localhost";
 	public static String network_Ip = network_Ip_Local;
@@ -41,11 +41,40 @@ public class PhotonEngine {
     /* Allow access to the servers list if requested before */
     public static final Object clientServerListWaiter = new Object();
     public static ArrayList<ObjectServer> clientServerList = new ArrayList<>();
+
+    /**
+	 * Get the current IP of the user using the Amazon AWS service
+	 * @return the current IP of the user
+     * @author Niwer
+	 */
+    public static String getCurrentIP() {    	
+    	try {
+    		final URL whatismyip = new URL("http://checkip.amazonaws.com");
+    		final BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
+    		String result = in.readLine();
+    		in.close();
+    		return result;
+    	} catch (IOException e) {}
+    	return "UNKNOWN";
+    }
     
-    /* Network saves */
-    public static ArrayList<ObjectNews> networkNewsList = new ArrayList<>();
-    public static ArrayList<ObjectServer> networkServerList = new ArrayList<>();
-    public static HashMap<String, Connection> networkConnectionsList = new HashMap<>();
+	/**
+	 * Check if the current IP is equals to the given IP
+	 * @param ip the IP to check
+	 * @return true if the current IP is equals to the given IP
+     * @author Niwer
+	 */
+    public static boolean isIPEquals(String ip) { return ip.equalsIgnoreCase(getCurrentIP()); }
+    
+	/**
+	 * Check if the given IP is online (ping)
+	 * @param op the IP to check
+	 * @return true if the given IP is online
+	 * @throws UnknownHostException : if the IP is not valid
+	 * @throws IOException : if the IP is not reachable
+     * @author Niwer
+	 */
+	public static boolean isOnline(String op) throws UnknownHostException, IOException { return InetAddress.getByName(op).isReachable(100); }
 
     /**
      * Get the current date in the official format
@@ -81,13 +110,13 @@ public class PhotonEngine {
     public static void loadClient(String ip, boolean localHostFallback) throws IOException {
         try {
     		PhotonEngine.setIP(ip);
-    		NetworkConnectionClient.load();
+    		ClientLinkManager.load();
     	} catch (IOException e) {
             ConsoleManager.create("Unable to connect to "+ip+ (localHostFallback ? ". Fallback to localhost" : "")).withType(EnumLogType.NETWORK).error().end();
     		if(localHostFallback) {
                 try {
                     PhotonEngine.setIP(network_Ip_Local);
-                    NetworkConnectionClient.load();
+                    ClientLinkManager.load();
                 } catch(IOException ex) { throw ex; }
             }
     	}

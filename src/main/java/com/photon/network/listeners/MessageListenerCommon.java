@@ -5,7 +5,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
-import com.photon.network.NetworkConnectionClient;
+import com.photon.network.ClientLinkManager;
 import com.photon.network.listeners.INetworkMessageListener.INetworkListenerSide;
 import com.photon.network.messages.requests.ClientRequestAddListener;
 import com.photon.util.ConsoleManager;
@@ -22,7 +22,7 @@ public class MessageListenerCommon implements Listener {
         ConsoleManager.create("Connection lost, attempting reconnection...")
             .withType(EnumLogType.NETWORK)
             .end();
-        NetworkConnectionClient.attemptReconnectionFromClient();
+        ClientLinkManager.attemptReconnectionFromClient();
     }
     
     public static void notifyObjectAsReceived(Object object) {
@@ -40,7 +40,7 @@ public class MessageListenerCommon implements Listener {
             addListener(listener);
         } else {
             ClientRequestAddListener packet = new ClientRequestAddListener(listener);
-            NetworkConnectionClient.sendTCP(packet);
+            ClientLinkManager.sendTCP(packet);
         }
     }
     

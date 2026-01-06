@@ -9,7 +9,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.photon.discord.usersInteraction.language.Languages;
-import com.photon.network.sql.customExeption.PlayerNotFoundException;
+import com.photon.network.sql.exceptions.PlayerNotFoundException;
 import com.photon.util.ConsoleManager;
 
 public class SQLuser extends SqlInteract {

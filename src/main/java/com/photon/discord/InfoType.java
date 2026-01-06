@@ -1,7 +1,4 @@
-package com.photon.network.objects.discord;
-
-import com.photon.network.objects.discord.object_type.GlobalObject;
-import com.photon.network.objects.discord.object_type.MuteObject;
+package com.photon.discord;
 
 /**
  * Enum that contains all the type of information that use the Discord bot

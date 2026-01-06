@@ -5,16 +5,16 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import com.photon.discord.BotEngine;
+import com.photon.discord.InfoType;
+import com.photon.discord.MuteObject;
+import com.photon.discord.ObjectDiscord;
+import com.photon.discord.MuteObject.MuteInfo;
 import com.photon.discord.slashCommands.advancedCommands.CustomMute;
-import com.photon.network.objects.discord.InfoType;
-import com.photon.network.objects.discord.ObjectDiscord;
-import com.photon.network.objects.discord.object_type.MuteObject;
-import com.photon.network.objects.discord.object_type.MuteObject.MuteInfo;
 
 /**
  * Class to manage user information, this class is used to mute users
  * 
- * @see {@link com.photon.network.objects.discord.object_type.MuteObject}
+ * @see {@link com.photon.discord.MuteObject}
  * @author Mini
  */
 public class MutesInfo {

@@ -14,7 +14,6 @@ import org.apache.commons.io.IOUtils;
 import com.esotericsoftware.kryo.Kryo;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
-import com.photon.informations.PhotonUpdaterManager;
 import com.photon.network.NetworkDirectories.NetworkConfig;
 import com.photon.network.listeners.INetworkMessageListener;
 import com.photon.network.messages.requests.ClientRequestAddClass;
@@ -38,13 +37,15 @@ import com.photon.network.messages.response.ServerResponseServerList;
 import com.photon.network.messages.response.ServerResponseSyncContentPack;
 import com.photon.network.messages.response.account.ServerResponseAccount;
 import com.photon.network.messages.response.account.ServerResponseValidAccount;
-import com.photon.network.objects.DownloadContentPacks;
+import com.photon.network.objects.ObjectContentPack;
 import com.photon.network.objects.ObjectHWIDs;
 import com.photon.network.objects.ObjectNews;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.objects.ObjectServer;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.updater.UpdateChannel;
+import com.photon.util.updater.UpdateFileType;
 
 public class NetworkObjectRegistry {
 	public static Kryo kryo;
@@ -69,7 +70,7 @@ public class NetworkObjectRegistry {
 			classList.add(type);
 			if(kryo !=null) kryo.register(type);
 		}
-		if(NetworkConnectionClient.client !=null) {
+		if(ClientLinkManager.client !=null) {
 			try {
 				final String name = type.getName();
 				final InputStream iStream = type.getClassLoader().getResourceAsStream(name.replace('.', '/') + ".class");
@@ -77,7 +78,7 @@ public class NetworkObjectRegistry {
 				iStream.close();
 				
 				final ClientRequestAddClass packet = new ClientRequestAddClass(name, bytes);
-				NetworkConnectionClient.client.sendTCP(packet);
+				ClientLinkManager.client.sendTCP(packet);
 			} catch(IOException e) { ConsoleManager.create(ConsoleManager.of(e)).withType(EnumLogType.NETWORK).error().end(); }
 		}
 	}
@@ -103,9 +104,8 @@ public class NetworkObjectRegistry {
         kryo.register(byte[].class);
         kryo.register(byte.class);
 
-        kryo.register(PhotonUpdaterManager.class);
-        kryo.register(PhotonUpdaterManager.UpdateFileType.class);
-        kryo.register(PhotonUpdaterManager.UpdateChannel.class);
+        kryo.register(UpdateFileType.class);
+        kryo.register(UpdateChannel.class);
 
         kryo.register(ObjectPlayerAccount.class);
         kryo.register(ClientRequestAccount.class);
@@ -138,7 +138,7 @@ public class NetworkObjectRegistry {
         kryo.register(ClientRequestAddListener.class);
 
         kryo.register(ClientRequestSyncContentPacks.class);
-        kryo.register(DownloadContentPacks.class);
+        kryo.register(ObjectContentPack.class);
         kryo.register(ServerResponseSyncContentPack.class);
 
         kryo.register(ObjectHWIDs.class);

@@ -16,16 +16,15 @@ import java.util.StringJoiner;
 import com.photon.discord.slashCommands.advancedCommands.CustomMute;
 import com.photon.discord.slashCommands.advancedCommands.KineticCommands;
 import com.photon.discord.slashCommands.advancedCommands.NewsManager;
-// import com.photon.discord.usersInteraction.xpManager;
-import com.photon.informations.PhotonUpdaterManager.UpdateChannel;
-import com.photon.informations.PhotonUpdaterManager.UpdateFileType;
 import com.photon.network.NetworkDirectories;
 import com.photon.network.NetworkEngine;
+import com.photon.network.ProfileManager;
 import com.photon.network.objects.ObjectPlayerAccount;
-import com.photon.network.objects.ProfileManager;
 import com.photon.network.sql.SqlInteract;
 import com.photon.util.ConsoleManager;
 import com.photon.util.os.ApplicationUtils;
+import com.photon.util.updater.UpdateChannel;
+import com.photon.util.updater.UpdateFileType;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message.Attachment;
@@ -402,7 +401,7 @@ public class SlashCommands {
         /* Data to download the file */
         final UpdateFileType fileType = UpdateFileType.valueOf(fileTypeString.toUpperCase());
         final UpdateChannel channelType = UpdateChannel.valueOf(channelTypeString.toUpperCase());
-        final Path outputPath = Path.of(NetworkDirectories.getPath(fileType, channelType));
+        final Path outputPath = Path.of(NetworkDirectories.getPathForUpdateChannel(fileType, channelType));
 
         InputStream inputStream;
         try {

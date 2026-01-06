@@ -1,32 +1,31 @@
 package com.photon.network;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.PhotonEngine;
 import com.photon.discord.BotEngine;
-import com.photon.informations.PhotonInfosManager;
+import com.photon.network.objects.ObjectNews;
+import com.photon.network.objects.ObjectServer;
 import com.photon.network.sql.SqlInteract;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.NetworkOnly;
 
+@NetworkOnly
 public class NetworkEngine {
 
-    private static final ExecutorService threadPool = Executors.newFixedThreadPool(10);
+    /* Network saves */
+    public static final List<ObjectNews> SAVED_NEWS_LIST = new ArrayList<>();
+    public static final List<ObjectServer> SAVED_SERVER_LIST = new ArrayList<>();
+    public static final Map<String, Connection> CONNECTED_CLIENTS_LIST = new HashMap<>();
 
-    @SuppressWarnings("resource")
 	public static void main(final String[] args) {
 		try {
             /* Load features */
@@ -49,11 +48,11 @@ public class NetworkEngine {
 			ConsoleManager.registerFileHandler(new File(NetworkDirectories.logsDirectory, "network.log"), "network");
             
             /* Connecting */
-			PhotonEngine.setIP(PhotonInfosManager.getCurrentIP());
+			PhotonEngine.setIP(PhotonEngine.getCurrentIP());
             
 			/* Check ip */
             ConsoleManager.create("Starting Network Server on \"" + PhotonEngine.network_Ip + "\"!").withType(EnumLogType.NETWORK).end();
-			if(!PhotonEngine.network_Ip.isEmpty() && !PhotonEngine.network_Ip.equalsIgnoreCase(PhotonEngine.network_Ip_Local) && !PhotonInfosManager.isIPEquals(PhotonEngine.network_Ip)) {
+			if(!PhotonEngine.network_Ip.isEmpty() && !PhotonEngine.network_Ip.equalsIgnoreCase(PhotonEngine.network_Ip_Local) && !PhotonEngine.isIPEquals(PhotonEngine.network_Ip)) {
                 ConsoleManager.create("Ip doesn't match. Closing Network!").withType(EnumLogType.NETWORK).error().end();
 				System.exit(0);
 				return;
@@ -76,20 +75,9 @@ public class NetworkEngine {
                 ConsoleManager.create("Discord Bot token not configured, skipping bot startup").withType(EnumLogType.NETWORK).end();
             }
 
-			NetworkConnectionServer.load();
+			NetworkLinkManager.load();
             ConsoleManager.create("Network Server is now running and waiting for connections...").withType(EnumLogType.NETWORK).end();
-
-            /* Set-up request connection system */
-            final ServerSocket serverSocket = new ServerSocket(49554);
-            ConsoleManager.create("Request handler listening on port 49554").withType(EnumLogType.NETWORK).end();
-            while (true) {
-                final Socket clientSocket = serverSocket.accept();
-                threadPool.submit(new ClientHandler(clientSocket));
-            }
 		} catch(Exception e) { e.printStackTrace(); }
-        finally {
-            threadPool.shutdown();
-        }
     }
 	
     /**
@@ -99,7 +87,7 @@ public class NetworkEngine {
      * @see Connection
      * @author Niwer
      */
-	public static Connection getPlayerConnection(String uuid) { return (uuid == null || uuid.isEmpty()) ? null : PhotonEngine.networkConnectionsList.get(uuid); }
+	public static Connection getPlayerConnection(String uuid) { return (uuid == null || uuid.isEmpty()) ? null : CONNECTED_CLIENTS_LIST.get(uuid); }
 	
     /**
      * Get the uuid of a player from his connection
@@ -109,7 +97,7 @@ public class NetworkEngine {
      * @author Niwer
      */
 	public static String getPlayerUUID(Connection connection) {
-        for(Entry<String, Connection> entry : PhotonEngine.networkConnectionsList.entrySet()) {
+        for(Entry<String, Connection> entry : CONNECTED_CLIENTS_LIST.entrySet()) {
         	if(entry.getValue().equals(connection)) return entry.getKey();
         }
         return "";
@@ -122,31 +110,11 @@ public class NetworkEngine {
      * @author Niwer
      */
 	public static List<Connection> getConnectedConnection() {
-    	List<Connection> list = new ArrayList<>();
-        for (Entry<String, Connection> entry : PhotonEngine.networkConnectionsList.entrySet()) {
+    	final List<Connection> list = new ArrayList<>();
+        for (Entry<String, Connection> entry : CONNECTED_CLIENTS_LIST.entrySet()) {
         	final Connection conn = entry.getValue();
             if(conn != null && conn.isConnected()) list.add(conn);
         }
         return list;
-    }
-
-    /* Represent a client connection */
-    static class ClientHandler extends Thread {
-        private Socket clientSocket;
-
-        public ClientHandler(Socket socket) { this.clientSocket = socket; }
-
-        public void run() {
-            try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
-                String request = reader.readLine();
-                if(request.equalsIgnoreCase("getInfos")) {
-                    final String response = NetworkDirectories.getConfig().webUrl;
-                    writer.println(response);
-                }
-                clientSocket.close();
-            } catch (IOException e) { e.printStackTrace(); }
-        }
     }
 }

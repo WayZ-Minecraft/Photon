@@ -1,4 +1,4 @@
-package com.photon.network.objects.discord;
+package com.photon.discord;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,9 +14,10 @@ import com.photon.util.ConsoleManager;
 /**
  * Object that mangaes the data of the discord server
  */
+//TODO : Make this use SQL database instead of json files
 public class ObjectDiscord {
 
-    static Gson  gson = new GsonBuilder().create();
+    private static final Gson GSON = new GsonBuilder().create();
 
     /**
      * Save the object in a json file
@@ -28,7 +29,7 @@ public class ObjectDiscord {
             File file = new File(NetworkDirectories.discordDirectory, infoType.getPath()+".json");
             if (!file.exists()) file.createNewFile();
             FileWriter writer = new FileWriter(file);
-            writer.write(gson.toJson(object));
+            writer.write(GSON.toJson(object));
             writer.close();
         } catch (IOException e) {
             ConsoleManager.create(String.format("Error while save %s.json",infoType.getPath())).displayOnDiscord().error().end();
@@ -45,7 +46,7 @@ public class ObjectDiscord {
             File file = new File(NetworkDirectories.discordDirectory, infoType.getPath()+".json");
             if (!file.exists()) save(new ObjectDiscord(), infoType);
             BufferedReader br = new BufferedReader(new FileReader(file));
-            Object object = gson.fromJson(br, infoType.getObjectClass().getClass());
+            Object object = GSON.fromJson(br, infoType.getObjectClass().getClass());
             br.close();
             return object;
 

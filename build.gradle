@@ -90,12 +90,33 @@ shadowJar {
 	archiveClassifier.set('')
 }
 
+// Helper function to check if a class has @NetworkOnly annotation
+def isNetworkOnlyClass(String classPath, File jarFile) {
+    if (!classPath.endsWith('.class')) return false
+    try {
+        def classBytes = new java.util.zip.ZipFile(jarFile).getInputStream(new java.util.zip.ZipEntry(classPath)).bytes
+        
+        // Simple check for NetworkOnly annotation in bytecode
+        // The annotation name will appear in the class file as a string
+        return new String(classBytes).contains('Lcom/photon/util/NetworkOnly;')
+    } catch (Exception e) { return false }
+}
+
 task apiJar(type: Jar) {
    	dependsOn shadowJar
-    from zipTree(shadowJar.outputs.files.singleFile)
+    
+    def jarFile = shadowJar.outputs.files.singleFile
+    
+    from zipTree(jarFile)
     exclude 'sqlite-jbdc.properties', 'logo.png', 'natives/**', 'lang/**', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 
         'net/**', 'ch/**', 'com/sun/mail/**', 'javax/mail/**', 'tomp2p/**', 'club/**', 'org/sqlite/**',
         'com/photon/discord/**', 'com/photon/network/NetworkEngine', 'com/photon/ui/**'
+    
+    // Exclude classes with @NetworkOnly annotation
+    exclude { details ->
+        isNetworkOnlyClass(details.path, jarFile)
+    }
+    
     archiveFileName = "api.jar"
     manifest {
         attributes([ "Main-Class": "com.photon.network.NetworkEngine" ])

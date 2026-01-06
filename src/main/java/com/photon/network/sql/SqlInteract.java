@@ -26,13 +26,12 @@ public class SqlInteract {
      */
     public static void connect() {
         try {
-            String url = "jdbc:sqlite:" + NetworkDirectories.sqlDirectory + "/main.db";
+            final String url = "jdbc:sqlite:" + NetworkDirectories.sqlDirectory + "/main.db";
             connexion = DriverManager.getConnection(url);
             
             ConsoleManager.create("Connection to SQLite has been established.").withType(EnumLogType.NETWORK).end();
             
-            DatabaseInit.initializeTables();
-            
+            DatabaseInitializer.initializeTables();
         } catch (SQLException e) {
             ConsoleManager.create("Database connection error: " + e.getMessage()).error().end();
         }
@@ -100,19 +99,19 @@ public class SqlInteract {
      * @throws SQLException if query execution fails
      */
     public static String commandSql(String command) throws SQLException {
-        Statement statement = connexion.createStatement();
-        ResultSet result = statement.executeQuery(command);
+        final Statement STATEMENT = connexion.createStatement();
+        final ResultSet RESULT = STATEMENT.executeQuery(command);
 
-        int columnCount = result.getMetaData().getColumnCount();
+        int columnCount = RESULT.getMetaData().getColumnCount();
         String resultString = "";
-        while(result.next()) {
+        while(RESULT.next()) {
             for (int i = 1; i <= columnCount; i++) {
-                resultString += result.getString(i);
+                resultString += RESULT.getString(i);
                 resultString += (i != columnCount) ? " | " : "\n";
             }
         }
 
-        closeStatement(statement, result);
+        closeStatement(STATEMENT, RESULT);
         return resultString;
     }
 }

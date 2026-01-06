@@ -13,8 +13,11 @@ import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
 import com.photon.util.ProtectorManager;
 
-public class NetworkConnectionClient {
-    protected static Client client = new Client(NetworkConfig.writeBufferSize, NetworkConfig.objectBufferSize);
+/**
+ * Use in mod/launchers/external applications to connect to Photon servers.
+ */
+public class ClientLinkManager {
+    protected static Client client = new Client(NetworkConfig.WRITE_BUFFER_SIZE, NetworkConfig.OBJECT_BUFFER_SIZE);
     
     public static void load() throws IOException {
         NetworkObjectRegistry.load(client.getKryo());
@@ -24,11 +27,11 @@ public class NetworkConnectionClient {
     	client.addListener(new MessageListenerCommon());
         try {
             if(NetworkDirectories.getConfig() == null || NetworkDirectories.getConfig().isEmpty()) {
-                NetworkConnectionClient.sendTCP(new ClientRequestNetworkConfig());
+                ClientLinkManager.sendTCP(new ClientRequestNetworkConfig());
                 synchronized (NetworkDirectories.configWaiter) { NetworkDirectories.configWaiter.wait(); }
             }
         } catch (InterruptedException e) { ConsoleManager.create(ConsoleManager.of(e)).withType(EnumLogType.NETWORK).error().end(); }
-        NetworkConnectionClient.sendTCP(new ClientRequestRegisterConnection(ProtectorManager.getHWID()));
+        ClientLinkManager.sendTCP(new ClientRequestRegisterConnection(ProtectorManager.getHWID()));
     }
     
     public static boolean isConnected() { return client !=null && client.isConnected(); }

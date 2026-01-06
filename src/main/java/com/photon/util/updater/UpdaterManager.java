@@ -1,4 +1,4 @@
-package com.photon.informations;
+package com.photon.util.updater;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -21,7 +21,7 @@ import com.photon.network.NetworkDirectories;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ProtectorManager;
 
-public class PhotonUpdaterManager {
+public class UpdaterManager {
 
     public static final int DEFAULT_DOWNLOADER_THREADS_COUNT = 5;
     private static ExecutorService downloader = null;
@@ -204,10 +204,6 @@ public class PhotonUpdaterManager {
 		}
 		return null;
 	}
-
-    public static enum UpdateFileType { MOD, LAUNCHER, API, NETWORK; }
-
-    public static enum UpdateChannel { STABLE, DEV, TEST; }
 
     @FunctionalInterface
     public interface RunnableTask<T, X> {

@@ -8,13 +8,13 @@ import com.photon.discord.BotEngine;
 import com.photon.discord.Roles;
 import com.photon.discord.usersInteraction.language.Languages;
 import com.photon.network.sql.SQLuser;
-import com.photon.network.sql.SQLxp;
+import com.photon.network.sql.SQLdiscordXp;
 import com.photon.util.ConsoleManager;
 
 /**
  * Class to manage user information
  * 
- * @see {@link com.photon.network.objects.discord.object_type.GlobalObject}
+ * @see {@link com.photon.discord.GlobalObject}
  * @author Mini
  */
 public class UsersInfo {
@@ -156,12 +156,12 @@ public class UsersInfo {
             while (userXp + xp >= xpToNextLevel) {
                 xp -= xpToNextLevel;
                 level++;
-                xpToNextLevel = SQLxp.getXpLevel(level);
+                xpToNextLevel = SQLdiscordXp.getXpLevel(level);
             }
-            SQLxp.setLevel(id, level);
-            SQLxp.setXp(id, userXp + xp);
+            SQLdiscordXp.setLevel(id, level);
+            SQLdiscordXp.setXp(id, userXp + xp);
         } else {
-            SQLxp.addXp(id, xp);
+            SQLdiscordXp.addXp(id, xp);
         }
     }
 
@@ -179,18 +179,18 @@ public class UsersInfo {
         if (userXp - xp < 0) {
             while (userXp - xp < 0 && level > 1) {
                 level--;
-                xpToNextLevel = SQLxp.getXpLevel(level);
+                xpToNextLevel = SQLdiscordXp.getXpLevel(level);
                 xp -= xpToNextLevel;
             }
 
-            if (level == 1 && userXp - xp < 0) {SQLxp.setXp(id, 0); SQLxp.setLevel(id, 1);}
+            if (level == 1 && userXp - xp < 0) {SQLdiscordXp.setXp(id, 0); SQLdiscordXp.setLevel(id, 1);}
             else {
-                SQLxp.setXp(id, userXp - xp);
-                SQLxp.setLevel(id, level);
+                SQLdiscordXp.setXp(id, userXp - xp);
+                SQLdiscordXp.setLevel(id, level);
             }
         }
         else {
-            SQLxp.addXp(id, -xp);;
+            SQLdiscordXp.addXp(id, -xp);;
         }
     }
 
@@ -200,7 +200,7 @@ public class UsersInfo {
      * @return int : the xp of the user
      */
     public static int getXp(String id) throws SQLException {
-        return SQLxp.getXp(id);
+        return SQLdiscordXp.getXp(id);
     }
 
     /**
@@ -209,7 +209,7 @@ public class UsersInfo {
      * @return int : the rank of the user (-1 if sql error)
      */
     public static int getRank(String id) throws SQLException {
-        return SQLxp.getRank(id);
+        return SQLdiscordXp.getRank(id);
     }
 
     /**
@@ -217,7 +217,7 @@ public class UsersInfo {
      * @param id the id of the user
      */
     public static void addLevel(String id) {
-        SQLxp.addLevel(id, 1);
+        SQLdiscordXp.addLevel(id, 1);
     }
 
     /**
@@ -225,7 +225,7 @@ public class UsersInfo {
      * @param id the id of the user
      */
     public static void removeLevel(String id) throws SQLException {
-        if (getLevel(id) > 1) SQLxp.addLevel(id, -1);
+        if (getLevel(id) > 1) SQLdiscordXp.addLevel(id, -1);
         
     }
 
@@ -235,7 +235,7 @@ public class UsersInfo {
      * @return int : the level of the user (-1 if sql error)
      */
     public static int getLevel(String id) throws SQLException {
-        return SQLxp.getLevel(id);
+        return SQLdiscordXp.getLevel(id);
     }
 
     /**
@@ -244,6 +244,6 @@ public class UsersInfo {
      * @return int : the xp to the next level of the user (-1 if sql error)
      */
     public static int getXpToNextLevel(String id) throws SQLException {
-        return SQLxp.getXpLevel(getLevel(id));
+        return SQLdiscordXp.getXpLevel(getLevel(id));
     }
 }

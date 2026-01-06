@@ -10,6 +10,7 @@ import java.util.Locale;
 
 import com.photon.util.os.FileLocation;
 
+@NetworkOnly
 public class TranslationManager {
 
 	/* Variables that represent avalible locales */

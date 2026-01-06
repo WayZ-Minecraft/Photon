@@ -23,9 +23,16 @@ public class GameAuth
 	private static AuthError error = AuthError.NO_RESPONSE;	
 	private static Session session = new Session();
 	
+		/**
+	 * Try to authenticate the user.
+	 * @param email The email of the account
+	 * @param password The password of the account
+	 * @param hashPassword If the password should be hashed
+	 * @return true if the user is authenticated
+	 */
 	public static boolean tryAuth(String email, String password, boolean hashPassword, Runnable callback) {
-		setAuthed(false);
-		setError(AuthError.NO_RESPONSE);
+		setAuthed(false); // Reset the auth status
+		setError(AuthError.NO_RESPONSE);// Reset the error status
 
 		Thread connectionThread = new Thread(() -> {
 			if(!validEmailAddress(email)) setError(AuthError.NOT_VALID_EMAIL);
@@ -44,7 +51,7 @@ public class GameAuth
 					e.printStackTrace();
 				}
 				
-				if(!PhotonEngine.clientAccountResponse.isExist()) setError(AuthError.ACCOUNT_NOT_FOUND);
+				if(!PhotonEngine.clientAccountResponse.isExist()) setError(AuthError.ACCOUNT_NOT_FOUND); // Wait for the response
 				else {
 					if(!PhotonEngine.clientAccountResponse.isValidPassword()) setError(AuthError.PASSWORD_NOT_VALID);
 					else setSession(getProfile().username, getProfile().uuid);
@@ -58,9 +65,16 @@ public class GameAuth
 
 		return isAuthed;
 	}
-	
+
+		/**
+	 * Try to authenticate the user. This will automatically hash the password
+	 * @param email The email of the account
+	 * @param password The password of the account
+	 * @param saveAccount If the account should be saved
+	 * @return true if the user is authenticated
+	 */
 	public static void tryCreateAccout(String email, String username, String password, Runnable callback) {
-		setError(AuthError.NO_RESPONSE);
+		setError(AuthError.NO_RESPONSE); // Reset the error status
 
 		Thread connectionThread = new Thread(() -> {
 			if(!validEmailAddress(email)) setError(AuthError.NOT_VALID_EMAIL);
@@ -75,7 +89,7 @@ public class GameAuth
 				NetworkConnectionClient.sendTCP(REQUEST_ACCOUNT_CREATE);
 				
 				try {
-					PhotonEngine.clientAccountResponseWaiter.wait();
+					PhotonEngine.clientAccountResponseWaiter.wait(); // Wait for the response
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -90,7 +104,10 @@ public class GameAuth
 		connectionThread.setDaemon(true);
 		connectionThread.start();
 	}
-	
+
+		/**
+     * This try to connect the user to his account using the local saved file
+     */
     public static void connectToAccountUsingLocalInfos(File path, Runnable callback) {
 		try {
 			final File file = new File(path, ProtectorManager.getHWID()+".accounts");
@@ -104,15 +121,30 @@ public class GameAuth
         } catch(Exception e) { e.printStackTrace(); }
     }
 
+		/**
+	 * Save the account informations into a file
+	 * @param path The path where the file will be saved
+	 * @param email The email of the account
+	 * @param password The password of the account
+	 */
+
 	public static void saveAccount(File path, String email, String password) {
         try {
+			/* Create the file */
             File file = new File(path, ProtectorManager.getHWID()+".accounts");
             if(!file.exists()) file.createNewFile();
 
+			/* Write into the file */
             final String content = email+"/"+ProtectorManager.hash(password);
             ProtectorManager.writeCompressedFile(new FileOutputStream(file), content.getBytes());
         } catch (IOException e) { e.printStackTrace(); }
     }
+
+	 /**
+     * Check if the client has a account selected
+     * @return true if the client has a account selected
+     * @author Niwer
+     */
 
 	public static boolean hasAccountConnected() { return PhotonEngine.clientAccountResponse !=null && PhotonEngine.clientAccountResponse.getProfile() !=null; }
 
@@ -127,7 +159,7 @@ public class GameAuth
 			setError(AuthError.SUCCESS);
 		}
 	}
-	
+
 	public static boolean isLogged() { return isAuthed; }
 	
 	public static Session getSession() { return session; }

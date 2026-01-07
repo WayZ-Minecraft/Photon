@@ -1,8 +1,14 @@
 package com.photon.network.messages.requests.account;
 
+import com.esotericsoftware.kryonet.Connection;
+import com.photon.network.ProfileManager;
+import com.photon.network.messages.response.account.ServerResponseValidAccount;
+import com.photon.network.objects.ObjectPlayerAccount;
+
 /**
  * @author noz43
  */
+
 public class ClientRequestAccountVerification {
     private final String email;
     private final String password;
@@ -14,4 +20,24 @@ public class ClientRequestAccountVerification {
     
     public String getEmail() { return email; }
     public String getPassword() { return password; }
+    
+    public void handle(Connection connection) {
+        ObjectPlayerAccount profile = ProfileManager.getProfileFromEMail(email);
+        
+        boolean exist = (profile != null);
+        boolean isValidPassword = false;
+        ObjectPlayerAccount returnProfile = null;
+        
+        if (exist) {
+            isValidPassword = profile.password.equals(password);
+            if (isValidPassword) {
+                returnProfile = profile;
+            }
+        }
+        
+        ServerResponseValidAccount response = new ServerResponseValidAccount(
+            exist, isValidPassword, false, false, false, returnProfile
+        );
+        connection.sendTCP(response);
+    }
 }

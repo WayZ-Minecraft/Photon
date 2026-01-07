@@ -2,9 +2,12 @@ package com.photon.network.messages.response;
 
 import java.util.HashMap;
 
+import com.esotericsoftware.kryonet.Connection;
+
 /**
  * @author noz43
  */
+
 public class ServerResponseSyncContentPack {
     private final int connectionID;
     private final int filesCount;
@@ -19,4 +22,8 @@ public class ServerResponseSyncContentPack {
     public int getConnectionID() { return connectionID; }
     public int getFilesCount() { return filesCount; }
     public HashMap<String, String> getSha1() { return new HashMap<>(sha1); }
+    
+    public void handle(Connection connection) {
+        // No specific handling needed
+    }
 }

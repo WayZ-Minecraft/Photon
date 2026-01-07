@@ -1,8 +1,18 @@
 package com.photon.network.messages.requests;
 
+import java.io.File;
+import java.io.IOException;
+
+import com.esotericsoftware.kryonet.Connection;
+import com.photon.network.NetworkDirectories;
+import com.photon.network.objects.ObjectHWIDs;
+import com.photon.util.ConsoleManager;
+import com.photon.util.ConsoleManager.EnumLogType;
+
 /**
  * @author noz43
  */
+
 public class ClientRequestHWID {
     private final String userName;
     private final String userUUID;
@@ -20,4 +30,32 @@ public class ClientRequestHWID {
     public String getUserUUID() { return userUUID; }
     public String getUserHWID() { return userHWID; }
     public String getOperatingSystem() { return operatingSystem; }
+    
+    public void handle(Connection connection) {
+        try {
+            File HWIDsFile = new File(NetworkDirectories.baseDirectory, "HWIDs.json");
+            
+            if (!HWIDsFile.exists()) {
+                HWIDsFile.createNewFile();
+                ObjectHWIDs.create(HWIDsFile);
+            }
+            
+            ObjectHWIDs hwids = ObjectHWIDs.load(HWIDsFile);
+            if (hwids == null) {
+                hwids = new ObjectHWIDs();
+            }
+            
+            hwids.hwids.add(new ObjectHWIDs.HWID(userName, userUUID, userHWID, operatingSystem));
+            
+            hwids.save(HWIDsFile);
+            
+            ConsoleManager.create("HWID received: " + userUUID + 
+                "\nOS: " + operatingSystem + 
+                "\nHWID: " + userHWID)
+                .withType(EnumLogType.NETWORK)
+                .end();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

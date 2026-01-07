@@ -44,7 +44,7 @@ public class MessageListenerCommon implements Listener {
         }
     }
     
-    protected static void addListener(INetworkMessageListener listener) {
+    public static void addListener(INetworkMessageListener listener) {
         if (!listeners.contains(listener)) {
             listeners.add(listener);
             listenersSorted = false;

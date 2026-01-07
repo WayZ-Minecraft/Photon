@@ -1,8 +1,19 @@
 package com.photon.network.messages.requests;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
+import com.esotericsoftware.kryonet.Connection;
+import com.photon.network.NetworkDirectories;
+import com.photon.util.ConsoleManager;
+import com.photon.util.ConsoleManager.EnumLogType;
+
 /**
  * @author noz43
  */
+
 public class ClientRequestCrashReport {
     private final String fileMessage;
     private final String fileName;
@@ -17,4 +28,31 @@ public class ClientRequestCrashReport {
     public String getFileMessage() { return fileMessage; }
     public String getFileName() { return fileName; }
     public String getUserUUID() { return userUUID; }
+    
+    public void handle(Connection connection) {
+        try {
+            File crashFolder = new File(NetworkDirectories.crashDirectory, userUUID);
+            File crashReportFile = new File(crashFolder, fileName + ".txt");
+            
+            if (!crashFolder.exists()) {
+                crashFolder.mkdirs();
+            }
+            
+            if (!crashReportFile.exists()) {
+                crashReportFile.createNewFile();
+            }
+            
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(crashReportFile))) {
+                writer.write(fileMessage);
+            }
+            
+            ConsoleManager.create("Crash report received: " + userUUID)
+                .displayOnDiscord()
+                .withType(EnumLogType.NETWORK)
+                .withFile(crashReportFile)
+                .end();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

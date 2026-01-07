@@ -1,14 +1,16 @@
 package com.photon.network.messages.requests;
 
 import com.esotericsoftware.kryonet.Connection;
+import com.photon.network.IPacket;
 import com.photon.network.listeners.INetworkMessageListener;
 import com.photon.network.listeners.MessageListenerCommon;
 
 /**
+ * @author Niwer
  * @author noz43
  */
 
-public class ClientRequestAddListener {
+public class ClientRequestAddListener implements IPacket {
     private final INetworkMessageListener listener;
     
     public ClientRequestAddListener(INetworkMessageListener listener) {
@@ -17,6 +19,7 @@ public class ClientRequestAddListener {
     
     public INetworkMessageListener getListener() { return listener; }
     
+    @Override
     public void handle(Connection connection) {
         MessageListenerCommon.addListener(listener);
     }

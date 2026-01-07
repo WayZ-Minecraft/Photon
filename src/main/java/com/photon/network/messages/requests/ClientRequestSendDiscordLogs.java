@@ -4,13 +4,14 @@ import java.io.File;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.discord.BotEngine;
+import com.photon.network.IPacket;
 import com.photon.util.ConsoleManager.EnumLogType;
 
 /**
  * @author noz43
  */
 
-public class ClientRequestSendDiscordLogs {
+public class ClientRequestSendDiscordLogs implements IPacket {
     private final EnumLogType type;
     private final String subType;
     private final Object content;
@@ -28,6 +29,7 @@ public class ClientRequestSendDiscordLogs {
     public Object getContent() { return content; }
     public File getFile() { return file; }
     
+    @Override
     public void handle(Connection connection) {
         if (BotEngine.botBuilder != null) {
             BotEngine.log(type.color, type + " : " + subType, content, file);

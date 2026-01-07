@@ -2,9 +2,13 @@ package com.photon.network.messages.response.account;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.PhotonEngine;
+import com.photon.network.IPacket;
 import com.photon.network.objects.ObjectPlayerAccount;
 
-public class ServerResponseValidAccount {
+/**
+ * @author Niwer
+ */
+public class ServerResponseValidAccount implements IPacket {
     public boolean exist;
     public boolean isValidPassword;
     public boolean isEmailAlreadyUsed;
@@ -28,6 +32,7 @@ public class ServerResponseValidAccount {
     public boolean isHWIDAlreadyUsed() { return isHWIDAlreadyUsed; }
     public ObjectPlayerAccount getProfile() { return profile; }
     
+    @Override
     public void handle(Connection connection) {
         PhotonEngine.clientAccountResponse = this;
         synchronized (PhotonEngine.clientAccountResponseWaiter) {

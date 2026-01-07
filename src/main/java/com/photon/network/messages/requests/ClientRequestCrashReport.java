@@ -6,15 +6,16 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import com.esotericsoftware.kryonet.Connection;
+import com.photon.network.IPacket;
 import com.photon.network.NetworkDirectories;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
 
 /**
+ * @author Niwer
  * @author noz43
  */
-
-public class ClientRequestCrashReport {
+public class ClientRequestCrashReport implements IPacket {
     private final String fileMessage;
     private final String fileName;
     private final String userUUID;
@@ -29,6 +30,7 @@ public class ClientRequestCrashReport {
     public String getFileName() { return fileName; }
     public String getUserUUID() { return userUUID; }
     
+    @Override
     public void handle(Connection connection) {
         try {
             File crashFolder = new File(NetworkDirectories.crashDirectory, userUUID);

@@ -1,15 +1,17 @@
 package com.photon.network.messages.requests.account;
 
 import com.esotericsoftware.kryonet.Connection;
+import com.photon.network.IPacket;
 import com.photon.network.ProfileManager;
 import com.photon.network.messages.response.account.ServerResponseAccount;
 import com.photon.network.objects.ObjectPlayerAccount;
 
 /**
+ * @author Niwer
  * @author noz43
  */
 
-public class ClientRequestAccount {
+public class ClientRequestAccount implements IPacket {
     private final String UUID;
     private final String email;
     private final String discordID;
@@ -24,6 +26,7 @@ public class ClientRequestAccount {
     public String getEmail() { return email; }
     public String getDiscordID() { return discordID; }
     
+    @Override
     public void handle(Connection connection) {
         ObjectPlayerAccount givenProfile = null;
         

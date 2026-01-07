@@ -22,14 +22,14 @@ import com.photon.util.updater.UpdateFileType;
 
 public class NetworkDirectories
 {
-	public static File baseDirectory = new File("./network/");
-	public static File crashDirectory = new File(baseDirectory + "/crashs/");
-	public static File anticheatDirectory = new File(baseDirectory + "/anticheat/");
-	public static File profilesDirectory = new File(baseDirectory + "/profiles/");
-	public static File newsDirectory = new File(baseDirectory + "/news/");
-	public static File logsDirectory = new File(baseDirectory + "/logs/");
-	public static File discordDirectory = new File(baseDirectory + "/discord/");
-	public static File sqlDirectory = new File(baseDirectory + "/sql/");
+	public static final File baseDirectory = new File("./network/");
+	public static final File crashDirectory = new File(baseDirectory + "/crashs/");
+	public static final File anticheatDirectory = new File(baseDirectory + "/anticheat/");
+	public static final File profilesDirectory = new File(baseDirectory + "/profiles/");
+	public static final File newsDirectory = new File(baseDirectory + "/news/");
+	public static final File logsDirectory = new File(baseDirectory + "/logs/");
+	public static final File discordDirectory = new File(baseDirectory + "/discord/");
+	public static final File sqlDirectory = new File(baseDirectory + "/sql/");
 
 	public static final Object configWaiter = new Object();
 	public static NetworkConfig config = NetworkConfig.DEFAULT;

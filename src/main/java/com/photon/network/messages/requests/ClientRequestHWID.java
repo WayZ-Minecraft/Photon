@@ -4,16 +4,17 @@ import java.io.File;
 import java.io.IOException;
 
 import com.esotericsoftware.kryonet.Connection;
+import com.photon.network.IPacket;
 import com.photon.network.NetworkDirectories;
 import com.photon.network.objects.ObjectHWIDs;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
 
 /**
+ * @author Niwer
  * @author noz43
  */
-
-public class ClientRequestHWID {
+public class ClientRequestHWID implements IPacket {
     private final String userName;
     private final String userUUID;
     private final String userHWID;
@@ -31,6 +32,7 @@ public class ClientRequestHWID {
     public String getUserHWID() { return userHWID; }
     public String getOperatingSystem() { return operatingSystem; }
     
+    @Override
     public void handle(Connection connection) {
         try {
             File HWIDsFile = new File(NetworkDirectories.baseDirectory, "HWIDs.json");

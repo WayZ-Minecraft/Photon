@@ -3,16 +3,17 @@ package com.photon.network.messages.requests;
 import java.util.HashMap;
 
 import com.esotericsoftware.kryonet.Connection;
+import com.photon.network.IPacket;
 import com.photon.network.NetworkEngine;
 import com.photon.network.NetworkLinkManager;
 import com.photon.network.messages.response.ServerResponseSyncContentPack;
 import com.photon.network.objects.ObjectServer;
 
 /**
+ * @author Niwer
  * @author noz43
  */
-
-public class ClientRequestSyncContentPacks {
+public class ClientRequestSyncContentPacks implements IPacket {
     private final String ip;
     private final int port;
     private final int filesCount;
@@ -30,6 +31,7 @@ public class ClientRequestSyncContentPacks {
     public int getFilesCount() { return filesCount; }
     public HashMap<String, String> getSha1() { return new HashMap<>(sha1); }
     
+    @Override
     public void handle(Connection connection) {
         for (ObjectServer server : NetworkEngine.SAVED_SERVER_LIST) {
             if (server.serverIP.equalsIgnoreCase(ip) && server.serverPort == port) {

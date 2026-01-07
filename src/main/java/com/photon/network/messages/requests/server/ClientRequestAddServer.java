@@ -1,16 +1,18 @@
 package com.photon.network.messages.requests.server;
 
 import com.esotericsoftware.kryonet.Connection;
+import com.photon.network.IPacket;
 import com.photon.network.NetworkEngine;
 import com.photon.network.objects.ObjectServer;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
 
 /**
+ * @author Niwer
  * @author noz43
  */
 
-public class ClientRequestAddServer {
+public class ClientRequestAddServer implements IPacket {
     private final ObjectServer objServer;
     
     public ClientRequestAddServer(ObjectServer objServer) {
@@ -19,6 +21,7 @@ public class ClientRequestAddServer {
     
     public ObjectServer getObjServer() { return objServer; }
     
+    @Override
     public void handle(Connection connection) {
         String clientIP = connection.getRemoteAddressTCP().getAddress().getHostAddress();
         if (!clientIP.equals(objServer.serverIP)) {

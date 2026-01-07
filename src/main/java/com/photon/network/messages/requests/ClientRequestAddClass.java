@@ -1,15 +1,17 @@
 package com.photon.network.messages.requests;
 
 import com.esotericsoftware.kryonet.Connection;
+import com.photon.network.IPacket;
 import com.photon.network.NetworkObjectRegistry;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
 
 /**
+ * @author Niwer
  * @author noz43
  */
 
-public class ClientRequestAddClass {
+public class ClientRequestAddClass implements IPacket {
     private final String name;
     private final byte[] bytes;
     

@@ -1,4 +1,4 @@
-package com.photon.util;
+package com.photon.network;
 
 import java.util.Properties;
 
@@ -13,6 +13,8 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+
+import com.photon.util.NetworkOnly;
 
 @NetworkOnly
 public class EmailManager { //TODO EMAILs SENDER

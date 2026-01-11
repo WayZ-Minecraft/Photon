@@ -38,7 +38,6 @@ import com.photon.network.messages.response.ServerResponseSyncContentPack;
 import com.photon.network.messages.response.account.ServerResponseAccount;
 import com.photon.network.messages.response.account.ServerResponseValidAccount;
 import com.photon.network.objects.ObjectContentPack;
-import com.photon.network.objects.ObjectHWIDs;
 import com.photon.network.objects.ObjectNews;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.objects.ObjectServer;
@@ -141,8 +140,6 @@ public class NetworkObjectRegistry {
         kryo.register(ObjectContentPack.class);
         kryo.register(ServerResponseSyncContentPack.class);
 
-        kryo.register(ObjectHWIDs.class);
-        kryo.register(ObjectHWIDs.HWID.class);
         kryo.register(ClientRequestHWID.class);
     }
 	

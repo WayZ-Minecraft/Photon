@@ -2,9 +2,9 @@ package com.photon.network.messages.requests.account;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.network.IPacket;
-import com.photon.network.ProfileManager;
 import com.photon.network.messages.response.account.ServerResponseValidAccount;
 import com.photon.network.objects.ObjectPlayerAccount;
+import com.photon.network.sql.SQLPlayerAccount;
 
 /**
  * @author Niwer
@@ -21,12 +21,11 @@ public class ClientRequestAccountVerification implements IPacket {
     }
     
     public String getEmail() { return email; }
-
     public String getPassword() { return password; }
     
     @Override
     public void handle(Connection connection) {
-        ObjectPlayerAccount profile = ProfileManager.getProfileFromEMail(email);
+        ObjectPlayerAccount profile = SQLPlayerAccount.getAccountByEmail(email);
         
         boolean exist = (profile != null);
         boolean isValidPassword = false;

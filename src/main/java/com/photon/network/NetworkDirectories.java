@@ -23,9 +23,6 @@ import com.photon.util.updater.UpdateFileType;
 public class NetworkDirectories
 {
 	public static final File baseDirectory = new File("./network/");
-	public static final File crashDirectory = new File(baseDirectory + "/crashs/");
-	public static final File anticheatDirectory = new File(baseDirectory + "/anticheat/");
-	public static final File profilesDirectory = new File(baseDirectory + "/profiles/");
 	public static final File newsDirectory = new File(baseDirectory + "/news/");
 	public static final File logsDirectory = new File(baseDirectory + "/logs/");
 	public static final File discordDirectory = new File(baseDirectory + "/discord/");
@@ -45,9 +42,6 @@ public class NetworkDirectories
      */
 	public static void load() {
 		if (!baseDirectory.exists()) baseDirectory.mkdirs();
-		if (!crashDirectory.exists()) crashDirectory.mkdirs();
-		if (!anticheatDirectory.exists()) anticheatDirectory.mkdirs();
-		if (!profilesDirectory.exists()) profilesDirectory.mkdirs();
 		if (!newsDirectory.exists()) newsDirectory.mkdirs();
 		if (!logsDirectory.exists()) logsDirectory.mkdirs();
 		if (!discordDirectory.exists()) discordDirectory.mkdirs();

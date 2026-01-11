@@ -22,6 +22,10 @@ public class DatabaseInitializer extends SqlInteract {
         createUserTable();
         createNewsTable();
         createLevelTable();
+        createHWIDTable();
+        createAnticheatTable();
+        createCrashReportTable();
+        createPlayerAccountTable();
         populateLevelTable();
     }
 
@@ -96,6 +100,116 @@ public class DatabaseInitializer extends SqlInteract {
             
         } catch (SQLException e) {
             ConsoleManager.create("Error creating Level table: " + e.getMessage()).error().end();
+        } finally {
+            closeStatement(statement, null);
+        }
+    }
+
+    /**
+     * Create HWID table with columns: userName, userUUID, userHWID, operatingSystem.
+     */
+    private static void createHWIDTable() {
+        Statement statement = null;
+        try {
+            statement = connexion.createStatement();
+            
+            String sql = "CREATE TABLE IF NOT EXISTS HWID (" +
+                        "userName TEXT NOT NULL, " +
+                        "userUUID TEXT NOT NULL, " +
+                        "userHWID TEXT NOT NULL, " +
+                        "operatingSystem TEXT NOT NULL, " +
+                        "PRIMARY KEY (userUUID, userHWID)" +
+                        ");";
+            
+            statement.executeUpdate(sql);
+            ConsoleManager.create("Table HWID initialized").withType(EnumLogType.NETWORK).end();
+            
+        } catch (SQLException e) {
+            ConsoleManager.create("Error creating HWID table: " + e.getMessage()).error().end();
+        } finally {
+            closeStatement(statement, null);
+        }
+    }
+
+    /**
+     * Create Anticheat table with columns: id, userUUID, fileName, fileMessage, operatingSystem, timestamp.
+     */
+    private static void createAnticheatTable() {
+        Statement statement = null;
+        try {
+            statement = connexion.createStatement();
+            
+            String sql = "CREATE TABLE IF NOT EXISTS Anticheat (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        "userUUID TEXT NOT NULL, " +
+                        "fileName TEXT NOT NULL, " +
+                        "fileMessage TEXT NOT NULL, " +
+                        "operatingSystem TEXT NOT NULL, " +
+                        "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP" +
+                        ");";
+            
+            statement.executeUpdate(sql);
+            ConsoleManager.create("Table Anticheat initialized").withType(EnumLogType.NETWORK).end();
+            
+        } catch (SQLException e) {
+            ConsoleManager.create("Error creating Anticheat table: " + e.getMessage()).error().end();
+        } finally {
+            closeStatement(statement, null);
+        }
+    }
+
+    /**
+     * Create CrashReport table with columns: id, userUUID, fileName, fileMessage, timestamp.
+     */
+    private static void createCrashReportTable() {
+        Statement statement = null;
+        try {
+            statement = connexion.createStatement();
+            
+            String sql = "CREATE TABLE IF NOT EXISTS CrashReport (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        "userUUID TEXT NOT NULL, " +
+                        "fileName TEXT NOT NULL, " +
+                        "fileMessage TEXT NOT NULL, " +
+                        "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP" +
+                        ");";
+            
+            statement.executeUpdate(sql);
+            ConsoleManager.create("Table CrashReport initialized").withType(EnumLogType.NETWORK).end();
+            
+        } catch (SQLException e) {
+            ConsoleManager.create("Error creating CrashReport table: " + e.getMessage()).error().end();
+        } finally {
+            closeStatement(statement, null);
+        }
+    }
+
+    /**
+     * Create PlayerAccount table with columns: uuid, username, email, password, twoAuthFactor, discordID, discordAuthCode, projectCreator, shopCoins, friends.
+     */
+    private static void createPlayerAccountTable() {
+        Statement statement = null;
+        try {
+            statement = connexion.createStatement();
+            
+            String sql = "CREATE TABLE IF NOT EXISTS PlayerAccount (" +
+                        "uuid TEXT PRIMARY KEY NOT NULL, " +
+                        "username TEXT UNIQUE NOT NULL, " +
+                        "email TEXT UNIQUE NOT NULL, " +
+                        "password TEXT NOT NULL, " +
+                        "twoAuthFactor INTEGER DEFAULT 0, " +
+                        "discordID TEXT, " +
+                        "discordAuthCode TEXT, " +
+                        "projectCreator INTEGER DEFAULT 0, " +
+                        "shopCoins INTEGER DEFAULT 0, " +
+                        "friends TEXT" +
+                        ");";
+            
+            statement.executeUpdate(sql);
+            ConsoleManager.create("Table PlayerAccount initialized").withType(EnumLogType.NETWORK).end();
+            
+        } catch (SQLException e) {
+            ConsoleManager.create("Error creating PlayerAccount table: " + e.getMessage()).error().end();
         } finally {
             closeStatement(statement, null);
         }

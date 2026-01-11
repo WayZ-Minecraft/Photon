@@ -2,9 +2,9 @@ package com.photon.network.messages.requests.account;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.network.IPacket;
-import com.photon.network.ProfileManager;
 import com.photon.network.messages.response.account.ServerResponseAccount;
 import com.photon.network.objects.ObjectPlayerAccount;
+import com.photon.network.sql.SQLPlayerAccount;
 
 /**
  * @author Niwer
@@ -31,11 +31,11 @@ public class ClientRequestAccount implements IPacket {
         ObjectPlayerAccount givenProfile = null;
         
         if (UUID != null) {
-            givenProfile = ProfileManager.getProfileFromUUID(UUID);
+            givenProfile = SQLPlayerAccount.getAccountByUUID(UUID);
         } else if (email != null) {
-            givenProfile = ProfileManager.getProfileFromEMail(email);
+            givenProfile = SQLPlayerAccount.getAccountByEmail(email);
         } else if (discordID != null) {
-            givenProfile = ProfileManager.getProfileFromDiscordID(discordID);
+            givenProfile = SQLPlayerAccount.getAccountByDiscordID(discordID);
         }
         
         ServerResponseAccount response = new ServerResponseAccount(givenProfile);

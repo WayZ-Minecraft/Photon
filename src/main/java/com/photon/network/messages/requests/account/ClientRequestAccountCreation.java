@@ -2,9 +2,9 @@ package com.photon.network.messages.requests.account;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.network.IPacket;
-import com.photon.network.ProfileManager;
 import com.photon.network.messages.response.account.ServerResponseValidAccount;
 import com.photon.network.objects.ObjectPlayerAccount;
+import com.photon.network.sql.SQLPlayerAccount;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
 
@@ -30,14 +30,14 @@ public class ClientRequestAccountCreation implements IPacket {
     
     @Override
     public void handle(Connection connection) {
-        boolean isEmailAlreadyUsed = ProfileManager.doesProfileExistByEMail(email);
-        boolean isUsernameAlreadyUsed = ProfileManager.doesProfileExistByUsername(username);
+        boolean isEmailAlreadyUsed = SQLPlayerAccount.emailExists(email);
+        boolean isUsernameAlreadyUsed = SQLPlayerAccount.usernameExists(username);
         
         boolean exist = false;
         ObjectPlayerAccount profile = null;
         
         if (!isEmailAlreadyUsed && !isUsernameAlreadyUsed) {
-            profile = ProfileManager.createPlayerProfile(username, email, password);
+            profile = SQLPlayerAccount.createAccount(username, email, password);
             
             exist = (profile != null);
             

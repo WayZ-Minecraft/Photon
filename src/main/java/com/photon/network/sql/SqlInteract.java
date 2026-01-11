@@ -88,12 +88,6 @@ public class SqlInteract {
     }
 
     /**
-     * Execute a custom SQL command and return results as formatted string.
-     * 
-     * WARNING: This method should NEVER be called with user input!
-     * Only use with hardcoded queries or admin-only commands.
-     * Use PreparedStatement methods in other SQL classes for user-facing queries.
-     * 
      * @param command The SQL command to execute
      * @return Formatted result string with columns separated by " | "
      * @throws SQLException if query execution fails

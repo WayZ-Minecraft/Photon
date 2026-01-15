@@ -1,6 +1,7 @@
 package com.photon.network.listeners;
 
 import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.FrameworkMessage.KeepAlive;
 import com.esotericsoftware.kryonet.Listener;
 import com.photon.network.IPacket;
 import com.photon.network.listeners.INetworkMessageListener.INetworkListenerSide;
@@ -12,6 +13,9 @@ public class MessageListenerServer implements Listener {
     @Override
     public void received(Connection connection, Object object) {
         try {
+            if(!(object instanceof KeepAlive))
+                ConsoleManager.debug("Received packet: " + object.getClass().getSimpleName());
+            
             if (object instanceof IPacket packet) packet.handle(connection);
             MessageListenerCommon.dispatchToListeners(connection, object, INetworkListenerSide.SERVER);
         } catch (Exception e) {

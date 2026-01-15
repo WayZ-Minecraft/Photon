@@ -16,6 +16,12 @@ public class ClientRequestAccount implements IPacket {
     private final String email;
     private final String discordID;
     
+    public ClientRequestAccount() {
+        this.UUID = null;
+        this.email = null;
+        this.discordID = null;
+    }
+
     public ClientRequestAccount(String UUID, String email, String discordID) {
         this.UUID = UUID;
         this.email = email;

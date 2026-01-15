@@ -1,12 +1,10 @@
 package com.photon.util.updater;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -17,7 +15,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.photon.PhotonEngine;
+import com.photon.network.ClientLinkManager;
 import com.photon.network.NetworkDirectories;
+import com.photon.network.messages.requests.ClientRequestUpdate;
+import com.photon.network.messages.requests.account.ClientRequestAccount;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ProtectorManager;
 
@@ -33,18 +35,24 @@ public class UpdaterManager {
      */
     public static String getSHA1(UpdateFileType type, UpdateChannel channel) {
         /* If we can't reach the site, disable download */
-        try {
-			final URL url = new URL(NetworkDirectories.getConfig().webUrl+"services_updates/the-sha.php?type="+type.name().toLowerCase()+"&channel="+channel.name().toLowerCase());
-			final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-			ProtectorManager.addProperties(conn);
-			conn.setRequestMethod("GET");
 
-			final BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-			final String sha1 = reader.readLine();
-			reader.close();
+        ClientRequestUpdate test = new ClientRequestUpdate(channel, type);
+        ClientLinkManager.sendTCP(test);
 
-			return sha1.contains("-") ? "UNKNOWN" : sha1;
-		} catch (IOException e) { e.printStackTrace(); }
+        ConsoleManager.debug(PhotonEngine.updateSha);
+
+        // try {
+		// 	final URL url = new URL(NetworkDirectories.getConfig().webUrl+"services_updates/the-sha.php?type="+type.name().toLowerCase()+"&channel="+channel.name().toLowerCase());
+		// 	final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		// 	ProtectorManager.addProperties(conn);
+		// 	conn.setRequestMethod("GET");
+
+		// 	final BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+		// 	final String sha1 = reader.readLine();
+		// 	reader.close();
+
+		// 	return sha1.contains("-") ? "UNKNOWN" : sha1;
+		// } catch (IOException e) { e.printStackTrace(); }
 		return "UNKNOWN";
     }
     

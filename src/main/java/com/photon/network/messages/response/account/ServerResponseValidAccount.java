@@ -16,6 +16,9 @@ public class ServerResponseValidAccount implements IPacket {
     public boolean isHWIDAlreadyUsed;
     public ObjectPlayerAccount profile;
     
+    public ServerResponseValidAccount() {
+    }
+
     public ServerResponseValidAccount(boolean exist, boolean isValidPassword, boolean isEmailAlreadyUsed, boolean isUsernameAlreadyUsed, boolean isHWIDAlreadyUsed, ObjectPlayerAccount profile) {
         this.exist = exist;
         this.isValidPassword = isValidPassword;

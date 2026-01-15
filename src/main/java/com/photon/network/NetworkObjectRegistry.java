@@ -25,6 +25,7 @@ import com.photon.network.messages.requests.ClientRequestNetworkConfig;
 import com.photon.network.messages.requests.ClientRequestRegisterConnection;
 import com.photon.network.messages.requests.ClientRequestSendDiscordLogs;
 import com.photon.network.messages.requests.ClientRequestSyncContentPacks;
+import com.photon.network.messages.requests.ClientRequestUpdate;
 import com.photon.network.messages.requests.account.ClientRequestAccount;
 import com.photon.network.messages.requests.account.ClientRequestAccountCreation;
 import com.photon.network.messages.requests.account.ClientRequestAccountVerification;
@@ -35,6 +36,7 @@ import com.photon.network.messages.response.ServerResponseNetworkConfig;
 import com.photon.network.messages.response.ServerResponseNewsList;
 import com.photon.network.messages.response.ServerResponseServerList;
 import com.photon.network.messages.response.ServerResponseSyncContentPack;
+import com.photon.network.messages.response.ServerResponseUpdate;
 import com.photon.network.messages.response.account.ServerResponseAccount;
 import com.photon.network.messages.response.account.ServerResponseValidAccount;
 import com.photon.network.objects.ObjectContentPack;
@@ -103,8 +105,13 @@ public class NetworkObjectRegistry {
         kryo.register(byte[].class);
         kryo.register(byte.class);
 
+        /* Base of packets */
+        kryo.register(IPacket.class);
+
         kryo.register(UpdateFileType.class);
         kryo.register(UpdateChannel.class);
+        kryo.register(ClientRequestUpdate.class);
+        kryo.register(ServerResponseUpdate.class);
 
         kryo.register(ObjectPlayerAccount.class);
         kryo.register(ClientRequestAccount.class);

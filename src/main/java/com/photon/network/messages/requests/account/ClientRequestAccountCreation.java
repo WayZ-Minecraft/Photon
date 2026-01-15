@@ -18,6 +18,12 @@ public class ClientRequestAccountCreation implements IPacket {
     private final String email;
     private final String password;
     
+    public ClientRequestAccountCreation() {
+        this.username = null;
+        this.email = null;
+        this.password = null;
+    }
+
     public ClientRequestAccountCreation(String username, String email, String password) {
         this.username = username;
         this.email = email;

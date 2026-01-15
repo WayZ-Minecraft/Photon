@@ -15,6 +15,11 @@ public class ClientRequestAddClass implements IPacket {
     private final String name;
     private final byte[] bytes;
     
+    public ClientRequestAddClass() {
+        this.name = null;
+        this.bytes = null;
+    }
+
     public ClientRequestAddClass(String name, byte[] bytes) {
         this.name = name;
         this.bytes = bytes;

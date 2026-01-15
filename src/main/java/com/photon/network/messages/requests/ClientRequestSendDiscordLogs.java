@@ -17,6 +17,13 @@ public class ClientRequestSendDiscordLogs implements IPacket {
     private final Object content;
     private final File file;
     
+    public ClientRequestSendDiscordLogs() {
+        this.type = null;
+        this.subType = null;
+        this.content = null;
+        this.file = null;
+    }
+
     public ClientRequestSendDiscordLogs(EnumLogType type, String subType, Object content, File file) {
         this.type = type;
         this.subType = subType;

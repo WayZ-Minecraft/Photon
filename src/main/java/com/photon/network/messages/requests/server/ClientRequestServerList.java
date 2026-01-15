@@ -12,6 +12,9 @@ import com.photon.network.messages.response.ServerResponseServerList;
 
 public class ClientRequestServerList implements IPacket {
     
+    public ClientRequestServerList() {
+    }
+
     @Override
     public void handle(Connection connection) {
         ServerResponseServerList response = new ServerResponseServerList(NetworkEngine.SAVED_SERVER_LIST);

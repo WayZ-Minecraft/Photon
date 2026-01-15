@@ -13,6 +13,10 @@ import com.photon.network.listeners.MessageListenerCommon;
 public class ClientRequestAddListener implements IPacket {
     private final INetworkMessageListener listener;
     
+    public ClientRequestAddListener() {
+        this.listener = null;
+    }
+
     public ClientRequestAddListener(INetworkMessageListener listener) {
         this.listener = listener;
     }

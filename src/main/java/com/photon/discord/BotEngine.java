@@ -2,8 +2,6 @@ package com.photon.discord;
 
 import java.awt.Color;
 import java.io.File;
-import java.sql.SQLException;
-import java.util.Arrays;
 
 import javax.security.auth.login.LoginException;
 
@@ -15,9 +13,7 @@ import com.photon.discord.slashCommands.SlashCommands;
 import com.photon.discord.usersInteraction.Security;
 // import com.photon.discord.usersInteraction.xpManager; deactivation of the exp for the moment, awaiting modularity
 import com.photon.discord.usersInteraction.data.UsersInfo;
-import com.photon.discord.usersInteraction.language.LanguageChoice;
 import com.photon.network.NetworkDirectories;
-import com.photon.network.sql.SQLuser;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
 import com.photon.util.TranslationManager;
@@ -28,11 +24,7 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
-import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
-import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
-import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -57,7 +49,7 @@ public class BotEngine extends ListenerAdapter {
      * @throws LoginException
      * @throws InterruptedException
      */
-    public static void load(String... args) throws LoginException, InterruptedException {
+    public static void load(boolean shouldRestart) throws LoginException, InterruptedException {
         String token = NetworkDirectories.getConfig().discordBotToken;
         ConsoleManager.create("Initializing Discord Bot...").withType(EnumLogType.NETWORK).end();
         
@@ -73,8 +65,7 @@ public class BotEngine extends ListenerAdapter {
 
         botBuilder.setMemberCachePolicy(MemberCachePolicy.ALL);
 
-        if (args != null && Arrays.asList(args).contains("--restart"))
-            isRestarting = true;
+        isRestarting = shouldRestart;
 
         botBuilder.build();
         ConsoleManager.create("Discord Bot connection established").withType(EnumLogType.NETWORK).end();

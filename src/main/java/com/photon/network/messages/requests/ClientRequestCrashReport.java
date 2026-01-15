@@ -16,6 +16,12 @@ public class ClientRequestCrashReport implements IPacket {
     private final String fileName;
     private final String userUUID;
     
+    public ClientRequestCrashReport() {
+        this.fileMessage = "";
+        this.fileName = "";
+        this.userUUID = "";
+    }
+
     public ClientRequestCrashReport(String fileMessage, String fileName, String userUUID) {
         this.fileMessage = fileMessage;
         this.fileName = fileName;

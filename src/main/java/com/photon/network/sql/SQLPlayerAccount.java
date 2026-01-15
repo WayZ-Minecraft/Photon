@@ -12,6 +12,8 @@ import com.google.gson.reflect.TypeToken;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.util.ConsoleManager;
 
+//TODO Add comments
+//TODO add more check to where needed (there is a lot to add) to ensure full stability and data integrity
 public class SQLPlayerAccount extends SqlInteract {
 
     private static final Gson gson = new GsonBuilder().create();

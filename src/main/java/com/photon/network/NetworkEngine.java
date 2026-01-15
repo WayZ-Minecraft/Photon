@@ -52,7 +52,7 @@ public class NetworkEngine {
             
 			/* Check ip */
             ConsoleManager.create("Starting Network Server on \"" + PhotonEngine.network_Ip + "\"!").withType(EnumLogType.NETWORK).end();
-			if(!PhotonEngine.network_Ip.isEmpty() && !PhotonEngine.network_Ip.equalsIgnoreCase(PhotonEngine.network_Ip_Local) && !PhotonEngine.isIPEquals(PhotonEngine.network_Ip)) {
+			if(!PhotonEngine.network_Ip.isEmpty() && !PhotonEngine.network_Ip.equalsIgnoreCase(PhotonEngine.LOCAL_IP) && !PhotonEngine.isIPEquals(PhotonEngine.network_Ip)) {
                 ConsoleManager.create("Ip doesn't match. Closing Network!").withType(EnumLogType.NETWORK).error().end();
 				System.exit(0);
 				return;
@@ -61,19 +61,13 @@ public class NetworkEngine {
             /* Starting the discord bot if token available */
 			if(NetworkDirectories.getConfig().discordBotToken !=null && !NetworkDirectories.getConfig().discordBotToken.isEmpty()) {
                 try {
-                    if (Arrays.asList(args).contains("--restart")) {
-                        BotEngine.load("--restart");
-                    } else {
-                        BotEngine.load();
-                    }
+                    BotEngine.load(Arrays.asList(args).contains("--restart"));
                     ConsoleManager.create("Discord Bot started successfully").withType(EnumLogType.NETWORK).end();
                 } catch (Exception e) {
                     ConsoleManager.create("Failed to start Discord Bot: " + e.getMessage()).withType(EnumLogType.NETWORK).error().end();
                     e.printStackTrace();
                 }
-            } else {
-                ConsoleManager.create("Discord Bot token not configured, skipping bot startup").withType(EnumLogType.NETWORK).end();
-            }
+            } else ConsoleManager.create("Discord Bot token not configured, skipping bot startup").withType(EnumLogType.NETWORK).end();
 
 			NetworkLinkManager.load();
             ConsoleManager.create("Network Server is now running and waiting for connections...").withType(EnumLogType.NETWORK).end();

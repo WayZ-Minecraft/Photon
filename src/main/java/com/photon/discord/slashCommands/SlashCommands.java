@@ -295,9 +295,10 @@ public class SlashCommands {
         }
         switch (action.toLowerCase()) {
             case "get":
-                FileUpload upload = FileUpload.fromData(ProfileManager.getGson().toJson(profile).getBytes(),
-                        profile.username + ".json");
-                event.reply("The info for the user : " + profile.username + "(" + profile.email + ")").addFiles(upload)
+                // FileUpload upload = FileUpload.fromData(ProfileManager.getGson().toJson(profile).getBytes(),
+                //         profile.username + ".json");
+                //TODO We were sending the profile as JSON file but this could be a data privacy/leaks issue
+                event.reply("The info for the user : " + profile.username + "(" + profile.email + ")")/* .addFiles(upload) */
                         .queue();
                 break;
             case "edit":

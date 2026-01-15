@@ -12,6 +12,10 @@ import com.photon.network.NetworkDirectories.NetworkConfig;
 public class ServerResponseNetworkConfig implements IPacket {
     private final NetworkConfig config;
     
+    public ServerResponseNetworkConfig() {
+        this.config = null;
+    }
+
     public ServerResponseNetworkConfig(NetworkConfig config) {
         this.config = config;
     }

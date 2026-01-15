@@ -11,6 +11,9 @@ import com.photon.network.messages.response.ServerResponseNetworkConfig;
  */
 public class ClientRequestNetworkConfig implements IPacket {
     
+    public ClientRequestNetworkConfig() {
+    }
+
     @Override
     public void handle(Connection connection) {
         ServerResponseNetworkConfig response = new ServerResponseNetworkConfig(NetworkDirectories.getConfig());

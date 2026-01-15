@@ -15,6 +15,10 @@ import com.photon.network.objects.ObjectNews;
 public class ServerResponseNewsList implements IPacket {
     private final List<ObjectNews> newsObjects;
     
+    public ServerResponseNewsList() {
+        this.newsObjects = new ArrayList<>();
+    }
+
     public ServerResponseNewsList(List<ObjectNews> newsObjects) {
         this.newsObjects = new ArrayList<>(newsObjects);
     }

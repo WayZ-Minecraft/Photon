@@ -15,6 +15,10 @@ import com.photon.util.ConsoleManager.EnumLogType;
 public class ClientRequestAddServer implements IPacket {
     private final ObjectServer objServer;
     
+    public ClientRequestAddServer() {
+        this.objServer = new ObjectServer();
+    }
+
     public ClientRequestAddServer(ObjectServer objServer) {
         this.objServer = objServer;
     }

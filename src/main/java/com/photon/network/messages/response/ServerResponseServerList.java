@@ -15,6 +15,10 @@ import com.photon.network.objects.ObjectServer;
 public class ServerResponseServerList implements IPacket {
     private final List<ObjectServer> serverObjects;
     
+    public ServerResponseServerList() {
+        this.serverObjects = new ArrayList<>();
+    }
+
     public ServerResponseServerList(List<ObjectServer> serverObjects) {
         this.serverObjects = new ArrayList<>(serverObjects);
     }

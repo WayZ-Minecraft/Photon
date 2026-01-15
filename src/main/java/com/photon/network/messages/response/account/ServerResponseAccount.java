@@ -12,6 +12,10 @@ import com.photon.network.objects.ObjectPlayerAccount;
 public class ServerResponseAccount implements IPacket {
     private final ObjectPlayerAccount givenProfile;
     
+    public ServerResponseAccount() {
+        this.givenProfile = null;
+    }
+
     public ServerResponseAccount(ObjectPlayerAccount givenProfile) {
         this.givenProfile = givenProfile;
     }

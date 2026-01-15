@@ -1,7 +1,7 @@
 package com.photon.network.objects;
 
 public class ObjectServer {
-	
+
     public int connectionID;
 
 	public String serverName;

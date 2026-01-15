@@ -14,6 +14,12 @@ public class ServerResponseSyncContentPack implements IPacket {
     private final int filesCount;
     private final HashMap<String, String> sha1;
     
+    public ServerResponseSyncContentPack() {
+        this.connectionID = -1;
+        this.filesCount = 0;
+        this.sha1 = new HashMap<>();
+    }
+
     public ServerResponseSyncContentPack(int connectionID, int filesCount, HashMap<String, String> sha1) {
         this.connectionID = connectionID;
         this.filesCount = filesCount;

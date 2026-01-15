@@ -12,6 +12,13 @@ public class ClientRequestHWID implements IPacket {
     private final String userHWID;
     private final String operatingSystem;
     
+    public ClientRequestHWID() {
+        this.userName = "";
+        this.userUUID = "";
+        this.userHWID = "";
+        this.operatingSystem = "";
+    }
+
     public ClientRequestHWID(String userName, String userUUID, String userHWID, String operatingSystem) {
         this.userName = userName;
         this.userUUID = userUUID;

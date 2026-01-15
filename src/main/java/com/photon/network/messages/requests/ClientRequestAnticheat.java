@@ -17,6 +17,13 @@ public class ClientRequestAnticheat implements IPacket {
     private final String operatingSystem;
     private final String userUUID;
     
+    public ClientRequestAnticheat() {
+        this.fileName = "";
+        this.fileMessage = "";
+        this.operatingSystem = "";
+        this.userUUID = "";
+    }
+
     public ClientRequestAnticheat(String fileName, String fileMessage, String operatingSystem, String userUUID) {
         this.fileName = fileName;
         this.fileMessage = fileMessage;

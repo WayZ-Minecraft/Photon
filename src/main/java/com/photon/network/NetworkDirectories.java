@@ -23,9 +23,8 @@ import com.photon.util.updater.UpdateFileType;
 public class NetworkDirectories
 {
 	public static final File baseDirectory = new File("./network/");
-	public static final File newsDirectory = new File(baseDirectory + "/news/");
 	public static final File logsDirectory = new File(baseDirectory + "/logs/");
-	public static final File discordDirectory = new File(baseDirectory + "/discord/");
+	@Deprecated public static final File discordDirectory = new File(baseDirectory + "/discord/");
 	public static final File sqlDirectory = new File(baseDirectory + "/sql/");
 
 	public static final Object configWaiter = new Object();
@@ -42,7 +41,6 @@ public class NetworkDirectories
      */
 	public static void load() {
 		if (!baseDirectory.exists()) baseDirectory.mkdirs();
-		if (!newsDirectory.exists()) newsDirectory.mkdirs();
 		if (!logsDirectory.exists()) logsDirectory.mkdirs();
 		if (!discordDirectory.exists()) discordDirectory.mkdirs();
 		if (!sqlDirectory.exists()) sqlDirectory.mkdirs();
@@ -141,6 +139,7 @@ public class NetworkDirectories
 			)
 		);
 
+		@Deprecated
 		public String webUrl = "";
 		
 		/* Bot infos */
@@ -151,10 +150,6 @@ public class NetworkDirectories
 		@SerializedName("api_version") public String api_version = "1.0.0";
 		@SerializedName("mod_version") public String mod_version = "1.0.0";
 		@SerializedName("launcher_version") public String launcher_version = "1.0.0";
-
-		/* This may be removed since the mod is now Niwer's Engine and the official launcher is ditch to allow external creators to have their own launchers */
-		@Deprecated @SerializedName("project_name") public String project_name = "MyProject";
-		@Deprecated @SerializedName("project_id") public String project_id = "myproject";
 
 		@SerializedName("twitter_url") public String twitter_url = "https://twitter.com/";
 		@SerializedName("twitch_url") public String twitch_url = "https://twitch.tv/";

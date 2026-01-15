@@ -12,6 +12,8 @@ import com.photon.network.messages.response.ServerResponseNewsList;
 
 public class ClientRequestNewsList implements IPacket {
     
+    public ClientRequestNewsList() {}
+
     @Override
     public void handle(Connection connection) {
         ServerResponseNewsList response = new ServerResponseNewsList(NetworkEngine.SAVED_NEWS_LIST);

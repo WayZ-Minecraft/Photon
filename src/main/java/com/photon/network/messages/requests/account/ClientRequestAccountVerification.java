@@ -15,6 +15,11 @@ public class ClientRequestAccountVerification implements IPacket {
     private final String email;
     private final String password;
     
+    public ClientRequestAccountVerification() {
+        this.email = "";
+        this.password = "";
+    }
+
     public ClientRequestAccountVerification(String email, String password) {
         this.email = email;
         this.password = password;

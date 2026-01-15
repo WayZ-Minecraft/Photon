@@ -19,6 +19,13 @@ public class ClientRequestSyncContentPacks implements IPacket {
     private final int filesCount;
     private final HashMap<String, String> sha1;
     
+    public ClientRequestSyncContentPacks() {
+        this.ip = null;
+        this.port = 0;
+        this.filesCount = 0;
+        this.sha1 = new HashMap<>();
+    }
+
     public ClientRequestSyncContentPacks(String ip, int port, int filesCount, HashMap<String, String> sha1) {
         this.ip = ip;
         this.port = port;

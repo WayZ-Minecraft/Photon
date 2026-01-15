@@ -13,6 +13,10 @@ import com.photon.util.ConsoleManager.EnumLogType;
 public class ClientRequestRegisterConnection implements IPacket {
     private final String uuid;
     
+    public ClientRequestRegisterConnection() {
+        this.uuid = "";
+    }
+
     public ClientRequestRegisterConnection(String uuid) {
         this.uuid = uuid;
     }

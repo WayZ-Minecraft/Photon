@@ -21,8 +21,8 @@ import com.photon.util.ConsoleManager.EnumLogType;
 public class PhotonEngine {
 	
     /* Default network values */
-	public static final String network_Ip_Local = "localhost";
-	public static String network_Ip = network_Ip_Local;
+	public static final String LOCAL_IP = "localhost";
+	public static String network_Ip = LOCAL_IP;
     public static int network_Tcp = 54556;
     public static int network_Udp = 54556;
     
@@ -41,6 +41,10 @@ public class PhotonEngine {
     /* Allow access to the servers list if requested before */
     public static final Object clientServerListWaiter = new Object();
     public static ArrayList<ObjectServer> clientServerList = new ArrayList<>();
+    
+    public static final Object clientUpdateWaiter = new Object();
+    public static byte[] updateData = new byte[0];
+    public static String updateSha = "UNKNOWN";
 
     /**
 	 * Get the current IP of the user using the Amazon AWS service
@@ -115,7 +119,7 @@ public class PhotonEngine {
             ConsoleManager.create("Unable to connect to "+ip+ (localHostFallback ? ". Fallback to localhost" : "")).withType(EnumLogType.NETWORK).error().end();
     		if(localHostFallback) {
                 try {
-                    PhotonEngine.setIP(network_Ip_Local);
+                    PhotonEngine.setIP(LOCAL_IP);
                     ClientLinkManager.load();
                 } catch(IOException ex) { throw ex; }
             }

@@ -2,13 +2,13 @@ package com.photon.network;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
@@ -16,7 +16,8 @@ import javax.imageio.ImageIO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
-import com.photon.util.ProtectorManager;
+import com.photon.util.ConsoleManager;
+import com.photon.util.ConsoleManager.EnumLogType;
 import com.photon.util.updater.UpdateChannel;
 import com.photon.util.updater.UpdateFileType;
 
@@ -26,6 +27,7 @@ public class NetworkDirectories
 	public static final File logsDirectory = new File(baseDirectory + "/logs/");
 	@Deprecated public static final File discordDirectory = new File(baseDirectory + "/discord/");
 	public static final File sqlDirectory = new File(baseDirectory + "/sql/");
+	public static final File logoFile = new File(baseDirectory + "/project-logo.png");
 
 	public static final Object configWaiter = new Object();
 	public static NetworkConfig config = NetworkConfig.DEFAULT;
@@ -77,6 +79,35 @@ public class NetworkDirectories
 	}
 	
 	/**
+	 * Load game logo from file and serialize it to byte array (SERVER SIDE)
+	 * @author noz43
+	 */
+	public static void loadGameLogo() {
+		if (!logoFile.exists()) {
+			ConsoleManager.create("Game logo not found at: " + logoFile.getPath()).withType(EnumLogType.NETWORK).end();
+			return;
+		}
+		
+		try {
+			BufferedImage image = ImageIO.read(logoFile);
+			if (image == null) {
+				ConsoleManager.create("Failed to read game logo").error().withType(EnumLogType.NETWORK).end();
+				return;
+			}
+			
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ImageIO.write(image, "png", baos);
+			config.gameLogo = baos.toByteArray();
+			baos.close();
+			
+			ConsoleManager.create("Game logo loaded successfully (" + config.gameLogo.length + " bytes)").withType(EnumLogType.NETWORK).end();
+		} catch (IOException e) {
+			ConsoleManager.create("Error loading game logo: " + e.getMessage()).error().withType(EnumLogType.NETWORK).end();
+			e.printStackTrace();
+		}
+	}
+	
+	/**
      * Get the game logo from the web
      * @return the game logo from the web in a BufferedImage
      * @see getGameLogoInputStream()
@@ -84,9 +115,11 @@ public class NetworkDirectories
      */
 	public static BufferedImage getGameLogo() {
 		try {
-			final InputStream stream = getGameLogoInputStream();
-			if (stream == null) return null;
-			final BufferedImage img = ImageIO.read(stream);
+			byte[] logoData = getConfig().gameLogo;
+			if (logoData == null || logoData.length == 0) return null;
+			
+			ByteArrayInputStream stream = new ByteArrayInputStream(logoData);
+			BufferedImage img = ImageIO.read(stream);
 			stream.close();
 			return img;
 		} catch (IOException e) { e.printStackTrace(); return null; }
@@ -99,13 +132,9 @@ public class NetworkDirectories
      * @author Niwer
      */
 	public static InputStream getGameLogoInputStream() {
-		try {
-			final URLConnection connection = new URL(NetworkDirectories.getConfig().webUrl + "project-logo.png").openConnection();
-			ProtectorManager.addProperties(connection);
-			connection.connect();
-			return connection.getInputStream();
-		} catch (IOException e) {}
-		return null;
+		byte[] logoData = getConfig().gameLogo;
+		if (logoData == null || logoData.length == 0) return null;
+		return new ByteArrayInputStream(logoData);
 	}
 
 	public static class NetworkConfig {
@@ -139,12 +168,11 @@ public class NetworkDirectories
 			)
 		);
 
-		@Deprecated
-		public String webUrl = "";
+		public byte[] gameLogo = null;
 		
 		/* Bot infos */
-		@SerializedName("discord_bot_token") public String discordBotToken = ""; // TODO : Maybe allow multiple bots in the future to allow other creator to receive updates/events/etc on their own server
-		@SerializedName("discord_bot_id") public String discord_bot_id = ""; // N.B : discord_bot_id shouldn't be support multiple bots since it's only used for Rich Presence ? But this can be useful ?
+		@SerializedName("discord_bot_token") public String discordBotToken = "";
+		@SerializedName("discord_bot_id") public String discord_bot_id = "";
 		
 		/* Versions infos */
 		@SerializedName("api_version") public String api_version = "1.0.0";

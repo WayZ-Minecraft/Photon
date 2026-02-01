@@ -1,8 +1,10 @@
 package com.photon;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import com.photon.network.ClientLinkManager;
+import com.photon.network.NetworkDirectories;
 import com.photon.network.messages.requests.ClientRequestAnticheat;
 import com.photon.network.messages.requests.ClientRequestCrashReport;
 import com.photon.util.ConsoleManager;
@@ -35,6 +37,29 @@ public class NetworkClientSideTester {
                 ClientLinkManager.sendTCP(news);
 
                 UpdaterManager.getSHA1(UpdateFileType.API, UpdateChannel.STABLE);
+            }
+
+            /* Test logo functionality */
+            {
+                ConsoleManager.create("=== LOGO TEST ===").end();
+                
+                BufferedImage logo = NetworkDirectories.getGameLogo();
+                
+                if (logo == null) {
+                    ConsoleManager.create("Logo is NULL - not received from server yet or failed to load").error().end();
+                } else {
+                    ConsoleManager.create("Logo loaded successfully!").end();
+                    ConsoleManager.create("  - Width: " + logo.getWidth() + "px").end();
+                    ConsoleManager.create("  - Height: " + logo.getHeight() + "px").end();
+                    ConsoleManager.create("  - Type: " + logo.getType()).end();
+                    
+                    byte[] logoData = NetworkDirectories.getConfig().gameLogo;
+                    if (logoData != null) {
+                        ConsoleManager.create("  - Size: " + logoData.length + " bytes (" + (logoData.length / 1024) + " KB)").end();
+                    }
+                }
+                
+                ConsoleManager.create("=== END LOGO TEST ===").end();
             }
         } catch (IOException e) {
             ConsoleManager.debug("Error when connecting: " + e.getMessage());

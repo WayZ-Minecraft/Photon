@@ -110,10 +110,17 @@ public enum OperatingSystem {
 	}
 	
 	public static String getCurrentNativesForOs(String nativeName) {
-		final String osName = System.getProperty("os.name").toLowerCase();
-		if (nativeName.contains(osName)) {
-			//TODO: Check arch too
+		final OperatingSystem os = getCurrentPlatform();
+		final Arch arch = getJavaBit();
+		
+		if (os == WINDOWS) {
+			return arch == Arch.x64 ? "natives-windows-x64" : "natives-windows";
+		} else if (os == LINUX) {
+			return arch == Arch.x64 ? "natives-linux-x64" : "natives-linux";
+		} else if (os == OSX) {
+			return arch == Arch.x64 ? "natives-osx-x64" : "natives-osx";
 		}
+		
 		return "natives-windows";
 	}
 

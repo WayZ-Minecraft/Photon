@@ -10,7 +10,6 @@ import com.photon.util.NetworkOnly;
 
 @NetworkOnly
 @Deprecated
-//TODO Use directly SQLPlayerAccount where needed instead of this manager
 public class ProfileManager {
     private static final SecureRandom random = new SecureRandom();
 
@@ -73,12 +72,7 @@ public class ProfileManager {
      * @param givenAuthCode auth code from ingame
      * @return Boolean : true if the profile exists and the auth code corresponds to the profile UUID, false otherwise
      */
-    //TODO move to SQLPlayerAccount and use SQL directly (no longer get the profile, check the profile, check the code -> Check the auth code directly in SQL request)
     public static boolean isAuthCodeValid(final String givenUUID, final String givenAuthCode) {
-        ObjectPlayerAccount profile = getProfileFromUUID(givenUUID);
-        if (profile != null && profile.discordAuthCode != null) {
-            return profile.discordAuthCode.equals(givenAuthCode);
-        }
-        return false;
+        return SQLPlayerAccount.isAuthCodeValid(givenUUID, givenAuthCode);
     }
 }

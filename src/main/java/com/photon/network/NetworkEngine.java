@@ -30,6 +30,7 @@ public class NetworkEngine {
 		try {
             /* Load features */
 			NetworkDirectories.load();
+            NetworkDirectories.loadGameLogo();
 			
 			/* Debug: Check what was loaded from config */
 			String token = NetworkDirectories.getConfig().discordBotToken;
@@ -73,6 +74,8 @@ public class NetworkEngine {
             ConsoleManager.create("Network Server is now running and waiting for connections...").withType(EnumLogType.NETWORK).end();
 		} catch(Exception e) { e.printStackTrace(); }
     }
+
+
 	
     /**
      * Get the connection of a player

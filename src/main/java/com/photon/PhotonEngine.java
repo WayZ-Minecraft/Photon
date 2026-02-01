@@ -46,20 +46,24 @@ public class PhotonEngine {
     public static byte[] updateData = new byte[0];
     public static String updateSha = "UNKNOWN";
 
+    private static volatile String currentIP = null;
+
     /**
 	 * Get the current IP of the user using the Amazon AWS service
 	 * @return the current IP of the user
-     * @author Niwer
+     * @author Niwer & noz43
 	 */
-    public static String getCurrentIP() {    	
-    	try {
-    		final URL whatismyip = new URL("http://checkip.amazonaws.com");
-    		final BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
-    		String result = in.readLine();
-    		in.close();
-    		return result;
-    	} catch (IOException e) {}
-    	return "UNKNOWN";
+    public static synchronized String getCurrentIP() {
+        if (currentIP != null) return currentIP;
+        
+        try {
+            final URL whatismyip = new URL("http://checkip.amazonaws.com");
+            final BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
+            currentIP = in.readLine();
+            in.close();
+            return currentIP;
+        } catch (IOException e) {}
+        return "UNKNOWN";
     }
     
 	/**

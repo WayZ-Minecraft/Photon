@@ -6,9 +6,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.concurrent.ExecutorService;
@@ -17,11 +14,8 @@ import java.util.concurrent.TimeUnit;
 
 import com.photon.PhotonEngine;
 import com.photon.network.ClientLinkManager;
-import com.photon.network.NetworkDirectories;
 import com.photon.network.messages.requests.ClientRequestUpdate;
-import com.photon.network.messages.requests.account.ClientRequestAccount;
 import com.photon.util.ConsoleManager;
-import com.photon.util.ProtectorManager;
 
 public class UpdaterManager {
 
@@ -34,25 +28,11 @@ public class UpdaterManager {
      * @return The sha1 of the update if there is one, UNKNOWN otherwise
      */
     public static String getSHA1(UpdateFileType type, UpdateChannel channel) {
-        /* If we can't reach the site, disable download */
-
         ClientRequestUpdate test = new ClientRequestUpdate(channel, type);
         ClientLinkManager.sendTCP(test);
 
         ConsoleManager.debug(PhotonEngine.updateSha);
 
-        // try {
-		// 	final URL url = new URL(NetworkDirectories.getConfig().webUrl+"services_updates/the-sha.php?type="+type.name().toLowerCase()+"&channel="+channel.name().toLowerCase());
-		// 	final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-		// 	ProtectorManager.addProperties(conn);
-		// 	conn.setRequestMethod("GET");
-
-		// 	final BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-		// 	final String sha1 = reader.readLine();
-		// 	reader.close();
-
-		// 	return sha1.contains("-") ? "UNKNOWN" : sha1;
-		// } catch (IOException e) { e.printStackTrace(); }
 		return "UNKNOWN";
     }
     
@@ -91,43 +71,14 @@ public class UpdaterManager {
      * @return True if the file has been downloaded, false otherwise
      */
     public static boolean update(UpdateFileType type, UpdateChannel channel, File file, RunnableTask<Integer, Integer> callback) {
-        /* If the downloader is not defined set it to default value */
         if(downloader == null) downloader = Executors.newFixedThreadPool(DEFAULT_DOWNLOADER_THREADS_COUNT);
 
-        /* Download */
         boolean hasFinished = false;
         if(hasUpdate(type, channel, file)) hasFinished = download(type, channel, file, callback);
         else hasFinished = true;
 
-        /* Reset downloader */
         if(hasFinished) downloader = null;
         return hasFinished;
-    }
-
-    /**
-     * Get the latest URL of the chosen update type and channel in the format 
-     * https://.../services_updates/{type}-{channel}.jar (e.g https://.../services_updates/mod-dev.jar)
-     * EXCEPT if the channel is STABLE, then the format will be 
-     * https://.../services_updates/{type}.jar (e.g https://.../services_updates/mod.jar)
-     * @param type The type of the update (e.g MOD, LAUNCHER, API, NETWORK)
-     * @return The url of the update if there is one, UNKNOWN otherwise
-     */
-    public static String getURL(UpdateFileType type, UpdateChannel channel) {
-        String result = NetworkDirectories.getConfig().webUrl + "services_updates/" +
-            type.name().toLowerCase() +
-            (channel != UpdateChannel.STABLE ? "-" + channel.name().toLowerCase() : "") +
-            ".jar";
-
-        try {
-            URL resultUrl = new URL(result);
-            HttpURLConnection resultConn = (HttpURLConnection) resultUrl.openConnection();
-            resultConn.setRequestMethod("HEAD");
-            if (resultConn.getResponseCode() == HttpURLConnection.HTTP_OK) return result;
-            else ConsoleManager.create("Unable to fetch : " + result + ", fallback on the stable channel").error().end();
-        } catch (IOException e) {
-            ConsoleManager.create("Unable to fetch : " + result + ", fallback on the stable channel").error().end();
-        }
-        return getURL(type, UpdateChannel.STABLE);
     }
 
     /**
@@ -140,7 +91,7 @@ public class UpdaterManager {
 
     private static boolean download(UpdateFileType type, UpdateChannel channel, File file, RunnableTask<Integer, Integer> callback) {
         try {
-            downloader.submit(new UpdateDownloader(file, getURL(type, channel), callback));
+            downloader.submit(new UpdateDownloader(file, callback));
             downloader.shutdown();
             downloader.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
             return true;
@@ -150,12 +101,10 @@ public class UpdaterManager {
 
     private static class UpdateDownloader extends Thread {
         private final File file;
-        private final String url;
         private final RunnableTask<Integer, Integer> callback;
 
-        public UpdateDownloader(final File file, final String url, RunnableTask<Integer, Integer> callback) {
+        public UpdateDownloader(final File file, RunnableTask<Integer, Integer> callback) {
             this.file = file;
-            this.url = url;
             this.callback = callback;
         }
 
@@ -166,18 +115,16 @@ public class UpdaterManager {
                 BufferedInputStream bufferedInputStream = null;
                 FileOutputStream fileOutputStream = null;
                 try {
-                    URL downloadUrl = new URL(url.replace(" ", "%20"));
-                    URLConnection urlConnection = downloadUrl.openConnection();
-                    ProtectorManager.addProperties(urlConnection);
-                    bufferedInputStream = new BufferedInputStream(urlConnection.getInputStream());
+                    bufferedInputStream = new BufferedInputStream(PhotonEngine.updateData != null ? new java.io.ByteArrayInputStream(PhotonEngine.updateData) : new java.io.ByteArrayInputStream(new byte[0]));
                     fileOutputStream = new FileOutputStream(file);
                     
                     final int size = 1024;
                     byte[] data = new byte[size];
                     int read;
                     int total = 0;
+                    int contentLength = PhotonEngine.updateData != null ? PhotonEngine.updateData.length : 0;
                     while ((read = bufferedInputStream.read(data, 0, size)) != -1) {
-                        if(callback != null) callback.run(total += read, urlConnection.getContentLength());
+                        if(callback != null) callback.run(total += read, contentLength);
                         fileOutputStream.write(data, 0, read);
                     }
                 } finally {

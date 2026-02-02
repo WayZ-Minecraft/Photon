@@ -1,7 +1,7 @@
 package com.photon.network.messages.response.account;
 
 import com.esotericsoftware.kryonet.Connection;
-import com.photon.PhotonEngine;
+import com.photon.PhotonClientData;
 import com.photon.network.IPacket;
 import com.photon.network.objects.ObjectPlayerAccount;
 
@@ -24,9 +24,6 @@ public class ServerResponseAccount implements IPacket {
     
     @Override
     public void handle(Connection connection) {
-        PhotonEngine.clientPlayerProfile = givenProfile;
-        synchronized (PhotonEngine.clientPlayerProfileWaiter) {
-            PhotonEngine.clientPlayerProfileWaiter.notify();
-        }
+        PhotonClientData.PLAYER_ACCOUNT.set(givenProfile);
     }
 }

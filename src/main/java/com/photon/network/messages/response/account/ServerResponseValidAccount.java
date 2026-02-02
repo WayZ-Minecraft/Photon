@@ -1,7 +1,7 @@
 package com.photon.network.messages.response.account;
 
 import com.esotericsoftware.kryonet.Connection;
-import com.photon.PhotonEngine;
+import com.photon.PhotonClientData;
 import com.photon.network.IPacket;
 import com.photon.network.objects.ObjectPlayerAccount;
 
@@ -11,12 +11,18 @@ import com.photon.network.objects.ObjectPlayerAccount;
 public class ServerResponseValidAccount implements IPacket {
     public boolean exist;
     public boolean isValidPassword;
-    public boolean isEmailAlreadyUsed;
-    public boolean isUsernameAlreadyUsed;
-    public boolean isHWIDAlreadyUsed;
+    public boolean isEmailAlreadyUsed = false;
+    public boolean isUsernameAlreadyUsed = false;
+    public boolean isHWIDAlreadyUsed = false;
     public ObjectPlayerAccount profile;
     
     public ServerResponseValidAccount() {
+    }
+
+    public ServerResponseValidAccount(boolean exist, boolean isValidPassword, ObjectPlayerAccount profile) {
+        this.exist = exist;
+        this.isValidPassword = isValidPassword;
+        this.profile = profile;
     }
 
     public ServerResponseValidAccount(boolean exist, boolean isValidPassword, boolean isEmailAlreadyUsed, boolean isUsernameAlreadyUsed, boolean isHWIDAlreadyUsed, ObjectPlayerAccount profile) {
@@ -37,9 +43,6 @@ public class ServerResponseValidAccount implements IPacket {
     
     @Override
     public void handle(Connection connection) {
-        PhotonEngine.clientAccountResponse = this;
-        synchronized (PhotonEngine.clientAccountResponseWaiter) {
-            PhotonEngine.clientAccountResponseWaiter.notify();
-        }
+        PhotonClientData.PLAYER_ACCOUNT_VERIF.set(this);
     }
 }

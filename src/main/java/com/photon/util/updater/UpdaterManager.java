@@ -1,6 +1,7 @@
 package com.photon.util.updater;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -12,10 +13,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.photon.PhotonEngine;
+import com.photon.PhotonClientData;
 import com.photon.network.ClientLinkManager;
 import com.photon.network.messages.requests.ClientRequestUpdate;
-import com.photon.util.ConsoleManager;
 
 public class UpdaterManager {
 
@@ -28,12 +28,15 @@ public class UpdaterManager {
      * @return The sha1 of the update if there is one, UNKNOWN otherwise
      */
     public static String getSHA1(UpdateFileType type, UpdateChannel channel) {
-        ClientRequestUpdate test = new ClientRequestUpdate(channel, type);
-        ClientLinkManager.sendTCP(test);
+        ClientLinkManager.sendTCP(new ClientRequestUpdate(channel, type)); // Ask the server for the update data (SHA and File)
 
-        ConsoleManager.debug(PhotonEngine.updateSha);
+        // PhotonClientData.UPDATE_SHA.onAvailable(t -> {
+        //     ConsoleManager.debug("Received update SHA: " + t);
+        // });
 
-		return "UNKNOWN";
+        // ConsoleManager.debug(PhotonClientData.UPDATE_SHA.get());
+
+		return PhotonClientData.UPDATE_SHA.get();
     }
     
     /**
@@ -45,7 +48,7 @@ public class UpdaterManager {
     public static boolean hasUpdate(UpdateFileType type, UpdateChannel channel, final File file) {
         final String sha1 = getSHA1(type, channel);
         if(!file.exists()) return true;
-        if(!sha1.equalsIgnoreCase("UNKNOWN") && !getDigest(file, "SHA", 40).equals(sha1)) return true;
+        if(!sha1.equalsIgnoreCase("UNKNOWN") && !getUpdateDigest(file, "SHA", 40).equals(sha1)) return true;
         return false;
     }
 
@@ -111,25 +114,17 @@ public class UpdaterManager {
         @Override
         public void run() {
             System.out.println("Acquiring file '" + file.getName() + "'");
-            try {
-                BufferedInputStream bufferedInputStream = null;
-                FileOutputStream fileOutputStream = null;
-                try {
-                    bufferedInputStream = new BufferedInputStream(PhotonEngine.updateData != null ? new java.io.ByteArrayInputStream(PhotonEngine.updateData) : new java.io.ByteArrayInputStream(new byte[0]));
-                    fileOutputStream = new FileOutputStream(file);
-                    
-                    final int size = 1024;
-                    byte[] data = new byte[size];
-                    int read;
-                    int total = 0;
-                    int contentLength = PhotonEngine.updateData != null ? PhotonEngine.updateData.length : 0;
-                    while ((read = bufferedInputStream.read(data, 0, size)) != -1) {
-                        if(callback != null) callback.run(total += read, contentLength);
-                        fileOutputStream.write(data, 0, read);
-                    }
-                } finally {
-                    if (bufferedInputStream != null) bufferedInputStream.close();
-                    if (fileOutputStream != null) fileOutputStream.close();
+            try(var bis = new BufferedInputStream(new ByteArrayInputStream(PhotonClientData.UPDATE_DATA.get())); var fos = new FileOutputStream(file)) {
+                
+                final int UPDATE_SIZE = PhotonClientData.UPDATE_DATA.get().length;
+                final int SIZE = 1024;
+                final byte[] DATA = new byte[SIZE];
+
+                int read;
+                int total = 0;
+                while ((read = bis.read(DATA, 0, SIZE)) != -1) {
+                    if(callback != null) callback.run(total += read, UPDATE_SIZE);
+                    fos.write(DATA, 0, read);
                 }
             } catch (IOException e) { e.printStackTrace(); }
         }
@@ -142,21 +137,17 @@ public class UpdaterManager {
      * @param hashLength The length of the hash
      * @return The digest of the file
      */
-    public static String getDigest(File file, String algorithm, int hashLength) {
-		DigestInputStream stream = null;
-		try {
-			stream = new DigestInputStream(new FileInputStream(file), MessageDigest.getInstance(algorithm));
-			byte[] ignored = new byte[65536];
+    public static String getUpdateDigest(File file, String algorithm, int hashLength) {
+		try(var stream = new DigestInputStream(new FileInputStream(file), MessageDigest.getInstance(algorithm))) {
+			final byte[] IGNORED = new byte[65536];
+
 			int read;
 			do {
-				read = stream.read(ignored);
+				read = stream.read(IGNORED);
 			} while (read > 0);
-			return String.format("%1$0" + hashLength + "x",
-					new Object[] { new BigInteger(1, stream.getMessageDigest().digest()) });
-		} catch (Exception localException) {
-		} finally {
-			try { stream.close(); } catch (Exception var2) { var2.printStackTrace(); }
-		}
+
+			return String.format("%1$0" + hashLength + "x", new Object[] { new BigInteger(1, stream.getMessageDigest().digest()) });
+		} catch (Exception ex) {}
 		return null;
 	}
 

@@ -10,7 +10,6 @@ import com.photon.network.sql.SQLPlayerAccount;
  * @author Niwer
  * @author noz43
  */
-
 public class ClientRequestAccount implements IPacket {
     private final String UUID;
     private final String email;
@@ -36,15 +35,12 @@ public class ClientRequestAccount implements IPacket {
     public void handle(Connection connection) {
         ObjectPlayerAccount givenProfile = null;
         
-        if (UUID != null) {
-            givenProfile = SQLPlayerAccount.getAccountByUUID(UUID);
-        } else if (email != null) {
-            givenProfile = SQLPlayerAccount.getAccountByEmail(email);
-        } else if (discordID != null) {
-            givenProfile = SQLPlayerAccount.getAccountByDiscordID(discordID);
-        }
+        /* Try to get the profile */
+        if (UUID != null) givenProfile = SQLPlayerAccount.getAccountByUUID(UUID);
+        else if (email != null) givenProfile = SQLPlayerAccount.getAccountByEmail(email);
+        else if (discordID != null) givenProfile = SQLPlayerAccount.getAccountByDiscordID(discordID);
         
-        ServerResponseAccount response = new ServerResponseAccount(givenProfile);
-        connection.sendTCP(response);
+        if(givenProfile == null) return; // No account found
+        connection.sendTCP(new ServerResponseAccount(givenProfile));
     }
 }

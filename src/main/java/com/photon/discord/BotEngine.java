@@ -16,6 +16,7 @@ import com.photon.discord.usersInteraction.data.UsersInfo;
 import com.photon.network.NetworkDirectories;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.NetworkOnly;
 import com.photon.util.TranslationManager;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -35,6 +36,7 @@ import net.dv8tion.jda.api.utils.MemberCachePolicy;
 /**
  * Main class of the bot, load the bot and register important slash commands
  */
+@NetworkOnly
 public class BotEngine extends ListenerAdapter {
 
     public static JDABuilder botBuilder;
@@ -84,7 +86,6 @@ public class BotEngine extends ListenerAdapter {
      * Called during bot initialization
      */
     private static void registerAllAutoComplete() {
-        com.photon.discord.slashCommands.advancedCommands.CustomMute.registerAutoComplete();
         // Add more command autocomplete registrations here as needed
         // Example: YourCommand.registerAutoComplete();
     }

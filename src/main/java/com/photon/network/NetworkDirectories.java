@@ -18,6 +18,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.os.FileLocation;
 import com.photon.util.updater.UpdateChannel;
 import com.photon.util.updater.UpdateFileType;
 
@@ -25,9 +26,8 @@ public class NetworkDirectories
 {
 	public static final File baseDirectory = new File("./network/");
 	public static final File logsDirectory = new File(baseDirectory + "/logs/");
-	@Deprecated public static final File discordDirectory = new File(baseDirectory + "/discord/");
 	public static final File sqlDirectory = new File(baseDirectory + "/sql/");
-	public static final File logoFile = new File(baseDirectory + "/project-logo.png");
+	public static final File logoFile = new File(baseDirectory + "/project_logo.png");
 
 	public static final Object configWaiter = new Object();
 	public static NetworkConfig config = NetworkConfig.DEFAULT;
@@ -44,7 +44,6 @@ public class NetworkDirectories
 	public static void load() {
 		if (!baseDirectory.exists()) baseDirectory.mkdirs();
 		if (!logsDirectory.exists()) logsDirectory.mkdirs();
-		if (!discordDirectory.exists()) discordDirectory.mkdirs();
 		if (!sqlDirectory.exists()) sqlDirectory.mkdirs();
 		
 		try {
@@ -81,60 +80,46 @@ public class NetworkDirectories
 	/**
 	 * Load game logo from file and serialize it to byte array (SERVER SIDE)
 	 * @author noz43
+	 * @author Niwer (Added : Gathering default logo if not found)
 	 */
-	public static void loadGameLogo() {
+	public static void loadLogoOnServer() {
 		if (!logoFile.exists()) {
-			ConsoleManager.create("Game logo not found at: " + logoFile.getPath()).withType(EnumLogType.NETWORK).end();
-			return;
+			ConsoleManager.create("Game logo not found at: " + logoFile.getPath() + ". We'll try to gather the default one").withType(EnumLogType.NETWORK).end();
+
+			final InputStream STREAM = FileLocation.loadFile("photon_logo.png");
+			if (STREAM != null) {
+				try {
+					ImageIO.write(ImageIO.read(STREAM), "png", logoFile);
+				} catch (IOException e) {
+					ConsoleManager.create("Failed to create logo file at: " + logoFile.getPath()).error().withType(EnumLogType.NETWORK).end();
+					e.printStackTrace();
+					return;
+				}
+			}
 		}
 		
 		try {
-			BufferedImage image = ImageIO.read(logoFile);
-			if (image == null) {
+			if (!logoFile.exists()) {
+				ConsoleManager.create("Game logo still not found, aborting logo load").error().withType(EnumLogType.NETWORK).end();
+				return;
+			}
+
+			final BufferedImage IMAGE = ImageIO.read(logoFile);
+			if (IMAGE == null) {
 				ConsoleManager.create("Failed to read game logo").error().withType(EnumLogType.NETWORK).end();
 				return;
 			}
 			
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			ImageIO.write(image, "png", baos);
-			config.gameLogo = baos.toByteArray();
-			baos.close();
+			final ByteArrayOutputStream BAOS = new ByteArrayOutputStream();
+			ImageIO.write(IMAGE, "png", BAOS);
+			config.gameLogo = BAOS.toByteArray();
+			BAOS.close();
 			
 			ConsoleManager.create("Game logo loaded successfully (" + config.gameLogo.length + " bytes)").withType(EnumLogType.NETWORK).end();
 		} catch (IOException e) {
 			ConsoleManager.create("Error loading game logo: " + e.getMessage()).error().withType(EnumLogType.NETWORK).end();
 			e.printStackTrace();
 		}
-	}
-	
-	/**
-     * Get the game logo from the web
-     * @return the game logo from the web in a BufferedImage
-     * @see getGameLogoInputStream()
-     * @author Niwer
-     */
-	public static BufferedImage getGameLogo() {
-		try {
-			byte[] logoData = getConfig().gameLogo;
-			if (logoData == null || logoData.length == 0) return null;
-			
-			ByteArrayInputStream stream = new ByteArrayInputStream(logoData);
-			BufferedImage img = ImageIO.read(stream);
-			stream.close();
-			return img;
-		} catch (IOException e) { e.printStackTrace(); return null; }
-	}
-	
-    /**
-     * Get the game logo from the web
-     * @return the game logo from the web in a InputStream
-     * @see getGameLogo()
-     * @author Niwer
-     */
-	public static InputStream getGameLogoInputStream() {
-		byte[] logoData = getConfig().gameLogo;
-		if (logoData == null || logoData.length == 0) return null;
-		return new ByteArrayInputStream(logoData);
 	}
 
 	public static class NetworkConfig {
@@ -168,11 +153,13 @@ public class NetworkDirectories
 			)
 		);
 
-		public byte[] gameLogo = null;
+		/* Logo */
+		@SerializedName("main_logo") public byte[] gameLogo = null;
 		
 		/* Bot infos */
 		@SerializedName("discord_bot_token") public String discordBotToken = "";
 		@SerializedName("discord_bot_id") public String discord_bot_id = "";
+		@SerializedName("official_discord_server_id") public String official_discord_server_id = "";
 		
 		/* Versions infos */
 		@SerializedName("api_version") public String api_version = "1.0.0";
@@ -184,5 +171,35 @@ public class NetworkDirectories
 		@SerializedName("youtube_url") public String youtube_url = "https://youtube.com/";
 		@SerializedName("discord_url") public String discord_url = "https://discord.gg/";
 		@SerializedName("website_url") public String website_url = "https://example.com";
+
+		/**
+		 * Get the game logo from the web
+		 * @return the game logo from the web in a BufferedImage
+		 * @see getGameLogoInputStream()
+		 * @author Niwer
+		 */
+		public static BufferedImage getGameLogo() {
+			try {
+				final byte[] DATA = getConfig().gameLogo;
+				if (DATA == null || DATA.length == 0) return null;
+				
+				final ByteArrayInputStream STREAM = new ByteArrayInputStream(DATA);
+				final BufferedImage IMG = ImageIO.read(STREAM);
+				STREAM.close();
+				return IMG;
+			} catch (IOException e) { e.printStackTrace(); return null; }
+		}
+		
+		/**
+		 * Get the game logo from the web
+		 * @return the game logo from the web in a InputStream
+		 * @see getGameLogo()
+		 * @author Niwer
+		 */
+		public static InputStream getGameLogoInputStream() {
+			final byte[] DATA = getConfig().gameLogo;
+			if (DATA == null || DATA.length == 0) return null;
+			return new ByteArrayInputStream(DATA);
+		}
 	}
 }

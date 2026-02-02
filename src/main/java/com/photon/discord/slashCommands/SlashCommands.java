@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 
-import com.photon.discord.slashCommands.advancedCommands.CustomMute;
 import com.photon.discord.slashCommands.advancedCommands.KineticCommands;
 import com.photon.discord.slashCommands.advancedCommands.NewsManager;
 import com.photon.network.NetworkDirectories;
@@ -188,7 +187,7 @@ public class SlashCommands {
                 clearMessages(event);
                 break;
             case "tempmute":
-                CustomMute.tempmute(event);
+                // CustomMute.tempmute(event);
                 break;
             case "restart-network":
                 restartNetwork(event);
@@ -217,9 +216,9 @@ public class SlashCommands {
             case "post-update":
                 postUpdate(event);
                 break;
-            case "silence":
-                CustomMute.silence(event);
-                break;
+            // case "silence":
+            //     CustomMute.silence(event);
+            //     break;
             case "convert":
                 KineticCommands.convertFile(event);
                 break;

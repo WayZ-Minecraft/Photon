@@ -16,6 +16,13 @@ import javax.mail.internet.MimeMultipart;
 
 import com.photon.util.NetworkOnly;
 
+/**
+ * Email system shouldn't be controllable by users/community directly.
+ * This email system is used for our account system (verification, password reset, etc.)
+ * And it will be used for sending emails to users from the official team.
+ * 
+ * @author Niwer
+ */
 @NetworkOnly
 public class EmailManager { //TODO EMAILs SENDER
 	

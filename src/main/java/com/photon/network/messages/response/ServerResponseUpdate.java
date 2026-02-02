@@ -1,7 +1,7 @@
 package com.photon.network.messages.response;
 
 import com.esotericsoftware.kryonet.Connection;
-import com.photon.PhotonEngine;
+import com.photon.PhotonClientData;
 import com.photon.network.IPacket;
 
 /**
@@ -24,10 +24,7 @@ public class ServerResponseUpdate implements IPacket {
         
     @Override
     public void handle(Connection connection) {
-        PhotonEngine.updateData = data;
-        PhotonEngine.updateSha = sha1;
-        synchronized (PhotonEngine.clientUpdateWaiter) {
-            PhotonEngine.clientUpdateWaiter.notify();
-        }
+        PhotonClientData.UPDATE_DATA.set(data);
+        PhotonClientData.UPDATE_SHA.set(sha1);
     }
 }

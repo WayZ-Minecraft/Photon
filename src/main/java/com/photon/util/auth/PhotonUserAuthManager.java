@@ -4,12 +4,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.Random;
 import java.util.regex.Pattern;
 
-import com.photon.PhotonEngine;
+import com.photon.PhotonClientData;
 import com.photon.network.ClientLinkManager;
-import com.photon.network.ProfileManager;
 import com.photon.network.messages.requests.account.ClientRequestAccountCreation;
 import com.photon.network.messages.requests.account.ClientRequestAccountVerification;
 import com.photon.network.objects.ObjectPlayerAccount;
@@ -19,6 +19,8 @@ import com.photon.util.ProtectorManager;
 
 public class PhotonUserAuthManager
 {
+	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
 	public static boolean isAuthed = false;
 	private static AuthError error = AuthError.NO_RESPONSE;	
 	private static PhotonAuthSession session = new PhotonAuthSession();
@@ -34,39 +36,37 @@ public class PhotonUserAuthManager
 		setAuthed(false); // Reset the auth status
 		setError(AuthError.NO_RESPONSE);// Reset the error status
 
-		Thread connectionThread = new Thread(() -> {
-			if(!validEmailAddress(email)) setError(AuthError.NOT_VALID_EMAIL);
-			if(password.length() < 8) setError(AuthError.UNDER_8_CHAR);
+		if(!validEmailAddress(email)) {
+			setError(AuthError.NOT_VALID_EMAIL);
+			return false; // Early return if the email is not valid
+		}
 
-			synchronized(PhotonEngine.clientAccountResponseWaiter) {
-				final ClientRequestAccountVerification REQUEST_ACCOUNT_CHECK = new ClientRequestAccountVerification(
-					email,
-					hashPassword ? ProtectorManager.hash(password) : password
-				);
-				ClientLinkManager.sendTCP(REQUEST_ACCOUNT_CHECK);
-
-				try {
-					PhotonEngine.clientAccountResponseWaiter.wait();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				
-				if(!PhotonEngine.clientAccountResponse.isExist()) setError(AuthError.ACCOUNT_NOT_FOUND); // Wait for the response
+		if(password.length() < 8) {
+			setError(AuthError.UNDER_8_CHAR);
+			return false; // Early return if the password is too short
+		}
+		
+		/* Send a request to verify that the account exists */
+		final ClientRequestAccountVerification REQUEST_ACCOUNT_CHECK = new ClientRequestAccountVerification(email, hashPassword ? ProtectorManager.hash(password) : password);
+		ClientLinkManager.sendTCP(REQUEST_ACCOUNT_CHECK);
+		
+		/* Then when we have the response */
+		PhotonClientData.PLAYER_ACCOUNT_VERIF.onAvailable(response -> {
+			/* When we have a profile */
+			PhotonClientData.PLAYER_ACCOUNT.onAvailable(account -> {
+				if(!response.isExist()) setError(AuthError.ACCOUNT_NOT_FOUND);
 				else {
-					if(!PhotonEngine.clientAccountResponse.isValidPassword()) setError(AuthError.PASSWORD_NOT_VALID);
-					else setSession(getProfile().username, getProfile().uuid);
+					if(!response.isValidPassword()) setError(AuthError.PASSWORD_NOT_VALID);
+					else setSession(account.username, account.uuid);
 				}
-
 				if(callback != null) callback.run();
-			}
-		}, "Connection Thread");
-		connectionThread.setDaemon(true);
-		connectionThread.start();
+			});
+		});
 
 		return isAuthed;
 	}
 
-		/**
+	/**
 	 * Try to authenticate the user. This will automatically hash the password
 	 * @param email The email of the account
 	 * @param password The password of the account
@@ -76,44 +76,38 @@ public class PhotonUserAuthManager
 	public static void tryCreateAccout(String email, String username, String password, Runnable callback) {
 		setError(AuthError.NO_RESPONSE); // Reset the error status
 
-		Thread connectionThread = new Thread(() -> {
-			if(!validEmailAddress(email)) setError(AuthError.NOT_VALID_EMAIL);
-			if(password.length() < 8) setError(AuthError.UNDER_8_CHAR);
-			
-			synchronized(PhotonEngine.clientAccountResponseWaiter) {
-				final ClientRequestAccountCreation REQUEST_ACCOUNT_CREATE = new ClientRequestAccountCreation(
-					username,
-					email,
-					ProtectorManager.hash(password)
-				);
-				ClientLinkManager.sendTCP(REQUEST_ACCOUNT_CREATE);
+		if(!validEmailAddress(email)) {
+			setError(AuthError.NOT_VALID_EMAIL);
+			return; // Early return if the email is not valid
+		}
+		if(password.length() < 8) {
+			setError(AuthError.UNDER_8_CHAR);
+			return; // Early return if the password is too short
+		}
+		
+		/* Try create the account */
+		final ClientRequestAccountCreation REQUEST_ACCOUNT_CREATE = new ClientRequestAccountCreation(username, email, ProtectorManager.hash(password));
+		ClientLinkManager.sendTCP(REQUEST_ACCOUNT_CREATE);
 				
-				try {
-					PhotonEngine.clientAccountResponseWaiter.wait(); // Wait for the response
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				
-				if(PhotonEngine.clientAccountResponse.isEmailAlreadyUsed()) setError(AuthError.EMAIL_USED);
-				else if(PhotonEngine.clientAccountResponse.isUsernameAlreadyUsed()) setError(AuthError.USERNAME_USED);
-				else if(!PhotonEngine.clientAccountResponse.isExist()) setError(AuthError.ACCOUNT_NOT_FOUND);
-				else setError(AuthError.SUCCESS);
-				if(callback != null) callback.run();
-			}
-		},"Connection Thread");
-		connectionThread.setDaemon(true);
-		connectionThread.start();
+		/* Then when we have the response */
+		PhotonClientData.PLAYER_ACCOUNT_VERIF.onAvailable(response -> {
+			if(response.isEmailAlreadyUsed()) setError(AuthError.EMAIL_USED);
+			else if(response.isUsernameAlreadyUsed()) setError(AuthError.USERNAME_USED);
+			else if(!response.isExist()) setError(AuthError.ACCOUNT_NOT_FOUND);
+			else setError(AuthError.SUCCESS);
+			if(callback != null) callback.run();
+		});
 	}
 
-		/**
+	/**
      * This try to connect the user to his account using the local saved file
      */
     public static void connectToAccountUsingLocalInfos(File path, Runnable callback) {
 		try {
-			final File file = new File(path, ProtectorManager.getHWID()+".accounts");
-            if(file.exists()) {
+			final File ACCOUNT_FILE = new File(path, ProtectorManager.getHWID()+".accounts");
+            if(ACCOUNT_FILE.exists()) {
 				ConsoleManager.create("Try connecting using local infos...").withType(EnumLogType.CLIENT).end();
-                final FileInputStream stream = new FileInputStream(file);
+                final FileInputStream stream = new FileInputStream(ACCOUNT_FILE);
                 final String[] content = new String(ProtectorManager.readCompressedFile(stream)).split("/");
                 tryAuth(content[0], content[1], false, callback);
                 stream.close();
@@ -121,22 +115,21 @@ public class PhotonUserAuthManager
         } catch(Exception e) { e.printStackTrace(); }
     }
 
-		/**
+	/**
 	 * Save the account informations into a file
 	 * @param path The path where the file will be saved
 	 * @param email The email of the account
 	 * @param password The password of the account
 	 */
-
 	public static void saveAccount(File path, String email, String password) {
         try {
 			/* Create the file */
-            File file = new File(path, ProtectorManager.getHWID()+".accounts");
-            if(!file.exists()) file.createNewFile();
+            final File ACCOUNT_FILE = new File(path, ProtectorManager.getHWID()+".accounts");
+            if(!ACCOUNT_FILE.exists()) ACCOUNT_FILE.createNewFile();
 
 			/* Write into the file */
             final String content = email+"/"+ProtectorManager.hash(password);
-            ProtectorManager.writeCompressedFile(new FileOutputStream(file), content.getBytes());
+            ProtectorManager.writeCompressedFile(new FileOutputStream(ACCOUNT_FILE), content.getBytes());
         } catch (IOException e) { e.printStackTrace(); }
     }
 
@@ -145,21 +138,25 @@ public class PhotonUserAuthManager
      * @return true if the client has a account selected
      * @author Niwer
      */
+	public static boolean hasAccountConnected() { return PhotonClientData.PLAYER_ACCOUNT.get() !=null; }
 
-	public static boolean hasAccountConnected() { return PhotonEngine.clientAccountResponse !=null && PhotonEngine.clientAccountResponse.getProfile() !=null; }
+	public static ObjectPlayerAccount getProfile() { return PhotonClientData.PLAYER_ACCOUNT.get(); }
 
-	public static ObjectPlayerAccount getProfile() { return PhotonEngine.clientAccountResponse.getProfile(); }
+	public static String getTokenFromEMail(final String name) {
+        final long TOKEN = Math.abs(SECURE_RANDOM.nextLong());
+        return name + ":" + Long.toString(TOKEN, 16);
+    }
 
 	private synchronized static void setSession(String name, String uuid) {
 		synchronized(session) {
 			session.setUsername(name);
-			session.setToken(ProfileManager.getTokenFromEMail(name));
+			session.setToken(getTokenFromEMail(name));
 			session.setUuid(uuid);
 			setAuthed(true);
 			setError(AuthError.SUCCESS);
 		}
 	}
-
+	
 	public static boolean isLogged() { return isAuthed; }
 	
 	public static PhotonAuthSession getSession() { return session; }
@@ -169,8 +166,8 @@ public class PhotonUserAuthManager
 	public static String generateDigiCode() { return String.format("%06d", new Random().nextInt(999999)); }
 	
 	public static boolean validEmailAddress(String email) {
-		Pattern pattern = Pattern.compile("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}");
-        return pattern.matcher(email).matches();
+		final Pattern EMAIL_PATTERN = Pattern.compile("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}");
+        return EMAIL_PATTERN.matcher(email).matches();
 	}
 
 	private synchronized static void setError(AuthError error) { PhotonUserAuthManager.error = error; }

@@ -17,4 +17,9 @@ public class ObjectServer {
     
     public String site;
     public String discord;
+
+    @Override
+    public int hashCode() {
+        return 0;
+    }
 }

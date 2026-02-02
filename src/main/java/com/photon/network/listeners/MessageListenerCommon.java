@@ -12,6 +12,10 @@ import com.photon.network.messages.requests.ClientRequestAddListener;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
 
+/**
+ * TODO this will have to be rework to make support for Content-Packs download.
+ * But not required immediately.
+ */
 public class MessageListenerCommon implements Listener {
     
     public static final List<INetworkMessageListener> REGISTERED_LISTENERS = new CopyOnWriteArrayList<>();

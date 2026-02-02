@@ -26,21 +26,19 @@ public class NetworkEngine {
     public static final List<ObjectServer> SAVED_SERVER_LIST = new ArrayList<>();
     public static final Map<String, Connection> CONNECTED_CLIENTS_LIST = new HashMap<>();
 
-	public static void main(final String[] args) {
+	public static void main(final String[] args) { load(args); }
+    
+    /**
+     * Load the Network Engine
+     * This method exist because it allows to start the NetworkEngine from {@link com.photon.NetworkClientSideTester#main(String[] args)}
+     * @param args The arguments passed to the main method
+     * @author Niwer
+     */
+	public static void load(final String[] args) {
 		try {
             /* Load features */
 			NetworkDirectories.load();
-            NetworkDirectories.loadGameLogo();
-			
-			/* Debug: Check what was loaded from config */
-			String token = NetworkDirectories.getConfig().discordBotToken;
-			if (token != null && !token.isEmpty()) {
-				// Mask token for security (show only first 10 chars)
-				String maskedToken = token.length() > 10 ? token.substring(0, 10) + "..." : token;
-				ConsoleManager.create("Discord token loaded: " + maskedToken).withType(EnumLogType.NETWORK).end();
-			} else {
-				ConsoleManager.create("Discord token is null or empty").withType(EnumLogType.NETWORK).end();
-			}
+            NetworkDirectories.loadLogoOnServer();
 
             /* Connect to SQL database */
             SqlInteract.connect();
@@ -74,8 +72,6 @@ public class NetworkEngine {
             ConsoleManager.create("Network Server is now running and waiting for connections...").withType(EnumLogType.NETWORK).end();
 		} catch(Exception e) { e.printStackTrace(); }
     }
-
-
 	
     /**
      * Get the connection of a player
@@ -94,10 +90,7 @@ public class NetworkEngine {
      * @author Niwer
      */
 	public static String getPlayerUUID(Connection connection) {
-        for(Entry<String, Connection> entry : CONNECTED_CLIENTS_LIST.entrySet()) {
-        	if(entry.getValue().equals(connection)) return entry.getKey();
-        }
-        return "";
+        return CONNECTED_CLIENTS_LIST.entrySet().stream().filter(entry -> entry.getValue().equals(connection)).findFirst().get().getKey();
     }
 	
     /**
@@ -107,11 +100,6 @@ public class NetworkEngine {
      * @author Niwer
      */
 	public static List<Connection> getConnectedConnection() {
-    	final List<Connection> list = new ArrayList<>();
-        for (Entry<String, Connection> entry : CONNECTED_CLIENTS_LIST.entrySet()) {
-        	final Connection conn = entry.getValue();
-            if(conn != null && conn.isConnected()) list.add(conn);
-        }
-        return list;
+        return CONNECTED_CLIENTS_LIST.entrySet().stream().filter(entry -> entry.getValue() != null && entry.getValue().isConnected()).map(Entry::getValue).toList();
     }
 }

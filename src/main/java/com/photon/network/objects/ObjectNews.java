@@ -1,6 +1,5 @@
 package com.photon.network.objects;
 
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -86,7 +85,7 @@ public class ObjectNews
 	 * Create an embed with the news
 	 * @return the embed of the news
 	 */
-	public EmbedBuilder getEmbed(){
+	public EmbedBuilder getEmbed() {
 		EmbedBuilder embed = new EmbedBuilder();
 		embed.setTitle(this.title);
 		embed.setDescription("🇬🇧"+this.content.get("en")+"\n\n🇫🇷"+this.content.get("fr"));

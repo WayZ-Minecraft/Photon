@@ -11,13 +11,6 @@ import com.photon.util.NetworkOnly;
 @NetworkOnly
 @Deprecated
 public class ProfileManager {
-    private static final SecureRandom random = new SecureRandom();
-
-    public static String getTokenFromEMail(final String name) {
-        final long longToken = Math.abs(random.nextLong());
-        return name + ":" + Long.toString(longToken, 16);
-    }
-
     public static void deleteProfile(final ObjectPlayerAccount profile) {
         if (profile != null && profile.uuid != null) {
             SQLPlayerAccount.deleteAccount(profile.uuid);

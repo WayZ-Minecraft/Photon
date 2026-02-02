@@ -7,14 +7,9 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 
 import com.photon.network.ClientLinkManager;
-import com.photon.network.messages.response.account.ServerResponseValidAccount;
-import com.photon.network.objects.ObjectNews;
-import com.photon.network.objects.ObjectPlayerAccount;
-import com.photon.network.objects.ObjectServer;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
 
@@ -25,26 +20,6 @@ public class PhotonEngine {
 	public static String network_Ip = LOCAL_IP;
     public static int network_Tcp = 54556;
     public static int network_Udp = 54556;
-    
-    /* Allow access to the player profile if requested before */
-    public static final Object clientPlayerProfileWaiter = new Object();
-    public static ObjectPlayerAccount clientPlayerProfile = new ObjectPlayerAccount();
-
-    /* Allow access to the player account if requested before */
-    public static final Object clientAccountResponseWaiter = new Object();
-    public static ServerResponseValidAccount clientAccountResponse;
-    
-    /* Allow access to the news list if requested before */
-    public static final Object clientNewsListWaiter = new Object();
-    public static ArrayList<ObjectNews> clientNewsList = new ArrayList<>();
-
-    /* Allow access to the servers list if requested before */
-    public static final Object clientServerListWaiter = new Object();
-    public static ArrayList<ObjectServer> clientServerList = new ArrayList<>();
-    
-    public static final Object clientUpdateWaiter = new Object();
-    public static byte[] updateData = new byte[0];
-    public static String updateSha = "UNKNOWN";
 
     private static volatile String currentIP = null;
 
@@ -103,7 +78,7 @@ public class PhotonEngine {
     }
 
     /**
-     * This allow to connect to the network, if unable to connect to the server, it will try to connect to the local server
+     * This allow to connect to the network, if unable to connect to the server, it won't try connecting to a local server
      * @param ip the IP of the server (V.P.S)
      * @throws IOException if the connection failed on the local server too
      */

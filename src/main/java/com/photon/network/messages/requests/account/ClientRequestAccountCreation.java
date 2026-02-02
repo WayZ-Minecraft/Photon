@@ -36,28 +36,21 @@ public class ClientRequestAccountCreation implements IPacket {
     
     @Override
     public void handle(Connection connection) {
-        boolean isEmailAlreadyUsed = SQLPlayerAccount.emailExists(email);
-        boolean isUsernameAlreadyUsed = SQLPlayerAccount.usernameExists(username);
+        final boolean isEmailAlreadyUsed = SQLPlayerAccount.emailExists(email);
+        final boolean isUsernameAlreadyUsed = SQLPlayerAccount.usernameExists(username);
         
         boolean exist = false;
         ObjectPlayerAccount profile = null;
         
         if (!isEmailAlreadyUsed && !isUsernameAlreadyUsed) {
+            ConsoleManager.debug("No account with the same email or username. Creating a new one...");
             profile = SQLPlayerAccount.createAccount(username, email, password);
+            exist = profile != null;
             
-            exist = (profile != null);
-            
-            if (exist) {
-                ConsoleManager.create("New account created: " + profile.username)
-                    .displayOnDiscord()
-                    .withType(EnumLogType.NETWORK)
-                    .end();
-            }
+            if (exist) ConsoleManager.create("New account created: " + profile.username).displayOnDiscord().withType(EnumLogType.NETWORK).end();
         }
         
-        ServerResponseValidAccount response = new ServerResponseValidAccount(
-            exist, true, isEmailAlreadyUsed, isUsernameAlreadyUsed, false, profile
-        );
+        final ServerResponseValidAccount response = new ServerResponseValidAccount(exist, true, isEmailAlreadyUsed, isUsernameAlreadyUsed, false, profile);
         connection.sendTCP(response);
     }
 }

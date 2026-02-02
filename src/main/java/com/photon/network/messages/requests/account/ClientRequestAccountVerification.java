@@ -10,7 +10,6 @@ import com.photon.network.sql.SQLPlayerAccount;
  * @author Niwer
  * @author noz43
  */
-
 public class ClientRequestAccountVerification implements IPacket {
     private final String email;
     private final String password;
@@ -30,22 +29,12 @@ public class ClientRequestAccountVerification implements IPacket {
     
     @Override
     public void handle(Connection connection) {
-        ObjectPlayerAccount profile = SQLPlayerAccount.getAccountByEmail(email);
-        
-        boolean exist = (profile != null);
-        boolean isValidPassword = false;
-        ObjectPlayerAccount returnProfile = null;
+        final ObjectPlayerAccount profile = SQLPlayerAccount.getAccountByEmail(email);
+        final boolean exist = profile != null;
         
         if (exist) {
-            isValidPassword = profile.password.equals(password);
-            if (isValidPassword) {
-                returnProfile = profile;
-            }
+            final ServerResponseValidAccount response = new ServerResponseValidAccount(exist, profile.password.equals(password), profile);
+            connection.sendTCP(response);
         }
-        
-        ServerResponseValidAccount response = new ServerResponseValidAccount(
-            exist, isValidPassword, false, false, false, returnProfile
-        );
-        connection.sendTCP(response);
     }
 }

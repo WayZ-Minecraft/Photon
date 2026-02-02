@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.esotericsoftware.kryonet.Connection;
-import com.photon.PhotonEngine;
+import com.photon.PhotonClientData;
 import com.photon.network.IPacket;
 import com.photon.network.objects.ObjectNews;
 
@@ -27,9 +27,7 @@ public class ServerResponseNewsList implements IPacket {
     
     @Override
     public void handle(Connection connection) {
-        PhotonEngine.clientNewsList = new ArrayList<>(newsObjects);
-        synchronized (PhotonEngine.clientNewsListWaiter) {
-            PhotonEngine.clientNewsListWaiter.notify();
-        }
+        PhotonClientData.CLIENT_NEWS_LIST.clear();
+        PhotonClientData.CLIENT_NEWS_LIST.addAll(newsObjects);
     }
 }

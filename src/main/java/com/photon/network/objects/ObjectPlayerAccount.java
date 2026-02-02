@@ -2,12 +2,19 @@ package com.photon.network.objects;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
+
+import com.google.gson.reflect.TypeToken;
+import com.photon.network.NetworkDirectories;
+import com.photon.network.sql.SQLInteraction.SQLCommandSerializer;
+import com.photon.util.ConsoleManager;
 
 /**
  * Can't use record here, Too complex object for record
  */
-public class ObjectPlayerAccount {
+public class ObjectPlayerAccount implements SQLCommandSerializer<ObjectPlayerAccount> {
 	public String username;
 	public String email;
 	public String password;
@@ -26,4 +33,38 @@ public class ObjectPlayerAccount {
     }
     
     public static String generateAuthCode() { return new BigInteger(40, new SecureRandom()).toString(32); }
+
+    @Override
+    public ObjectPlayerAccount objectify(ResultSet resultSet) throws SQLException {
+        final ObjectPlayerAccount account = new ObjectPlayerAccount();
+        account.username = resultSet.getString("username");
+        account.email = resultSet.getString("email");
+        account.password = resultSet.getString("password");
+        account.twoAuthFactor = resultSet.getBoolean("twoAuthFactor");
+        account.uuid = resultSet.getString("uuid");
+        account.discordID = resultSet.getString("discordID");
+        account.discordAuthCode = resultSet.getString("discordAuthCode");
+        account.projectCreator = resultSet.getBoolean("projectCreator");
+        account.shopCoins = resultSet.getInt("shopCoins");
+
+        final String friendsJSON = resultSet.getString("friends");
+        if (friendsJSON != null && !friendsJSON.isEmpty()) {
+             try {
+                TypeToken<ArrayList<String>> typeToken = new TypeToken<ArrayList<String>>() {};
+                account.firends = NetworkDirectories.GSON.fromJson(friendsJSON, typeToken.getType());
+            } catch (Exception e) {
+                ConsoleManager.create("Error parsing friends JSON for " + account.uuid + ": " + e.getMessage()).error().end();
+            }
+        }
+
+        return account;
+    }
+
+    @Override
+    public String toString() {
+        return "ObjectPlayerAccount [username=" + username + ", email=" + email + ", password=" + password
+                + ", twoAuthFactor=" + twoAuthFactor + ", uuid=" + uuid + ", discordID=" + discordID
+                + ", discordAuthCode=" + discordAuthCode + ", projectCreator=" + projectCreator + ", shopCoins="
+                + shopCoins + ", firends=" + firends + "]";
+    }
 }

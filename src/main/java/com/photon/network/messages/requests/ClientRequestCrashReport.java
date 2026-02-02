@@ -34,7 +34,7 @@ public class ClientRequestCrashReport implements IPacket {
     
     @Override
     public void handle(Connection connection) {
-        SQLCrashReport.saveCrashReport(userUUID, fileName, fileMessage);
+        SQLCrashReport.save(userUUID, fileName, fileMessage);
         
         ConsoleManager.create("Crash report received: " + userUUID)
             .displayOnDiscord()

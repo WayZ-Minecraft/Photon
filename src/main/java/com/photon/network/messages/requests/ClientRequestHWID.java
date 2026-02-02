@@ -1,10 +1,11 @@
 package com.photon.network.messages.requests;
 
 import com.esotericsoftware.kryonet.Connection;
-import com.photon.network.sql.SQLHWID;
 import com.photon.network.IPacket;
+import com.photon.network.sql.SQLHWID;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.os.OperatingSystem;
 
 public class ClientRequestHWID implements IPacket {
     private final String userName;
@@ -17,6 +18,13 @@ public class ClientRequestHWID implements IPacket {
         this.userUUID = "";
         this.userHWID = "";
         this.operatingSystem = "";
+    }
+
+    public ClientRequestHWID(String userName, String userUUID, String userHWID, OperatingSystem operatingSystem) {
+        this.userName = userName;
+        this.userUUID = userUUID;
+        this.userHWID = userHWID;
+        this.operatingSystem = operatingSystem.getName();
     }
 
     public ClientRequestHWID(String userName, String userUUID, String userHWID, String operatingSystem) {
@@ -33,12 +41,8 @@ public class ClientRequestHWID implements IPacket {
     
     @Override
     public void handle(Connection connection) {
-        SQLHWID.saveHWID(userName, userUUID, userHWID, operatingSystem);
+        SQLHWID.save(userName, userUUID, userHWID, operatingSystem);
         
-        ConsoleManager.create("HWID received: " + userUUID + 
-            "\nOS: " + operatingSystem + 
-            "\nHWID: " + userHWID)
-            .withType(EnumLogType.NETWORK)
-            .end();
+        ConsoleManager.create("HWID received: " + userUUID + " OS: " + operatingSystem + " HWID: " + userHWID).withType(EnumLogType.NETWORK).end();
     }
 }

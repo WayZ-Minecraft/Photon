@@ -1,9 +1,10 @@
-package com.photon.discord.usersInteraction.language;
+package com.photon.discord.language;
 
 /**
  * Enum to manage the languages
  * @author Mini
  */
+@Deprecated // Use TranslationManager.java instead
 public enum Languages {
     FRENCH("fr"),
     ENGLISH("en");

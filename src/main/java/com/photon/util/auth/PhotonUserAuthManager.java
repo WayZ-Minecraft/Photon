@@ -94,8 +94,10 @@ public class PhotonUserAuthManager
 			if(response.isEmailAlreadyUsed()) setError(AuthError.EMAIL_USED);
 			else if(response.isUsernameAlreadyUsed()) setError(AuthError.USERNAME_USED);
 			else if(!response.isExist()) setError(AuthError.ACCOUNT_NOT_FOUND);
-			else setError(AuthError.SUCCESS);
-			if(callback != null) callback.run();
+			else {
+				setError(AuthError.SUCCESS);
+				if(callback != null) callback.run();
+			}
 		});
 	}
 

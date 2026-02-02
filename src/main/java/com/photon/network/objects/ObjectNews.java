@@ -1,12 +1,16 @@
 package com.photon.network.objects;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.photon.network.sql.SQLInteraction.SQLCommandSerializer;
+
 import net.dv8tion.jda.api.EmbedBuilder;
 
-public class ObjectNews
+public class ObjectNews implements SQLCommandSerializer<ObjectNews>
 {
 	private int id;
 	private final String title;
@@ -92,5 +96,17 @@ public class ObjectNews
 		embed.setImage(this.imageUrl);
 		embed.setTimestamp(this.date.toInstant());
 		return embed;
+	}
+
+	@Override
+	public ObjectNews objectify(ResultSet resultSet) throws SQLException {
+		return new ObjectNews(
+			resultSet.getInt("id"),
+			resultSet.getString("title"),
+			resultSet.getString("content_en"),
+			resultSet.getString("content_fr"),
+			new Date(resultSet.getLong("date")),
+			resultSet.getString("image_url")
+		);
 	}
 }

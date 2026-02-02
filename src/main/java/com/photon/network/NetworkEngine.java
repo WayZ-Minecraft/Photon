@@ -13,7 +13,7 @@ import com.photon.PhotonEngine;
 import com.photon.discord.BotEngine;
 import com.photon.network.objects.ObjectNews;
 import com.photon.network.objects.ObjectServer;
-import com.photon.network.sql.SqlInteract;
+import com.photon.network.sql.SQLInteraction;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
 import com.photon.util.NetworkOnly;
@@ -41,7 +41,7 @@ public class NetworkEngine {
             NetworkDirectories.loadLogoOnServer();
 
             /* Connect to SQL database */
-            SqlInteract.connect();
+            SQLInteraction.connect();
             
             /* Register logs file */
 			ConsoleManager.registerFileHandler(new File(NetworkDirectories.logsDirectory, "network.log"), "network");
@@ -58,7 +58,7 @@ public class NetworkEngine {
 			}
 
             /* Starting the discord bot if token available */
-			if(NetworkDirectories.getConfig().discordBotToken !=null && !NetworkDirectories.getConfig().discordBotToken.isEmpty()) {
+			if(NetworkDirectories.getConfig().discord_bot_token !=null && !NetworkDirectories.getConfig().discord_bot_token.isEmpty()) {
                 try {
                     BotEngine.load(Arrays.asList(args).contains("--restart"));
                     ConsoleManager.create("Discord Bot started successfully").withType(EnumLogType.NETWORK).end();

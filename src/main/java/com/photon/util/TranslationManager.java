@@ -19,10 +19,8 @@ public class TranslationManager {
 	public static final Locale locale_de = new Locale("de", "DE");
 	public static final Locale locale_ru = new Locale("ru", "RU");
 
-	public static String activeLocale = "en"; // For Launcher
-
 	/* The list that contains every locales */
-	private static ArrayList<Locale> locales = new ArrayList<>(){{
+	private static final ArrayList<Locale> LOCALES = new ArrayList<>(){{
 		add(locale_en);
 		add(locale_fr);
 		add(locale_de);
@@ -37,7 +35,7 @@ public class TranslationManager {
 	 * Load all languages from the given path.
 	 * @param path The path to load from.
 	 */
-	public static void loadAllLanguages(String path) { locales.forEach(locale -> load(locale, path)); }
+	public static void loadAllLanguages(String path) { LOCALES.forEach(locale -> load(locale, path)); }
 	
 	/** 
 	 * Load a language from the given path.
@@ -55,7 +53,6 @@ public class TranslationManager {
 			}
 		}
 		load(locale, path);
-		activeLocale = locale.getLanguage();
 	}
 	
 
@@ -122,10 +119,6 @@ public class TranslationManager {
 
 	public static String format(String locale, String key) { return format(locale, key, new Object()); }
 
-	public static String format(String key, Object... obj) { return format(activeLocale, key, obj); }
-	
-	public static String format(String key) { return format(activeLocale, key, new Object()); }
-
 
     /**
      * Get the system language in locale format
@@ -133,8 +126,8 @@ public class TranslationManager {
      * @autor Created by Niwer
      */
 	public static String getSystem() {
-		String lang = System.getProperty("user.language");
-		switch(lang.toLowerCase()) {
+		final String OS_LANG = System.getProperty("user.language");
+		switch(OS_LANG.toLowerCase()) {
 			case "en": return locale_en.getLanguage();
 			case "fr": return locale_fr.getLanguage();
 			case "de": return locale_de.getLanguage();

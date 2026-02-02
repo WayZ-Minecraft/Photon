@@ -1,12 +1,21 @@
 package com.photon.network.sql;
 
 import java.sql.Date;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import com.photon.network.objects.ObjectNews;
+import com.photon.util.NetworkOnly;
 
-public class SQLnews extends SqlInteract{
+@NetworkOnly
+public class SQLnews extends SQLInteraction{
+
+    /**
+     * Create News table with columns: id, title, contentEn, contentFr, date, imagepath.
+     */
+    @Override
+    public void register() {
+        executeSQLCommand("CREATE TABLE IF NOT EXISTS News (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, contentEn TEXT, contentFr TEXT, date DATE NOT NULL, image TEXT);");
+    }
 
     /**
      * Save a news entry to the database.
@@ -21,21 +30,8 @@ public class SQLnews extends SqlInteract{
         final Date date = new Date(news.getDate().getTime());
         final String imageUrl = news.getImageUrl();
 
-        PreparedStatement statement = null;
-        
-        try {
-            statement = connexion.prepareStatement(
-                "INSERT INTO News (title, contentEn, contentFr, date, imagepath) VALUES (?, ?, ?, ?, ?)");
-            
-            statement.setString(1, title);
-            statement.setString(2, contentEn);
-            statement.setString(3, contentFr);
-            statement.setDate(4, date);
-            statement.setString(5, imageUrl);
-            
-            statement.executeUpdate();
-        } finally {
-            closeStatement(statement, null);
-        }
+        executeSQLCommand("INSERT INTO News (title, contentEn, contentFr, date, imagepath) VALUES (?, ?, ?, ?, ?)",
+            title, contentEn, contentFr, date, imageUrl
+        );
     }
 }

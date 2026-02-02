@@ -5,6 +5,7 @@ import com.photon.network.IPacket;
 import com.photon.network.sql.SQLAnticheat;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.os.OperatingSystem;
 
 /**
  * @author Niwer
@@ -24,6 +25,13 @@ public class ClientRequestAnticheat implements IPacket {
         this.userUUID = "";
     }
 
+    public ClientRequestAnticheat(String fileName, String fileMessage, OperatingSystem operatingSystem, String userUUID) {
+        this.fileName = fileName;
+        this.fileMessage = fileMessage;
+        this.operatingSystem = operatingSystem.toString();
+        this.userUUID = userUUID;
+    }
+
     public ClientRequestAnticheat(String fileName, String fileMessage, String operatingSystem, String userUUID) {
         this.fileName = fileName;
         this.fileMessage = fileMessage;
@@ -38,13 +46,7 @@ public class ClientRequestAnticheat implements IPacket {
     
     @Override
     public void handle(Connection connection) {
-        SQLAnticheat.saveAnticheatReport(userUUID, fileName, fileMessage, operatingSystem);
-        
-        ConsoleManager.create("Cheater detected: " + userUUID + 
-            "\nOS: " + operatingSystem + 
-            "\nReason: " + fileMessage)
-            .displayOnDiscord()
-            .withType(EnumLogType.NETWORK)
-            .end();
+        SQLAnticheat.save(userUUID, fileName, fileMessage, operatingSystem);
+        ConsoleManager.create("Cheater detected: " + userUUID + " OS: " + operatingSystem + " Reason: " + fileMessage).displayOnDiscord().withType(EnumLogType.NETWORK).end();
     }
 }

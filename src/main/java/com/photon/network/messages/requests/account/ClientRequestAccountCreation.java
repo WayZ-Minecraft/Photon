@@ -43,7 +43,6 @@ public class ClientRequestAccountCreation implements IPacket {
         ObjectPlayerAccount profile = null;
         
         if (!isEmailAlreadyUsed && !isUsernameAlreadyUsed) {
-            ConsoleManager.debug("No account with the same email or username. Creating a new one...");
             profile = SQLPlayerAccount.createAccount(username, email, password);
             exist = profile != null;
             

@@ -1,10 +1,12 @@
-package com.photon.discord.slashCommands;
+package com.photon.discord.commands;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import com.photon.util.NetworkOnly;
 
 import net.dv8tion.jda.api.interactions.commands.Command;
 
@@ -15,6 +17,7 @@ import net.dv8tion.jda.api.interactions.commands.Command;
  * @author noz43
  * @version 1.0
  */
+@NetworkOnly
 public class AutoCompleteRegistry {
     
     /**

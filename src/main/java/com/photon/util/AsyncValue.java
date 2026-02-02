@@ -1,7 +1,7 @@
 package com.photon.util;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 public class AsyncValue<T> {
     
     private final T defaultValue;
-    private final List<Consumer<T>> listeners = new ArrayList<>();
+    private final List<Consumer<T>> listeners = new CopyOnWriteArrayList<>();
 
     private @Nullable T value;
     

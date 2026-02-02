@@ -38,8 +38,6 @@ public class ClientRequestSendDiscordLogs implements IPacket {
     
     @Override
     public void handle(Connection connection) {
-        if (BotEngine.botBuilder != null) {
-            BotEngine.log(type.color, type + " : " + subType, content, file);
-        }
+        if (BotEngine.isBotInitialized()) BotEngine.log(type.color, type + " : " + subType, content, file);
     }
 }

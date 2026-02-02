@@ -1,10 +1,14 @@
 package com.photon.discord;
 
+import com.photon.util.NetworkOnly;
+
 /**
  * enume to definde roles
  * 
  * @author Mini
  */
+@NetworkOnly
+@Deprecated
 public enum Roles {
 
     // Hight staff

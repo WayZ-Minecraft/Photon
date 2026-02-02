@@ -213,9 +213,9 @@ public class ConsoleManager
 			/* Display the error on discord if enabled */
 			if(logOnDiscord) {
 				/* If on network -> Don't send packets */
-				if(BotEngine.botBuilder !=null) BotEngine.log(isError? Color.RED :type.color, type+subTypeName, object, file);
+				if(BotEngine.isBotInitialized()) BotEngine.log(isError? Color.RED :type.color, type+subTypeName, object, file);
 				else {
-				final ClientRequestSendDiscordLogs request = new ClientRequestSendDiscordLogs(type, subTypeName, object, file);
+					final ClientRequestSendDiscordLogs request = new ClientRequestSendDiscordLogs(type, subTypeName, object, file);
 					ClientLinkManager.sendTCP(request);
 				}
 			}
@@ -255,6 +255,7 @@ public class ConsoleManager
 	public static enum EnumLogType {
 		INFO(new Color(52, 148, 196), ANSI_CYAN), 
 		NETWORK(new Color(178, 63, 63), ANSI_GREEN),
+		SQL(new Color(178, 63, 63), ANSI_RED),
 		LAUNCHER(new Color(98, 164, 83), ANSI_BLACK),
 		ANTICHEAT(new Color(196, 148, 52), ANSI_YELLOW),
 		CLIENT(new Color(98, 164, 83), ANSI_BLUE), 

@@ -1,11 +1,17 @@
 package com.photon.network.sql;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import com.photon.util.NetworkOnly;
 
-import com.photon.util.ConsoleManager;
+@NetworkOnly
+public class SQLAnticheat extends SQLInteraction {
 
-public class SQLAnticheat extends SqlInteract {
+    /**
+     * Create Anticheat table with columns: id, userUUID, fileName, fileMessage, operatingSystem, timestamp.
+     */
+    @Override
+    public void register() {
+        executeSQLCommand("CREATE TABLE IF NOT EXISTS Anticheat (id INTEGER PRIMARY KEY AUTOINCREMENT, userUUID TEXT NOT NULL, fileName TEXT NOT NULL, fileMessage TEXT NOT NULL, operatingSystem TEXT NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP);");
+    }
 
     /**
      * @param userUUID The user UUID
@@ -13,25 +19,9 @@ public class SQLAnticheat extends SqlInteract {
      * @param fileMessage The cheat detection message
      * @param operatingSystem The operating system
      */
-    public static void saveAnticheatReport(String userUUID, String fileName, String fileMessage, String operatingSystem) {
-        PreparedStatement statement = null;
-
-        try {
-            statement = connexion.prepareStatement(
-                "INSERT INTO Anticheat (userUUID, fileName, fileMessage, operatingSystem) VALUES (?, ?, ?, ?)");
-            statement.setString(1, userUUID);
-            statement.setString(2, fileName);
-            statement.setString(3, fileMessage);
-            statement.setString(4, operatingSystem);
-            statement.executeUpdate();
-
-        } catch (SQLException e) {
-            if (reconnect())
-                saveAnticheatReport(userUUID, fileName, fileMessage, operatingSystem);
-            else
-                ConsoleManager.create("Error saving anticheat report for " + userUUID + ": " + e.getMessage()).error().end();
-        } finally {
-            closeStatement(statement, null);
-        }
+    public static void save(String userUUID, String fileName, String fileMessage, String operatingSystem) {
+        executeSQLCommand("INSERT INTO Anticheat (userUUID, fileName, fileMessage, operatingSystem) VALUES (?, ?, ?, ?)",
+            userUUID, fileName, fileMessage, operatingSystem
+        );
     }
 }

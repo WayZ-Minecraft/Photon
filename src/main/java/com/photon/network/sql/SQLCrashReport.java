@@ -1,11 +1,17 @@
 package com.photon.network.sql;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import com.photon.util.NetworkOnly;
 
-import com.photon.util.ConsoleManager;
+@NetworkOnly
+public class SQLCrashReport extends SQLInteraction {
 
-public class SQLCrashReport extends SqlInteract {
+    /**
+     * Create CrashReport table with columns: id, userUUID, fileName, fileMessage, timestamp.
+     */
+    @Override
+    public void register() {
+        executeSQLCommand("CREATE TABLE IF NOT EXISTS CrashReport (id INTEGER PRIMARY KEY AUTOINCREMENT, userUUID TEXT NOT NULL, fileName TEXT NOT NULL, fileMessage TEXT NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP);");
+    }
 
     /**
      * Save a crash report to the database.
@@ -14,24 +20,9 @@ public class SQLCrashReport extends SqlInteract {
      * @param fileName The file name
      * @param fileMessage The crash report message
      */
-    public static void saveCrashReport(String userUUID, String fileName, String fileMessage) {
-        PreparedStatement statement = null;
-
-        try {
-            statement = connexion.prepareStatement(
-                "INSERT INTO CrashReport (userUUID, fileName, fileMessage) VALUES (?, ?, ?)");
-            statement.setString(1, userUUID);
-            statement.setString(2, fileName);
-            statement.setString(3, fileMessage);
-            statement.executeUpdate();
-
-        } catch (SQLException e) {
-            if (reconnect())
-                saveCrashReport(userUUID, fileName, fileMessage);
-            else
-                ConsoleManager.create("Error saving crash report for " + userUUID + ": " + e.getMessage()).error().end();
-        } finally {
-            closeStatement(statement, null);
-        }
+    public static void save(String userUUID, String fileName, String fileMessage) {
+        executeSQLCommand("INSERT INTO CrashReport (userUUID, fileName, fileMessage) VALUES (?, ?, ?)",
+            userUUID, fileName, fileMessage
+        );
     }
 }

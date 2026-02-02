@@ -24,6 +24,9 @@ import com.photon.util.updater.UpdateFileType;
 
 public class NetworkDirectories
 {
+	public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();	
+	private static final Gson PRETTY_GSON = new GsonBuilder().setPrettyPrinting().create();	
+
 	public static final File baseDirectory = new File("./network/");
 	public static final File logsDirectory = new File(baseDirectory + "/logs/");
 	public static final File sqlDirectory = new File(baseDirectory + "/sql/");
@@ -47,15 +50,14 @@ public class NetworkDirectories
 		if (!sqlDirectory.exists()) sqlDirectory.mkdirs();
 		
 		try {
-			final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 			if (!configFile.exists()) {
 				configFile.createNewFile();
 				final FileWriter writer = new FileWriter(configFile);
-				writer.write(gson.toJson(new NetworkConfig()));
+				writer.write(PRETTY_GSON.toJson(new NetworkConfig()));
 				writer.close();
 			}
 			final BufferedReader reader = new BufferedReader(new FileReader(configFile));
-			config = gson.fromJson(reader, NetworkConfig.class);
+			config = PRETTY_GSON.fromJson(reader, NetworkConfig.class);
 			reader.close();
 		} catch (IOException e) {}
 	}
@@ -70,9 +72,8 @@ public class NetworkDirectories
 	 */
 	public static void save() {
 		try {
-			final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 			final FileWriter writer = new FileWriter(configFile);
-			writer.write(gson.toJson(config));
+			writer.write(PRETTY_GSON.toJson(config));
 			writer.close();
 		} catch (IOException e) {}
 	}
@@ -157,9 +158,11 @@ public class NetworkDirectories
 		@SerializedName("main_logo") public byte[] gameLogo = null;
 		
 		/* Bot infos */
-		@SerializedName("discord_bot_token") public String discordBotToken = "";
+		@SerializedName("bot_activity") public String bot_activity = "/";
+		@SerializedName("discord_bot_token") public String discord_bot_token = "";
 		@SerializedName("discord_bot_id") public String discord_bot_id = "";
 		@SerializedName("official_discord_server_id") public String official_discord_server_id = "";
+		@SerializedName("network_console_channel_id") public String network_console_channel_id = "";
 		
 		/* Versions infos */
 		@SerializedName("api_version") public String api_version = "1.0.0";

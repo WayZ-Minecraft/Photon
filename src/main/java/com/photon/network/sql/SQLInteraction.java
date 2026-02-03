@@ -1,11 +1,13 @@
 package com.photon.network.sql;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.photon.network.NetworkDirectories;
@@ -88,21 +90,61 @@ public abstract class SQLInteraction {
      * @return Formatted result string with columns separated by " | "
      * @throws SQLException if query execution fails
      */
-    public static String executeSQLCommandToArray(String command) throws SQLException {
+    public static String executeSQLCommandToArray(String command, boolean markdown) throws SQLException {
         final Statement STATEMENT = connexion.createStatement();
         final ResultSet RESULT = STATEMENT.executeQuery(command);
         final int COLUMN_COUNT = RESULT.getMetaData().getColumnCount();
-
-        String resultString = "";
-        while(RESULT.next()) {
-            for (int i = 1; i <= COLUMN_COUNT; i++) {
-                resultString += RESULT.getString(i);
-                resultString += (i != COLUMN_COUNT) ? " | " : "\n";
-            }
+        final int[] COLUMNS_WIDTHS = new int[COLUMN_COUNT]; // E.G : [5, 10, 3] for 3 columns
+        final StringBuilder BUILDER = new StringBuilder();
+        final List<String[]> ROWS = new ArrayList<>(); // List of rows, each row is an array of strings (The array represents the fields for each column)
+        
+        /* Calculate column size and save create rows with values for each column */
+        for (int columnID = 0; columnID < COLUMN_COUNT; columnID++) {
+            String columnName = RESULT.getMetaData().getColumnName(columnID + 1);
+            if (columnName == null) columnName = "";
+            if (columnName.length() > COLUMNS_WIDTHS[columnID]) COLUMNS_WIDTHS[columnID] = columnName.length();
         }
-
+        while (RESULT.next()) {
+            String[] row = new String[COLUMN_COUNT];
+            for (int columnID = 0; columnID < COLUMN_COUNT; columnID++) {
+                String field = RESULT.getString(columnID + 1);
+                if (field == null) field = ""; // If null, set empty string
+                
+                row[columnID] = field; // Save field in the row
+                if (field.length() > COLUMNS_WIDTHS[columnID]) COLUMNS_WIDTHS[columnID] = field.length(); // If the field is wider than the current width, set it
+            }
+            ROWS.add(row);
+        }
+        
+        /* Create the board (if markdown is set to true, then we'll print with markdown formatting) */
+        {
+            if (markdown) BUILDER.append("```\n");
+            /* Title row */
+            BUILDER.append("| ");
+            for (int i = 0; i < COLUMN_COUNT; i++) {
+                String columnName = RESULT.getMetaData().getColumnName(i + 1);
+                if (columnName == null) columnName = "";
+                BUILDER.append(String.format("%-" + COLUMNS_WIDTHS[i] + "s", columnName));
+                BUILDER.append(" | ");
+            }
+            BUILDER.append("\n|");
+            for (int i = 0; i < COLUMN_COUNT; i++) BUILDER.append(" ").append("-".repeat(COLUMNS_WIDTHS[i])).append(" |");
+            BUILDER.append("\n");
+            
+            /* Data rows */
+            for (final String[] ROW : ROWS) {
+                BUILDER.append("| ");
+                for (int i = 0; i < COLUMN_COUNT; i++) {
+                    final String VALUE = ROW[i];
+                    BUILDER.append(String.format("%-" + COLUMNS_WIDTHS[i] + "s", VALUE)).append(" | ");
+                }
+                BUILDER.append("\n");
+            }
+            if (markdown) BUILDER.append("```");
+        }
+        
         closeStatement(STATEMENT, RESULT);
-        return resultString;
+        return new String(BUILDER.toString().getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
     }
 
     /**

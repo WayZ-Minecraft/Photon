@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 import com.photon.discord.commands.network.ExecuteSQLCommand;
 import com.photon.discord.commands.network.NewsCommand;
 import com.photon.discord.commands.network.PostUpdateCommand;
@@ -53,10 +55,12 @@ public class CommandsManager extends ListenerAdapter {
         }
     }
 
+    @Nonnull
     public static List<CommandData> getGlobalCommands() {
         return COMMANDS.entrySet().stream().filter(entry -> entry.getValue().isGlobal()).map(entry -> entry.getValue().data).toList();
     }
 
+    @Nonnull
     public static List<CommandData> getGuildCommands() {
         return COMMANDS.entrySet().stream().filter(entry -> !entry.getValue().isGlobal()).map(entry -> entry.getValue().data).toList();
     }
@@ -86,7 +90,7 @@ public class CommandsManager extends ListenerAdapter {
      * @author noz43
      */
     @Override
-    public void onCommandAutoCompleteInteraction(CommandAutoCompleteInteractionEvent event) {
+    public void onCommandAutoCompleteInteraction(@Nonnull CommandAutoCompleteInteractionEvent event) {
         String commandName = event.getName();
         String optionName = event.getFocusedOption().getName();
         String userInput = event.getFocusedOption().getValue();

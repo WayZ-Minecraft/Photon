@@ -77,9 +77,7 @@ public class AutoCompleteRegistry {
             List<Command.Choice> choices = new java.util.ArrayList<>();
             for (Enum<?> value : values) {
                 String name = value.name().toLowerCase();
-                if (name.startsWith(userInput.toLowerCase())) {
-                    choices.add(new Command.Choice(name, name));
-                }
+                if (name.startsWith(userInput.toLowerCase())) choices.add(new Command.Choice(name, name));
             }
             return choices;
         });

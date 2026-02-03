@@ -1,6 +1,5 @@
 package com.photon.discord.commands.network;
 
-import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
@@ -8,6 +7,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
+import com.photon.discord.BotEngine;
 import com.photon.discord.commands.AbstractSlashCommand;
 import com.photon.network.NetworkDirectories;
 import com.photon.network.NetworkEngine;
@@ -19,15 +19,16 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message.Attachment;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 
 public class PostUpdateCommand extends AbstractSlashCommand {
 
     public PostUpdateCommand() {
         super("post-update", "Posts an update on the network.");
-        this.data().addOption(OptionType.ATTACHMENT, "file", "The build file to post", true, false);
-        this.data().addOption(OptionType.STRING, "file_type", "The file to update (e.g: mod, launcher)", true, true);
-        this.data().addOption(OptionType.STRING, "channel", "The channel (e.g: stable, dev or test)", false, true);
+        this.addOption(OptionType.ATTACHMENT, "file", "The build file to post", true);
+        this.addOption(OptionType.STRING, "file_type", "The file to update (e.g: mod, launcher)", true, UpdateFileType.class);
+        this.addOption(OptionType.STRING, "channel", "The channel (e.g: stable, dev or test)", false, UpdateChannel.class);
         this.data().setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR));
     }
 
@@ -39,36 +40,40 @@ public class PostUpdateCommand extends AbstractSlashCommand {
      */
     @Override
     public void handle(SlashCommandInteractionEvent event) {
-        final Attachment file = event.getOption("file").getAsAttachment();
-        final String[] fileName = file.getFileName().split("\\.|\\-");
-        final String fileTypeString = event.getOption("type") == null ? fileName[0]
-                : event.getOption("type").getAsString();
-        final String channelTypeString = event.getOption("channel") == null
-                ? fileName.length >= 3 ? fileName[1] : "stable"
-                : event.getOption("channel").getAsString();
+        /* If we're not on the official guild */
+        if(!BotEngine.isOfficialGuild(event.getGuild())) {
+            event.reply("You're not on the official guild.").setEphemeral(true).queue();
+            return;
+        }
+
+        final Attachment FILE = event.getOption("file").getAsAttachment(); // Should always be present
+        final UpdateFileType FILE_TYPE = UpdateFileType.fromString(event.getOption("file_type").getAsString()); // Should always be present (MOD, LAUNCHER, etc)
+        final OptionMapping CHANNEL_ARG = event.getOption("channel"); // May be null, so wedefault to STABLE
+        final UpdateChannel CHANNEL = CHANNEL_ARG != null ? UpdateChannel.fromString(CHANNEL_ARG.getAsString()) : UpdateChannel.STABLE;
 
         /* Data to download the file */
-        final UpdateFileType fileType = UpdateFileType.valueOf(fileTypeString.toUpperCase());
-        final UpdateChannel channelType = UpdateChannel.valueOf(channelTypeString.toUpperCase());
-        final Path outputPath = Path.of(NetworkDirectories.getPathForUpdateChannel(fileType, channelType));
+        final Path OUTPUT_PATH = Path.of(NetworkDirectories.getPathForUpdateChannel(FILE_TYPE, CHANNEL));
 
-        InputStream inputStream;
-        try {
-            inputStream = new URL(file.getUrl()).openStream();
+        /* Try upload the file */
+        try (InputStream stream = new URL(FILE.getUrl()).openStream()) {
+            /* Copy the uploaded file to the output path */
             try {
-                Files.copy(inputStream, outputPath, StandardCopyOption.REPLACE_EXISTING);
-            } catch (NoSuchFileException e) {
-                File fileOutput = new File(outputPath.toString()).getParentFile();
-                fileOutput.mkdirs();
-                Files.copy(inputStream, outputPath);
-            } finally {
-                inputStream.close();
-                event.reply("File updated into : " + outputPath).queue();
-                if (UpdateFileType.LAUNCHER == fileType)
+                /* Try to create the parent directories, if they don't exist */
+                OUTPUT_PATH.getParent().toFile().mkdirs();
+
+                /* Copy the file */
+                Files.copy(stream, OUTPUT_PATH, StandardCopyOption.REPLACE_EXISTING);
+                
+                /* If the updated file is the network, restart the network engine */
+                if (FILE_TYPE == UpdateFileType.NETWORK) {
+                    event.reply("You've uploaded the network update. Restarting the network engine...").queue();
                     ApplicationUtils.restart(NetworkEngine.class, "--restart");
+                } else event.reply(String.format("The update for **%s** (Channel: **%s**) has been posted. (**%s**)", FILE_TYPE, CHANNEL, OUTPUT_PATH)).queue();
+            } catch (NoSuchFileException e) {
+                event.reply("The file path in the Network config is invalid: " + OUTPUT_PATH).setEphemeral(true).queue();
             }
         } catch (Exception e) {
-            event.reply("Error with file :" + e).queue();
+            event.reply("Error while uploading update file :" + e).setEphemeral(true).queue();
         }
     }
 }

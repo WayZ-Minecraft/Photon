@@ -4,9 +4,9 @@ import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
 
+import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;
 
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.LoggerFactory;
 
 import com.photon.discord.commands.CommandsManager;
@@ -23,13 +23,17 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.StandardGuildMessageChannel;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -84,7 +88,7 @@ public class BotEngine extends ListenerAdapter {
      * When the bot is ready, register global slash commands
      */
     @Override
-    public void onReady(ReadyEvent event) {
+    public void onReady(@Nonnull ReadyEvent event) {
         event.getJDA().updateCommands().addCommands(CommandsManager.getGlobalCommands()).queue();
     }
 
@@ -95,7 +99,7 @@ public class BotEngine extends ListenerAdapter {
      * @author Mini
      */
     @Override
-    public void onGuildReady(@NotNull GuildReadyEvent event) {
+    public void onGuildReady(@Nonnull GuildReadyEvent event) {
         guild = event.getGuild();
         guild.updateCommands().addCommands(CommandsManager.getGuildCommands()).queue();
         if (isRestarting) {
@@ -134,6 +138,12 @@ public class BotEngine extends ListenerAdapter {
 
     public static boolean hasConsoleChannel() { return getConsoleChannel() != null; }
 
+    public static boolean isConsoleChannel(GuildChannel channel) {
+        if(channel == null) return false;
+        if(!hasConsoleChannel()) return false;
+        return channel.getId().equals(getConsoleChannel().getId());
+    }
+
     /**
      * @return The console channel where the bot/network logs arrive
      */
@@ -150,7 +160,7 @@ public class BotEngine extends ListenerAdapter {
      * @author Mini
      */
     @Override
-    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) { CommandsManager.onSlashCommand(event); }
+    public void onSlashCommandInteraction(@Nonnull SlashCommandInteractionEvent event) { CommandsManager.onSlashCommand(event); }
 
     /**
      * When a user leave the server, remove him from the database
@@ -158,7 +168,7 @@ public class BotEngine extends ListenerAdapter {
      * @param event The event of a user leaving the server
      */
     @Override
-    public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent event) { SQLDiscordProfile.setLanguages(event.getUser().getId(), new ArrayList<>()); }
+    public void onGuildMemberRemove(@Nonnull GuildMemberRemoveEvent event) { SQLDiscordProfile.setLanguages(event.getUser().getId(), new ArrayList<>()); }
 
     /**
      * When a user get a role
@@ -167,7 +177,7 @@ public class BotEngine extends ListenerAdapter {
      * @author Mini
      */
     @Override
-    public void onGuildMemberRoleAdd(@NotNull GuildMemberRoleAddEvent event) {
+    public void onGuildMemberRoleAdd(@Nonnull GuildMemberRoleAddEvent event) {
         /* When a user get a role, add the language to his profile */
         for (Role role : event.getRoles()){
             // Note : switch case doesn't work with long
@@ -183,7 +193,7 @@ public class BotEngine extends ListenerAdapter {
      * @param event The event of a user losing a role
      */
     @Override
-    public void onGuildMemberRoleRemove(@NotNull GuildMemberRoleRemoveEvent event) {
+    public void onGuildMemberRoleRemove(@Nonnull GuildMemberRoleRemoveEvent event) {
         for (Role role : event.getRoles()){
             // Note : switch case doesn't work with long
             if (role.getIdLong() == Roles.FR.id) UsersInfo.removeLanguages(event.getUser().getId(), Languages.FRENCH);
@@ -191,23 +201,37 @@ public class BotEngine extends ListenerAdapter {
         }
     }
 
+    @Override
+    public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
+        handleMessages(event.getGuildChannel(), event.getMessage());
+    }
+    
     /**
      * When a message is updated
      * 
      * @param event The event of a message being update
      */
     @Override
-    public void onMessageUpdate(@NotNull MessageUpdateEvent event) {
-        if (event.getAuthor().isBot()) return;
+    public void onMessageUpdate(@Nonnull MessageUpdateEvent event) {
+        handleMessages(event.getGuildChannel(), event.getMessage());
+    }
+    
+    // TODO Add listen to ban/kick/other moderation events ! -> Save all that stuff in the database and link it to the discord user profile !
 
-        final boolean IS_LINK = DiscordSecurity.checkLink(event.getMessage().getContentRaw());
+    private static void handleMessages(GuildChannel eventChannel, Message message) {
+        final User AUTHOR = message.getAuthor();
+        if (AUTHOR.isBot()) return;
+
+        /* If we're on the console channel, prevent talking */
+        if(isConsoleChannel(eventChannel)) {
+            message.delete().queue(); // Delete the edited message
+            return;
+        }
+
+        final boolean IS_LINK = DiscordSecurity.checkLink(message.getContentRaw());
         if (IS_LINK) {
-            event.getMessage().delete().queue(); // Delete the message containing the link
-
-            event.getAuthor().openPrivateChannel().queue(channel -> {
-                channel.sendMessage(TranslationManager.format(UsersInfo.getLanguage(event.getAuthor().getId()).code,
-                        "discord.securityMessage.updateMessage")).queue();
-            });
+            message.delete().queue(); // Delete the message containing the link
+            AUTHOR.openPrivateChannel().queue(pm -> pm.sendMessage(TranslationManager.format(UsersInfo.getLanguage(AUTHOR.getId()).code,"discord.securityMessage.updateMessage")).queue());
         }
     }
 

@@ -34,6 +34,10 @@ public class ObjectPlayerAccount implements SQLCommandSerializer<ObjectPlayerAcc
     
     public static String generateAuthCode() { return new BigInteger(40, new SecureRandom()).toString(32); }
 
+    public boolean hasDiscordLinked() {
+        return this.discordID != null && !this.discordID.isEmpty();
+    }
+
     @Override
     public ObjectPlayerAccount objectify(ResultSet resultSet) throws SQLException {
         final ObjectPlayerAccount account = new ObjectPlayerAccount();

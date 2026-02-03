@@ -1,17 +1,24 @@
 package com.photon.discord.commands.network.accounts;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.StringJoiner;
 
+import com.photon.discord.BotEngine;
 import com.photon.discord.commands.AbstractSlashCommand;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.sql.SQLPlayerAccount;
+import com.photon.util.NetworkOnly;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.utils.FileUpload;
 
+/**
+ * @author Niwer
+ */
+@NetworkOnly
 public class ListAccountsCommand extends AbstractSlashCommand {
 
     public ListAccountsCommand() {
@@ -27,18 +34,34 @@ public class ListAccountsCommand extends AbstractSlashCommand {
      */
     @Override
     public void handle(SlashCommandInteractionEvent event) {
-        List<ObjectPlayerAccount> list = SQLPlayerAccount.getAllAccounts();
-        if (list.isEmpty())
-            event.reply("No accounts found").queue();
-
-        StringJoiner joiner = new StringJoiner(System.lineSeparator(), "", System.lineSeparator());
-        for (ObjectPlayerAccount account : list) {
-            if (account == null)
-                continue;
-            joiner.add("{").add(account.email).add(account.username).add(account.uuid).add("}");
+        /* If we're not on the official guild */
+        if(!BotEngine.isOfficialGuild(event.getGuild())) {
+            event.reply("You're not on the official guild.").setEphemeral(true).queue();
+            return;
         }
 
-        FileUpload upload = FileUpload.fromData(joiner.toString().getBytes(), "account.txt");
-        event.reply("List of all accounts").addFiles(upload).queue();
+        /* If we're not in the console */
+        if(!BotEngine.isConsoleChannel(event.getGuildChannel())) {
+            event.reply("This command can only be used in the console channel.").setEphemeral(true).queue();
+            return;
+        }
+
+        /* Get all accounts, and skip if there are no accounts */
+        final List<ObjectPlayerAccount> accounts = SQLPlayerAccount.getAllAccounts();
+        if (accounts.isEmpty()) {
+            event.reply("No accounts found !").setEphemeral(true).queue();
+            return;
+        }
+
+        /* Create and send the file */
+        final StringJoiner joiner = new StringJoiner(System.lineSeparator(), "", System.lineSeparator());
+        for (ObjectPlayerAccount account : accounts) joiner.add(formatAccount(account));
+
+        final FileUpload upload = FileUpload.fromData(joiner.toString().getBytes(StandardCharsets.UTF_8), "account.txt");
+        event.reply("Here's a file with all existing accounts (" + accounts.size() + ")").addFiles(upload).queue();
+    }
+    
+    public static String formatAccount(ObjectPlayerAccount account) {
+        return "- " + account.email + " " + account.username + " " + account.uuid + " " + account.shopCoins + "€$ " + (account.projectCreator ? "He's Project Creator" : "He's not a Project Creator");
     }
 }

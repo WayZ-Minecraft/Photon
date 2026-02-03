@@ -7,11 +7,14 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 
+/**
+ * @author Niwer
+ */
 @NetworkOnly
 public class ClearCommand extends AbstractSlashCommand {
     public ClearCommand() {
         super("clear", "Clears messages.");
-        this.data().addOption(OptionType.INTEGER, "number", "number of message to delete", false, false);
+        this.data().addOption(OptionType.INTEGER, "number", "number of message to delete (1 to 100)", false, false);
         this.data().setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MESSAGE_MANAGE));
     }
 
@@ -24,7 +27,12 @@ public class ClearCommand extends AbstractSlashCommand {
     @Override
     public void handle(SlashCommandInteractionEvent event) {
         final int number = event.getOption("number").getAsInt();
+        if (number < 1 || number > 100) {
+            event.reply("Please provide a number between 1 and 100.").setEphemeral(true).queue();
+            return;
+        }
+
         event.getChannel().purgeMessages(event.getChannel().getHistory().retrievePast(number).complete());
-        event.reply(String.format("Clearing %s messages...", number)).queue();
+        event.reply(String.format("Clearing %s messages...", number)).setEphemeral(true).queue();
     }
 }

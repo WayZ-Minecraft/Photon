@@ -24,10 +24,10 @@ public class NewsCommand extends AbstractSlashCommand {
 
     public NewsCommand() {
         super("news", "Create a news to send to the news channel");
-        this.data().addOption(OptionType.STRING, "title", "The title of the news", true, false);
-        this.data().addOption(OptionType.STRING, "content-en", "The content of the news in English", true, false);
-        this.data().addOption(OptionType.STRING, "content-fr", "The content of the news in French", true, false);
-        this.data().addOption(OptionType.ATTACHMENT, "image", "The image of the news", true, false);
+        this.addOption(OptionType.STRING, "title", "The title of the news", true);
+        this.addOption(OptionType.STRING, "content-en", "The content of the news in English", true);
+        this.addOption(OptionType.STRING, "content-fr", "The content of the news in French", true);
+        this.addOption(OptionType.ATTACHMENT, "image", "The image of the news", true);
         this.data().setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR));
     }
 

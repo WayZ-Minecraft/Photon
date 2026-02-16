@@ -18,11 +18,11 @@ import com.photon.util.NetworkOnly;
 public class SQLPlayerAccount extends SQLInteraction {
 
     /**
-     * Create PlayerAccount table with columns: uuid, username, email, password, twoAuthFactor, discordID, discordAuthCode, projectCreator, shopCoins, friends.
+     * Create PlayerAccount table with columns: uuid, username, email, password, twoAuthFactor, discordID, discordAuthCode, projectAuthor, shopCoins, friends.
      */
     @Override
     public void register() {
-        executeSQLCommand("CREATE TABLE IF NOT EXISTS PlayerAccount (uuid TEXT PRIMARY KEY NOT NULL, username TEXT UNIQUE NOT NULL, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, twoAuthFactor INTEGER DEFAULT 0, discordID TEXT, discordAuthCode TEXT, projectCreator INTEGER DEFAULT 0, shopCoins INTEGER DEFAULT 0, friends TEXT);");
+        executeSQLCommand("CREATE TABLE IF NOT EXISTS PlayerAccount (uuid TEXT PRIMARY KEY NOT NULL, username TEXT UNIQUE NOT NULL, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, twoAuthFactor INTEGER DEFAULT 0, discordID TEXT, discordAuthCode TEXT, projectAuthor INTEGER DEFAULT 0, shopCoins INTEGER DEFAULT 0, friends TEXT);");
     }
 
     /**

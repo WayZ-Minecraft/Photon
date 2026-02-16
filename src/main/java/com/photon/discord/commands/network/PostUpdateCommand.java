@@ -47,6 +47,11 @@ public class PostUpdateCommand extends AbstractSlashCommand {
         }
 
         final Attachment FILE = event.getOption("file").getAsAttachment(); // Should always be present
+        if(!FILE.getFileExtension().contains(".jar")) {
+            event.reply("You've submitted an invalid file type. Please submit a JAR file.").setEphemeral(true).queue();
+            return; // If the update isn't a JAR file, then skip it (for security reasons)
+        }
+
         final UpdateFileType FILE_TYPE = UpdateFileType.fromString(event.getOption("file_type").getAsString()); // Should always be present (MOD, LAUNCHER, etc)
         final OptionMapping CHANNEL_ARG = event.getOption("channel"); // May be null, so wedefault to STABLE
         final UpdateChannel CHANNEL = CHANNEL_ARG != null ? UpdateChannel.fromString(CHANNEL_ARG.getAsString()) : UpdateChannel.STABLE;

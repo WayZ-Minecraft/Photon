@@ -255,7 +255,6 @@ public abstract class SQLInteraction {
         }
     }
 
-    @NetworkOnly
     public static interface SQLCommandSerializer<T> {
         /**
          * This method will convert a ResultSet row into an object of type T.

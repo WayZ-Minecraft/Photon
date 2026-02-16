@@ -13,46 +13,51 @@ repositories {
     maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
 }
 
+/**
+    api : Allows the dependency to be exposed to consumers (ie. other projects that depend on this one).
+    implementation : Hides the dependency from consumers (ie. other projects that depend on this one).
+*/
 dependencies {
     /* Apache */
     api 'commons-codec:commons-codec:1.15'
 	api 'commons-io:commons-io:2.11.0'
-	// implementation 'org.apache.commons:commons-compress:1.27.1'
-	// implementation 'com.github.luben:zstd-jni:1.5.6-7'
 
 	/* Other */
 	api 'com.google.code.gson:gson:2.8.8'
-	api 'com.github.crykn:kryonet:2.22.9'
-	api 'com.esotericsoftware:kryo:5.6.2'
+	implementation 'com.github.crykn:kryonet:2.22.9'
+	implementation 'com.esotericsoftware:kryo:5.6.2'
+    implementation 'io.javalin:javalin:6.7.0'
+    api 'ch.qos.logback:logback-classic:1.4.8' // JDA & Javalin are using this
 
     /* Other auth */
-    implementation 'com.azuriom:azauth:1.1.0' // See more : https://azuriom.com/
+    // See more : https://azuriom.com/
+    implementation 'com.azuriom:azauth:1.1.0' // Network Only
 	
 	/* Mail */
-	api 'com.sun.mail:javax.mail:1.6.2'
-	api 'com.sun.mail:smtp:1.6.2'
-	api 'com.sun.mail:pop3:1.6.2'
-	api 'com.sun.mail:imap:1.6.2'
+	implementation 'com.sun.mail:javax.mail:1.6.2'
+	implementation 'com.sun.mail:smtp:1.6.2'
+	implementation 'com.sun.mail:pop3:1.6.2'
+	implementation 'com.sun.mail:imap:1.6.2'
 	
     /* Discord */
-	api 'net.dv8tion:JDA:6.3.0'
-    api 'ch.qos.logback:logback-classic:1.4.8'
+    implementation 'com.google.code.findbugs:jsr305:3.0.2' // Javax Annotations for JDA
+	implementation 'net.dv8tion:JDA:6.3.0'
 
 	/* Sqlite jdbc */
-	api group: 'org.xerial', name: 'sqlite-jdbc', version: '3.42.0.0'
+	implementation 'org.xerial:sqlite-jdbc:3.42.0.0'
 
     /* --------------------- */
 
 	/* Shadow Apache */
     shadow 'commons-codec:commons-codec:1.15'
 	shadow 'commons-io:commons-io:2.11.0'
-	// shadow 'org.apache.commons:commons-compress:1.27.1'
-	// shadow 'com.github.luben:zstd-jni:1.5.6-7'
 
 	/* Shadow Other */
 	shadow 'com.google.code.gson:gson:2.8.8'
 	shadow 'com.github.crykn:kryonet:2.22.9'
 	shadow 'com.esotericsoftware:kryo:5.6.2'
+    shadow 'io.javalin:javalin:6.7.0'
+    shadow 'ch.qos.logback:logback-classic:1.4.8' // JDA & Javalin are using this
 	
     /* Shadow auth */
     shadow 'com.azuriom:azauth:1.1.0'
@@ -64,15 +69,14 @@ dependencies {
 	shadow 'com.sun.mail:imap:1.6.2'
 
     /* Discord */
+    shadow 'com.google.code.findbugs:jsr305:3.0.2' // Javax Annotations for JDA
 	shadow 'net.dv8tion:JDA:6.3.0'
-    shadow 'ch.qos.logback:logback-classic:1.4.8'
 
     /* Sqlite jdbc */
-    shadow group: 'org.xerial', name: 'sqlite-jdbc', version: '3.42.0.0'
+    shadow 'org.xerial:sqlite-jdbc:3.42.0.0'
 }
 
 tasks.withType(JavaCompile).configureEach { it.options.release = 17 }
-
 sourceCompatibility = targetCompatibility = JavaVersion.VERSION_17
 
 version = '1.0.0'
@@ -81,17 +85,36 @@ archivesBaseName = 'photon'
 /* Generate JAR */
 jar {
 	duplicatesStrategy 'exclude'
-   	manifest {
-        attributes([ "Main-Class": "com.photon.network.NetworkEngine" ])
-    }
+   	manifest { attributes([ "Main-Class": "com.photon.network.NetworkEngine" ]) }
 }
+
+def commonExclusions = [
+	'natives/**',
+	'META-INF/*.SF',
+	'META-INF/*.DSA',
+	'META-INF/*.RSA',
+	'sqlite-jdbc.properties',
+	'photon_logo.png'
+]
+def thirdPartyExclusions = [
+	'net/**',
+	'ch/**',
+	'com/sun/mail/**',
+	'javax/mail/**',
+	'tomp2p/**',
+	'club/**',
+	'org/sqlite/**',
+	'com/azuriom/**',
+	'io/javalin/**',
+    'google/protobuf/**',
+    'org/eclipse/jetty/**',
+]
 
 /* Add all dependcies to the jar */
 shadowJar {
-	minimize();
+	minimize()
    	configurations = [project.configurations.shadow]
-   	// duplicatesStrategy 'exclude'
-	exclude 'natives/**', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+	commonExclusions.each { exclude it } // Exclude unnecessary files
 	archiveFileName = "network.jar"
 	archiveClassifier.set('')
 }
@@ -110,23 +133,11 @@ def isNetworkOnlyClass(String classPath, File jarFile) {
 
 task apiJar(type: Jar) {
    	dependsOn shadowJar
-    
     def jarFile = shadowJar.outputs.files.singleFile
-    
-    from zipTree(jarFile)
-    exclude 'sqlite-jbdc.properties', 'logo.png', 'natives/**', 'lang/**', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 
-        'net/**', 'ch/**', 'com/sun/mail/**', 'javax/mail/**', 'tomp2p/**', 'club/**', 'org/sqlite/**',
-        'com/photon/discord/**', 'com/photon/network/NetworkEngine', 'com/photon/ui/**'
-    
-    // Exclude classes with @NetworkOnly annotation
-    exclude { details ->
-        isNetworkOnlyClass(details.path, jarFile)
-    }
-    
+    from zipTree(jarFile) // Unzip the shadow jar
+    (commonExclusions + thirdPartyExclusions + ['public/**', 'lang/**']).each { exclude it } // Exclude unnecessary files
+    exclude { details -> isNetworkOnlyClass(details.path, jarFile)} // Exclude @NetworkOnly classes
     archiveFileName = "api.jar"
-    manifest {
-        attributes([ "Main-Class": "com.photon.network.NetworkEngine" ])
-    }
 }
 
 tasks.build.dependsOn shadowJar, apiJar

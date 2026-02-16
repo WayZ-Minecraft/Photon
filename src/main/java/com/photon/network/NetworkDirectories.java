@@ -29,7 +29,6 @@ public class NetworkDirectories
 
 	public static final File baseDirectory = new File("./network/");
 	public static final File logsDirectory = new File(baseDirectory + "/logs/");
-	public static final File sqlDirectory = new File(baseDirectory + "/sql/");
 	public static final File logoFile = new File(baseDirectory + "/project_logo.png");
 
 	public static final Object configWaiter = new Object();
@@ -47,7 +46,6 @@ public class NetworkDirectories
 	public static void load() {
 		if (!baseDirectory.exists()) baseDirectory.mkdirs();
 		if (!logsDirectory.exists()) logsDirectory.mkdirs();
-		if (!sqlDirectory.exists()) sqlDirectory.mkdirs();
 		
 		try {
 			if (!configFile.exists()) {
@@ -164,6 +162,9 @@ public class NetworkDirectories
 		@SerializedName("official_discord_server_id") public String official_discord_server_id = "";
 		@SerializedName("network_console_channel_id") public String network_console_channel_id = "";
 		
+		/* Web Server */
+		@SerializedName("webserver_port") public int webserver_port = 7070;
+
 		/* Versions infos */
 		@SerializedName("api_version") public String api_version = "1.0.0";
 		@SerializedName("mod_version") public String mod_version = "1.0.0";

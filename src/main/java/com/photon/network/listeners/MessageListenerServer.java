@@ -6,8 +6,10 @@ import com.esotericsoftware.kryonet.Listener;
 import com.photon.network.IPacket;
 import com.photon.network.listeners.INetworkMessageListener.INetworkListenerSide;
 import com.photon.util.ConsoleManager;
+import com.photon.util.NetworkOnly;
 import com.photon.util.ConsoleManager.EnumLogType;
 
+@NetworkOnly
 public class MessageListenerServer implements Listener {
     
     @Override

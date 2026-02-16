@@ -17,6 +17,7 @@ import com.photon.network.sql.SQLInteraction;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
 import com.photon.util.NetworkOnly;
+import com.photon.web.WebServerEngine;
 
 @NetworkOnly
 public class NetworkEngine {
@@ -68,6 +69,10 @@ public class NetworkEngine {
                 }
             } else ConsoleManager.create("Discord Bot token not configured, skipping bot startup").withType(EnumLogType.NETWORK).end();
 
+            /* Starts the web API and Server */
+            WebServerEngine.load();
+
+            /* Start Krynet itself */
 			NetworkLinkManager.load();
             ConsoleManager.create("Network Server is now running and waiting for connections...").withType(EnumLogType.NETWORK).end();
 		} catch(Exception e) { e.printStackTrace(); }

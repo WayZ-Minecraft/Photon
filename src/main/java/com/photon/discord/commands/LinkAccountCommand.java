@@ -1,11 +1,12 @@
 package com.photon.discord.commands;
 
+import com.photon.discord.BotEngine;
+import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.sql.SQLPlayerAccount;
 import com.photon.util.NetworkOnly;
 
-import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 
 /**
@@ -16,9 +17,8 @@ public class LinkAccountCommand extends AbstractSlashCommand {
 
     public LinkAccountCommand() {
         super("link-account", "Link your Game account to your Discord account.");
-        this.data().addOption(OptionType.STRING, "uuid", "Your unique user identity", true, false);
-        this.data().addOption(OptionType.STRING, "code", "Your discord auth code.", true, false);
-        this.data().setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MESSAGE_MANAGE));
+        this.addOption(OptionType.STRING, "uuid", "Your unique user identity", true);
+        this.addOption(OptionType.STRING, "code", "Your discord auth code.", true);
     }
 
     @Override
@@ -34,20 +34,37 @@ public class LinkAccountCommand extends AbstractSlashCommand {
         }
 
         /* Check if the account has already been linked */
-        if (SQLPlayerAccount.getAccountByUUID(UUID).hasDiscordLinked()) {
+        final ObjectPlayerAccount profile = SQLPlayerAccount.getAccountByUUID(UUID);
+        if (profile == null) {
+            event.reply("There's no user with this UUID").setEphemeral(true).queue();
+            return;
+        }
+
+        if (profile.hasDiscordLinked()) {
             event.reply("This Game account is already linked to a Discord account.").setEphemeral(true).queue();
             return;
         }
 
         /* Check if the discord account has already been link to an other official account */
-        final String DISCCORD_USER_ID = event.getUser().getId();
-        if (SQLPlayerAccount.getAccountByDiscordID(DISCCORD_USER_ID) != null) {
+        final String DISCORD_USER_ID = event.getUser().getId();
+        if (SQLPlayerAccount.getAccountByDiscordID(DISCORD_USER_ID) != null) {
             event.reply("Your Discord account is already linked to another Game account.").setEphemeral(true).queue();
             return;
         }
 
         /* Update the Discord ID */
-        SQLPlayerAccount.updateDiscordID(UUID, DISCCORD_USER_ID);
+        SQLPlayerAccount.updateDiscordID(UUID, DISCORD_USER_ID);
+
+        /* Auto-assign ServerCreator role if applicable */
+        if (profile.serverCreator && BotEngine.guild != null) {
+            final Role serverCreatorRole = BotEngine.guild.getRoleById(1474183624134758525L);
+            if (serverCreatorRole != null) {
+                BotEngine.guild.retrieveMemberById(DISCORD_USER_ID).queue(
+                    member -> BotEngine.guild.addRoleToMember(member, serverCreatorRole).queue(),
+                    err -> {}
+                );
+            }
+        }
 
         /* Print reply */
         event.reply("Your account has been linked to " + event.getUser().getAsMention()).queue();

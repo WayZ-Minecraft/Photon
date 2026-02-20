@@ -13,6 +13,7 @@ import com.photon.discord.commands.network.RestartNetworkCommand;
 import com.photon.discord.commands.network.accounts.DeleteAllAccountCommand;
 import com.photon.discord.commands.network.accounts.ListAccountsCommand;
 import com.photon.discord.commands.network.accounts.ManagerAccountCommand;
+import com.photon.discord.commands.network.accounts.ServerCreatorCommand;
 import com.photon.util.NetworkOnly;
 
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
@@ -47,6 +48,7 @@ public class CommandsManager extends ListenerAdapter {
             new ManagerAccountCommand().register();
 
             new ExecuteSQLCommand().register();
+            new ServerCreatorCommand().register();
         }
 
         {

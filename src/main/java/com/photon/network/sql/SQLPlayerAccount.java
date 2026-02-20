@@ -22,7 +22,7 @@ public class SQLPlayerAccount extends SQLInteraction {
      */
     @Override
     public void register() {
-        executeSQLCommand("CREATE TABLE IF NOT EXISTS PlayerAccount (uuid TEXT PRIMARY KEY NOT NULL, username TEXT UNIQUE NOT NULL, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, twoAuthFactor INTEGER DEFAULT 0, discordID TEXT, discordAuthCode TEXT, projectAuthor INTEGER DEFAULT 0, shopCoins INTEGER DEFAULT 0, friends TEXT);");
+        executeSQLCommand("CREATE TABLE IF NOT EXISTS PlayerAccount (uuid TEXT PRIMARY KEY NOT NULL, username TEXT UNIQUE NOT NULL, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, twoAuthFactor INTEGER DEFAULT 0, discordID TEXT, discordAuthCode TEXT, projectAuthor INTEGER DEFAULT 0, serverCreator INTEGER DEFAULT 0, shopCoins INTEGER DEFAULT 0, friends TEXT);");
     }
 
     /**
@@ -195,6 +195,14 @@ public class SQLPlayerAccount extends SQLInteraction {
         }
 
         return (int)executeSQLCommandForPrimitive("SELECT COUNT(*) FROM PlayerAccount WHERE uuid = ? AND discordAuthCode = ?", givenUUID, givenAuthCode) > 0;
+    }
+
+    public static void setServerCreator(String uuid, boolean isServerCreator) {
+        if (uuid == null || uuid.trim().isEmpty()) {
+            ConsoleManager.create("Cannot update serverCreator with null/empty UUID").error().end();
+            return;
+        }
+        executeSQLCommand("UPDATE PlayerAccount SET serverCreator = ? WHERE uuid = ?", isServerCreator ? 1 : 0, uuid);
     }
 
     /**

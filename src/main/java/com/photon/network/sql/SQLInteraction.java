@@ -31,6 +31,41 @@ public abstract class SQLInteraction {
      */
     public abstract void register();
 
+
+    private static void migrate() {
+                /* Rename ModerationLog table if it exists */
+        try {
+            final PreparedStatement st = connexion.prepareStatement("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='ModerationLog'");
+            final ResultSet rs = st.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0)
+                executeSQLCommand("ALTER TABLE ModerationLog RENAME TO DiscordLog");
+            closeStatement(st, rs);
+        } catch (SQLException e) {
+            ConsoleManager.create("Migration rename table error: " + e.getMessage()).withType(EnumLogType.SQL).error().end();
+        }
+        migrateColumn("PlayerAccount", "projectAuthor", "INTEGER DEFAULT 0");
+        migrateColumn("PlayerAccount", "serverCreator", "INTEGER DEFAULT 0");
+        migrateColumn("PlayerAccount", "shopCoins", "INTEGER DEFAULT 0");
+        migrateColumn("PlayerAccount", "friends", "TEXT");
+        migrateColumn("PlayerAccount", "discordID", "TEXT");
+        migrateColumn("PlayerAccount", "discordAuthCode", "TEXT");
+        migrateColumn("PlayerAccount", "twoAuthFactor", "INTEGER DEFAULT 0");
+    }
+
+    private static void migrateColumn(String table, String column, String definition) {
+        try {
+            final PreparedStatement statement = connexion.prepareStatement("SELECT COUNT(*) FROM pragma_table_info(?) WHERE name = ?");
+            statement.setString(1, table);
+            statement.setString(2, column);
+            final ResultSet result = statement.executeQuery();
+            final boolean exists = result.next() && result.getInt(1) > 0;
+            closeStatement(statement, result);
+            if (!exists) executeSQLCommand("ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition);
+        } catch (SQLException e) {
+            ConsoleManager.create("Migration error for " + table + "." + column + ": " + e.getMessage()).withType(EnumLogType.SQL).error().end();
+        }
+    }
+
     /**
      * Establish connection to SQLite database and initialize tables.
      */
@@ -48,10 +83,14 @@ public abstract class SQLInteraction {
                 new SQLAnticheat().register();
                 new SQLHWID().register();
                 new SQLCrashReport().register();
+                new SQLDiscordLog().register();
 
                 /* User Accounts */
                 new SQLPlayerAccount().register();
                 new SQLDiscordProfile().register();
+
+                /* Migrations */
+                migrate();
             }
         } catch (SQLException e) {
             ConsoleManager.create("Database connection error: " + e.getMessage()).withType(EnumLogType.SQL).error().end();

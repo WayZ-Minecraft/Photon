@@ -25,6 +25,7 @@ public class ObjectPlayerAccount implements SQLCommandSerializer<ObjectPlayerAcc
     public String discordAuthCode;
     
     public boolean projectAuthor = false;
+    public boolean serverCreator = false;
     public int shopCoins = 0;
     public ArrayList<String> firends = new ArrayList<String>();
     
@@ -49,6 +50,7 @@ public class ObjectPlayerAccount implements SQLCommandSerializer<ObjectPlayerAcc
         account.discordID = resultSet.getString("discordID");
         account.discordAuthCode = resultSet.getString("discordAuthCode");
         account.projectAuthor = resultSet.getBoolean("projectAuthor");
+        account.serverCreator = resultSet.getBoolean("serverCreator");
         account.shopCoins = resultSet.getInt("shopCoins");
 
         final String friendsJSON = resultSet.getString("friends");
@@ -68,7 +70,7 @@ public class ObjectPlayerAccount implements SQLCommandSerializer<ObjectPlayerAcc
     public String toString() {
         return "ObjectPlayerAccount [username=" + username + ", email=" + email + ", password=" + password
                 + ", twoAuthFactor=" + twoAuthFactor + ", uuid=" + uuid + ", discordID=" + discordID
-                + ", discordAuthCode=" + discordAuthCode + ", projectAuthor=" + projectAuthor + ", shopCoins="
-                + shopCoins + ", firends=" + firends + "]";
+                + ", discordAuthCode=" + discordAuthCode + ", projectAuthor=" + projectAuthor
+                + ", serverCreator=" + serverCreator + ", shopCoins=" + shopCoins + ", firends=" + firends + "]";
     }
 }

@@ -205,7 +205,7 @@ public class SQLPlayerAccount extends SQLInteraction {
         executeSQLCommand("UPDATE PlayerAccount SET serverCreator = ? WHERE uuid = ?", isServerCreator ? 1 : 0, uuid);
     }
 
-    /**
+        /**
      * Delete an account by UUID.
      * 
      * @param uuid The account UUID to delete

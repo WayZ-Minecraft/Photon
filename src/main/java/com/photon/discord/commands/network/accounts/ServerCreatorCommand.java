@@ -1,6 +1,7 @@
 package com.photon.discord.commands.network.accounts;
 
 import com.photon.discord.commands.AbstractSlashCommand;
+import com.photon.network.NetworkDirectories;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.sql.SQLPlayerAccount;
 
@@ -12,9 +13,13 @@ import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 
+/**
+ * Command to add or remove the Server Creator role and status to a user.
+ * The role ID is configured via the network config file (server_creator_role_id).
+ * 
+ * @author Niwer
+ */
 public class ServerCreatorCommand extends AbstractSlashCommand {
-
-    private static final long PROJECT_CREATOR_ROLE_ID = 1474183624134758525L; //TODO What is that shit ?! You have a config file for this kind of mess !!!!!!!!
 
     private enum ActionType { ADD, REMOVE }
 
@@ -28,7 +33,7 @@ public class ServerCreatorCommand extends AbstractSlashCommand {
 
     @Override
     public void handle(SlashCommandInteractionEvent event) {
-        if (!isOfficialGuild(event)) return; // Check if we're on the official guild
+        if (!isOfficialGuild(event)) return;
 
         final OptionMapping actionOption = event.getOption("action");
         if (actionOption == null) {
@@ -66,10 +71,16 @@ public class ServerCreatorCommand extends AbstractSlashCommand {
 
         /* Update Discord role if the account has a linked Discord ID */
         if (resolved.discordID != null && !resolved.discordID.isBlank()) {
+            final String roleIdStr = NetworkDirectories.getConfig().server_creator_role_id;
+            if (roleIdStr == null || roleIdStr.isBlank()) {
+                event.reply("Server Creator role ID is not configured (server_creator_role_id in config).").setEphemeral(true).queue();
+                return;
+            }
+
             final Guild guild = event.getGuild();
-            final Role role = guild.getRoleById(PROJECT_CREATOR_ROLE_ID);
+            final Role role = guild.getRoleById(roleIdStr);
             if (role == null) {
-                event.reply("Server Creator role not found on this server.").setEphemeral(true).queue();
+                event.reply("Server Creator role not found on this server (ID: " + roleIdStr + ").").setEphemeral(true).queue();
                 return;
             }
 

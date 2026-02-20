@@ -1,11 +1,9 @@
 package com.photon.discord.commands;
 
-import com.photon.discord.BotEngine;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.sql.SQLPlayerAccount;
 import com.photon.util.NetworkOnly;
 
-import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 
@@ -39,14 +37,14 @@ public class LinkAccountCommand extends AbstractSlashCommand {
             event.reply("There's no user with this UUID").setEphemeral(true).queue();
             return;
         }
-        
+
         /* Check if the account has already been linked */
         if (profile.hasDiscordLinked()) {
             event.reply("This Game account is already linked to a Discord account.").setEphemeral(true).queue();
             return;
         }
 
-        /* Check if the discord account has already been link to an other official account */
+        /* Check if the discord account has already been linked to another official account */
         final String DISCORD_USER_ID = event.getUser().getId();
         if (SQLPlayerAccount.getAccountByDiscordID(DISCORD_USER_ID) != null) {
             event.reply("Your Discord account is already linked to another Game account.").setEphemeral(true).queue();

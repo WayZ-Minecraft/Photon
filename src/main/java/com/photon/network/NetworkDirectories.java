@@ -161,6 +161,7 @@ public class NetworkDirectories
 		@SerializedName("discord_bot_id") public String discord_bot_id = "";
 		@SerializedName("official_discord_server_id") public String official_discord_server_id = "";
 		@SerializedName("network_console_channel_id") public String network_console_channel_id = "";
+		@SerializedName("server_creator_role_id") public String server_creator_role_id = "";
 		
 		/* Web Server */
 		@SerializedName("webserver_port") public int webserver_port = 7070;

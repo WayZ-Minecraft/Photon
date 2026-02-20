@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.io.File;
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 
 import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;
@@ -12,12 +11,10 @@ import javax.security.auth.login.LoginException;
 import org.slf4j.LoggerFactory;
 
 import com.photon.discord.commands.CommandsManager;
-import com.photon.discord.language.Languages;
 import com.photon.discord.language.UsersInfo;
 import com.photon.network.NetworkDirectories;
 import com.photon.network.sql.SQLDiscordLog;
 import com.photon.network.sql.SQLDiscordLog.ModerationType;
-import com.photon.network.sql.SQLDiscordProfile;
 import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
 import com.photon.util.TranslationManager;
@@ -25,21 +22,16 @@ import com.photon.util.TranslationManager;
 import ch.qos.logback.classic.Logger;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.StandardGuildMessageChannel;
 import net.dv8tion.jda.api.events.guild.GuildBanEvent;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.guild.GuildUnbanEvent;
-import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
-import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
-import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateTimeOutEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -88,7 +80,7 @@ public class BotEngine extends ListenerAdapter {
 
         ConsoleManager.create("Discord Bot connection established").withType(EnumLogType.NETWORK).end();
 
-        Thread.sleep(550);
+        Thread.sleep(550); // Wait a bit to ensure guild is loaded
     }
 
     /**
@@ -115,94 +107,58 @@ public class BotEngine extends ListenerAdapter {
         }
     }
 
+    /**
+     * Log a moderation action (ban, unban, kick, timeout) in the database without duration (for bans, unbans and kicks)
+     * @param guild The guild where the action took place
+     * @param targetId The ID of the user targeted by the action
+     * @param type The type of the moderation action
+     */
+    private static void logModerationAction(@Nonnull Guild guild, String targetId, ModerationType type) {
+        logModerationAction(guild, targetId, type, 0L);
+    }
+
+    /**
+     * Log a moderation action (ban, unban, kick, timeout) in the database
+     * @param guild The guild where the action took place
+     * @param targetId The ID of the user targeted by the action
+     * @param type The type of the moderation action
+     * @param durationSeconds The duration of the action in seconds (for timeouts, 0 for other actions)
+     */
+    private static void logModerationAction(@Nonnull Guild guild, String targetId, ModerationType type, long durationSeconds) {
+        guild.retrieveAuditLogs().type(type.toDiscordActionType()).limit(1).queue(entries -> {
+            if(entries.isEmpty()) return; // No entry, No log
+
+            final AuditLogEntry AUDIT = entries.stream().filter(entry -> entry.getTargetId().equals(targetId)).findFirst().orElse(null);
+            if (AUDIT == null) return; // No relevant entry, No log
+            
+            final String MODERATOR_ID = AUDIT.getUser() != null ? AUDIT.getUser().getId() : null;
+            final String REASON = AUDIT.getReason();
+            SQLDiscordLog.save(guild.getId(), targetId, type, REASON, MODERATOR_ID, durationSeconds);
+        });
+    }
+
     @Override
     public void onGuildBan(@Nonnull GuildBanEvent event) {
-        final String guildID = event.getGuild().getId();
-        final String targetID = event.getUser().getId();
-
-        event.getGuild().retrieveAuditLogs().type(ActionType.BAN).limit(1).queue(entries -> {
-            String moderatorID = null;
-            String reason = null;
-
-            if (!entries.isEmpty()) {
-                final AuditLogEntry entry = entries.get(0);
-                if (entry.getTargetId().equals(targetID)) {
-                    moderatorID = entry.getUser() != null ? entry.getUser().getId() : null;
-                    reason = entry.getReason();
-                }
-            }
-
-            SQLDiscordLog.save(guildID, targetID, ModerationType.BAN, reason, moderatorID);
-        });
+        final String TARGET_USER_ID = event.getUser().getId();
+        logModerationAction(event.getGuild(), TARGET_USER_ID, ModerationType.BAN);
     }
 
     @Override
     public void onGuildUnban(@Nonnull GuildUnbanEvent event) {
-        final String guildID = event.getGuild().getId();
-        final String targetID = event.getUser().getId();
-
-        event.getGuild().retrieveAuditLogs().type(ActionType.UNBAN).limit(1).queue(entries -> {
-            String moderatorID = null;
-
-            if (!entries.isEmpty()) {
-                final AuditLogEntry entry = entries.get(0);
-                if (entry.getTargetId().equals(targetID))
-                    moderatorID = entry.getUser() != null ? entry.getUser().getId() : null;
-            }
-
-            SQLDiscordLog.save(guildID, targetID, ModerationType.UNBAN, null, moderatorID);
-        });
-    }
-
-    /**
-     * When a user leave the server, remove him from the database
-     * 
-     * @param event The event of a user leaving the server
-     */
-    @Override
-    public void onGuildMemberRemove(@Nonnull GuildMemberRemoveEvent event) {
-        SQLDiscordProfile.setLanguages(event.getUser().getId(), new ArrayList<>());
-
-        final String guildID = event.getGuild().getId();
-        final String targetID = event.getUser().getId();
-
-        /* Check audit log to detect kick vs voluntary leave */
-        event.getGuild().retrieveAuditLogs().type(ActionType.KICK).limit(1).queue(entries -> {
-            if (entries.isEmpty()) return;
-
-            final AuditLogEntry entry = entries.get(0);
-            final long secondsSinceAction = Duration.between(entry.getTimeCreated(), OffsetDateTime.now()).abs().getSeconds();
-            if (!entry.getTargetId().equals(targetID) || secondsSinceAction > 3) return;
-
-            SQLDiscordLog.save(guildID, targetID, ModerationType.KICK, entry.getReason(), entry.getUser() != null ? entry.getUser().getId() : null);
-        });
+        final String TARGET_USER_ID = event.getUser().getId();
+        logModerationAction(event.getGuild(), TARGET_USER_ID, ModerationType.UNBAN); // No reasons
     }
 
     @Override
     public void onGuildMemberUpdateTimeOut(@Nonnull GuildMemberUpdateTimeOutEvent event) {
-        final OffsetDateTime timeoutEnd = event.getNewTimeOutEnd();
-        if (timeoutEnd == null) return;
+        final OffsetDateTime TIMEOUT_END = event.getNewTimeOutEnd();
+        if (TIMEOUT_END == null) return; // If the timeout end is null, it means the user has been removed from timeout, we log it as an untimeout with duration 0
 
-        final String guildID = event.getGuild().getId();
-        final String targetID = event.getUser().getId();
-        final long durationSeconds = Duration.between(OffsetDateTime.now(), timeoutEnd).getSeconds();
-
-        event.getGuild().retrieveAuditLogs().type(ActionType.MEMBER_UPDATE).limit(1).queue(entries -> {
-            String moderatorID = null;
-            String reason = null;
-
-            if (!entries.isEmpty()) {
-                final AuditLogEntry entry = entries.get(0);
-                if (entry.getTargetId().equals(targetID)) {
-                    moderatorID = entry.getUser() != null ? entry.getUser().getId() : null;
-                    reason = entry.getReason();
-                }
-            }
-
-            SQLDiscordLog.save(guildID, targetID, ModerationType.TIMEOUT, reason, moderatorID, durationSeconds);
-        });
+        final long DURATION_SECONDS = Duration.between(OffsetDateTime.now(), TIMEOUT_END).getSeconds();
+        final String TARGET_USER_ID = event.getUser().getId();
+        logModerationAction(event.getGuild(), TARGET_USER_ID, ModerationType.TIMEOUT, DURATION_SECONDS);
     }
-
+    
     /**
      * To log something on discord console manager channel
      * 
@@ -257,33 +213,6 @@ public class BotEngine extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(@Nonnull SlashCommandInteractionEvent event) { CommandsManager.onSlashCommand(event); }
 
-    /**
-     * When a user get a role
-     * 
-     * @param event The event of a user getting a role
-     * @author Mini
-     */
-    @Override
-    public void onGuildMemberRoleAdd(@Nonnull GuildMemberRoleAddEvent event) {
-        for (Role role : event.getRoles()){
-            if (role.getIdLong() == Roles.FR.id) UsersInfo.addLanguages(event.getUser().getId(), Languages.FRENCH);
-            else if (role.getIdLong() == Roles.EN.id) UsersInfo.addLanguages(event.getUser().getId(), Languages.ENGLISH);
-        }
-    }
-
-    /**
-     * When a user lose a role
-     * 
-     * @param event The event of a user losing a role
-     */
-    @Override
-    public void onGuildMemberRoleRemove(@Nonnull GuildMemberRoleRemoveEvent event) {
-        for (Role role : event.getRoles()){
-            if (role.getIdLong() == Roles.FR.id) UsersInfo.removeLanguages(event.getUser().getId(), Languages.FRENCH);
-            else if (role.getIdLong() == Roles.EN.id) UsersInfo.removeLanguages(event.getUser().getId(), Languages.ENGLISH);
-        }
-    }
-
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
         handleMessages(event.getGuildChannel(), event.getMessage());
@@ -299,20 +228,18 @@ public class BotEngine extends ListenerAdapter {
         handleMessages(event.getGuildChannel(), event.getMessage());
     }
 
-    // TODO Add listen to ban/kick/other moderation events ! -> Save all that stuff in the database and link it to the discord user profile !
-
     private static void handleMessages(GuildChannel eventChannel, Message message) {
         final User AUTHOR = message.getAuthor();
         if (AUTHOR.isBot()) return;
 
         if(isConsoleChannel(eventChannel)) {
-            message.delete().queue();
+            message.delete().queue(); // Delete the edited message
             return;
         }
 
         final boolean IS_LINK = DiscordSecurity.checkLink(message.getContentRaw());
         if (IS_LINK) {
-            message.delete().queue();
+            message.delete().queue(); // Delete the message containing the link
             AUTHOR.openPrivateChannel().queue(pm -> pm.sendMessage(TranslationManager.format(UsersInfo.getLanguage(AUTHOR.getId()).code,"discord.securityMessage.updateMessage")).queue());
         }
     }

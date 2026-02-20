@@ -4,7 +4,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.sql.SQLException;
 
-import com.photon.discord.BotEngine;
 import com.photon.discord.commands.AbstractSlashCommand;
 import com.photon.network.sql.SQLInteraction;
 
@@ -25,17 +24,8 @@ public class ExecuteSQLCommand extends AbstractSlashCommand {
 
     @Override
     public void handle(SlashCommandInteractionEvent event) {
-        /* If we're not on the official guild */
-        if(!BotEngine.isOfficialGuild(event.getGuild())) {
-            event.reply("You're not on the official guild.").setEphemeral(true).queue();
-            return;
-        }
-
-        /* If we're not in the console */
-        if(!BotEngine.isConsoleChannel(event.getGuildChannel())) {
-            event.reply("This command can only be used in the console channel.").setEphemeral(true).queue();
-            return;
-        }
+        if (!isOfficialGuild(event)) return; // Check if we're on the official guild
+        if (!isConsoleChannel(event)) return; // Check if we're in the console channel
 
         final OptionMapping SQL_COMMAND_ARG = event.getOption("command");
         if(SQL_COMMAND_ARG != null) {

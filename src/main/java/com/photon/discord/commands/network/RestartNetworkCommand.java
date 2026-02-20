@@ -1,6 +1,5 @@
 package com.photon.discord.commands.network;
 
-import com.photon.discord.BotEngine;
 import com.photon.discord.commands.AbstractSlashCommand;
 import com.photon.network.NetworkEngine;
 import com.photon.util.os.ApplicationUtils;
@@ -24,17 +23,8 @@ public class RestartNetworkCommand extends AbstractSlashCommand {
      */
     @Override
     public void handle(SlashCommandInteractionEvent event) {
-        /* If we're not on the official guild */
-        if(!BotEngine.isOfficialGuild(event.getGuild())) {
-            event.reply("You're not on the official guild.").setEphemeral(true).queue();
-            return;
-        }
-
-        /* If we're not in the console */
-        if(!BotEngine.isConsoleChannel(event.getGuildChannel())) {
-            event.reply("This command can only be used in the console channel.").setEphemeral(true).queue();
-            return;
-        }
+        if (!isOfficialGuild(event)) return; // Check if we're on the official guild
+        if (!isConsoleChannel(event)) return; // Check if we're in the console channel
 
         event.reply("Restarting network...").queue();
         ApplicationUtils.restart(NetworkEngine.class, "--restart");

@@ -36,7 +36,7 @@ public class SQLDiscordProfile extends SQLInteraction {
         ResultSet result = null;
 
         try {
-            statement = connexion.prepareStatement("SELECT languages FROM DiscordAccount WHERE id = ?");
+            statement = getConnexion().prepareStatement("SELECT languages FROM DiscordAccount WHERE id = ?");
             statement.setString(1, id);
             result = statement.executeQuery();
 
@@ -79,7 +79,7 @@ public class SQLDiscordProfile extends SQLInteraction {
         ResultSet result = null;
 
         try {
-            statement = connexion.prepareStatement("SELECT firstConnection FROM DiscordAccount WHERE id = ?");
+            statement = getConnexion().prepareStatement("SELECT firstConnection FROM DiscordAccount WHERE id = ?");
             statement.setString(1, id);
             result = statement.executeQuery();
 

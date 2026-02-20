@@ -2,9 +2,12 @@ package com.photon.discord.commands;
 
 import java.util.function.Function;
 
+import com.photon.discord.BotEngine;
 import com.photon.discord.commands.AutoCompleteRegistry.AutoCompleteProvider;
 import com.photon.util.NetworkOnly;
 
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -95,6 +98,34 @@ public abstract class AbstractSlashCommand {
 
     public void register() {
         CommandsManager.COMMANDS.put(this.cmdName, this);
+    }
+
+    /**
+     * Check if the command is used in the official guild, and reply with an error message if not
+     * @param event The SlashCommandInteractionEvent to check
+     * @return true if the command is used in the official guild, false otherwise
+     */
+    public boolean isOfficialGuild(SlashCommandInteractionEvent event) {
+        final Guild GUILD = event.getGuild();
+        if (!isGlobal() && (GUILD == null || !BotEngine.isOfficialGuild(GUILD))) {
+            event.reply("This command can only be used on the official server.").setEphemeral(true).queue();
+            return false;
+        }
+        return true; // Otherwise, we assume it's the official guild
+    }
+
+    /**
+     * Check if the command is used in the console channel, and reply with an error message if not
+     * @param event The SlashCommandInteractionEvent to check
+     * @return true if the command is used in the console channel, false otherwise
+     */
+    public boolean isConsoleChannel(SlashCommandInteractionEvent event) {
+        final GuildChannel CHANNEL = event.getGuildChannel();
+        if(!isGlobal() && (CHANNEL == null || !BotEngine.isConsoleChannel(CHANNEL))) {
+            event.reply("This command can only be used in the console channel.").setEphemeral(true).queue();
+            return false;
+        }
+        return true; // Otherwise, we assume it's the console channel
     }
 
     /**

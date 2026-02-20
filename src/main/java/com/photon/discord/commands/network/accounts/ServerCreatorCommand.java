@@ -1,6 +1,5 @@
 package com.photon.discord.commands.network.accounts;
 
-import com.photon.discord.BotEngine;
 import com.photon.discord.commands.AbstractSlashCommand;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.sql.SQLPlayerAccount;
@@ -15,7 +14,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 
 public class ServerCreatorCommand extends AbstractSlashCommand {
 
-    private static final long PROJECT_CREATOR_ROLE_ID = 1474183624134758525L;
+    private static final long PROJECT_CREATOR_ROLE_ID = 1474183624134758525L; //TODO What is that shit ?! You have a config file for this kind of mess !!!!!!!!
 
     private enum ActionType { ADD, REMOVE }
 
@@ -29,10 +28,7 @@ public class ServerCreatorCommand extends AbstractSlashCommand {
 
     @Override
     public void handle(SlashCommandInteractionEvent event) {
-        if (!BotEngine.isOfficialGuild(event.getGuild())) {
-            event.reply("This command can only be used on the official server.").setEphemeral(true).queue();
-            return;
-        }
+        if (!isOfficialGuild(event)) return; // Check if we're on the official guild
 
         final OptionMapping actionOption = event.getOption("action");
         if (actionOption == null) {

@@ -7,7 +7,6 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
-import com.photon.discord.BotEngine;
 import com.photon.discord.commands.AbstractSlashCommand;
 import com.photon.network.NetworkDirectories;
 import com.photon.network.NetworkEngine;
@@ -40,11 +39,7 @@ public class PostUpdateCommand extends AbstractSlashCommand {
      */
     @Override
     public void handle(SlashCommandInteractionEvent event) {
-        /* If we're not on the official guild */
-        if(!BotEngine.isOfficialGuild(event.getGuild())) {
-            event.reply("You're not on the official guild.").setEphemeral(true).queue();
-            return;
-        }
+        if (!isOfficialGuild(event)) return; // Check if we're on the official guild
 
         final Attachment FILE = event.getOption("file").getAsAttachment(); // Should always be present
         if(!FILE.getFileExtension().contains(".jar")) {

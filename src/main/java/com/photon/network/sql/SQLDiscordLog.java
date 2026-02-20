@@ -6,6 +6,8 @@ import java.util.List;
 
 import com.photon.util.NetworkOnly;
 
+import net.dv8tion.jda.api.audit.ActionType;
+
 @NetworkOnly
 public class SQLDiscordLog extends SQLInteraction implements SQLInteraction.SQLCommandSerializer<SQLDiscordLog> {
 
@@ -13,7 +15,17 @@ public class SQLDiscordLog extends SQLInteraction implements SQLInteraction.SQLC
         BAN,
         UNBAN,
         KICK,
-        TIMEOUT
+        TIMEOUT;
+
+        public ActionType toDiscordActionType() {
+            switch (this) {
+                case BAN: return ActionType.BAN;
+                case UNBAN: return ActionType.UNBAN;
+                case KICK: return ActionType.KICK;
+                case TIMEOUT: return ActionType.MEMBER_UPDATE; // No direct equivalent, using MEMBER_UPDATE for timeout actions
+                default: throw new IllegalStateException("Unexpected value: " + this);
+            }
+        }
     }
 
     public int id;
@@ -61,10 +73,6 @@ public class SQLDiscordLog extends SQLInteraction implements SQLInteraction.SQLC
             "INSERT INTO DiscordLog (guildID, discordID, playerUUID, type, reason, moderatorDiscordID, durationSeconds) VALUES (?, ?, ?, ?, ?, ?, ?)",
             guildID, discordID, playerUUID, type.name(), reason, moderatorDiscordID, durationSeconds
         );
-    }
-
-    public static void save(String guildID, String discordID, ModerationType type, String reason, String moderatorDiscordID) {
-        save(guildID, discordID, type, reason, moderatorDiscordID, 0L);
     }
 
     public static List<SQLDiscordLog> getByDiscordID(String discordID) {

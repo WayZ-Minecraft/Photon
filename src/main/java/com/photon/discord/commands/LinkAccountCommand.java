@@ -33,13 +33,14 @@ public class LinkAccountCommand extends AbstractSlashCommand {
             return;
         }
 
-        /* Check if the account has already been linked */
+        /* Check if there's an account with this UUID */
         final ObjectPlayerAccount profile = SQLPlayerAccount.getAccountByUUID(UUID);
         if (profile == null) {
             event.reply("There's no user with this UUID").setEphemeral(true).queue();
             return;
         }
-
+        
+        /* Check if the account has already been linked */
         if (profile.hasDiscordLinked()) {
             event.reply("This Game account is already linked to a Discord account.").setEphemeral(true).queue();
             return;
@@ -55,16 +56,16 @@ public class LinkAccountCommand extends AbstractSlashCommand {
         /* Update the Discord ID */
         SQLPlayerAccount.updateDiscordID(UUID, DISCORD_USER_ID);
 
-        /* Auto-assign ServerCreator role if applicable */
-        if (profile.serverCreator && BotEngine.guild != null) {
-            final Role serverCreatorRole = BotEngine.guild.getRoleById(1474183624134758525L);
-            if (serverCreatorRole != null) {
-                BotEngine.guild.retrieveMemberById(DISCORD_USER_ID).queue(
-                    member -> BotEngine.guild.addRoleToMember(member, serverCreatorRole).queue(),
-                    err -> {}
-                );
-            }
-        }
+        /* Auto-assign ServerCreator role if applicable */ //TODO
+        // if (profile.serverCreator && BotEngine.guild != null) {
+        //     final Role serverCreatorRole = BotEngine.guild.getRoleById(1474183624134758525L);
+        //     if (serverCreatorRole != null) {
+        //         BotEngine.guild.retrieveMemberById(DISCORD_USER_ID).queue(
+        //             member -> BotEngine.guild.addRoleToMember(member, serverCreatorRole).queue(),
+        //             err -> {}
+        //         );
+        //     }
+        // }
 
         /* Print reply */
         event.reply("Your account has been linked to " + event.getUser().getAsMention()).queue();

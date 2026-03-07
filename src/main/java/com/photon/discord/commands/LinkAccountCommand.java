@@ -21,8 +21,8 @@ public class LinkAccountCommand extends AbstractSlashCommand {
 
     @Override
     public void handle(SlashCommandInteractionEvent event) {
-        final String UUID = event.getOption("uuid").getAsString();
-        final String AUTHCODE = event.getOption("code").getAsString();
+        final String UUID = event.getOption("uuid").getAsString(); // Won't be null because it's required
+        final String AUTHCODE = event.getOption("code").getAsString(); // Won't be null because it's required
 
         /* Check the UUID and the code */
         if (!SQLPlayerAccount.isAuthCodeValid(UUID, AUTHCODE)) {

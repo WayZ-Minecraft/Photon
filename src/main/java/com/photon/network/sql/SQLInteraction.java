@@ -1,5 +1,6 @@
 package com.photon.network.sql;
 
+import java.io.Console;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -26,7 +27,7 @@ import com.photon.util.NetworkOnly;
 public abstract class SQLInteraction {
     private static Connection connexion = null;
     
-    public static Connection getConnexion() {
+    public static Connection getConnection() {
         if (connexion == null) connect();
         return connexion;
     }
@@ -66,6 +67,19 @@ public abstract class SQLInteraction {
             ConsoleManager.create("Database connection error: " + e.getMessage()).withType(EnumLogType.SQL).error().end();
         }
     }
+    
+    /**
+     * Safely disconnect from the database, closing the connection if it exists.
+     */
+    protected static void disconnect() {
+        try {
+            if (connexion != null) connexion.close();
+        } catch (SQLException e) {
+            ConsoleManager.create("Failed to disconnect from database: " + e.getMessage()).withType(EnumLogType.SQL).error().end();
+        } finally {
+            connexion = null;
+        }
+    }
 
     /**
      * Close statement and result set safely.
@@ -88,7 +102,7 @@ public abstract class SQLInteraction {
     protected static boolean reconnect() {
         if (connexion == null) {
             connect();
-            return true;
+            return connexion != null;
         }
         return false;
     }

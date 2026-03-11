@@ -16,7 +16,7 @@ public class MigrationManager {
     public static void migrate() {
         /* Rename ModerationLog table if it exists */
         try {
-            final PreparedStatement st = SQLInteraction.getConnexion().prepareStatement("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='ModerationLog'");
+            final PreparedStatement st = SQLInteraction.getConnection().prepareStatement("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='ModerationLog'");
             final ResultSet rs = st.executeQuery();
             if (rs.next() && rs.getInt(1) > 0)
                 SQLInteraction.executeSQLCommand("ALTER TABLE ModerationLog RENAME TO DiscordLog");
@@ -35,7 +35,7 @@ public class MigrationManager {
 
     private static void migrateColumn(String table, String column, String definition) {
         try {
-            final PreparedStatement statement = SQLInteraction.getConnexion().prepareStatement("SELECT COUNT(*) FROM pragma_table_info(?) WHERE name = ?");
+            final PreparedStatement statement = SQLInteraction.getConnection().prepareStatement("SELECT COUNT(*) FROM pragma_table_info(?) WHERE name = ?");
             statement.setString(1, table);
             statement.setString(2, column);
             final ResultSet result = statement.executeQuery();

@@ -14,6 +14,7 @@ import org.apache.commons.io.IOUtils;
 import com.esotericsoftware.kryo.Kryo;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
+import com.photon.PhotonEngine;
 import com.photon.network.NetworkDirectories.NetworkConfig;
 import com.photon.network.listeners.INetworkMessageListener;
 import com.photon.network.messages.requests.ClientRequestAddClass;
@@ -44,10 +45,16 @@ import com.photon.network.objects.ObjectNews;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.objects.ObjectServer;
 import com.photon.network.sql.SQLInteraction.SQLCommandSerializer;
-import com.photon.util.ConsoleManager;
 import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.PhotonLogTypes;
 import com.photon.util.updater.UpdateChannel;
 import com.photon.util.updater.UpdateFileType;
+
+import niwer.lumen.Console;
+import niwer.lumen.EnumLogColor;
+import niwer.lumen.container.Container;
+import niwer.lumen.container.Processor;
+import niwer.lumen.types.ILogType;
 
 public class NetworkObjectRegistry {
 	public static Kryo kryo;
@@ -81,7 +88,7 @@ public class NetworkObjectRegistry {
 				
 				final ClientRequestAddClass packet = new ClientRequestAddClass(name, bytes);
 				ClientLinkManager.client.sendTCP(packet);
-			} catch(IOException e) { ConsoleManager.create(ConsoleManager.of(e)).withType(EnumLogType.NETWORK).error().end(); }
+			} catch(IOException e) { Console.log(e).type(PhotonLogTypes.NETWORK).error().container(PhotonEngine.LOGGER).send(); }
 		}
 	}
 	
@@ -150,6 +157,19 @@ public class NetworkObjectRegistry {
         kryo.register(ServerResponseSyncContentPack.class);
 
         kryo.register(ClientRequestHWID.class);
+
+        /* Lumen logger */
+        {
+            kryo.register(Console.class);
+    
+            kryo.register(ILogType.class);
+            kryo.register(EnumLogColor.class);
+    
+            kryo.register(Container.class);
+            kryo.register(Processor.class);
+            // kryo.register(Logger.class);
+            // kryo.register(ConsoleHandler.class);
+        }
     }
 	
 	public static class ByteArrayClassLoader extends ClassLoader {
@@ -162,7 +182,7 @@ public class NetworkObjectRegistry {
 					Class<?> clazz = defineClass(name, bytes, 0, bytes.length);
 					list.put(name, clazz);
 					return clazz;
-				} catch(ClassFormatError e) { ConsoleManager.create(e.fillInStackTrace().toString()).withType(EnumLogType.NETWORK).error().end(); }
+				} catch(ClassFormatError e) { Console.log(e.fillInStackTrace().toString()).type(PhotonLogTypes.NETWORK).error().send(); }
 			}
 			return list.get(name);
 		}

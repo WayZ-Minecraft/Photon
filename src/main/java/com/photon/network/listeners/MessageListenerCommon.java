@@ -9,8 +9,9 @@ import com.esotericsoftware.kryonet.Listener;
 import com.photon.network.ClientLinkManager;
 import com.photon.network.listeners.INetworkMessageListener.INetworkListenerSide;
 import com.photon.network.messages.requests.ClientRequestAddListener;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.PhotonLogTypes;
+
+import niwer.lumen.Console;
 
 /**
  * TODO this will have to be rework to make support for Content-Packs download.
@@ -40,13 +41,13 @@ public class MessageListenerCommon implements Listener {
         if (!REGISTERED_LISTENERS.contains(listener)) {
             REGISTERED_LISTENERS.add(listener);
             listenersSorted = false;
-            ConsoleManager.create("Registered listener: " + listener.getClass().getSimpleName()).withType(EnumLogType.NETWORK).end();
+            Console.log("Registered listener: " + listener.getClass().getSimpleName()).type(PhotonLogTypes.NETWORK).send();
         }
     }
     
     public static boolean removeListener(INetworkMessageListener listener) {
         final boolean REMOVAL_SUCCESS = REGISTERED_LISTENERS.remove(listener);
-        if (!REMOVAL_SUCCESS) ConsoleManager.create("Unregistered listener: " + listener.getClass().getSimpleName()).withType(EnumLogType.NETWORK).end();
+        if (!REMOVAL_SUCCESS) Console.log("Unregistered listener: " + listener.getClass().getSimpleName()).type(PhotonLogTypes.NETWORK).send();
         return REMOVAL_SUCCESS;
     }
     
@@ -60,11 +61,11 @@ public class MessageListenerCommon implements Listener {
                 try {
                     listener.received(connection, object);
                 } catch (Exception e) {
-                    ConsoleManager.create("Error in listener " + listener.getClass().getSimpleName() + 
+                    Console.log("Error in listener " + listener.getClass().getSimpleName() + 
                         " while handling " + messageClass.getSimpleName())
-                        .withType(EnumLogType.NETWORK)
+                        .type(PhotonLogTypes.NETWORK)
                         .error()
-                        .end();
+                        .send();
                     e.printStackTrace();
                 }
             }
@@ -82,6 +83,6 @@ public class MessageListenerCommon implements Listener {
         REGISTERED_LISTENERS.clear();
         listenersSorted = false;
         
-        ConsoleManager.create("Cleared all network listeners").withType(EnumLogType.NETWORK).end();
+        Console.log("Cleared all network listeners").type(PhotonLogTypes.NETWORK).send();
     }
 }

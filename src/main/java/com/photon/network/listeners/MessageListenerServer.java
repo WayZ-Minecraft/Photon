@@ -7,7 +7,9 @@ import com.photon.network.IPacket;
 import com.photon.network.listeners.INetworkMessageListener.INetworkListenerSide;
 import com.photon.util.ConsoleManager;
 import com.photon.util.NetworkOnly;
-import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.PhotonLogTypes;
+
+import niwer.lumen.Console;
 
 @NetworkOnly
 public class MessageListenerServer implements Listener {
@@ -21,10 +23,10 @@ public class MessageListenerServer implements Listener {
             if (object instanceof IPacket packet) packet.handle(connection);
             MessageListenerCommon.dispatchToListeners(connection, object, INetworkListenerSide.SERVER);
         } catch (Exception e) {
-            ConsoleManager.create("Unexpected error while handling: " + object.getClass().getSimpleName())
-                .withType(EnumLogType.NETWORK)
+            Console.log("Unexpected error while handling: " + object.getClass().getSimpleName())
+                .type(PhotonLogTypes.NETWORK)
                 .error()
-                .end();
+                .send();
             e.printStackTrace();
         }
     }

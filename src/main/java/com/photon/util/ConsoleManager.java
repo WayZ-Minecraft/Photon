@@ -26,6 +26,12 @@ import com.photon.discord.BotEngine;
 import com.photon.network.ClientLinkManager;
 import com.photon.network.messages.requests.ClientRequestSendDiscordLogs;
 
+import niwer.lumen.Console;
+
+/**
+ * This class is deprecated in favor of Lumen : https://github.com/Niwer1525/Lumen
+ */
+@Deprecated(forRemoval = true)
 public class ConsoleManager
 {  	
 	private static final ConsoleHandler defaultHandler = new ConsoleHandler();
@@ -54,6 +60,8 @@ public class ConsoleManager
 		defaultLogger.addHandler(defaultHandler);
 
 		// System.setOut(new PrintStream(System.out, true, StandardCharsets.UTF_8));
+
+		Console.log(handlers);
 	}
 	
 	public static ConsoleContainer createManager(String id) {
@@ -101,7 +109,7 @@ public class ConsoleManager
 		try {
     		final FileHandler fh = new FileHandler(file.getPath());
             Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
-                ConsoleManager.create("Uncaught exception in thread " + t.getName() +"\n"+ of(e)).error().end();
+                Console.log("Uncaught exception in thread " + t.getName() +"\n"+ of(e)).error().send();
             });
 			if(container != null) container.getLogger().addHandler(fh);
 			else defaultLogger.addHandler(fh);
@@ -181,7 +189,7 @@ public class ConsoleManager
 	public static void endTime(String message) {
 		if(elipsedTime) {
 			elipsedTime = false;
-			ConsoleManager.create(message+" ("+(System.currentTimeMillis()-startTime)+"ms)").end();
+			Console.log(message+" ("+(System.currentTimeMillis()-startTime)+"ms)").send();
 		}
 	}
 
@@ -194,31 +202,32 @@ public class ConsoleManager
 		private ConsoleContainer container;
 
 		public void end() {
-			final String subTypeName = (isError?" : "+ConsoleManager.ANSI_RED+"ERROR"+type.consoleColor:"");
+			throw new UnsupportedOperationException("Deprecated. Use Lumen instead : https://github.com/Niwer1525/Lumen");
+			// final String subTypeName = (isError?" : "+ConsoleManager.ANSI_RED+"ERROR"+type.consoleColor:"");
 			
-			if(container !=null) {
-				/* Changing log format */
-				if(!(container.getHandler().getFormatter() instanceof ConsoleFormatter)) container.getHandler().setFormatter(new ConsoleFormatter(type));
+			// if(container !=null) {
+			// 	/* Changing log format */
+			// 	if(!(container.getHandler().getFormatter() instanceof ConsoleFormatter)) container.getHandler().setFormatter(new ConsoleFormatter(type));
 				
-				/* Log */
-				container.getLogger().log(Level.OFF, "["+type+subTypeName+"] "+object);
-			} else {
-				/* Changing log format */
-				if(!(defaultHandler.getFormatter() instanceof ConsoleFormatter)) defaultHandler.setFormatter(new ConsoleFormatter(type));
+			// 	/* Log */
+			// 	container.getLogger().log(Level.OFF, "["+type+subTypeName+"] "+object);
+			// } else {
+			// 	/* Changing log format */
+			// 	if(!(defaultHandler.getFormatter() instanceof ConsoleFormatter)) defaultHandler.setFormatter(new ConsoleFormatter(type));
 	
-				/* Log */
-				defaultLogger.log(Level.OFF, "["+type+subTypeName+"] "+object);
-			}
+			// 	/* Log */
+			// 	defaultLogger.log(Level.OFF, "["+type+subTypeName+"] "+object);
+			// }
 
-			/* Display the error on discord if enabled */
-			if(logOnDiscord) {
-				/* If on network -> Don't send packets */
-				if(BotEngine.isBotInitialized()) BotEngine.log(isError? Color.RED :type.color, type+subTypeName, object, file);
-				else {
-					final ClientRequestSendDiscordLogs request = new ClientRequestSendDiscordLogs(type, subTypeName, object, file);
-					ClientLinkManager.sendTCP(request);
-				}
-			}
+			// /* Display the error on discord if enabled */
+			// if(logOnDiscord) {
+			// 	/* If on network -> Don't send packets */
+			// 	if(BotEngine.isBotInitialized()) BotEngine.log(isError? Color.RED :type.color, type+subTypeName, object, file);
+			// 	else {
+			// 		final ClientRequestSendDiscordLogs request = new ClientRequestSendDiscordLogs(type, subTypeName, object, file);
+			// 		ClientLinkManager.sendTCP(request);
+			// 	}
+			// }
 		}
 
 		public Log withContainer(ConsoleContainer container) {
@@ -226,7 +235,7 @@ public class ConsoleManager
 			return this;
 		}
 
-		public Log displayOnDiscord() {
+		public Log sendToProcessor() {
 			this.logOnDiscord = true;
 			return this;
 		}

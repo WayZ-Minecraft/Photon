@@ -12,11 +12,12 @@ import com.photon.network.messages.requests.ClientRequestAnticheat;
 import com.photon.network.messages.requests.ClientRequestCrashReport;
 import com.photon.network.messages.requests.ClientRequestHWID;
 import com.photon.network.messages.requests.news.ClientRequestNewsList;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
 import com.photon.util.NetworkOnly;
+import com.photon.util.PhotonLogTypes;
 import com.photon.util.auth.PhotonUserAuthManager;
 import com.photon.util.os.OperatingSystem;
+
+import niwer.lumen.Console;
 
 @NetworkOnly // This class is only for network testing purposes
 public class NetworkClientSideTester {
@@ -24,7 +25,7 @@ public class NetworkClientSideTester {
     public static void main(String[] args) {
         try {
             NetworkEngine.load(args); // Start the Network Engine
-            ConsoleManager.create("\n\n").end();
+            Console.log("\n\n").send();
 
             /* Connecting to local network after trying to connect to a random IP */
             PhotonEngine.loadClient(PhotonEngine.LOCAL_IP);
@@ -54,23 +55,23 @@ public class NetworkClientSideTester {
             /* Accounts */
             {
                 /* Official Accounts System */
-                PhotonUserAuthManager.tryCreateAccout("test_bis@mailhost.com", "Tester_bis", "Passwooooorddddddddd*", () -> ConsoleManager.create("A. Account Create on the server and we receive it !").withType(EnumLogType.CLIENT).end());
-                PhotonUserAuthManager.tryCreateAccout("test@mailhost.com", "Tester", "MySuperProtectedPassWord1*", () -> ConsoleManager.create("B. Account Create on the server and we receive it !").withType(EnumLogType.CLIENT).end());
+                PhotonUserAuthManager.tryCreateAccout("test_bis@mailhost.com", "Tester_bis", "Passwooooorddddddddd*", () -> Console.log("A. Account Create on the server and we receive it !").type(PhotonLogTypes.TESTER).send());
+                PhotonUserAuthManager.tryCreateAccout("test@mailhost.com", "Tester", "MySuperProtectedPassWord1*", () -> Console.log("B. Account Create on the server and we receive it !").type(PhotonLogTypes.TESTER).send());
 
-                PhotonUserAuthManager.tryAuth("test@mailhost.com", "MySuperProtectedPassWord1", true, () -> ConsoleManager.create("Your are successfully authenticated !").withType(EnumLogType.CLIENT).end());
+                PhotonUserAuthManager.tryAuth("test@mailhost.com", "MySuperProtectedPassWord1", true, () -> Console.log("Your are successfully authenticated !").type(PhotonLogTypes.TESTER).send());
             }
 
             /* Test logo functionality */
             {                
                 final BufferedImage LOGO = NetworkConfig.getGameLogo();
-                if (LOGO == null) ConsoleManager.create("Logo is NULL - not received from server yet or failed to load").error().end();
+                if (LOGO == null) Console.log("Logo is NULL - not received from server yet or failed to load").error().send();
                 else
-                    ConsoleManager.create(
+                    Console.log(
                         String.format("Logo loaded successfully (Width: %dpx/Height: %dpx/Type: %d - Size : %d Kb)", LOGO.getWidth(), LOGO.getHeight(), LOGO.getType(), NetworkDirectories.getConfig().gameLogo.length / 1024)
-                    ).end();
+                    ).send();
             }
         } catch (IOException e) {
-            ConsoleManager.debug("Error when connecting: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

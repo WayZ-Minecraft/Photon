@@ -20,20 +20,20 @@ import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 @NetworkOnly
 public abstract class AbstractSlashCommand {
 
-    private final String cmdName;
-    protected final CommandData data;
+    private final String CMD_NAME;
+    protected final CommandData DATA;
 
     protected AbstractSlashCommand(String cmdName, String cmdDescription, String group) {
-        this.cmdName = cmdName;
-        this.data = Commands.slash(this.cmdName, cmdDescription)/* .addSubcommandGroups(null) */;
+        this.CMD_NAME = cmdName;
+        this.DATA = Commands.slash(this.CMD_NAME, cmdDescription)/* .addSubcommandGroups(null) */;
     }
 
     protected AbstractSlashCommand(String cmdName, String cmdDescription) {
-        this.cmdName = cmdName;
-        this.data = Commands.slash(this.cmdName, cmdDescription);
+        this.CMD_NAME = cmdName;
+        this.DATA = Commands.slash(this.CMD_NAME, cmdDescription);
     }
 
-    public SlashCommandData data() { return (SlashCommandData) this.data; }
+    public SlashCommandData data() { return (SlashCommandData) this.DATA; }
 
     /**
      * Add an option without autocomplete support
@@ -58,7 +58,7 @@ public abstract class AbstractSlashCommand {
      */
     protected SlashCommandData addOption(OptionType type, String name, String description, boolean isRequired, AutoCompleteProvider autoComplete) {
         final SlashCommandData cmd = this.addOption(type, name, description, isRequired, true);
-        if(autoComplete != null) AutoCompleteRegistry.register(this.cmdName, name, autoComplete);
+        if(autoComplete != null) AutoCompleteRegistry.register(this.CMD_NAME, name, autoComplete);
         return cmd;
     }
     
@@ -73,7 +73,7 @@ public abstract class AbstractSlashCommand {
      */
     protected SlashCommandData addOption(OptionType type, String name, String description, boolean isRequired, Class<? extends Enum<?>> autoCompleteEnum) {
         final SlashCommandData cmd = this.addOption(type, name, description, isRequired, true);
-        if(autoCompleteEnum != null) AutoCompleteRegistry.registerFromEnum(this.cmdName, name, autoCompleteEnum);
+        if(autoCompleteEnum != null) AutoCompleteRegistry.registerFromEnum(this.CMD_NAME, name, autoCompleteEnum);
         return cmd;
     }
 
@@ -88,7 +88,7 @@ public abstract class AbstractSlashCommand {
      */
     protected SlashCommandData addOption(OptionType type, String name, String description, boolean isRequired, Function<Void, Iterable<String>> choicesProvider) {
         final SlashCommandData cmd = this.addOption(type, name, description, isRequired, true);
-        if(choicesProvider != null) AutoCompleteRegistry.registerFromCollection(this.cmdName, name, choicesProvider);
+        if(choicesProvider != null) AutoCompleteRegistry.registerFromCollection(this.CMD_NAME, name, choicesProvider);
         return cmd;
     }
 
@@ -97,7 +97,7 @@ public abstract class AbstractSlashCommand {
     }
 
     public void register() {
-        CommandsManager.COMMANDS.put(this.cmdName, this);
+        CommandsManager.COMMANDS.put(this.CMD_NAME, this);
     }
 
     /**

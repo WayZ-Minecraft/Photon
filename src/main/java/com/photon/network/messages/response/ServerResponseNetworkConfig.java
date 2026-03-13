@@ -25,8 +25,8 @@ public class ServerResponseNetworkConfig implements IPacket {
     @Override
     public void handle(Connection connection) {
         NetworkDirectories.config = config;
-        synchronized (NetworkDirectories.configWaiter) {
-            NetworkDirectories.configWaiter.notify();
+        synchronized (NetworkDirectories.CONFIG_WAITER) {
+            NetworkDirectories.CONFIG_WAITER.notify();
         }
     }
 }

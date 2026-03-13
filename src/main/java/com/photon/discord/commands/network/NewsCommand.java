@@ -3,18 +3,19 @@ package com.photon.discord.commands.network;
 import java.sql.SQLException;
 import java.util.Date;
 
+import com.photon.PhotonEngine;
 import com.photon.discord.commands.AbstractSlashCommand;
 import com.photon.network.objects.ObjectNews;
-import com.photon.network.sql.SQLnews;
 import com.photon.network.sql.SQLInteraction;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.network.sql.SQLnews;
 import com.photon.util.NetworkOnly;
+import com.photon.util.PhotonLogTypes;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
+import niwer.lumen.Console;
 
 /**
  * @author Niwer
@@ -49,7 +50,7 @@ public class NewsCommand extends AbstractSlashCommand {
         try{
             SQLnews.createNews(news);
         }catch (SQLException e) {
-            ConsoleManager.create("Erreur on creating news : " + e.getMessage()).displayOnDiscord().withType(EnumLogType.NETWORK).error().end();
+            Console.log("Unable to creating news : " + e.getMessage()).sendToProcessor().type(PhotonLogTypes.DISCORD_BOT).error().container(PhotonEngine.LOGGER).send();
             SQLInteraction.connect();
             event.reply("Error on news creation, please show chanel console-manager").queue();
         }

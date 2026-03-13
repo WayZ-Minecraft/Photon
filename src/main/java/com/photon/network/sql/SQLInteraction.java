@@ -1,6 +1,5 @@
 package com.photon.network.sql;
 
-import java.io.Console;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -11,10 +10,12 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.photon.PhotonEngine;
 import com.photon.network.NetworkDirectories;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
 import com.photon.util.NetworkOnly;
+import com.photon.util.PhotonLogTypes;
+
+import niwer.lumen.Console;
 
 /**
  * SQLite database interaction handler.
@@ -42,9 +43,9 @@ public abstract class SQLInteraction {
      */
     public static void connect() {
         try {
-            final String DB_PATH = "jdbc:sqlite:" + NetworkDirectories.baseDirectory + "/network.db";
+            final String DB_PATH = "jdbc:sqlite:" + NetworkDirectories.BASE_DIR + "/network.db";
             connexion = DriverManager.getConnection(DB_PATH);
-            ConsoleManager.create("Connection to SQLite has been established.").withType(EnumLogType.NETWORK).end();
+            Console.log("Connection to SQLite has been established.").type(PhotonLogTypes.SQL).container(PhotonEngine.LOGGER).send();
             
             /* Register all SQL interactions */
             {
@@ -64,7 +65,7 @@ public abstract class SQLInteraction {
                 MigrationManager.migrate();
             }
         } catch (SQLException e) {
-            ConsoleManager.create("Database connection error: " + e.getMessage()).withType(EnumLogType.SQL).error().end();
+            Console.log("Database connection error: " + e.getMessage()).type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
         }
     }
     
@@ -75,7 +76,7 @@ public abstract class SQLInteraction {
         try {
             if (connexion != null) connexion.close();
         } catch (SQLException e) {
-            ConsoleManager.create("Failed to disconnect from database: " + e.getMessage()).withType(EnumLogType.SQL).error().end();
+            Console.log("Failed to disconnect from database: " + e.getMessage()).type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
         } finally {
             connexion = null;
         }
@@ -211,10 +212,10 @@ public abstract class SQLInteraction {
             return obj;
         } catch (SQLException e) {
             if (reconnect()) return executeSQLCommand(serializer, command, params);
-            ConsoleManager.create(String.format("Error while executing SQL command (%s) : ", command) + e.getMessage()).withType(EnumLogType.SQL).error().end();
+            Console.log(String.format("Error while executing SQL command (%s) : ", command) + e.getMessage()).type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
             return null;
         } catch (Exception e) {
-            ConsoleManager.create("Error while serializing : " + e.getMessage()).withType(EnumLogType.SQL).error().end();
+            Console.log("Error while serializing : " + e.getMessage()).type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
             return null;
         }
     }
@@ -240,10 +241,10 @@ public abstract class SQLInteraction {
             return list;
         } catch (SQLException e) {
             if (reconnect()) return executeSQLCommandList(serializer, command, params);
-            ConsoleManager.create(String.format("Error while executing SQL command (%s) : ", command) + e.getMessage()).withType(EnumLogType.SQL).error().end();
+            Console.log(String.format("Error while executing SQL command (%s) : ", command) + e.getMessage()).type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
             return null;
         } catch (Exception e) {
-            ConsoleManager.create("Error while serializing : " + e.getMessage()).withType(EnumLogType.SQL).error().end();
+            Console.log("Error while serializing : " + e.getMessage()).type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
             return null;
         }
     }
@@ -273,7 +274,7 @@ public abstract class SQLInteraction {
             return null;
         } catch (SQLException e) {
             if (reconnect()) return executeSQLCommandForPrimitive(command, params);
-            ConsoleManager.create(String.format("Error while executing SQL command (%s) : ", command) + e.getMessage()).withType(EnumLogType.SQL).error().end();
+            Console.log(String.format("Error while executing SQL command (%s) : ", command) + e.getMessage()).type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
             return null;
         }
     }

@@ -9,9 +9,10 @@ import com.photon.network.listeners.MessageListenerClient;
 import com.photon.network.listeners.MessageListenerCommon;
 import com.photon.network.messages.requests.ClientRequestNetworkConfig;
 import com.photon.network.messages.requests.ClientRequestRegisterConnection;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.PhotonLogTypes;
 import com.photon.util.ProtectorManager;
+
+import niwer.lumen.Console;
 
 /**
  * Use in mod/launchers/external applications to connect to Photon servers.
@@ -28,9 +29,9 @@ public class ClientLinkManager {
         try {
             if(NetworkDirectories.getConfig() == null || NetworkDirectories.getConfig().isEmpty()) {
                 ClientLinkManager.sendTCP(new ClientRequestNetworkConfig());
-                synchronized (NetworkDirectories.configWaiter) { NetworkDirectories.configWaiter.wait(); }
+                synchronized (NetworkDirectories.CONFIG_WAITER) { NetworkDirectories.CONFIG_WAITER.wait(); }
             }
-        } catch (InterruptedException e) { ConsoleManager.create(ConsoleManager.of(e)).withType(EnumLogType.NETWORK).error().end(); }
+        } catch (InterruptedException e) { Console.log(e).type(PhotonLogTypes.NETWORK).error().send(); }
         ClientLinkManager.sendTCP(new ClientRequestRegisterConnection(ProtectorManager.getHWID()));
     }
     
@@ -47,7 +48,7 @@ public class ClientLinkManager {
     }
     
     public static void attemptReconnectionFromClient() {
-        ConsoleManager.create("Disconnected from server, attempting reconnection...").error().withType(EnumLogType.NETWORK).end();
+        Console.log("Disconnected from server, attempting reconnection...").error().type(PhotonLogTypes.NETWORK).send();
         Thread t = new Thread(() -> {
             while(!isConnected()) {
                 try {

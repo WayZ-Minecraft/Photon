@@ -3,10 +3,12 @@ package com.photon.network.sql;
 import java.util.List;
 import java.util.UUID;
 
+import com.photon.PhotonEngine;
 import com.photon.network.objects.ObjectPlayerAccount;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
 import com.photon.util.NetworkOnly;
+import com.photon.util.PhotonLogTypes;
+
+import niwer.lumen.Console;
 
 /**
  * Player account management with SQLite database.
@@ -36,22 +38,22 @@ public class SQLPlayerAccount extends SQLInteraction {
      */
     public static ObjectPlayerAccount createAccount(String username, String email, String password) {
         if (username == null || email == null || password == null) {
-            ConsoleManager.create("Cannot create account with null parameters").withType(EnumLogType.SQL).error().end();
+            Console.log("Cannot create account with null parameters").type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
             return null;
         }
         
         if (username.trim().isEmpty() || email.trim().isEmpty() || password.isEmpty()) {
-            ConsoleManager.create("Cannot create account with empty parameters").withType(EnumLogType.SQL).error().end();
+            Console.log("Cannot create account with empty parameters").type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
             return null;
         }
         
         if (emailExists(email)) {
-            ConsoleManager.create("Email already exists: " + email).withType(EnumLogType.SQL).error().end();
+            Console.log("Email already exists: " + email).type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
             return null;
         }
         
         if (usernameExists(username)) {
-            ConsoleManager.create("Username already exists: " + username).withType(EnumLogType.SQL).error().end();
+            Console.log("Username already exists: " + username).type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
             return null;
         }
 
@@ -70,7 +72,7 @@ public class SQLPlayerAccount extends SQLInteraction {
 
     public static void updateDiscordID(String uuid, String discordID) {
         if (uuid == null || uuid.trim().isEmpty()) {
-            ConsoleManager.create("Cannot update Discord ID for null/empty UUID").error().end();
+            Console.log("Cannot update Discord ID for null/empty UUID").error().container(PhotonEngine.LOGGER).send();
             return;
         }
         executeSQLCommand("UPDATE PlayerAccount SET discordID = ? WHERE uuid = ?", discordID, uuid);
@@ -86,7 +88,7 @@ public class SQLPlayerAccount extends SQLInteraction {
      */
     public static ObjectPlayerAccount getAccountByUUID(String uuid) {
         if (uuid == null || uuid.trim().isEmpty()) {
-            ConsoleManager.create("Cannot get account with null/empty UUID").error().end();
+            Console.log("Cannot get account with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
             return null;
         }
         return executeSQLCommand(ObjectPlayerAccount.class, "SELECT * FROM PlayerAccount WHERE uuid = ?", uuid);
@@ -101,7 +103,7 @@ public class SQLPlayerAccount extends SQLInteraction {
      */
     public static ObjectPlayerAccount getAccountByEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
-            ConsoleManager.create("Cannot get account with null/empty email").error().end();
+            Console.log("Cannot get account with null/empty email").error().container(PhotonEngine.LOGGER).send();
             return null;
         }
         return executeSQLCommand(ObjectPlayerAccount.class, "SELECT * FROM PlayerAccount WHERE LOWER(email) = LOWER(?)", email.trim());
@@ -116,7 +118,7 @@ public class SQLPlayerAccount extends SQLInteraction {
      */
     public static ObjectPlayerAccount getAccountByUsername(String username) {
         if (username == null || username.trim().isEmpty()) {
-            ConsoleManager.create("Cannot get account with null/empty username").error().end();
+            Console.log("Cannot get account with null/empty username").error().container(PhotonEngine.LOGGER).send();
             return null;
         }
         return executeSQLCommand(ObjectPlayerAccount.class, "SELECT * FROM PlayerAccount WHERE LOWER(username) = LOWER(?)", username.trim());
@@ -130,7 +132,7 @@ public class SQLPlayerAccount extends SQLInteraction {
      */
     public static ObjectPlayerAccount getAccountByDiscordID(String discordID) {
         if (discordID == null || discordID.trim().isEmpty()) {
-            ConsoleManager.create("Cannot get account with null/empty Discord ID").error().end();
+            Console.log("Cannot get account with null/empty Discord ID").error().container(PhotonEngine.LOGGER).send();
             return null;
         }
         return executeSQLCommand(ObjectPlayerAccount.class, "SELECT * FROM PlayerAccount WHERE discordID = ?", discordID);
@@ -145,7 +147,7 @@ public class SQLPlayerAccount extends SQLInteraction {
      */
     public static boolean emailExists(String email) {
         if (email == null || email.trim().isEmpty()) {
-            ConsoleManager.create("Cannot check existence of null/empty email").error().end();
+            Console.log("Cannot check existence of null/empty email").error().container(PhotonEngine.LOGGER).send();
             return false;
         }
         return (int)executeSQLCommandForPrimitive("SELECT COUNT(*) FROM PlayerAccount WHERE LOWER(email) = LOWER(?)", email.trim()) > 0;
@@ -160,7 +162,7 @@ public class SQLPlayerAccount extends SQLInteraction {
      */
     public static boolean usernameExists(String username) {
         if (username == null || username.trim().isEmpty()) {
-            ConsoleManager.create("Cannot check existence of null/empty username").error().end();
+            Console.log("Cannot check existence of null/empty username").error().send();
             return false;
         }
         return (int)executeSQLCommandForPrimitive("SELECT COUNT(*) FROM PlayerAccount WHERE LOWER(username) = LOWER(?)", username.trim()) > 0;
@@ -174,7 +176,7 @@ public class SQLPlayerAccount extends SQLInteraction {
      */
     public static String getTokenByEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
-            ConsoleManager.create("Cannot get auth code for null/empty email").error().end();
+            Console.log("Cannot get auth code for null/empty email").error().container(PhotonEngine.LOGGER).send();
             return null;
         }
         return (String)executeSQLCommandForPrimitive("SELECT discordAuthCode FROM PlayerAccount WHERE LOWER(email) = LOWER(?)", email.trim());
@@ -190,7 +192,7 @@ public class SQLPlayerAccount extends SQLInteraction {
      */
     public static boolean isAuthCodeValid(String givenUUID, String givenAuthCode) {
         if(givenUUID == null || givenUUID.trim().isEmpty() || givenAuthCode == null || givenAuthCode.trim().isEmpty()) {
-            ConsoleManager.create("Cannot validate auth code with null/empty parameters").error().end();
+            Console.log("Cannot validate auth code with null/empty parameters").error().container(PhotonEngine.LOGGER).send();
             return false;
         }
 
@@ -199,7 +201,7 @@ public class SQLPlayerAccount extends SQLInteraction {
 
     public static void setServerCreator(String uuid, boolean isServerCreator) {
         if (uuid == null || uuid.trim().isEmpty()) {
-            ConsoleManager.create("Cannot update serverCreator with null/empty UUID").error().end();
+            Console.log("Cannot update serverCreator with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
             return;
         }
         executeSQLCommand("UPDATE PlayerAccount SET serverCreator = ? WHERE uuid = ?", isServerCreator ? 1 : 0, uuid);
@@ -212,7 +214,7 @@ public class SQLPlayerAccount extends SQLInteraction {
      */
     public static void deleteAccount(String uuid) {
         if (uuid == null || uuid.trim().isEmpty()) {
-            ConsoleManager.create("Cannot delete account with null/empty UUID").error().end();
+            Console.log("Cannot delete account with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
             return;
         }
         executeSQLCommand("DELETE FROM PlayerAccount WHERE uuid = ?", uuid);

@@ -7,10 +7,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.reflect.TypeToken;
+import com.photon.PhotonEngine;
 import com.photon.discord.language.Languages;
 import com.photon.network.NetworkDirectories;
-import com.photon.util.ConsoleManager;
 import com.photon.util.NetworkOnly;
+import com.photon.util.PhotonLogTypes;
+
+import niwer.lumen.Console;
 
 //TODO fix this mess and use the newer language system
 @NetworkOnly
@@ -87,7 +90,7 @@ public class SQLDiscordProfile extends SQLInteraction {
                 return result.getBoolean("firstConnection");
             }
         }catch (SQLException e) {
-            ConsoleManager.create("Error getting first connection for " + id + ": " + e.getMessage()).error().end();
+            Console.log("Error getting first connection for " + id + ": " + e.getMessage()).error().type(PhotonLogTypes.DISCORD_BOT).container(PhotonEngine.LOGGER).send();
         } finally {
             closeStatement(statement, result);
         }

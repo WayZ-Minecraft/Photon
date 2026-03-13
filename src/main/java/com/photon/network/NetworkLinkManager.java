@@ -4,10 +4,11 @@ import com.esotericsoftware.kryonet.Server;
 import com.photon.PhotonEngine;
 import com.photon.network.NetworkDirectories.NetworkConfig;
 import com.photon.network.listeners.MessageListenerServer;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
 import com.photon.util.NetworkOnly;
+import com.photon.util.PhotonLogTypes;
 import com.photon.util.os.ApplicationUtils;
+
+import niwer.lumen.Console;
 
 /**
  * This class manager the kryonet server (network link) for Photon Engine
@@ -26,13 +27,13 @@ public class NetworkLinkManager
             new Thread(SERVER, "Server Network Connection").start();
             SERVER.addListener(new MessageListenerServer());
         } catch (Exception e) {
-        	ConsoleManager.create("Can't start Network Server: \n - " + e).withType(EnumLogType.NETWORK).displayOnDiscord().end();
+        	Console.log("Can't start Network Server: \n - " + e).type(PhotonLogTypes.NETWORK).sendToProcessor().container(PhotonEngine.LOGGER).send();
         	e.printStackTrace();
         }
     }
     
     private static void closingServices() {
-        ConsoleManager.create("Network shut down successfully!").withType(EnumLogType.NETWORK).displayOnDiscord().end();
+        Console.log("Network shut down successfully!").type(PhotonLogTypes.NETWORK).sendToProcessor().container(PhotonEngine.LOGGER).send();
     	if(SERVER !=null) SERVER.close();
     }
     

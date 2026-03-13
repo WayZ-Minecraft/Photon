@@ -16,24 +16,26 @@ import javax.imageio.ImageIO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.PhotonEngine;
+import com.photon.util.PhotonLogTypes;
 import com.photon.util.os.FileLocation;
 import com.photon.util.updater.UpdateChannel;
 import com.photon.util.updater.UpdateFileType;
+
+import niwer.lumen.Console;
 
 public class NetworkDirectories
 {
 	public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();	
 	private static final Gson PRETTY_GSON = new GsonBuilder().setPrettyPrinting().create();	
 
-	public static final File baseDirectory = new File("./network/");
-	public static final File logsDirectory = new File(baseDirectory + "/logs/");
-	public static final File logoFile = new File(baseDirectory + "/project_logo.png");
+	public static final File BASE_DIR = new File("./network/");
+	public static final File LOGS_DIR = new File(BASE_DIR + "/logs/");
+	public static final File LOGO_FILE = new File(BASE_DIR + "/project_logo.png");
 
-	public static final Object configWaiter = new Object();
+	public static final Object CONFIG_WAITER = new Object();
 	public static NetworkConfig config = NetworkConfig.DEFAULT;
-	public static File configFile = new File(baseDirectory + "/config.json");
+	public static File configFile = new File(BASE_DIR + "/config.json");
 	
 	public static NetworkConfig getConfig() {
 		return config == null ? NetworkConfig.DEFAULT : config;
@@ -44,8 +46,8 @@ public class NetworkDirectories
      * @author Niwer & noz43
      */
 	public static void load() {
-		if (!baseDirectory.exists()) baseDirectory.mkdirs();
-		if (!logsDirectory.exists()) logsDirectory.mkdirs();
+		if (!BASE_DIR.exists()) BASE_DIR.mkdirs();
+		if (!LOGS_DIR.exists()) LOGS_DIR.mkdirs();
 		
 		try {
 			if (!configFile.exists()) {
@@ -82,15 +84,15 @@ public class NetworkDirectories
 	 * @author Niwer (Added : Gathering default logo if not found)
 	 */
 	public static void loadLogoOnServer() {
-		if (!logoFile.exists()) {
-			ConsoleManager.create("Game logo not found at: " + logoFile.getPath() + ". We'll try to gather the default one").withType(EnumLogType.NETWORK).end();
+		if (!LOGO_FILE.exists()) {
+			Console.log("Game logo not found at: " + LOGO_FILE.getPath() + ". We'll try to gather the default one").type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
 
 			final InputStream STREAM = FileLocation.loadFile("photon_logo.png");
 			if (STREAM != null) {
 				try {
-					ImageIO.write(ImageIO.read(STREAM), "png", logoFile);
+					ImageIO.write(ImageIO.read(STREAM), "png", LOGO_FILE);
 				} catch (IOException e) {
-					ConsoleManager.create("Failed to create logo file at: " + logoFile.getPath()).error().withType(EnumLogType.NETWORK).end();
+					Console.log("Failed to create logo file at: " + LOGO_FILE.getPath()).error().type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
 					e.printStackTrace();
 					return;
 				}
@@ -98,14 +100,14 @@ public class NetworkDirectories
 		}
 		
 		try {
-			if (!logoFile.exists()) {
-				ConsoleManager.create("Game logo still not found, aborting logo load").error().withType(EnumLogType.NETWORK).end();
+			if (!LOGO_FILE.exists()) {
+				Console.log("Game logo still not found, aborting logo load").error().type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
 				return;
 			}
 
-			final BufferedImage IMAGE = ImageIO.read(logoFile);
+			final BufferedImage IMAGE = ImageIO.read(LOGO_FILE);
 			if (IMAGE == null) {
-				ConsoleManager.create("Failed to read game logo").error().withType(EnumLogType.NETWORK).end();
+				Console.log("Failed to read game logo").error().type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
 				return;
 			}
 			
@@ -114,9 +116,9 @@ public class NetworkDirectories
 			config.gameLogo = BAOS.toByteArray();
 			BAOS.close();
 			
-			ConsoleManager.create("Game logo loaded successfully (" + config.gameLogo.length + " bytes)").withType(EnumLogType.NETWORK).end();
+			Console.log("Game logo loaded successfully (" + config.gameLogo.length + " bytes)").type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
 		} catch (IOException e) {
-			ConsoleManager.create("Error loading game logo: " + e.getMessage()).error().withType(EnumLogType.NETWORK).end();
+			Console.log("Error loading game logo: " + e.getMessage()).error().type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
 			e.printStackTrace();
 		}
 	}
@@ -131,24 +133,24 @@ public class NetworkDirectories
 
 		public Map<UpdateFileType, Map<UpdateChannel, String>> filePaths = Map.of(
 			UpdateFileType.MOD, Map.of(
-				UpdateChannel.STABLE, baseDirectory.getPath()+"/services_update/mod.jar",
-				UpdateChannel.DEV, baseDirectory.getPath()+"/services_update/mod-dev.jar",
-				UpdateChannel.TEST, baseDirectory.getPath()+"/services_update/mod-test.jar"
+				UpdateChannel.STABLE, BASE_DIR.getPath()+"/services_update/mod.jar",
+				UpdateChannel.DEV, BASE_DIR.getPath()+"/services_update/mod-dev.jar",
+				UpdateChannel.TEST, BASE_DIR.getPath()+"/services_update/mod-test.jar"
 			),
 			UpdateFileType.API, Map.of(
-				UpdateChannel.STABLE, baseDirectory.getPath()+"/services_update/api.jar",
-				UpdateChannel.DEV, baseDirectory.getPath()+"/services_update/api-dev.jar",
-				UpdateChannel.TEST, baseDirectory.getPath()+"/services_update/api-test.jar"
+				UpdateChannel.STABLE, BASE_DIR.getPath()+"/services_update/api.jar",
+				UpdateChannel.DEV, BASE_DIR.getPath()+"/services_update/api-dev.jar",
+				UpdateChannel.TEST, BASE_DIR.getPath()+"/services_update/api-test.jar"
 			),
 			UpdateFileType.NETWORK, Map.of(
-				UpdateChannel.STABLE, baseDirectory.getPath()+"/services_update/network.jar",
-				UpdateChannel.DEV, baseDirectory.getPath()+"/services_update/network-dev.jar",
-				UpdateChannel.TEST, baseDirectory.getPath()+"/services_update/network-test.jar"
+				UpdateChannel.STABLE, BASE_DIR.getPath()+"/services_update/network.jar",
+				UpdateChannel.DEV, BASE_DIR.getPath()+"/services_update/network-dev.jar",
+				UpdateChannel.TEST, BASE_DIR.getPath()+"/services_update/network-test.jar"
 			),
 			UpdateFileType.LAUNCHER, Map.of(
-				UpdateChannel.STABLE, baseDirectory.getPath()+"/services_update/launcher.jar",
-				UpdateChannel.DEV, baseDirectory.getPath()+"/services_update/launcher-dev.jar",
-				UpdateChannel.TEST, baseDirectory.getPath()+"/services_update/launcher-test.jar"
+				UpdateChannel.STABLE, BASE_DIR.getPath()+"/services_update/launcher.jar",
+				UpdateChannel.DEV, BASE_DIR.getPath()+"/services_update/launcher-dev.jar",
+				UpdateChannel.TEST, BASE_DIR.getPath()+"/services_update/launcher-test.jar"
 			)
 		);
 
@@ -192,7 +194,10 @@ public class NetworkDirectories
 				final BufferedImage IMG = ImageIO.read(STREAM);
 				STREAM.close();
 				return IMG;
-			} catch (IOException e) { e.printStackTrace(); return null; }
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
 		}
 		
 		/**

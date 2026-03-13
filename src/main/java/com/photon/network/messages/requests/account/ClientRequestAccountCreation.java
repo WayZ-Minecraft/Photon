@@ -1,12 +1,14 @@
 package com.photon.network.messages.requests.account;
 
 import com.esotericsoftware.kryonet.Connection;
+import com.photon.PhotonEngine;
 import com.photon.network.IPacket;
 import com.photon.network.messages.response.account.ServerResponseValidAccount;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.sql.SQLPlayerAccount;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.PhotonLogTypes;
+
+import niwer.lumen.Console;
 
 /**
  * @author Niwer
@@ -46,7 +48,7 @@ public class ClientRequestAccountCreation implements IPacket {
             profile = SQLPlayerAccount.createAccount(username, email, password);
             exist = profile != null;
             
-            if (exist) ConsoleManager.create("New account created: " + profile.username).displayOnDiscord().withType(EnumLogType.NETWORK).end();
+            if (exist) Console.log("New account created: " + profile.username).sendToProcessor().type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
         }
         
         final ServerResponseValidAccount response = new ServerResponseValidAccount(exist, true, isEmailAlreadyUsed, isUsernameAlreadyUsed, false, profile);

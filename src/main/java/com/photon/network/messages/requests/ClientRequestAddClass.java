@@ -1,16 +1,17 @@
 package com.photon.network.messages.requests;
 
 import com.esotericsoftware.kryonet.Connection;
+import com.photon.PhotonEngine;
 import com.photon.network.IPacket;
 import com.photon.network.NetworkObjectRegistry;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.PhotonLogTypes;
+
+import niwer.lumen.Console;
 
 /**
  * @author Niwer
  * @author noz43
  */
-
 public class ClientRequestAddClass implements IPacket {
     private final String name;
     private final byte[] bytes;
@@ -31,8 +32,9 @@ public class ClientRequestAddClass implements IPacket {
     public void handle(Connection connection) {
         NetworkObjectRegistry.addClass(name, bytes);
         
-        ConsoleManager.create("Network class registered: " + name)
-            .withType(EnumLogType.NETWORK)
-            .end();
+        Console.log("Network class registered: " + name)
+            .type(PhotonLogTypes.NETWORK)
+            .container(PhotonEngine.LOGGER)
+            .send();
     }
 }

@@ -4,7 +4,7 @@ buildscript {
 
 plugins {
     id 'java-library'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+	id 'com.gradleup.shadow' version '9.3.2'
 }
 
 repositories {
@@ -28,6 +28,7 @@ dependencies {
 	implementation 'com.esotericsoftware:kryo:5.6.2'
     implementation 'io.javalin:javalin:6.7.0'
     api 'ch.qos.logback:logback-classic:1.4.8' // JDA & Javalin are using this
+	api 'com.github.Niwer1525:Lumen:1.0.3'
 
     /* Other auth */
     // See more : https://azuriom.com/
@@ -58,6 +59,7 @@ dependencies {
 	shadow 'com.esotericsoftware:kryo:5.6.2'
     shadow 'io.javalin:javalin:6.7.0'
     shadow 'ch.qos.logback:logback-classic:1.4.8' // JDA & Javalin are using this
+	shadow 'com.github.Niwer1525:Lumen:1.0.3'
 	
     /* Shadow auth */
     shadow 'com.azuriom:azauth:1.1.0'
@@ -76,8 +78,8 @@ dependencies {
     shadow 'org.xerial:sqlite-jdbc:3.42.0.0'
 }
 
-tasks.withType(JavaCompile).configureEach { it.options.release = 17 }
-sourceCompatibility = targetCompatibility = JavaVersion.VERSION_17
+tasks.withType(JavaCompile).configureEach { it.options.release = 21 }
+sourceCompatibility = targetCompatibility = JavaVersion.VERSION_21
 
 version = '1.0.0'
 archivesBaseName = 'photon'

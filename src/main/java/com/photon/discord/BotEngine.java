@@ -1,7 +1,5 @@
 package com.photon.discord;
 
-import java.awt.Color;
-import java.io.File;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 
@@ -10,13 +8,13 @@ import javax.security.auth.login.LoginException;
 
 import org.slf4j.LoggerFactory;
 
+import com.photon.PhotonEngine;
 import com.photon.discord.commands.CommandsManager;
 import com.photon.discord.language.UsersInfo;
 import com.photon.network.NetworkDirectories;
 import com.photon.network.sql.SQLDiscordLog;
 import com.photon.network.sql.SQLDiscordLog.ModerationType;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.PhotonLogTypes;
 import com.photon.util.TranslationManager;
 
 import ch.qos.logback.classic.Logger;
@@ -41,6 +39,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import niwer.lumen.Console;
 
 /**
  * Main class of the bot, load the bot and register important slash commands
@@ -78,7 +77,7 @@ public class BotEngine extends ListenerAdapter {
         CommandsManager.load();
         TranslationManager.loadAllLanguages("lang");
 
-        ConsoleManager.create("Discord Bot connection established").withType(EnumLogType.NETWORK).end();
+        Console.log("Discord Bot connection established").type(PhotonLogTypes.DISCORD_BOT).container(PhotonEngine.LOGGER).send();
 
         Thread.sleep(550); // Wait a bit to ensure guild is loaded
     }
@@ -162,22 +161,20 @@ public class BotEngine extends ListenerAdapter {
     /**
      * To log something on discord console manager channel
      * 
-     * @param color   The color of the log
-     * @param title   The title of the log
-     * @param content The content of the log
-     * @param file    The file to send with the log (if null, no file is sent)
+     * @param data The data to log, if the console channel is configured and the bot is in the official guild, it will be sent to the console channel, otherwise it will be sent to the network logs channel
      */
-    public static void log(Color color, String title, Object content, File file) {
+    public static void log(Console data) {
         if(!hasConsoleChannel() && !isOfficialGuild(guild)) return;
 
         final EmbedBuilder LOGS_EMBED = new EmbedBuilder();
-        LOGS_EMBED.setColor(color);
-        LOGS_EMBED.setTitle(title);
-        LOGS_EMBED.setDescription(content.toString());
+        LOGS_EMBED.setColor(data.type().color().color());
+        LOGS_EMBED.setTitle((data.isError() ? "[Error] " : "") + data.type().name());
+        LOGS_EMBED.setDescription(String.format("%s", data.message()));
+        LOGS_EMBED.setTimestamp(OffsetDateTime.now());
         getConsoleChannel().sendMessageEmbeds(LOGS_EMBED.build()).queue();
 
-        if (file != null) {
-            final FileUpload FILE_TO_UPLOAD = FileUpload.fromData(file, "logs.txt");
+        if (data.file() != null) {
+            final FileUpload FILE_TO_UPLOAD = FileUpload.fromData(data.file(), "logs.txt");
             getConsoleChannel().sendFiles(FILE_TO_UPLOAD).queue();
         }
     }

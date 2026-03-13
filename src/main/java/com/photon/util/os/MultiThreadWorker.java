@@ -1,7 +1,5 @@
 package com.photon.util.os;
 
-import com.photon.util.ConsoleManager;
-
 public class MultiThreadWorker
 {
     private final ThreadCallback callback;
@@ -26,7 +24,7 @@ public class MultiThreadWorker
         }
         try {
             for (int i = 0; i < WORKERS.length; ++i) WORKERS[i].join();
-        } catch (InterruptedException e) { ConsoleManager.create(e).error().end(); }
+        } catch (InterruptedException e) { e.printStackTrace(); }
     }
     
     private class ThreadWorker extends Thread {

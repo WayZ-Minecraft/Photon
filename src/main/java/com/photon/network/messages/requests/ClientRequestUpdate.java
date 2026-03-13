@@ -5,13 +5,15 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 import com.esotericsoftware.kryonet.Connection;
+import com.photon.PhotonEngine;
 import com.photon.network.IPacket;
 import com.photon.network.NetworkDirectories;
 import com.photon.network.messages.response.ServerResponseUpdate;
-import com.photon.util.ConsoleManager;
 import com.photon.util.ProtectorManager;
 import com.photon.util.updater.UpdateChannel;
 import com.photon.util.updater.UpdateFileType;
+
+import niwer.lumen.Console;
 
 /**
  * @author Niwer
@@ -36,7 +38,7 @@ public class ClientRequestUpdate implements IPacket {
             final String updatePath = NetworkDirectories.getPathForUpdateChannel(type, channel);
             final File updateFile = new File(updatePath);
             if(!updateFile.exists()) {
-                ConsoleManager.create("Unable to find the requested version file. Skipping update.").error().end();
+                Console.log("Unable to find the requested version file. Skipping update.").error().container(PhotonEngine.LOGGER).send();
                 return;
             }
 

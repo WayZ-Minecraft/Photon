@@ -1,10 +1,12 @@
 package com.photon.network.messages.requests;
 
 import com.esotericsoftware.kryonet.Connection;
+import com.photon.PhotonEngine;
 import com.photon.network.IPacket;
 import com.photon.network.sql.SQLCrashReport;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.PhotonLogTypes;
+
+import niwer.lumen.Console;
 
 /**
  * @author Niwer
@@ -36,9 +38,10 @@ public class ClientRequestCrashReport implements IPacket {
     public void handle(Connection connection) {
         SQLCrashReport.save(userUUID, fileName, fileMessage);
         
-        ConsoleManager.create("Crash report received: " + userUUID)
-            .displayOnDiscord()
-            .withType(EnumLogType.NETWORK)
-            .end();
+        Console.log("Crash report received: " + userUUID)
+            .sendToProcessor()
+            .type(PhotonLogTypes.NETWORK)
+            .container(PhotonEngine.LOGGER)
+            .send();
     }
 }

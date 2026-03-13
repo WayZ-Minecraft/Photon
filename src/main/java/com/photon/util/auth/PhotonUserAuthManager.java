@@ -13,8 +13,6 @@ import com.photon.network.ClientLinkManager;
 import com.photon.network.messages.requests.account.ClientRequestAccountCreation;
 import com.photon.network.messages.requests.account.ClientRequestAccountVerification;
 import com.photon.network.objects.ObjectPlayerAccount;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
 import com.photon.util.ProtectorManager;
 
 public class PhotonUserAuthManager
@@ -108,7 +106,6 @@ public class PhotonUserAuthManager
 		try {
 			final File ACCOUNT_FILE = new File(path, ProtectorManager.getHWID()+".accounts");
             if(ACCOUNT_FILE.exists()) {
-				ConsoleManager.create("Try connecting using local infos...").withType(EnumLogType.CLIENT).end();
                 final FileInputStream stream = new FileInputStream(ACCOUNT_FILE);
                 final String[] content = new String(ProtectorManager.readCompressedFile(stream)).split("/");
                 tryAuth(content[0], content[1], false, callback);

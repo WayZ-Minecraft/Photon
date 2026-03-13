@@ -7,9 +7,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import com.google.gson.reflect.TypeToken;
+import com.photon.PhotonEngine;
 import com.photon.network.NetworkDirectories;
 import com.photon.network.sql.SQLInteraction.SQLCommandSerializer;
-import com.photon.util.ConsoleManager;
+
+import niwer.lumen.Console;
 
 /**
  * Can't use record here, Too complex object for record
@@ -59,7 +61,7 @@ public class ObjectPlayerAccount implements SQLCommandSerializer<ObjectPlayerAcc
                 TypeToken<ArrayList<String>> typeToken = new TypeToken<ArrayList<String>>() {};
                 account.firends = NetworkDirectories.GSON.fromJson(friendsJSON, typeToken.getType());
             } catch (Exception e) {
-                ConsoleManager.create("Error parsing friends JSON for " + account.uuid + ": " + e.getMessage()).error().end();
+                Console.log("Error parsing friends JSON for " + account.uuid + ": " + e.getMessage()).error().container(PhotonEngine.LOGGER).send();
             }
         }
 

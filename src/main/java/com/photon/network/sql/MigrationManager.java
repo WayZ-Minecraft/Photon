@@ -4,8 +4,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.PhotonEngine;
+import com.photon.util.PhotonLogTypes;
+
+import niwer.lumen.Console;
 
 /**
  * @author Niwer
@@ -22,7 +24,7 @@ public class MigrationManager {
                 SQLInteraction.executeSQLCommand("ALTER TABLE ModerationLog RENAME TO DiscordLog");
             SQLInteraction.closeStatement(st, rs);
         } catch (SQLException e) {
-            ConsoleManager.create("Migration rename table error: " + e.getMessage()).withType(EnumLogType.SQL).error().end();
+            Console.log("Migration rename table error: " + e.getMessage()).type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
         }
         migrateColumn("PlayerAccount", "projectAuthor", "INTEGER DEFAULT 0");
         migrateColumn("PlayerAccount", "serverCreator", "INTEGER DEFAULT 0");
@@ -43,7 +45,7 @@ public class MigrationManager {
             SQLInteraction.closeStatement(statement, result);
             if (!exists) SQLInteraction.executeSQLCommand("ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition);
         } catch (SQLException e) {
-            ConsoleManager.create("Migration error for " + table + "." + column + ": " + e.getMessage()).withType(EnumLogType.SQL).error().end();
+            Console.log("Migration error for " + table + "." + column + ": " + e.getMessage()).type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
         }
     }
 }

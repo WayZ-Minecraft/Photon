@@ -1,17 +1,18 @@
 package com.photon.network.messages.requests;
 
 import com.esotericsoftware.kryonet.Connection;
+import com.photon.PhotonEngine;
 import com.photon.network.IPacket;
 import com.photon.network.sql.SQLAnticheat;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.PhotonLogTypes;
 import com.photon.util.os.OperatingSystem;
+
+import niwer.lumen.Console;
 
 /**
  * @author Niwer
  * @author noz43
  */
-
 public class ClientRequestAnticheat implements IPacket {
     private final String fileName;
     private final String fileMessage;
@@ -47,6 +48,6 @@ public class ClientRequestAnticheat implements IPacket {
     @Override
     public void handle(Connection connection) {
         SQLAnticheat.save(userUUID, fileName, fileMessage, operatingSystem);
-        ConsoleManager.create("Cheater detected: " + userUUID + " OS: " + operatingSystem + " Reason: " + fileMessage).displayOnDiscord().withType(EnumLogType.NETWORK).end();
+        Console.log("Cheater detected: " + userUUID + " OS: " + operatingSystem + " Reason: " + fileMessage).sendToProcessor().type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
     }
 }

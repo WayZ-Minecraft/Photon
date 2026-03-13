@@ -5,8 +5,9 @@ import com.esotericsoftware.kryonet.Listener;
 import com.photon.network.ClientLinkManager;
 import com.photon.network.IPacket;
 import com.photon.network.listeners.INetworkMessageListener.INetworkListenerSide;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.PhotonLogTypes;
+
+import niwer.lumen.Console;
 
 public class MessageListenerClient implements Listener {
     
@@ -16,17 +17,17 @@ public class MessageListenerClient implements Listener {
             if (object instanceof IPacket packet) packet.handle(connection);
             MessageListenerCommon.dispatchToListeners(connection, object, INetworkListenerSide.CLIENT);
         } catch (Exception e) {
-            ConsoleManager.create("Unexpected error while handling: " + object.getClass().getSimpleName())
-                .withType(EnumLogType.NETWORK)
+            Console.log("Unexpected error while handling: " + object.getClass().getSimpleName())
+                .type(PhotonLogTypes.NETWORK)
                 .error()
-                .end();
+                .send();
             e.printStackTrace();
         }
     }
 
      @Override
     public void disconnected(Connection connection) {
-        ConsoleManager.create("Connection lost, attempting reconnection...").withType(EnumLogType.NETWORK).end();
+        Console.log("Connection lost, attempting reconnection...").type(PhotonLogTypes.NETWORK).send();
         ClientLinkManager.attemptReconnectionFromClient();
     }
 }

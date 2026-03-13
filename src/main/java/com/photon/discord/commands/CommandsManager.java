@@ -59,12 +59,12 @@ public class CommandsManager extends ListenerAdapter {
 
     @Nonnull
     public static List<CommandData> getGlobalCommands() {
-        return COMMANDS.entrySet().stream().filter(entry -> entry.getValue().isGlobal()).map(entry -> entry.getValue().data).toList();
+        return COMMANDS.entrySet().stream().filter(entry -> entry.getValue().isGlobal()).map(entry -> entry.getValue().DATA).toList();
     }
 
     @Nonnull
     public static List<CommandData> getGuildCommands() {
-        return COMMANDS.entrySet().stream().filter(entry -> !entry.getValue().isGlobal()).map(entry -> entry.getValue().data).toList();
+        return COMMANDS.entrySet().stream().filter(entry -> !entry.getValue().isGlobal()).map(entry -> entry.getValue().DATA).toList();
     }
 
     /**

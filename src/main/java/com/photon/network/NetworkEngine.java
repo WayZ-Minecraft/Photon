@@ -1,6 +1,5 @@
 package com.photon.network;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,10 +13,13 @@ import com.photon.discord.BotEngine;
 import com.photon.network.objects.ObjectNews;
 import com.photon.network.objects.ObjectServer;
 import com.photon.network.sql.SQLInteraction;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
 import com.photon.util.NetworkOnly;
+import com.photon.util.PhotonLogTypes;
 import com.photon.web.WebServerEngine;
+
+import niwer.lumen.Console;
+import niwer.lumen.LumenEngine;
+import niwer.lumen.container.ConsoleFileManager;
 
 @NetworkOnly
 public class NetworkEngine {
@@ -37,6 +39,11 @@ public class NetworkEngine {
      */
 	public static void load(final String[] args) {
 		try {
+            /* Register logger */
+            LumenEngine.removeDefaultHandlers(); // Ensure Lumen is loaded properly
+            LumenEngine.disablePrintingFromDefaultContainer(); // TODO : This ensure that we're not using the default container.
+            ConsoleFileManager.registerFileFor(NetworkDirectories.LOGS_DIR, PhotonEngine.LOGGER, "network");
+
             /* Load features */
 			NetworkDirectories.load();
             NetworkDirectories.loadLogoOnServer();
@@ -44,16 +51,13 @@ public class NetworkEngine {
             /* Connect to SQL database */
             SQLInteraction.connect();
             
-            /* Register logs file */
-			ConsoleManager.registerFileHandler(new File(NetworkDirectories.logsDirectory, "network.log"), "network");
-            
             /* Connecting */
 			PhotonEngine.setIP(PhotonEngine.getCurrentIP());
             
 			/* Check ip */
-            ConsoleManager.create("Starting Network Server on \"" + PhotonEngine.network_Ip + "\"!").withType(EnumLogType.NETWORK).end();
+            Console.log("Starting Network Server on \"" + PhotonEngine.network_Ip + "\"!").type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
 			if(!PhotonEngine.network_Ip.isEmpty() && !PhotonEngine.network_Ip.equalsIgnoreCase(PhotonEngine.LOCAL_IP) && !PhotonEngine.isIPEquals(PhotonEngine.network_Ip)) {
-                ConsoleManager.create("Ip doesn't match. Closing Network!").withType(EnumLogType.NETWORK).error().end();
+                Console.log("Ip doesn't match. Closing Network!").type(PhotonLogTypes.NETWORK).error().container(PhotonEngine.LOGGER).send();
 				System.exit(0);
 				return;
 			}
@@ -62,19 +66,19 @@ public class NetworkEngine {
 			if(NetworkDirectories.getConfig().discord_bot_token !=null && !NetworkDirectories.getConfig().discord_bot_token.isEmpty()) {
                 try {
                     BotEngine.load(Arrays.asList(args).contains("--restart"));
-                    ConsoleManager.create("Discord Bot started successfully").withType(EnumLogType.NETWORK).end();
+                    Console.log("Discord Bot started successfully").type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
                 } catch (Exception e) {
-                    ConsoleManager.create("Failed to start Discord Bot: " + e.getMessage()).withType(EnumLogType.NETWORK).error().end();
+                    Console.log("Failed to start Discord Bot: " + e.getMessage()).type(PhotonLogTypes.NETWORK).error().container(PhotonEngine.LOGGER).send();
                     e.printStackTrace();
                 }
-            } else ConsoleManager.create("Discord Bot token not configured, skipping bot startup").withType(EnumLogType.NETWORK).end();
+            } else Console.log("Discord Bot token not configured, skipping bot startup").type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
 
             /* Starts the web API and Server */
             WebServerEngine.load();
 
             /* Start Krynet itself */
 			NetworkLinkManager.load();
-            ConsoleManager.create("Network Server is now running and waiting for connections...").withType(EnumLogType.NETWORK).end();
+            Console.log("Network Server is now running and waiting for connections...").type(PhotonLogTypes.NETWORK).sendToProcessor().container(PhotonEngine.LOGGER).send();
 		} catch(Exception e) { e.printStackTrace(); }
     }
 	

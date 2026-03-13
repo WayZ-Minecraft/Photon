@@ -4,17 +4,33 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.photon.discord.BotEngine;
 import com.photon.network.ClientLinkManager;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.network.messages.requests.ClientRequestSendDiscordLogs;
+import com.photon.util.PhotonLogTypes;
+
+import niwer.lumen.Console;
+import niwer.lumen.LumenEngine;
+import niwer.lumen.container.Container;
 
 public class PhotonEngine {
-	
+    
+    /* Logger */
+    public static final Container LOGGER = LumenEngine.registerContainer("PhotonEngine").addProcessor((data, time, formattedMessage) -> {
+        if(BotEngine.isBotInitialized()) BotEngine.log(data);
+        else {
+            final ClientRequestSendDiscordLogs REQUEST = new ClientRequestSendDiscordLogs(data);
+            ClientLinkManager.sendTCP(REQUEST);
+        }
+    });
+
     /* Default network values */
 	public static final String LOCAL_IP = "localhost";
 	public static String network_Ip = LOCAL_IP;
@@ -32,12 +48,12 @@ public class PhotonEngine {
         if (currentIP != null) return currentIP;
         
         try {
-            final URL whatismyip = new URL("http://checkip.amazonaws.com");
+            final URL whatismyip = new URI("http://checkip.amazonaws.com").toURL();
             final BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
             currentIP = in.readLine();
             in.close();
             return currentIP;
-        } catch (IOException e) {}
+        } catch (IOException | URISyntaxException e) {}
         return "UNKNOWN";
     }
     
@@ -92,10 +108,11 @@ public class PhotonEngine {
      */
     public static void loadClient(String ip, boolean localHostFallback) throws IOException {
         try {
+            LumenEngine.removeDefaultHandlers(); // Ensure Lumen is loaded properly
     		PhotonEngine.setIP(ip);
     		ClientLinkManager.load();
     	} catch (IOException e) {
-            ConsoleManager.create("Unable to connect to "+ip+ (localHostFallback ? ". Fallback to localhost" : "")).withType(EnumLogType.NETWORK).error().end();
+            Console.log("Unable to connect to "+ip+ (localHostFallback ? ". Fallback to localhost" : "")).type(PhotonLogTypes.NETWORK).error().container(PhotonEngine.LOGGER).send();
     		if(localHostFallback) {
                 try {
                     PhotonEngine.setIP(LOCAL_IP);

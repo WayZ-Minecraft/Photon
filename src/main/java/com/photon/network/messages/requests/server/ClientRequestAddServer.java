@@ -1,11 +1,13 @@
 package com.photon.network.messages.requests.server;
 
 import com.esotericsoftware.kryonet.Connection;
+import com.photon.PhotonEngine;
 import com.photon.network.IPacket;
 import com.photon.network.NetworkEngine;
 import com.photon.network.objects.ObjectServer;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.PhotonLogTypes;
+
+import niwer.lumen.Console;
 
 /**
  * @author Niwer
@@ -29,29 +31,31 @@ public class ClientRequestAddServer implements IPacket {
     public void handle(Connection connection) {
         String clientIP = connection.getRemoteAddressTCP().getAddress().getHostAddress();
         if (!clientIP.equals(objServer.serverIP)) {
-            ConsoleManager.create("Server registration rejected: IP mismatch (claimed: " + 
+            Console.log("Server registration rejected: IP mismatch (claimed: " + 
                 objServer.serverIP + ", actual: " + clientIP + ")")
-                .withType(EnumLogType.NETWORK)
+                .type(PhotonLogTypes.NETWORK)
                 .error()
-                .end();
+                .container(PhotonEngine.LOGGER)
+                .send();
             return;
         }
         
         if (objServer.serverPort < 1024 || objServer.serverPort > 65535) {
-            ConsoleManager.create("Server registration rejected: Invalid port " + objServer.serverPort)
-                .withType(EnumLogType.NETWORK)
+            Console.log("Server registration rejected: Invalid port " + objServer.serverPort)
+                .type(PhotonLogTypes.NETWORK)
                 .error()
-                .end();
+                .send();
             return;
         }
         
         if (objServer.serverName == null || objServer.serverName.isEmpty() || 
             objServer.serverName.length() > 64 ||
             objServer.serverName.contains("<") || objServer.serverName.contains(">")) {
-            ConsoleManager.create("Server registration rejected: Invalid server name")
-                .withType(EnumLogType.NETWORK)
+            Console.log("Server registration rejected: Invalid server name")
+                .type(PhotonLogTypes.NETWORK)
                 .error()
-                .end();
+                .container(PhotonEngine.LOGGER)
+                .send();
             return;
         }
         
@@ -83,13 +87,14 @@ public class ClientRequestAddServer implements IPacket {
             
             NetworkEngine.SAVED_SERVER_LIST.add(objServer);
             
-            ConsoleManager.create("Server registered: " + 
+            Console.log("Server registered: " + 
                 objServer.serverIP + ":" + objServer.serverPort + 
                 "\nName: " + objServer.serverName + 
                 "\nMOTD: " + objServer.serverMOTD)
-                .displayOnDiscord()
-                .withType(EnumLogType.NETWORK)
-                .end();
+                .sendToProcessor()
+                .type(PhotonLogTypes.NETWORK)
+                .container(PhotonEngine.LOGGER)
+                .send();
         }
     }
     

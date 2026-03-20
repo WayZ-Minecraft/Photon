@@ -2,6 +2,7 @@ package com.photon.network.listeners;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
+import com.photon.PhotonEngine;
 import com.photon.network.ClientLinkManager;
 import com.photon.network.IPacket;
 import com.photon.network.listeners.INetworkMessageListener.INetworkListenerSide;
@@ -20,6 +21,7 @@ public class MessageListenerClient implements Listener {
             Console.log("Unexpected error while handling: " + object.getClass().getSimpleName())
                 .type(PhotonLogTypes.NETWORK)
                 .error()
+                .container(PhotonEngine.LOGGER)
                 .send();
             e.printStackTrace();
         }
@@ -27,7 +29,7 @@ public class MessageListenerClient implements Listener {
 
      @Override
     public void disconnected(Connection connection) {
-        Console.log("Connection lost, attempting reconnection...").type(PhotonLogTypes.NETWORK).send();
+        Console.log("Connection lost, attempting reconnection...").type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
         ClientLinkManager.attemptReconnectionFromClient();
     }
 }

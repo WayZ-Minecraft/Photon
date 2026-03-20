@@ -14,7 +14,6 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Handler;
-import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
@@ -22,9 +21,6 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import com.photon.PhotonEngine;
-import com.photon.discord.BotEngine;
-import com.photon.network.ClientLinkManager;
-import com.photon.network.messages.requests.ClientRequestSendDiscordLogs;
 
 import niwer.lumen.Console;
 

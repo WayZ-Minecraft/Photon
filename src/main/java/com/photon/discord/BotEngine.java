@@ -10,10 +10,9 @@ import org.slf4j.LoggerFactory;
 
 import com.photon.PhotonEngine;
 import com.photon.discord.commands.CommandsManager;
-import com.photon.discord.language.UsersInfo;
 import com.photon.network.NetworkDirectories;
-import com.photon.network.sql.SQLDiscordLog;
-import com.photon.network.sql.SQLDiscordLog.ModerationType;
+import com.photon.sql.DiscordLogTable;
+import com.photon.sql.DiscordLogTable.ModerationType;
 import com.photon.util.PhotonLogTypes;
 import com.photon.util.TranslationManager;
 
@@ -44,6 +43,7 @@ import niwer.lumen.Console;
 /**
  * Main class of the bot, load the bot and register important slash commands
  */
+@SuppressWarnings("null") // The compiler in Photon is not good at handling JDA's @Nonnull annotations, so we suppress null warnings in this class
 public class BotEngine extends ListenerAdapter {
 
     private static JDABuilder botBuilder;
@@ -132,7 +132,7 @@ public class BotEngine extends ListenerAdapter {
             
             final String MODERATOR_ID = AUDIT.getUser() != null ? AUDIT.getUser().getId() : null;
             final String REASON = AUDIT.getReason();
-            SQLDiscordLog.save(guild.getId(), targetId, type, REASON, MODERATOR_ID, durationSeconds);
+            DiscordLogTable.save(guild.getId(), targetId, type, REASON, MODERATOR_ID, durationSeconds);
         });
     }
 
@@ -237,7 +237,7 @@ public class BotEngine extends ListenerAdapter {
         final boolean IS_LINK = DiscordSecurity.checkLink(message.getContentRaw());
         if (IS_LINK) {
             message.delete().queue(); // Delete the message containing the link
-            AUTHOR.openPrivateChannel().queue(pm -> pm.sendMessage(TranslationManager.format(UsersInfo.getLanguage(AUTHOR.getId()).code,"discord.securityMessage.updateMessage")).queue());
+            // AUTHOR.openPrivateChannel().queue(pm -> pm.sendMessage(TranslationManager.format(UsersInfo.getLanguage(AUTHOR.getId()).code,"discord.securityMessage.updateMessage")).queue());
         }
     }
 

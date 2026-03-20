@@ -1,7 +1,8 @@
+
 package com.photon.discord.commands;
 
 import com.photon.network.objects.ObjectPlayerAccount;
-import com.photon.network.sql.SQLPlayerAccount;
+import com.photon.sql.PlayerAccountTable;
 import com.photon.util.NetworkOnly;
 
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -11,6 +12,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
  * @author Niwer
  */
 @NetworkOnly
+@SuppressWarnings("null") // The compiler in Photon is not good at handling JDA's @Nonnull annotations, so we suppress null warnings in this class
 public class LinkAccountCommand extends AbstractSlashCommand {
 
     public LinkAccountCommand() {
@@ -25,14 +27,14 @@ public class LinkAccountCommand extends AbstractSlashCommand {
         final String AUTHCODE = event.getOption("code").getAsString(); // Won't be null because it's required
 
         /* Check the UUID and the code */
-        if (!SQLPlayerAccount.isAuthCodeValid(UUID, AUTHCODE)) {
-            if (!SQLPlayerAccount.existByUUID(UUID)) event.reply("There's no user with this UUID").setEphemeral(true).queue();
+        if (!PlayerAccountTable.isAuthCodeValid(UUID, AUTHCODE)) {
+            if (!PlayerAccountTable.existByUUID(UUID)) event.reply("There's no user with this UUID").setEphemeral(true).queue();
             else event.reply("Error your authentication key is wrong").setEphemeral(true).queue();
             return;
         }
 
         /* Check if there's an account with this UUID */
-        final ObjectPlayerAccount profile = SQLPlayerAccount.getAccountByUUID(UUID);
+        final ObjectPlayerAccount profile = PlayerAccountTable.getAccountByUUID(UUID);
         if (profile == null) {
             event.reply("There's no user with this UUID").setEphemeral(true).queue();
             return;
@@ -46,13 +48,13 @@ public class LinkAccountCommand extends AbstractSlashCommand {
 
         /* Check if the discord account has already been linked to another official account */
         final String DISCORD_USER_ID = event.getUser().getId();
-        if (SQLPlayerAccount.getAccountByDiscordID(DISCORD_USER_ID) != null) {
+        if (PlayerAccountTable.getAccountByDiscordID(DISCORD_USER_ID) != null) {
             event.reply("Your Discord account is already linked to another Game account.").setEphemeral(true).queue();
             return;
         }
 
         /* Update the Discord ID */
-        SQLPlayerAccount.updateDiscordID(UUID, DISCORD_USER_ID);
+        PlayerAccountTable.updateDiscordID(UUID, DISCORD_USER_ID);
 
         /* Auto-assign ServerCreator role if applicable */ //TODO
         // if (profile.serverCreator && BotEngine.guild != null) {

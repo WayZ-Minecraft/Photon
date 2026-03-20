@@ -4,13 +4,16 @@ import java.nio.charset.StandardCharsets;
 
 import com.photon.discord.commands.AbstractSlashCommand;
 import com.photon.network.objects.ObjectPlayerAccount;
-import com.photon.network.sql.SQLPlayerAccount;
+import com.photon.sql.PlayerAccountTable;
+import com.photon.util.NetworkOnly;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 
+@NetworkOnly
+@SuppressWarnings("null") // The compiler in Photon is not good at handling JDA's @Nonnull annotations, so we suppress null warnings in this class
 public class ManagerAccountCommand extends AbstractSlashCommand {
 
     public ManagerAccountCommand() {
@@ -29,10 +32,10 @@ public class ManagerAccountCommand extends AbstractSlashCommand {
         final FieldType FIELD = FieldType.valueOf(event.getOption("field_type").getAsString().toUpperCase());
         final String VALUE = event.getOption("field_value").getAsString();
         final ObjectPlayerAccount PROFILE = switch (FIELD) {
-            case DISCORD_ID -> SQLPlayerAccount.getAccountByDiscordID(VALUE);
-            case UUID -> SQLPlayerAccount.getAccountByUUID(VALUE);
-            case EMAIL -> SQLPlayerAccount.getAccountByEmail(VALUE);
-            case USERNAME -> SQLPlayerAccount.getAccountByUsername(VALUE);
+            case DISCORD_ID -> PlayerAccountTable.getAccountByDiscordID(VALUE);
+            case UUID -> PlayerAccountTable.getAccountByUUID(VALUE);
+            case EMAIL -> PlayerAccountTable.getAccountByEmail(VALUE);
+            case USERNAME -> PlayerAccountTable.getAccountByUsername(VALUE);
         };
 
         manageAccount(event, PROFILE, event.getOption("action").getAsString());
@@ -60,7 +63,7 @@ public class ManagerAccountCommand extends AbstractSlashCommand {
                 event.reply("Not supported yet. Use the SQL Command.").setEphemeral(true).queue();
                 break;
             case DELETE:
-                SQLPlayerAccount.deleteAccount(profile.uuid);
+                PlayerAccountTable.deleteAccount(profile.uuid);
                 event.reply("The profile has been deleted !").queue();
                 break;
         }

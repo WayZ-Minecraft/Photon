@@ -1,11 +1,8 @@
 package com.photon.network.messages.requests;
 
-import java.io.File;
-
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.discord.BotEngine;
 import com.photon.network.IPacket;
-import com.photon.util.ConsoleManager.EnumLogType;
 
 import niwer.lumen.Console;
 

@@ -4,7 +4,7 @@ import com.esotericsoftware.kryonet.Connection;
 import com.photon.network.IPacket;
 import com.photon.network.messages.response.account.ServerResponseAccount;
 import com.photon.network.objects.ObjectPlayerAccount;
-import com.photon.network.sql.SQLPlayerAccount;
+import com.photon.sql.PlayerAccountTable;
 
 /**
  * @author Niwer
@@ -36,9 +36,9 @@ public class ClientRequestAccount implements IPacket {
         ObjectPlayerAccount givenProfile = null;
         
         /* Try to get the profile */
-        if (UUID != null) givenProfile = SQLPlayerAccount.getAccountByUUID(UUID);
-        else if (email != null) givenProfile = SQLPlayerAccount.getAccountByEmail(email);
-        else if (discordID != null) givenProfile = SQLPlayerAccount.getAccountByDiscordID(discordID);
+        if (UUID != null) givenProfile = PlayerAccountTable.getAccountByUUID(UUID);
+        else if (email != null) givenProfile = PlayerAccountTable.getAccountByEmail(email);
+        else if (discordID != null) givenProfile = PlayerAccountTable.getAccountByDiscordID(discordID);
         
         if(givenProfile == null) return; // No account found
         connection.sendTCP(new ServerResponseAccount(givenProfile));

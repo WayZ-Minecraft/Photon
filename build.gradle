@@ -13,69 +13,40 @@ repositories {
     maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
 }
 
-/**
-    api : Allows the dependency to be exposed to consumers (ie. other projects that depend on this one).
-    implementation : Hides the dependency from consumers (ie. other projects that depend on this one).
-*/
+/* 'api' allows the dependency to be exposed to consumers (ie. other projects that depend on this one) while implementation hides it. */
 dependencies {
-    /* Apache */
-    api 'commons-codec:commons-codec:1.15'
-	api 'commons-io:commons-io:2.11.0'
+	implementation "com.github.crykn:kryonet:${project.kryonet_version}"
+	implementation "com.esotericsoftware:kryo:${project.kryo_version}"
 
-	/* Other */
-	api 'com.google.code.gson:gson:2.8.8'
-	implementation 'com.github.crykn:kryonet:2.22.9'
-	implementation 'com.esotericsoftware:kryo:5.6.2'
-    implementation 'io.javalin:javalin:6.7.0'
-    api 'ch.qos.logback:logback-classic:1.4.8' // JDA & Javalin are using this
-	api 'com.github.Niwer1525:Lumen:1.0.3'
+    implementation "com.azuriom:azauth:${project.azauth_version}" // See : https://azuriom.com/
 
-    /* Other auth */
-    // See more : https://azuriom.com/
-    implementation 'com.azuriom:azauth:1.1.0' // Network Only
+    implementation "io.javalin:javalin:${project.javalin_version}"
+    implementation "com.github.Niwer1525:Queryon:${project.queryon_version}"
+
+	implementation "com.google.code.findbugs:jsr305:${project.jrs_version}" // Javax Annotations for JDA
+	implementation "net.dv8tion:JDA:${project.JDA_version}"
+
+	api "com.google.code.gson:gson:${project.gson_version}"
+    api "ch.qos.logback:logback-classic:${project.logback_version}" // JDA & Javalin are using this
+	api "com.github.Niwer1525:Lumen:${project.lumen_version}"
+
+    /* SHADOWING */
+
+	shadow "com.github.crykn:kryonet:${project.kryonet_version}"
+	shadow "com.esotericsoftware:kryo:${project.kryo_version}"
+
+    shadow "com.azuriom:azauth:${project.azauth_version}" // See : https://azuriom.com/
+
+    shadow "io.javalin:javalin:${project.javalin_version}"
+	shadow "com.github.Niwer1525:Queryon:${project.queryon_version}"
 	
-	/* Mail */
-	implementation 'com.sun.mail:javax.mail:1.6.2'
-	implementation 'com.sun.mail:smtp:1.6.2'
-	implementation 'com.sun.mail:pop3:1.6.2'
-	implementation 'com.sun.mail:imap:1.6.2'
+    shadow "com.google.code.findbugs:jsr305:${project.jrs_version}" // Javax Annotations for JDA
+	shadow "net.dv8tion:JDA:${project.JDA_version}"
+
+	shadow "com.google.code.gson:gson:${project.gson_version}"
+    shadow "ch.qos.logback:logback-classic:${project.logback_version}" // JDA & Javalin are using this
+	shadow "com.github.Niwer1525:Lumen:${project.lumen_version}"
 	
-    /* Discord */
-    implementation 'com.google.code.findbugs:jsr305:3.0.2' // Javax Annotations for JDA
-	implementation 'net.dv8tion:JDA:6.3.0'
-
-	/* Sqlite jdbc */
-	implementation 'org.xerial:sqlite-jdbc:3.42.0.0'
-
-    /* --------------------- */
-
-	/* Shadow Apache */
-    shadow 'commons-codec:commons-codec:1.15'
-	shadow 'commons-io:commons-io:2.11.0'
-
-	/* Shadow Other */
-	shadow 'com.google.code.gson:gson:2.8.8'
-	shadow 'com.github.crykn:kryonet:2.22.9'
-	shadow 'com.esotericsoftware:kryo:5.6.2'
-    shadow 'io.javalin:javalin:6.7.0'
-    shadow 'ch.qos.logback:logback-classic:1.4.8' // JDA & Javalin are using this
-	shadow 'com.github.Niwer1525:Lumen:1.0.3'
-	
-    /* Shadow auth */
-    shadow 'com.azuriom:azauth:1.1.0'
-
-	/* Shadow Mail */
-	shadow 'com.sun.mail:javax.mail:1.6.2'
-	shadow 'com.sun.mail:smtp:1.6.2'
-	shadow 'com.sun.mail:pop3:1.6.2'
-	shadow 'com.sun.mail:imap:1.6.2'
-
-    /* Discord */
-    shadow 'com.google.code.findbugs:jsr305:3.0.2' // Javax Annotations for JDA
-	shadow 'net.dv8tion:JDA:6.3.0'
-
-    /* Sqlite jdbc */
-    shadow 'org.xerial:sqlite-jdbc:3.42.0.0'
 }
 
 tasks.withType(JavaCompile).configureEach { it.options.release = 21 }
@@ -121,24 +92,20 @@ shadowJar {
 	archiveClassifier.set('')
 }
 
-// Helper function to check if a class has @NetworkOnly annotation
-def isNetworkOnlyClass(String classPath, File jarFile) {
-    if (!classPath.endsWith('.class')) return false
-    try {
-        def classBytes = new java.util.zip.ZipFile(jarFile).getInputStream(new java.util.zip.ZipEntry(classPath)).bytes
-        
-        // Simple check for NetworkOnly annotation in bytecode
-        // The annotation name will appear in the class file as a string
-        return new String(classBytes).contains('Lcom/photon/util/NetworkOnly;')
-    } catch (Exception e) { return false }
-}
-
 task apiJar(type: Jar) {
    	dependsOn shadowJar
     def jarFile = shadowJar.outputs.files.singleFile
     from zipTree(jarFile) // Unzip the shadow jar
     (commonExclusions + thirdPartyExclusions + ['public/**', 'lang/**']).each { exclude it } // Exclude unnecessary files
-    exclude { details -> isNetworkOnlyClass(details.path, jarFile)} // Exclude @NetworkOnly classes
+	exclude { details ->
+		if (!details.path.endsWith('.class')) return false
+		try {
+			// Class files are binary; ISO-8859-1 keeps a 1:1 byte-to-char mapping for a raw substring check.
+			return new String(details.file.bytes, 'ISO-8859-1').contains('Lcom/photon/util/NetworkOnly;')
+		} catch (Exception e) {
+			return false
+		}
+	} // Exclude @NetworkOnly classes
     archiveFileName = "api.jar"
 }
 

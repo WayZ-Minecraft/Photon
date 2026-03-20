@@ -32,6 +32,7 @@ public class NetworkDirectories
 	public static final File BASE_DIR = new File("./network/");
 	public static final File LOGS_DIR = new File(BASE_DIR + "/logs/");
 	public static final File LOGO_FILE = new File(BASE_DIR + "/project_logo.png");
+	public static final File DATA_BASE_FILE = new File(BASE_DIR, "network.db");
 
 	public static final Object CONFIG_WAITER = new Object();
 	public static NetworkConfig config = NetworkConfig.DEFAULT;

@@ -3,7 +3,7 @@ package com.photon.network.messages.requests;
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.PhotonEngine;
 import com.photon.network.IPacket;
-import com.photon.network.sql.SQLHWID;
+import com.photon.sql.HWIDTable;
 import com.photon.util.PhotonLogTypes;
 import com.photon.util.os.OperatingSystem;
 
@@ -26,7 +26,7 @@ public class ClientRequestHWID implements IPacket {
         this.userName = userName;
         this.userUUID = userUUID;
         this.userHWID = userHWID;
-        this.operatingSystem = operatingSystem.getName();
+        this.operatingSystem = operatingSystem.NAME;
     }
 
     public ClientRequestHWID(String userName, String userUUID, String userHWID, String operatingSystem) {
@@ -43,7 +43,7 @@ public class ClientRequestHWID implements IPacket {
     
     @Override
     public void handle(Connection connection) {
-        SQLHWID.save(userName, userUUID, userHWID, operatingSystem);
+        HWIDTable.save(userName, userUUID, userHWID, operatingSystem);
         
         Console.log("HWID received: " + userUUID + " OS: " + operatingSystem + " HWID: " + userHWID).type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
     }

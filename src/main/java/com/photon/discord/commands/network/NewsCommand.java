@@ -6,8 +6,7 @@ import java.util.Date;
 import com.photon.PhotonEngine;
 import com.photon.discord.commands.AbstractSlashCommand;
 import com.photon.network.objects.ObjectNews;
-import com.photon.network.sql.SQLInteraction;
-import com.photon.network.sql.SQLnews;
+import com.photon.sql.NewsTable;
 import com.photon.util.NetworkOnly;
 import com.photon.util.PhotonLogTypes;
 
@@ -21,6 +20,7 @@ import niwer.lumen.Console;
  * @author Niwer
  */
 @NetworkOnly
+@SuppressWarnings("null") // The compiler in Photon is not good at handling JDA's @Nonnull annotations, so we suppress null warnings in this class
 public class NewsCommand extends AbstractSlashCommand {
 
     public NewsCommand() {
@@ -48,10 +48,9 @@ public class NewsCommand extends AbstractSlashCommand {
         ObjectNews news = new ObjectNews(title, contentEn, contentFr, date, imageUrl);
 
         try{
-            SQLnews.createNews(news);
+            NewsTable.createNews(news);
         }catch (SQLException e) {
             Console.log("Unable to creating news : " + e.getMessage()).sendToProcessor().type(PhotonLogTypes.DISCORD_BOT).error().container(PhotonEngine.LOGGER).send();
-            SQLInteraction.connect();
             event.reply("Error on news creation, please show chanel console-manager").queue();
         }
 

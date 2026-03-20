@@ -12,14 +12,20 @@ import com.photon.PhotonEngine;
 import com.photon.discord.BotEngine;
 import com.photon.network.objects.ObjectNews;
 import com.photon.network.objects.ObjectServer;
-import com.photon.network.sql.SQLInteraction;
+import com.photon.sql.AnticheatTable;
+import com.photon.sql.CrashReportTable;
+import com.photon.sql.DiscordLogTable;
+import com.photon.sql.DiscordProfileTable;
+import com.photon.sql.HWIDTable;
+import com.photon.sql.NewsTable;
+import com.photon.sql.PlayerAccountTable;
 import com.photon.util.NetworkOnly;
 import com.photon.util.PhotonLogTypes;
 import com.photon.web.WebServerEngine;
 
 import niwer.lumen.Console;
-import niwer.lumen.LumenEngine;
 import niwer.lumen.container.ConsoleFileManager;
+import niwer.queryon.DataBase;
 
 @NetworkOnly
 public class NetworkEngine {
@@ -28,6 +34,8 @@ public class NetworkEngine {
     public static final List<ObjectNews> SAVED_NEWS_LIST = new ArrayList<>();
     public static final List<ObjectServer> SAVED_SERVER_LIST = new ArrayList<>();
     public static final Map<String, Connection> CONNECTED_CLIENTS_LIST = new HashMap<>();
+
+    public static final DataBase DATA_BASE = new DataBase(NetworkDirectories.DATA_BASE_FILE);
 
 	public static void main(final String[] args) { load(args); }
     
@@ -40,16 +48,26 @@ public class NetworkEngine {
 	public static void load(final String[] args) {
 		try {
             /* Register logger */
-            LumenEngine.removeDefaultHandlers(); // Ensure Lumen is loaded properly
-            LumenEngine.disablePrintingFromDefaultContainer(); // TODO : This ensure that we're not using the default container.
             ConsoleFileManager.registerFileFor(NetworkDirectories.LOGS_DIR, PhotonEngine.LOGGER, "network");
 
             /* Load features */
 			NetworkDirectories.load();
             NetworkDirectories.loadLogoOnServer();
 
-            /* Connect to SQL database */
-            SQLInteraction.connect();
+            /* Register tables to the Data Base */
+            DATA_BASE
+                .registerTable(NewsTable.class)
+
+                /* Security */
+                .registerTable(HWIDTable.class)
+                .registerTable(AnticheatTable.class)
+                .registerTable(CrashReportTable.class)
+                .registerTable(DiscordLogTable.class)
+
+                /* User Accounts */
+                .registerTable(PlayerAccountTable.class)
+                .registerTable(DiscordProfileTable.class)
+            ;
             
             /* Connecting */
 			PhotonEngine.setIP(PhotonEngine.getCurrentIP());

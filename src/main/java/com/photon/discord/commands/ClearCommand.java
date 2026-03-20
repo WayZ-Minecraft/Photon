@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
  * @author Niwer
  */
 @NetworkOnly
+@SuppressWarnings("null") // The compiler in Photon is not good at handling JDA's @Nonnull annotations, so we suppress null warnings in this class
 public class ClearCommand extends AbstractSlashCommand {
     public ClearCommand() {
         super("clear", "Clears messages.");

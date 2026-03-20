@@ -1,8 +1,9 @@
+
 package com.photon.discord.commands.network.accounts;
 
 import com.photon.discord.commands.AbstractSlashCommand;
 import com.photon.network.objects.ObjectPlayerAccount;
-import com.photon.network.sql.SQLPlayerAccount;
+import com.photon.sql.PlayerAccountTable;
 import com.photon.util.NetworkOnly;
 
 import net.dv8tion.jda.api.Permission;
@@ -25,7 +26,7 @@ public class DeleteAllAccountCommand extends AbstractSlashCommand {
         if (!isOfficialGuild(event)) return; // Check if we're on the official guild
         if (!isConsoleChannel(event)) return; // Check if we're in the console channel
 
-        for (ObjectPlayerAccount account : SQLPlayerAccount.getAllAccounts()) SQLPlayerAccount.deleteAccount(account.uuid);
+        for (ObjectPlayerAccount account : PlayerAccountTable.getAllAccounts()) PlayerAccountTable.deleteAccount(account.uuid);
         event.reply("All accounts have been deleted !").queue();
     }
 }

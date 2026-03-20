@@ -108,7 +108,6 @@ public class PhotonEngine {
      */
     public static void loadClient(String ip, boolean localHostFallback) throws IOException {
         try {
-            LumenEngine.removeDefaultHandlers(); // Ensure Lumen is loaded properly
     		PhotonEngine.setIP(ip);
     		ClientLinkManager.load();
     	} catch (IOException e) {

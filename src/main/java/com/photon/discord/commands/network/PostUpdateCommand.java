@@ -1,7 +1,7 @@
 package com.photon.discord.commands.network;
 
 import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -10,6 +10,7 @@ import java.nio.file.StandardCopyOption;
 import com.photon.discord.commands.AbstractSlashCommand;
 import com.photon.network.NetworkDirectories;
 import com.photon.network.NetworkEngine;
+import com.photon.util.NetworkOnly;
 import com.photon.util.os.ApplicationUtils;
 import com.photon.util.updater.UpdateChannel;
 import com.photon.util.updater.UpdateFileType;
@@ -21,6 +22,8 @@ import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 
+@NetworkOnly
+@SuppressWarnings("null") // The compiler in Photon is not good at handling JDA's @Nonnull annotations, so we suppress null warnings in this class
 public class PostUpdateCommand extends AbstractSlashCommand {
 
     public PostUpdateCommand() {
@@ -55,7 +58,7 @@ public class PostUpdateCommand extends AbstractSlashCommand {
         final Path OUTPUT_PATH = Path.of(NetworkDirectories.getPathForUpdateChannel(FILE_TYPE, CHANNEL));
 
         /* Try upload the file */
-        try (InputStream stream = new URL(FILE.getUrl()).openStream()) {
+        try (InputStream stream = new URI(FILE.getUrl()).toURL().openStream()) {
             /* Copy the uploaded file to the output path */
             try {
                 /* Try to create the parent directories, if they don't exist */

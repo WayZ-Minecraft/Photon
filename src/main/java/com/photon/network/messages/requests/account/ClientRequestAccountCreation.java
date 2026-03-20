@@ -5,7 +5,7 @@ import com.photon.PhotonEngine;
 import com.photon.network.IPacket;
 import com.photon.network.messages.response.account.ServerResponseValidAccount;
 import com.photon.network.objects.ObjectPlayerAccount;
-import com.photon.network.sql.SQLPlayerAccount;
+import com.photon.sql.PlayerAccountTable;
 import com.photon.util.PhotonLogTypes;
 
 import niwer.lumen.Console;
@@ -38,14 +38,14 @@ public class ClientRequestAccountCreation implements IPacket {
     
     @Override
     public void handle(Connection connection) {
-        final boolean isEmailAlreadyUsed = SQLPlayerAccount.emailExists(email);
-        final boolean isUsernameAlreadyUsed = SQLPlayerAccount.usernameExists(username);
+        final boolean isEmailAlreadyUsed = PlayerAccountTable.emailExists(email);
+        final boolean isUsernameAlreadyUsed = PlayerAccountTable.usernameExists(username);
         
         boolean exist = false;
         ObjectPlayerAccount profile = null;
         
         if (!isEmailAlreadyUsed && !isUsernameAlreadyUsed) {
-            profile = SQLPlayerAccount.createAccount(username, email, password);
+            profile = PlayerAccountTable.createAccount(username, email, password);
             exist = profile != null;
             
             if (exist) Console.log("New account created: " + profile.username).sendToProcessor().type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();

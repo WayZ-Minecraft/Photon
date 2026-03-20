@@ -1,14 +1,23 @@
-package com.photon.network.sql;
+package com.photon.sql;
 
 import java.util.List;
 import java.util.UUID;
 
 import com.photon.PhotonEngine;
+import com.photon.network.NetworkEngine;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.util.NetworkOnly;
 import com.photon.util.PhotonLogTypes;
 
 import niwer.lumen.Console;
+import niwer.queryon.DataBase;
+import niwer.queryon.queries.Expression;
+import niwer.queryon.queries.interaction.DeletionManager;
+import niwer.queryon.queries.interaction.InsertionManager;
+import niwer.queryon.queries.interaction.SelectionManager;
+import niwer.queryon.queries.interaction.UpdateManager;
+import niwer.queryon.tables.EnumColumnTypes;
+import niwer.queryon.tables.Table;
 
 /**
  * Player account management with SQLite database.
@@ -17,15 +26,27 @@ import niwer.lumen.Console;
  * @author noz43
  */
 @NetworkOnly
-public class SQLPlayerAccount extends SQLInteraction {
+public class PlayerAccountTable extends Table {
 
-    /**
-     * Create PlayerAccount table with columns: uuid, username, email, password, twoAuthFactor, discordID, discordAuthCode, projectAuthor, shopCoins, friends.
-     */
-    @Override
-    public void register() {
-        executeSQLCommand("CREATE TABLE IF NOT EXISTS PlayerAccount (uuid TEXT PRIMARY KEY NOT NULL, username TEXT UNIQUE NOT NULL, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, twoAuthFactor INTEGER DEFAULT 0, discordID TEXT, discordAuthCode TEXT, projectAuthor INTEGER DEFAULT 0, serverCreator INTEGER DEFAULT 0, shopCoins INTEGER DEFAULT 0, friends TEXT);");
+    public PlayerAccountTable(DataBase db) {
+        super(db);
+
+        this.addColumns(
+            createColumn(db, "uuid", EnumColumnTypes.TEXT).primaryKey(),
+            createColumn(db, "username", EnumColumnTypes.TEXT).unique().notNull(),
+            createColumn(db, "email", EnumColumnTypes.TEXT).unique().notNull(),
+            createColumn(db, "password", EnumColumnTypes.TEXT).notNull(),
+            createColumn(db, "twoAuthFactor", EnumColumnTypes.BOOLEAN).defaultValue(false),
+            createColumn(db, "discordID", 1024),
+            createColumn(db, "discordAuthCode", 255).notNull(),
+            createColumn(db, "projectAuthor", EnumColumnTypes.BOOLEAN).defaultValue(false),
+            createColumn(db, "serverCreator", EnumColumnTypes.BOOLEAN).defaultValue(false),
+            createColumn(db, "shopCoins", EnumColumnTypes.INT).defaultValue(0, Expression.of("shopCoins").isGreaterThanOrEqualTo(0)), // Default to 0 and non-negative constraint
+            createColumn(db, "friends", EnumColumnTypes.TEXT)
+        ).execute();
     }
+
+    @Override public String name() { return "PlayerAccount"; }
 
     /**
      * Create a new player account.
@@ -58,14 +79,9 @@ public class SQLPlayerAccount extends SQLInteraction {
         }
 
         final String UniqueUserID = UUID.randomUUID().toString();
-        executeSQLCommand("INSERT INTO PlayerAccount (uuid, username, email, password, discordAuthCode, friends) VALUES (?, ?, ?, ?, ?, ?)", 
-            UniqueUserID,
-            username.trim(),
-            email.trim().toLowerCase(),
-            password,
-            ObjectPlayerAccount.generateAuthCode(),
-            "[]"
-        );
+        InsertionManager.insert(NetworkEngine.DATA_BASE, PlayerAccountTable.class, "uuid", "username", "email", "password", "discordAuthCode", "friends")
+            .row(UniqueUserID, username.trim(), email.trim().toLowerCase(), password, ObjectPlayerAccount.generateAuthCode(), "[]")
+            .execute();
 
         return getAccountByUUID(UniqueUserID);
     }
@@ -75,7 +91,10 @@ public class SQLPlayerAccount extends SQLInteraction {
             Console.log("Cannot update Discord ID for null/empty UUID").error().container(PhotonEngine.LOGGER).send();
             return;
         }
-        executeSQLCommand("UPDATE PlayerAccount SET discordID = ? WHERE uuid = ?", discordID, uuid);
+        UpdateManager.update(NetworkEngine.DATA_BASE, PlayerAccountTable.class)
+            .set("discordID", discordID)
+            .where(Expression.of("uuid").isEqualTo(uuid))
+            .execute();
     }
 
     public static boolean existByUUID(String uuid) { return getAccountByUUID(uuid) != null; }
@@ -91,7 +110,9 @@ public class SQLPlayerAccount extends SQLInteraction {
             Console.log("Cannot get account with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
             return null;
         }
-        return executeSQLCommand(ObjectPlayerAccount.class, "SELECT * FROM PlayerAccount WHERE uuid = ?", uuid);
+        return SelectionManager.select(NetworkEngine.DATA_BASE, PlayerAccountTable.class)
+            .where(Expression.of("uuid").isEqualTo(uuid))
+            .executeSerializable(ObjectPlayerAccount.class);
     }
 
     /**
@@ -106,7 +127,10 @@ public class SQLPlayerAccount extends SQLInteraction {
             Console.log("Cannot get account with null/empty email").error().container(PhotonEngine.LOGGER).send();
             return null;
         }
-        return executeSQLCommand(ObjectPlayerAccount.class, "SELECT * FROM PlayerAccount WHERE LOWER(email) = LOWER(?)", email.trim());
+        final String NORMALIZED_EMAIL = email.trim().toLowerCase();
+        return SelectionManager.select(NetworkEngine.DATA_BASE, PlayerAccountTable.class)
+            .where(Expression.of("LOWER(email)").isEqualTo(NORMALIZED_EMAIL))
+            .executeSerializable(ObjectPlayerAccount.class);
     }
 
     /**
@@ -121,7 +145,10 @@ public class SQLPlayerAccount extends SQLInteraction {
             Console.log("Cannot get account with null/empty username").error().container(PhotonEngine.LOGGER).send();
             return null;
         }
-        return executeSQLCommand(ObjectPlayerAccount.class, "SELECT * FROM PlayerAccount WHERE LOWER(username) = LOWER(?)", username.trim());
+        final String NORMALIZED_USERNAME = username.trim().toLowerCase();
+        return SelectionManager.select(NetworkEngine.DATA_BASE, PlayerAccountTable.class)
+            .where(Expression.of("LOWER(username)").isEqualTo(NORMALIZED_USERNAME))
+            .executeSerializable(ObjectPlayerAccount.class);
     }
 
     /**
@@ -135,7 +162,9 @@ public class SQLPlayerAccount extends SQLInteraction {
             Console.log("Cannot get account with null/empty Discord ID").error().container(PhotonEngine.LOGGER).send();
             return null;
         }
-        return executeSQLCommand(ObjectPlayerAccount.class, "SELECT * FROM PlayerAccount WHERE discordID = ?", discordID);
+        return SelectionManager.select(NetworkEngine.DATA_BASE, PlayerAccountTable.class)
+            .where(Expression.of("discordID").isEqualTo(discordID))
+            .executeSerializable(ObjectPlayerAccount.class);
     }
 
     /**
@@ -150,7 +179,10 @@ public class SQLPlayerAccount extends SQLInteraction {
             Console.log("Cannot check existence of null/empty email").error().container(PhotonEngine.LOGGER).send();
             return false;
         }
-        return (int)executeSQLCommandForPrimitive("SELECT COUNT(*) FROM PlayerAccount WHERE LOWER(email) = LOWER(?)", email.trim()) > 0;
+        final String NORMALIZED_EMAIL = email.trim().toLowerCase();
+        return SelectionManager.select(NetworkEngine.DATA_BASE, PlayerAccountTable.class, "COUNT(*) as count")
+            .where(Expression.of("LOWER(email)").isEqualTo(NORMALIZED_EMAIL))
+            .executeHasResult();
     }
 
     /**
@@ -165,7 +197,10 @@ public class SQLPlayerAccount extends SQLInteraction {
             Console.log("Cannot check existence of null/empty username").error().send();
             return false;
         }
-        return (int)executeSQLCommandForPrimitive("SELECT COUNT(*) FROM PlayerAccount WHERE LOWER(username) = LOWER(?)", username.trim()) > 0;
+        final String NORMALIZED_USERNAME = username.trim().toLowerCase();
+        return SelectionManager.select(NetworkEngine.DATA_BASE, PlayerAccountTable.class, "COUNT(*) as count")
+            .where(Expression.of("LOWER(username)").isEqualTo(NORMALIZED_USERNAME))
+            .executeHasResult();
     }
 
     /**
@@ -179,12 +214,14 @@ public class SQLPlayerAccount extends SQLInteraction {
             Console.log("Cannot get auth code for null/empty email").error().container(PhotonEngine.LOGGER).send();
             return null;
         }
-        return (String)executeSQLCommandForPrimitive("SELECT discordAuthCode FROM PlayerAccount WHERE LOWER(email) = LOWER(?)", email.trim());
+        final String NORMALIZED_EMAIL = email.trim().toLowerCase();
+        return SelectionManager.select(NetworkEngine.DATA_BASE, PlayerAccountTable.class, "discordAuthCode")
+            .where(Expression.of("LOWER(email)").isEqualTo(NORMALIZED_EMAIL))
+            .executePrimitive(String.class);
     }
 
     /**
      * Validate authentication code for a given UUID.
-     * Uses direct SQL comparison for better performance.
      * 
      * @param givenUUID The player UUID
      * @param givenAuthCode The authentication code to validate
@@ -195,8 +232,12 @@ public class SQLPlayerAccount extends SQLInteraction {
             Console.log("Cannot validate auth code with null/empty parameters").error().container(PhotonEngine.LOGGER).send();
             return false;
         }
-
-        return (int)executeSQLCommandForPrimitive("SELECT COUNT(*) FROM PlayerAccount WHERE uuid = ? AND discordAuthCode = ?", givenUUID, givenAuthCode) > 0;
+        return SelectionManager.select(NetworkEngine.DATA_BASE, PlayerAccountTable.class, "COUNT(*) as count")
+            .where(
+                Expression.of("uuid").isEqualTo(givenUUID)
+                    .and(Expression.of("discordAuthCode").isEqualTo(givenAuthCode))
+            )
+            .executeHasResult();
     }
 
     public static void setServerCreator(String uuid, boolean isServerCreator) {
@@ -204,7 +245,10 @@ public class SQLPlayerAccount extends SQLInteraction {
             Console.log("Cannot update serverCreator with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
             return;
         }
-        executeSQLCommand("UPDATE PlayerAccount SET serverCreator = ? WHERE uuid = ?", isServerCreator ? 1 : 0, uuid);
+        UpdateManager.update(NetworkEngine.DATA_BASE, PlayerAccountTable.class)
+            .set("serverCreator", isServerCreator)
+            .where(Expression.of("uuid").isEqualTo(uuid))
+            .execute();
     }
 
         /**
@@ -217,7 +261,9 @@ public class SQLPlayerAccount extends SQLInteraction {
             Console.log("Cannot delete account with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
             return;
         }
-        executeSQLCommand("DELETE FROM PlayerAccount WHERE uuid = ?", uuid);
+        DeletionManager.delete(NetworkEngine.DATA_BASE, PlayerAccountTable.class)
+            .where(Expression.of("uuid").isEqualTo(uuid))
+            .execute();
     }
 
     /**
@@ -226,6 +272,6 @@ public class SQLPlayerAccount extends SQLInteraction {
      * @return ArrayList of all accounts
      */
     public static List<ObjectPlayerAccount> getAllAccounts() {
-        return executeSQLCommandList(ObjectPlayerAccount.class, "SELECT * FROM PlayerAccount");
+        return SelectionManager.select(NetworkEngine.DATA_BASE, PlayerAccountTable.class).executeList(ObjectPlayerAccount.class);
     }
 }

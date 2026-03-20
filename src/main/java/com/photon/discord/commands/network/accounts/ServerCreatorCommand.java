@@ -5,7 +5,8 @@ import javax.annotation.Nonnull;
 import com.photon.discord.commands.AbstractSlashCommand;
 import com.photon.network.NetworkDirectories;
 import com.photon.network.objects.ObjectPlayerAccount;
-import com.photon.network.sql.SQLPlayerAccount;
+import com.photon.sql.PlayerAccountTable;
+import com.photon.util.NetworkOnly;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -22,6 +23,8 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
  * 
  * @author Niwer
  */
+@NetworkOnly
+@SuppressWarnings("null") // The compiler in Photon is not good at handling JDA's @Nonnull annotations, so we suppress null warnings in this class
 public class ServerCreatorCommand extends AbstractSlashCommand {
 
     private enum EnumActionType {
@@ -60,14 +63,14 @@ public class ServerCreatorCommand extends AbstractSlashCommand {
         }
 
         /* Try to get the player account */
-        final ObjectPlayerAccount PLAYER_ACCOUNT = DISCORD_USER_OPTION != null ? SQLPlayerAccount.getAccountByDiscordID(DISCORD_USER_OPTION.getAsUser().getId()) : SQLPlayerAccount.getAccountByUsername(USERNAME_OPTION.getAsString());
+        final ObjectPlayerAccount PLAYER_ACCOUNT = DISCORD_USER_OPTION != null ? PlayerAccountTable.getAccountByDiscordID(DISCORD_USER_OPTION.getAsUser().getId()) : PlayerAccountTable.getAccountByUsername(USERNAME_OPTION.getAsString());
         if (PLAYER_ACCOUNT == null) {
             event.reply("No account found for the provided account.").setEphemeral(true).queue();
             return;
         }
         
         /* Update serverCreator in DB */
-        SQLPlayerAccount.setServerCreator(PLAYER_ACCOUNT.uuid, IS_ADD_ACTION);
+        PlayerAccountTable.setServerCreator(PLAYER_ACCOUNT.uuid, IS_ADD_ACTION);
         
         /* If there's no Discord link, only update the database */
         if (!PLAYER_ACCOUNT.hasDiscordLinked()) {

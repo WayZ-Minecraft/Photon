@@ -6,7 +6,7 @@ import java.util.StringJoiner;
 
 import com.photon.discord.commands.AbstractSlashCommand;
 import com.photon.network.objects.ObjectPlayerAccount;
-import com.photon.network.sql.SQLPlayerAccount;
+import com.photon.sql.PlayerAccountTable;
 import com.photon.util.NetworkOnly;
 
 import net.dv8tion.jda.api.Permission;
@@ -18,6 +18,7 @@ import net.dv8tion.jda.api.utils.FileUpload;
  * @author Niwer
  */
 @NetworkOnly
+@SuppressWarnings("null") // The compiler in Photon is not good at handling JDA's @Nonnull annotations, so we suppress null warnings in this class
 public class ListAccountsCommand extends AbstractSlashCommand {
 
     public ListAccountsCommand() {
@@ -37,7 +38,7 @@ public class ListAccountsCommand extends AbstractSlashCommand {
         if (!isConsoleChannel(event)) return; // Check if we're in the console channel
 
         /* Get all accounts, and skip if there are no accounts */
-        final List<ObjectPlayerAccount> accounts = SQLPlayerAccount.getAllAccounts();
+        final List<ObjectPlayerAccount> accounts = PlayerAccountTable.getAllAccounts();
         if (accounts.isEmpty()) {
             event.reply("No accounts found !").setEphemeral(true).queue();
             return;

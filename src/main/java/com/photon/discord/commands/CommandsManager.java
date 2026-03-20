@@ -23,6 +23,7 @@ import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
 @NetworkOnly
+@SuppressWarnings("null") // The compiler in Photon is not good at handling JDA's @Nonnull annotations, so we suppress null warnings in this class
 public class CommandsManager extends ListenerAdapter {
     public static final Map<String, AbstractSlashCommand> COMMANDS = new HashMap<>(); // Commands that are also available in private messages
     

@@ -2,34 +2,55 @@ package com.photon.network.objects;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 import com.google.gson.reflect.TypeToken;
 import com.photon.PhotonEngine;
 import com.photon.network.NetworkDirectories;
-import com.photon.network.sql.SQLInteraction.SQLCommandSerializer;
 
 import niwer.lumen.Console;
+import niwer.queryon.SQLSerializable;
+import niwer.queryon.tables.api.IColumnField;
 
 /**
  * Can't use record here, Too complex object for record
  */
-public class ObjectPlayerAccount implements SQLCommandSerializer<ObjectPlayerAccount> {
+public class ObjectPlayerAccount extends SQLSerializable<ObjectPlayerAccount> {
+
+    @IColumnField(name = "username", notNull = true)
 	public String username;
+
+    @IColumnField(name = "email", notNull = true)
 	public String email;
+
+    @IColumnField(name = "password", notNull = true)
 	public String password;
+
+    @IColumnField(name = "twoAuthFactor")
 	public boolean twoAuthFactor = false;
+
+    @IColumnField(name = "uuid", notNull = true)
 	public String uuid;
 	
+    @IColumnField(name = "discordID", charLimit = 1024)
     public String discordID;
+
+    @IColumnField(name = "discordAuthCode", notNull = true)
     public String discordAuthCode;
     
+    
+    @IColumnField(name = "projectAuthor")
     public boolean projectAuthor = false;
+
+    @IColumnField(name = "serverCreator")
     public boolean serverCreator = false;
+
+    @IColumnField(name = "shopCoins")
     public int shopCoins = 0;
-    public ArrayList<String> firends = new ArrayList<String>();
+
+    @IColumnField(name = "friends")
+    public String firends = "[]"; // JSON Array of UUID friends
     
     public ObjectPlayerAccount() {
     	this.discordAuthCode = generateAuthCode();
@@ -41,31 +62,15 @@ public class ObjectPlayerAccount implements SQLCommandSerializer<ObjectPlayerAcc
         return this.discordID != null && !this.discordID.isEmpty();
     }
 
-    @Override
-    public ObjectPlayerAccount objectify(ResultSet resultSet) throws SQLException {
-        final ObjectPlayerAccount account = new ObjectPlayerAccount();
-        account.username = resultSet.getString("username");
-        account.email = resultSet.getString("email");
-        account.password = resultSet.getString("password");
-        account.twoAuthFactor = resultSet.getBoolean("twoAuthFactor");
-        account.uuid = resultSet.getString("uuid");
-        account.discordID = resultSet.getString("discordID");
-        account.discordAuthCode = resultSet.getString("discordAuthCode");
-        account.projectAuthor = resultSet.getBoolean("projectAuthor");
-        account.serverCreator = resultSet.getBoolean("serverCreator");
-        account.shopCoins = resultSet.getInt("shopCoins");
-
-        final String friendsJSON = resultSet.getString("friends");
-        if (friendsJSON != null && !friendsJSON.isEmpty()) {
-             try {
-                TypeToken<ArrayList<String>> typeToken = new TypeToken<ArrayList<String>>() {};
-                account.firends = NetworkDirectories.GSON.fromJson(friendsJSON, typeToken.getType());
-            } catch (Exception e) {
-                Console.log("Error parsing friends JSON for " + account.uuid + ": " + e.getMessage()).error().container(PhotonEngine.LOGGER).send();
-            }
+    public List<String> getFriendsList() {
+        if (this.firends == null || this.firends.isEmpty()) return new ArrayList<>();
+        try {
+            TypeToken<ArrayList<String>> typeToken = new TypeToken<ArrayList<String>>() {};
+            return NetworkDirectories.GSON.fromJson(this.firends, typeToken.getType());
+        } catch (Exception e) {
+            Console.log("Error parsing friends JSON for " + this.uuid + ": " + e.getMessage()).error().container(PhotonEngine.LOGGER).send();
+            return new ArrayList<>();
         }
-
-        return account;
     }
 
     @Override

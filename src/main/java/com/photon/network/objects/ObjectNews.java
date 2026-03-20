@@ -1,23 +1,35 @@
 package com.photon.network.objects;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
-import com.photon.network.sql.SQLInteraction.SQLCommandSerializer;
+import com.photon.util.TranslationManager.Language;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import niwer.queryon.SQLSerializable;
+import niwer.queryon.tables.api.IColumnField;
 
-public class ObjectNews implements SQLCommandSerializer<ObjectNews>
+public class ObjectNews extends SQLSerializable<ObjectNews>
 {
+	@IColumnField(name = "id", primaryKey = true, autoIncrement = true)
 	private int id;
-	private final String title;
-	private final Map<String, String> content = new HashMap<String, String>();
-	private final Date date;
-	private final String imageUrl;
+
+	@IColumnField(name = "title", notNull = true, charLimit = 255)
+	private String title;
+
+	@IColumnField(name = "contentEn")
+	private String contentEn;
+
+	@IColumnField(name = "contentFr")
+	private String contentFr;
+
+	@IColumnField(name = "date", notNull = true)
+	private Date date = new Date();
+
+	@IColumnField(name = "image")
+	private String imageUrl;
 	
+	public ObjectNews() {}
+
 	/**
 	 * Make a news object
 	 * @param title the title of the news
@@ -27,8 +39,8 @@ public class ObjectNews implements SQLCommandSerializer<ObjectNews>
 	 */
 	public ObjectNews(String title, String contentEn, String contentFr, Date date, String imageUrl){
 		this.title = title;
-		this.content.put("en", contentEn);
-		this.content.put("fr", contentFr);
+		this.contentEn = contentEn;
+		this.contentFr = contentFr;
 		this.date = date;
 		this.imageUrl = imageUrl;
 	}
@@ -45,68 +57,39 @@ public class ObjectNews implements SQLCommandSerializer<ObjectNews>
 		this(title, contentEn, contentFr, date, imageUrl);
 		this.id = id;
 	}
-	/**
-	 * @return the id of the news
-	 */
-	public int getId(){
-		return this.id;
+
+	public int id() { return this.id; }
+
+	public String title() { return this.title; }
+
+	public String contentForLang(Language language) {
+		return switch (language) {
+			case ENGLISH -> this.contentEn;
+			case FRENCH -> this.contentFr;
+			default -> throw new IllegalStateException("Unexpected value: " + language);
+		};
 	}
 
-	/**
-	 * @return the title of the news
-	 */
-	public String getTitle(){
-		return this.title;
-	}
+	public Date date() { return this.date; }
 
-	/**
-	 * Return a HashMap with the content of the news (key: language, value: content)
-	 * @return the content of the news
-	 */
-	public Map<String, String> getContent(){
-		return this.content;
-	}
-
-	public String getContent(String language){
-		return this.content.get(language);
-	}
-
-	/**
-	 * @return the date of the news
-	 */
-	public Date getDate(){
-		return this.date;
-	}
-
-	/**
-	 * @return the image of the news
-	 */
-	public String getImageUrl(){
-		return this.imageUrl;
-	}
+	public String imageURL() { return this.imageUrl; }
 
 	/**
 	 * Create an embed with the news
+	 * 
 	 * @return the embed of the news
 	 */
-	public EmbedBuilder getEmbed() {
+	public EmbedBuilder discordEmbed() {
 		EmbedBuilder embed = new EmbedBuilder();
 		embed.setTitle(this.title);
-		embed.setDescription("🇬🇧"+this.content.get("en")+"\n\n🇫🇷"+this.content.get("fr"));
+		embed.setDescription(String.format("""
+			🇬🇧%s
+			\n\n
+			🇫🇷%s
+		""", this.contentEn, this.contentFr));
+		// embed.setDescription("🇬🇧"+this.contentEn+"\n\n🇫🇷"+this.contentFr);
 		embed.setImage(this.imageUrl);
 		embed.setTimestamp(this.date.toInstant());
 		return embed;
-	}
-
-	@Override
-	public ObjectNews objectify(ResultSet resultSet) throws SQLException {
-		return new ObjectNews(
-			resultSet.getInt("id"),
-			resultSet.getString("title"),
-			resultSet.getString("content_en"),
-			resultSet.getString("content_fr"),
-			new Date(resultSet.getLong("date")),
-			resultSet.getString("image_url")
-		);
 	}
 }

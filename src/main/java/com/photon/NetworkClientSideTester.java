@@ -25,7 +25,7 @@ public class NetworkClientSideTester {
     public static void main(String[] args) {
         try {
             NetworkEngine.load(args); // Start the Network Engine
-            Console.log("\n\n").send();
+            Console.log("\n\n").container(PhotonEngine.LOGGER).send();
 
             /* Connecting to local network after trying to connect to a random IP */
             PhotonEngine.loadClient(PhotonEngine.LOCAL_IP);
@@ -68,7 +68,7 @@ public class NetworkClientSideTester {
                 else
                     Console.log(
                         String.format("Logo loaded successfully (Width: %dpx/Height: %dpx/Type: %d - Size : %d Kb)", LOGO.getWidth(), LOGO.getHeight(), LOGO.getType(), NetworkDirectories.getConfig().gameLogo.length / 1024)
-                    ).send();
+                    ).container(PhotonEngine.LOGGER).send();
             }
         } catch (IOException e) {
             e.printStackTrace();

@@ -3,7 +3,7 @@ package com.photon.network.messages.requests;
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.PhotonEngine;
 import com.photon.network.IPacket;
-import com.photon.network.sql.SQLCrashReport;
+import com.photon.sql.CrashReportTable;
 import com.photon.util.PhotonLogTypes;
 
 import niwer.lumen.Console;
@@ -36,7 +36,8 @@ public class ClientRequestCrashReport implements IPacket {
     
     @Override
     public void handle(Connection connection) {
-        SQLCrashReport.save(userUUID, fileName, fileMessage);
+        CrashReportTable.save(userUUID, fileName, fileMessage);
+        
         
         Console.log("Crash report received: " + userUUID)
             .sendToProcessor()

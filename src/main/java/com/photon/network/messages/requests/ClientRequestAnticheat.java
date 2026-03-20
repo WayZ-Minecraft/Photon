@@ -3,7 +3,7 @@ package com.photon.network.messages.requests;
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.PhotonEngine;
 import com.photon.network.IPacket;
-import com.photon.network.sql.SQLAnticheat;
+import com.photon.sql.AnticheatTable;
 import com.photon.util.PhotonLogTypes;
 import com.photon.util.os.OperatingSystem;
 
@@ -47,7 +47,8 @@ public class ClientRequestAnticheat implements IPacket {
     
     @Override
     public void handle(Connection connection) {
-        SQLAnticheat.save(userUUID, fileName, fileMessage, operatingSystem);
-        Console.log("Cheater detected: " + userUUID + " OS: " + operatingSystem + " Reason: " + fileMessage).sendToProcessor().type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
+        AnticheatTable.save(userUUID, fileName, fileMessage, operatingSystem);
+        Console.log("Cheater detected: " + userUUID + " OS: " + operatingSystem + " Reason: " + fileMessage).sendToProcessor().type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER)
+        .send();
     }
 }

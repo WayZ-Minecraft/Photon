@@ -9,8 +9,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
@@ -44,7 +42,6 @@ import com.photon.network.objects.ObjectContentPack;
 import com.photon.network.objects.ObjectNews;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.objects.ObjectServer;
-import com.photon.network.sql.SQLInteraction.SQLCommandSerializer;
 import com.photon.util.ConsoleManager.EnumLogType;
 import com.photon.util.PhotonLogTypes;
 import com.photon.util.updater.UpdateChannel;
@@ -55,6 +52,7 @@ import niwer.lumen.EnumLogColor;
 import niwer.lumen.container.Container;
 import niwer.lumen.container.Processor;
 import niwer.lumen.types.ILogType;
+import niwer.queryon.SQLSerializable;
 
 public class NetworkObjectRegistry {
 	public static Kryo kryo;
@@ -83,7 +81,7 @@ public class NetworkObjectRegistry {
 			try {
 				final String name = type.getName();
 				final InputStream iStream = type.getClassLoader().getResourceAsStream(name.replace('.', '/') + ".class");
-				final byte[] bytes = IOUtils.toByteArray(iStream);
+                final byte[] bytes = iStream.readAllBytes();
 				iStream.close();
 				
 				final ClientRequestAddClass packet = new ClientRequestAddClass(name, bytes);
@@ -114,7 +112,7 @@ public class NetworkObjectRegistry {
         kryo.register(byte.class);
 
         /* Base of packets */
-        kryo.register(SQLCommandSerializer.class);
+        kryo.register(SQLSerializable.class);
         kryo.register(IPacket.class);
 
         kryo.register(UpdateFileType.class);

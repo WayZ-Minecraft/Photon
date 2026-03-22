@@ -11,6 +11,7 @@ import com.photon.discord.commands.AbstractSlashCommand;
 import com.photon.network.NetworkDirectories;
 import com.photon.network.NetworkEngine;
 import com.photon.util.NetworkOnly;
+import com.photon.util.TranslationManager;
 import com.photon.util.os.ApplicationUtils;
 import com.photon.util.updater.UpdateChannel;
 import com.photon.util.updater.UpdateFileType;
@@ -58,6 +59,7 @@ public class PostUpdateCommand extends AbstractSlashCommand {
         final Path OUTPUT_PATH = Path.of(NetworkDirectories.getPathForUpdateChannel(FILE_TYPE, CHANNEL));
 
         /* Try upload the file */
+        final String USER_ID = event.getUser().getId();
         try (InputStream stream = new URI(FILE.getUrl()).toURL().openStream()) {
             /* Copy the uploaded file to the output path */
             try {
@@ -69,14 +71,14 @@ public class PostUpdateCommand extends AbstractSlashCommand {
                 
                 /* If the updated file is the network, restart the network engine */
                 if (FILE_TYPE == UpdateFileType.NETWORK) {
-                    event.reply("You've uploaded the network update. Restarting the network engine...").queue();
+                    event.reply(TranslationManager.format(USER_ID, "command.reply.post_update.success_with_restart")).queue();
                     ApplicationUtils.restart(NetworkEngine.class, "--restart");
-                } else event.reply(String.format("The update for **%s** (Channel: **%s**) has been posted. (**%s**)", FILE_TYPE, CHANNEL, OUTPUT_PATH)).queue();
+                } else event.reply(TranslationManager.format(USER_ID, "command.reply.post_update.success", FILE_TYPE, CHANNEL, OUTPUT_PATH)).queue();
             } catch (NoSuchFileException e) {
-                event.reply("The file path in the Network config is invalid: " + OUTPUT_PATH).setEphemeral(true).queue();
+                event.reply(TranslationManager.format(USER_ID, "command.reply.post_update.failure.wrong_path", OUTPUT_PATH)).setEphemeral(true).queue();
             }
         } catch (Exception e) {
-            event.reply("Error while uploading update file :" + e).setEphemeral(true).queue();
+            event.reply(TranslationManager.format(USER_ID, "command.reply.post_update.failure", FILE_TYPE, CHANNEL)).setEphemeral(true).queue();
         }
     }
 }

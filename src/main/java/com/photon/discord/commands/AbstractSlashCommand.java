@@ -5,6 +5,7 @@ import java.util.function.Function;
 import com.photon.discord.BotEngine;
 import com.photon.discord.commands.AutoCompleteRegistry.AutoCompleteProvider;
 import com.photon.util.NetworkOnly;
+import com.photon.util.TranslationManager;
 
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
@@ -109,7 +110,7 @@ public abstract class AbstractSlashCommand {
     public boolean isOfficialGuild(SlashCommandInteractionEvent event) {
         final Guild GUILD = event.getGuild();
         if (!isGlobal() && (GUILD == null || !BotEngine.isOfficialGuild(GUILD))) {
-            event.reply("This command can only be used on the official server.").setEphemeral(true).queue();
+            event.reply(TranslationManager.format(event.getUser().getId(), "command.reply.on_official_guild")).setEphemeral(true).queue();
             return false;
         }
         return true; // Otherwise, we assume it's the official guild
@@ -123,7 +124,7 @@ public abstract class AbstractSlashCommand {
     public boolean isConsoleChannel(SlashCommandInteractionEvent event) {
         final GuildChannel CHANNEL = event.getGuildChannel();
         if(!isGlobal() && (CHANNEL == null || !BotEngine.isConsoleChannel(CHANNEL))) {
-            event.reply("This command can only be used in the console channel.").setEphemeral(true).queue();
+            event.reply(TranslationManager.format(event.getUser().getId(), "command.reply.on_console")).setEphemeral(true).queue();
             return false;
         }
         return true; // Otherwise, we assume it's the console channel

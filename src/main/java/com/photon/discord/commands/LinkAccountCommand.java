@@ -4,6 +4,7 @@ package com.photon.discord.commands;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.sql.PlayerAccountTable;
 import com.photon.util.NetworkOnly;
+import com.photon.util.TranslationManager;
 
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -28,28 +29,28 @@ public class LinkAccountCommand extends AbstractSlashCommand {
 
         /* Check the UUID and the code */
         if (!PlayerAccountTable.isAuthCodeValid(UUID, AUTHCODE)) {
-            if (!PlayerAccountTable.existByUUID(UUID)) event.reply("There's no user with this UUID").setEphemeral(true).queue();
-            else event.reply("Error your authentication key is wrong").setEphemeral(true).queue();
+            if (!PlayerAccountTable.existByUUID(UUID)) event.reply(TranslationManager.format(event.getUser().getId(), "command.link_account.failure.no_uuid")).setEphemeral(true).queue();
+            else event.reply(TranslationManager.format(event.getUser().getId(), "command.link_account.failure.invalid_code")).setEphemeral(true).queue();
             return;
         }
 
         /* Check if there's an account with this UUID */
         final ObjectPlayerAccount profile = PlayerAccountTable.getAccountByUUID(UUID);
         if (profile == null) {
-            event.reply("There's no user with this UUID").setEphemeral(true).queue();
+            event.reply(TranslationManager.format(event.getUser().getId(), "command.link_account.failure.no_uuid")).setEphemeral(true).queue();
             return;
         }
 
         /* Check if the account has already been linked */
         if (profile.hasDiscordLinked()) {
-            event.reply("This Game account is already linked to a Discord account.").setEphemeral(true).queue();
+            event.reply(TranslationManager.format(event.getUser().getId(), "command.link_account.failure.already_linked")).setEphemeral(true).queue();
             return;
         }
 
         /* Check if the discord account has already been linked to another official account */
         final String DISCORD_USER_ID = event.getUser().getId();
         if (PlayerAccountTable.getAccountByDiscordID(DISCORD_USER_ID) != null) {
-            event.reply("Your Discord account is already linked to another Game account.").setEphemeral(true).queue();
+            event.reply(TranslationManager.format(event.getUser().getId(), "command.link_account.failure.linked_to_other")).setEphemeral(true).queue();
             return;
         }
 
@@ -68,7 +69,7 @@ public class LinkAccountCommand extends AbstractSlashCommand {
         // }
 
         /* Print reply */
-        event.reply("Your account has been linked to " + event.getUser().getAsMention()).queue();
+        event.reply(TranslationManager.format(event.getUser().getId(), "command.link_account.success", event.getUser().getAsMention())).queue();
     }
 
     @Override public boolean isGlobal() { return true; }

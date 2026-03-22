@@ -1,13 +1,12 @@
 package com.photon.sql;
 
-import java.sql.SQLException;
-
 import com.photon.network.NetworkEngine;
 import com.photon.util.NetworkOnly;
 import com.photon.util.TranslationManager.Language;
 
 import niwer.queryon.DataBase;
 import niwer.queryon.queries.Expression;
+import niwer.queryon.queries.interaction.InsertionManager;
 import niwer.queryon.queries.interaction.SelectionManager;
 import niwer.queryon.queries.interaction.UpdateManager;
 import niwer.queryon.tables.EnumColumnTypes;
@@ -31,30 +30,40 @@ public class DiscordProfileTable extends Table {
     @Override public String name() { return "DiscordAccount"; }
 
     /**
+     * Create a profile for a user if it doesn't exist.
+     * 
+     * @param discordUserID The discord id of the user
+     */
+    public static void createProfile(String discordUserID) {
+        InsertionManager.insertOrIgnore(NetworkEngine.DATA_BASE, DiscordProfileTable.class, "discord_user_id")
+            .row(discordUserID)
+            .execute();
+    }
+
+    /**
      * Retrieve language preferences for a user.
      * 
      * @param discordUserID The discord id of the user
      * @return List of Languages or null if user has no preferences
-     * @throws SQLException if query execution fails
      */
-    public static Language getLanguages(String discordUserID) {
+    public static Language getLanguage(String discordUserID) {
         final String USER_LANG = SelectionManager.select(NetworkEngine.DATA_BASE, DiscordProfileTable.class, "language")
             .where(Expression.of("discord_user_id").isEqualTo(discordUserID))
             .executePrimitive(String.class);
 
-        return Language.fromString(USER_LANG);
+        return Language.fromNameString(USER_LANG);
     }
 
     /**
      * Update language preferences for a user.
      * 
      * @param discordUserID The discord id of the user
-     * @param newUSerLanguage List of Languages to set
-     * @throws SQLException if query execution fails
+     * @param newUserLanguage List of Languages to set
      */
-    public static void setLanguages(String discordUserID, Language newUSerLanguage) {
+    public static void setLanguage(String discordUserID, Language newUserLanguage) {
+        createProfile(discordUserID);
         UpdateManager.update(NetworkEngine.DATA_BASE, DiscordProfileTable.class)
-            .set("language", newUSerLanguage)
+            .set("language", newUserLanguage.name())
             .where(Expression.of("discord_user_id").isEqualTo(discordUserID))
             .execute();
     }
@@ -76,9 +85,9 @@ public class DiscordProfileTable extends Table {
      * 
      * @param discordUserID The discord id of the user
      * @param firstConnection The new status
-     * @throws SQLException if query execution fails
      */
-    public static void setFirstConnection(String discordUserID, boolean firstConnection) throws SQLException {
+    public static void setFirstConnection(String discordUserID, boolean firstConnection) {
+        createProfile(discordUserID);
         UpdateManager.update(NetworkEngine.DATA_BASE, DiscordProfileTable.class)
             .set("first_connection", firstConnection)
             .where(Expression.of("discord_user_id").isEqualTo(discordUserID))

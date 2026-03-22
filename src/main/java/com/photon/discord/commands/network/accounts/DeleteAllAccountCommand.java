@@ -5,6 +5,7 @@ import com.photon.discord.commands.AbstractSlashCommand;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.sql.PlayerAccountTable;
 import com.photon.util.NetworkOnly;
+import com.photon.util.TranslationManager;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -14,6 +15,7 @@ import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
  * @author Niwer
  */
 @NetworkOnly
+@SuppressWarnings("null") // The compiler in Photon is not good at handling JDA's @Nonnull annotations, so we suppress null warnings in this class
 public class DeleteAllAccountCommand extends AbstractSlashCommand {
     
     public DeleteAllAccountCommand() {
@@ -27,6 +29,6 @@ public class DeleteAllAccountCommand extends AbstractSlashCommand {
         if (!isConsoleChannel(event)) return; // Check if we're in the console channel
 
         for (ObjectPlayerAccount account : PlayerAccountTable.getAllAccounts()) PlayerAccountTable.deleteAccount(account.uuid);
-        event.reply("All accounts have been deleted !").queue();
+        event.reply(TranslationManager.format(event.getUser().getId(), "command.reply.all_account.success")).queue();
     }
 }

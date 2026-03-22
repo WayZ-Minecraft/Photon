@@ -40,7 +40,7 @@ public class DiscordLogTable extends Table {
             createColumn(db, "id", EnumColumnTypes.INT).primaryKey().autoIncrement(),
             createColumn(db, "guild_id", EnumColumnTypes.TEXT).notNull(),
             createColumn(db, "discord_user_id", EnumColumnTypes.TEXT).notNull(),
-            createColumn(db, "type", ModerationType.class).notNull(),
+            createColumn(db, "moderation_type", ModerationType.class).notNull(),
             createColumn(db, "reason", EnumColumnTypes.TEXT), // Nullable
             createColumn(db, "moderator_discord_id", EnumColumnTypes.TEXT), // Nullable
             createColumn(db, "duration_seconds", EnumColumnTypes.INT).defaultValue(0), // Only relevant for TIMEOUT
@@ -59,7 +59,7 @@ public class DiscordLogTable extends Table {
      * @param durationSeconds    Duration in seconds for TIMEOUT, 0 otherwise
      */
     public static void save(String guildID, String discordID, ModerationType type, String reason, String moderatorDiscordID, long durationSeconds) {
-        InsertionManager.insert(NetworkEngine.DATA_BASE, DiscordLogTable.class, "guild_id", "discord_user_id", "type", "reason", "moderator_discord_id", "duration_seconds")
+        InsertionManager.insert(NetworkEngine.DATA_BASE, DiscordLogTable.class, "guild_id", "discord_user_id", "moderation_type", "reason", "moderator_discord_id", "duration_seconds")
             .row(guildID, discordID, type.name(), reason, moderatorDiscordID, durationSeconds)
             .execute();
     }
@@ -82,7 +82,7 @@ public class DiscordLogTable extends Table {
         return SelectionManager.select(NetworkEngine.DATA_BASE, DiscordLogTable.class)
             .where(
                 Expression.of("guild_id").isEqualTo(guildID)
-                    .and(Expression.of("type").isEqualTo(type))
+                    .and(Expression.of("moderation_type").isEqualTo(type))
             )
             .orderBy("timestamp", EnumOrder.DESC)
             .executeList(ObjectDiscordLog.class);

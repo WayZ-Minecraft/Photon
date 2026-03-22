@@ -1,6 +1,7 @@
 package com.photon.discord.commands;
 
 import com.photon.util.NetworkOnly;
+import com.photon.util.TranslationManager;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -15,7 +16,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 public class ClearCommand extends AbstractSlashCommand {
     public ClearCommand() {
         super("clear", "Clears messages.");
-        this.data().addOption(OptionType.INTEGER, "number", "number of message to delete (1 to 100)", false, false);
+        this.addOption(OptionType.INTEGER, "number", "number of message to delete (1 to 100)", false);
         this.data().setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MESSAGE_MANAGE));
     }
 
@@ -27,13 +28,14 @@ public class ClearCommand extends AbstractSlashCommand {
      */
     @Override
     public void handle(SlashCommandInteractionEvent event) {
-        final int number = event.getOption("number").getAsInt();
-        if (number < 1 || number > 100) {
-            event.reply("Please provide a number between 1 and 100.").setEphemeral(true).queue();
+        final String USER_ID = event.getUser().getId();
+        final int NUMBER = event.getOption("number").getAsInt();
+        if (NUMBER < 1 || NUMBER > 100) {
+            event.reply(TranslationManager.format(USER_ID, "command.reply.clear.failure")).setEphemeral(true).queue();
             return;
         }
 
-        event.getChannel().purgeMessages(event.getChannel().getHistory().retrievePast(number).complete());
-        event.reply(String.format("Clearing %s messages...", number)).setEphemeral(true).queue();
+        event.getChannel().purgeMessages(event.getChannel().getHistory().retrievePast(NUMBER).complete());
+        event.reply(TranslationManager.format(USER_ID, "command.reply.clear.success", NUMBER)).setEphemeral(true).queue();
     }
 }

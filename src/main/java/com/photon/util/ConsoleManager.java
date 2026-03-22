@@ -29,7 +29,7 @@ import niwer.lumen.Console;
  */
 @Deprecated(forRemoval = true)
 public class ConsoleManager
-{  	
+{
 	private static final ConsoleHandler defaultHandler = new ConsoleHandler();
 	private static final Logger defaultLogger = Logger.getLogger("default");
 	private static final Map<String, ConsoleHandler> handlers = new HashMap<>();

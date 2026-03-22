@@ -12,10 +12,14 @@ import com.photon.network.messages.requests.ClientRequestAnticheat;
 import com.photon.network.messages.requests.ClientRequestCrashReport;
 import com.photon.network.messages.requests.ClientRequestHWID;
 import com.photon.network.messages.requests.news.ClientRequestNewsList;
+import com.photon.sql.DiscordProfileTable;
 import com.photon.util.NetworkOnly;
 import com.photon.util.PhotonLogTypes;
 import com.photon.util.auth.PhotonUserAuthManager;
 import com.photon.util.os.OperatingSystem;
+import com.photon.util.updater.UpdateChannel;
+import com.photon.util.updater.UpdateFileType;
+import com.photon.util.updater.UpdaterManager;
 
 import niwer.lumen.Console;
 
@@ -49,7 +53,8 @@ public class NetworkClientSideTester {
                 ClientLinkManager.sendTCP(news);
 
                 /* Update Test */
-                // String data = UpdaterManager.getSHA1(UpdateFileType.API, UpdateChannel.STABLE); //TODO
+                String data = UpdaterManager.getSHA1(UpdateFileType.API, UpdateChannel.STABLE); //TODO
+                Console.log("Received SHA1 for API update: " + data).type(PhotonLogTypes.TESTER).send();
             }
 
             /* Accounts */
@@ -70,6 +75,9 @@ public class NetworkClientSideTester {
                         String.format("Logo loaded successfully (Width: %dpx/Height: %dpx/Type: %d - Size : %d Kb)", LOGO.getWidth(), LOGO.getHeight(), LOGO.getType(), NetworkDirectories.getConfig().gameLogo.length / 1024)
                     ).container(PhotonEngine.LOGGER).send();
             }
+
+            /* Discord table test */
+            DiscordProfileTable.createProfile(GENERATED_UUID);
         } catch (IOException e) {
             e.printStackTrace();
         }

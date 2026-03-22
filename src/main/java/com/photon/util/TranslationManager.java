@@ -10,6 +10,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import com.photon.PhotonEngine;
+import com.photon.sql.DiscordProfileTable;
 import com.photon.util.os.FileLocation;
 
 import niwer.lumen.Console;
@@ -38,12 +39,21 @@ public class TranslationManager {
 
 		public Locale locale() { return this.locale; }
 
-		public static Language fromString(String code) {
+		public static Language fromCodeString(String code) {
 			for (final Language LANG : Language.values()) {
 				if (LANG.code.equalsIgnoreCase(code)) return LANG;
 			}
 			
 			/* Default to English if the code is not found */
+			return ENGLISH;
+		}
+
+		public static Language fromNameString(String name) {
+			for (final Language LANG : Language.values()) {
+				if (LANG.name().equalsIgnoreCase(name)) return LANG;
+			}
+			
+			/* Default to English if the name is not found */
 			return ENGLISH;
 		}
 	}
@@ -88,9 +98,15 @@ public class TranslationManager {
 				TRANSLATIONS.put(lang, PROPERTIES);
 			}
 		}
-		catch (IOException e) {
+		catch (IOException | NullPointerException e) {
 			Console.log("Error loading language file for " + lang.code() + ": " + e.getMessage()).type(PhotonLogTypes.NETWORK).error().container(PhotonEngine.LOGGER).send();
 		}
+	}
+
+	private static Map<String, String> getProperties(Language lang) {
+		Map<String, String> properties = TRANSLATIONS.get(lang);
+		if (properties == null) properties = TRANSLATIONS.getOrDefault(Language.ENGLISH, new HashMap<>()); // If the language is not found, return the properties for English (as it's the default language)
+		return properties;
 	}
 
 	/**
@@ -100,10 +116,21 @@ public class TranslationManager {
 	 * @param key The key to get the translation for. (e.g "button.title")
 	 * @param obj The objects to format the translation with. (The system replace every %s with the given object in order)
 	 * @return The translation for the given key.
-	 */	
+	 */
 	public static String format(Language lang, String key, Object... obj) {
-		final Map<String, String> PROPERTIES = TranslationManager.TRANSLATIONS.get(lang); // Get the properties for the choosen lang
-		final String TRANSLATION = PROPERTIES.get(key); // Get the propertie for the current key
+		final String TRANSLATION = getProperties(lang).get(key); // Get the propertie for the current key
 		return TRANSLATION == null ? key : String.format(TRANSLATION, obj); // Return the translated key if exist, else return the key (to avoid null pointer exception) and format it with the given objects
+	}
+
+	/**
+	 * Get the translation for the given key for a user.
+	 * 
+	 * @param discordUserID The discord user id to get the language of the user.
+	 * @param key The key to get the translation for. (e.g "button.title")
+	 * @param obj The objects to format the translation with. (The system replace every %s with the given object in order)
+	 * @return The translation for the given key.
+	 */
+	public static String format(String discordUserID, String key, Object... obj) {
+		return format(DiscordProfileTable.getLanguage(discordUserID), key, obj);
 	}
 }

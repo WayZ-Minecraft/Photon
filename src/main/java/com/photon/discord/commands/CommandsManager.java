@@ -35,6 +35,7 @@ public class CommandsManager extends ListenerAdapter {
     public static void load() {
         /* Private message and Guild commands */
         new LinkAccountCommand().register();
+        new LanguageCommand().register();
 
         /* Guild only commands */
         new ClearCommand().register();

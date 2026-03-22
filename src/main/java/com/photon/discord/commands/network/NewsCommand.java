@@ -51,7 +51,7 @@ public class NewsCommand extends AbstractSlashCommand {
             NewsTable.createNews(news);
         }catch (SQLException e) {
             Console.log("Unable to creating news : " + e.getMessage()).sendToProcessor().type(PhotonLogTypes.DISCORD_BOT).error().container(PhotonEngine.LOGGER).send();
-            event.reply("Error on news creation, please show chanel console-manager").queue();
+            event.reply("Error on news creation, please show chanel console-manager").queue(); //TODO add translation too
         }
 
         // BotEngine.guild.getTextChannelById(Channels.TEXT_BOT.id).sendMessageEmbeds(news.getEmbed().build()).queue();

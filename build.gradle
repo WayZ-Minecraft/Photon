@@ -81,6 +81,7 @@ def thirdPartyExclusions = [
 	'io/javalin/**',
     'google/protobuf/**',
     'org/eclipse/jetty/**',
+	'niwer/queryon/**'
 ]
 
 /* Add all dependcies to the jar */

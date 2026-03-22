@@ -237,7 +237,7 @@ public class BotEngine extends ListenerAdapter {
         final boolean IS_LINK = DiscordSecurity.checkLink(message.getContentRaw());
         if (IS_LINK) {
             message.delete().queue(); // Delete the message containing the link
-            // AUTHOR.openPrivateChannel().queue(pm -> pm.sendMessage(TranslationManager.format(UsersInfo.getLanguage(AUTHOR.getId()).code,"discord.securityMessage.updateMessage")).queue());
+            AUTHOR.openPrivateChannel().queue(pm -> pm.sendMessage(TranslationManager.format(AUTHOR.getId(),"discord.securityMessage.updateMessage")).queue());
         }
     }
 

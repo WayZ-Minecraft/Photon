@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -28,13 +29,17 @@ public class UpdaterManager {
      * @return The sha1 of the update if there is one, UNKNOWN otherwise
      */
     public static String getSHA1(UpdateFileType type, UpdateChannel channel) {
+        PhotonClientData.UPDATE_SHA.reset();
         ClientLinkManager.sendTCP(new ClientRequestUpdate(channel, type)); // Ask the server for the update data (SHA and File)
 
-        // PhotonClientData.UPDATE_SHA.onAvailable(t -> {
-        //     ConsoleManager.debug("Received update SHA: " + t);
-        // });
-
-        // ConsoleManager.debug(PhotonClientData.UPDATE_SHA.get());
+        final CountDownLatch LATCH = new CountDownLatch(1);
+        PhotonClientData.UPDATE_SHA.onAvailable(v -> LATCH.countDown());
+        
+        try {
+            LATCH.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
 		return PhotonClientData.UPDATE_SHA.get();
     }
@@ -46,9 +51,10 @@ public class UpdaterManager {
      * @return True if there is an update, false otherwise
      */
     public static boolean hasUpdate(UpdateFileType type, UpdateChannel channel, final File file) {
-        final String sha1 = getSHA1(type, channel);
-        if(!file.exists()) return true;
-        if(!sha1.equalsIgnoreCase("UNKNOWN") && !getUpdateDigest(file, "SHA", 40).equals(sha1)) return true;
+        if(!file.exists()) return true; // If the file doesn't exist, we need to download it
+
+        final String SHA_1 = getSHA1(type, channel);
+        if(!SHA_1.equalsIgnoreCase("UNKNOWN") && !getUpdateDigest(file, "SHA", 40).equals(SHA_1)) return true;
         return false;
     }
 

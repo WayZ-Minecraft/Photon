@@ -8,6 +8,7 @@ import com.photon.discord.commands.AbstractSlashCommand;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.sql.PlayerAccountTable;
 import com.photon.util.NetworkOnly;
+import com.photon.util.TranslationManager;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -39,8 +40,9 @@ public class ListAccountsCommand extends AbstractSlashCommand {
 
         /* Get all accounts, and skip if there are no accounts */
         final List<ObjectPlayerAccount> accounts = PlayerAccountTable.getAllAccounts();
+        final String USER_ID = event.getUser().getId();
         if (accounts.isEmpty()) {
-            event.reply("No accounts found !").setEphemeral(true).queue();
+            event.reply(TranslationManager.format(USER_ID, "command.reply.list_accounts.failure.empty")).setEphemeral(true).queue();
             return;
         }
 
@@ -49,7 +51,7 @@ public class ListAccountsCommand extends AbstractSlashCommand {
         for (ObjectPlayerAccount account : accounts) joiner.add(formatAccount(account));
 
         final FileUpload upload = FileUpload.fromData(joiner.toString().getBytes(StandardCharsets.UTF_8), "account.txt");
-        event.reply("Here's a file with all existing accounts (" + accounts.size() + ")").addFiles(upload).queue();
+        event.reply(TranslationManager.format(USER_ID, "command.reply.list_accounts.success", accounts.size())).addFiles(upload).queue();
     }
     
     public static String formatAccount(ObjectPlayerAccount account) {

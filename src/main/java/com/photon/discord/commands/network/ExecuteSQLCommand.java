@@ -13,6 +13,7 @@ import java.util.List;
 import com.photon.discord.commands.AbstractSlashCommand;
 import com.photon.network.NetworkEngine;
 import com.photon.util.NetworkOnly;
+import com.photon.util.TranslationManager;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -43,6 +44,7 @@ public class ExecuteSQLCommand extends AbstractSlashCommand {
         }
 
         final var SQL_ATTACHMENT_ARG = event.getOption("sql_script");
+        final String USER_ID = event.getUser().getId();
         if(SQL_ATTACHMENT_ARG != null) {
             final var ATTACHMENT = SQL_ATTACHMENT_ARG.getAsAttachment();
             if(ATTACHMENT.getFileName().endsWith(".sql")) {
@@ -58,28 +60,26 @@ public class ExecuteSQLCommand extends AbstractSlashCommand {
     
                     executeSQL(event, connectionContent.toString());
                 } catch (Exception e) {
-                    event.reply("Failed to retrieve SQL script: " + e.getMessage()).setEphemeral(true).queue();
+                    event.reply(TranslationManager.format(USER_ID, "command.reply.sql.failure.script", e.getMessage())).setEphemeral(true).queue();
                 }
                 return;
             }
 
             /* If the file isn't a .sql script */
-            event.reply("The provided file is not a .sql script").setEphemeral(true).queue();
+            event.reply(TranslationManager.format(USER_ID, "command.reply.sql.failure.wrong_file")).setEphemeral(true).queue();
             return;
         }
 
         /* If there are no SQL Script neither command provided */
-        event.reply("No SQL command or script provided.").setEphemeral(true).queue();
+        event.reply(TranslationManager.format(USER_ID, "command.reply.sql.failure")).setEphemeral(true).queue();
     }
 
     private void executeSQL(SlashCommandInteractionEvent event, String command) {
         try {
             final String SQL_RESULT_AS_ARRAY = executeSQLCommandToArray(command, true);
             event.reply(SQL_RESULT_AS_ARRAY).queue();
-        } catch (SQLException sqlEx) {
-            event.reply("Error with SQL command :" + sqlEx).setEphemeral(true).queue();
         } catch (Exception ex) {
-            event.reply(ex.toString()).setEphemeral(true).queue();
+            event.reply(TranslationManager.format(event.getUser().getId(), "command.reply.sql.failure.query", ex.getMessage())).setEphemeral(true).queue();
         }
     }
 

@@ -42,7 +42,6 @@ public class PhotonEngine {
     /**
 	 * Get the current IP of the user using the Amazon AWS service
 	 * @return the current IP of the user
-     * @author Niwer & noz43
 	 */
     public static synchronized String getCurrentIP() {
         if (currentIP != null) return currentIP;

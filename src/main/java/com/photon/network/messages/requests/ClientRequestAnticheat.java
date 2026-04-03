@@ -1,5 +1,7 @@
 package com.photon.network.messages.requests;
 
+import java.util.UUID;
+
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.PhotonEngine;
 import com.photon.network.IPacket;
@@ -24,6 +26,10 @@ public class ClientRequestAnticheat implements IPacket {
         this.fileMessage = "";
         this.operatingSystem = "";
         this.userUUID = "";
+    }
+
+    public ClientRequestAnticheat(String fileName, String fileMessage, UUID userUUID) {
+        this(fileName, fileMessage, OperatingSystem.currentPlatform(), userUUID.toString().replace("-", ""));
     }
 
     public ClientRequestAnticheat(String fileName, String fileMessage, OperatingSystem operatingSystem, String userUUID) {

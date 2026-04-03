@@ -44,7 +44,6 @@ public class NetworkDirectories
 
     /**
      * Load all directories and files
-     * @author Niwer & noz43
      */
 	public static void load() {
 		if (!BASE_DIR.exists()) BASE_DIR.mkdirs();
@@ -81,7 +80,6 @@ public class NetworkDirectories
 	
 	/**
 	 * Load game logo from file and serialize it to byte array (SERVER SIDE)
-	 * @author noz43
 	 * @author Niwer (Added : Gathering default logo if not found)
 	 */
 	public static void loadLogoOnServer() {

@@ -91,7 +91,6 @@ public class CommandsManager extends ListenerAdapter {
      * No hardcoded command names or options!
      * 
      * @param event The event that triggered this command
-     * @author noz43
      */
     @Override
     public void onCommandAutoCompleteInteraction(@Nonnull CommandAutoCompleteInteractionEvent event) {

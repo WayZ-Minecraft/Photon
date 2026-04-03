@@ -13,9 +13,6 @@ import net.dv8tion.jda.api.interactions.commands.Command;
 /**
  * Registry system for command autocomplete providers.
  * Commands can register their autocomplete sources here instead of hardcoding in AutoCompleteCommands.
- * 
- * @author noz43
- * @version 1.0
  */
 @NetworkOnly
 @SuppressWarnings("null") // The compiler in Photon is not good at handling JDA's @Nonnull annotations, so we suppress null warnings in this class

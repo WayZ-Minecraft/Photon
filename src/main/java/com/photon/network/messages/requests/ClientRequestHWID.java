@@ -1,10 +1,13 @@
 package com.photon.network.messages.requests;
 
+import java.util.UUID;
+
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.PhotonEngine;
 import com.photon.network.IPacket;
 import com.photon.sql.HWIDTable;
 import com.photon.util.PhotonLogTypes;
+import com.photon.util.ProtectorManager;
 import com.photon.util.os.OperatingSystem;
 
 import niwer.lumen.Console;
@@ -20,6 +23,10 @@ public class ClientRequestHWID implements IPacket {
         this.userUUID = "";
         this.userHWID = "";
         this.operatingSystem = "";
+    }
+
+    public ClientRequestHWID(String userName, UUID userUUID) {
+        this(userName, userUUID.toString().replaceAll("-", ""), ProtectorManager.getHWID(), OperatingSystem.currentPlatform());
     }
 
     public ClientRequestHWID(String userName, String userUUID, String userHWID, OperatingSystem operatingSystem) {

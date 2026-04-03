@@ -9,7 +9,6 @@ import com.photon.network.listeners.MessageListenerCommon;
  * @author Niwer
  * @author noz43
  */
-
 public class ClientRequestAddListener implements IPacket {
     private final INetworkMessageListener listener;
     

@@ -42,7 +42,6 @@ import com.photon.network.objects.ObjectContentPack;
 import com.photon.network.objects.ObjectNews;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.objects.ObjectServer;
-import com.photon.util.ConsoleManager.EnumLogType;
 import com.photon.util.PhotonLogTypes;
 import com.photon.util.updater.UpdateChannel;
 import com.photon.util.updater.UpdateFileType;
@@ -127,7 +126,6 @@ public class NetworkObjectRegistry {
         kryo.register(ServerResponseValidAccount.class);
         kryo.register(ServerResponseAccount.class);
         
-        kryo.register(EnumLogType.class);
         kryo.register(ClientRequestSendDiscordLogs.class);
         kryo.register(ClientRequestCrashReport.class);
         kryo.register(ClientRequestAnticheat.class);

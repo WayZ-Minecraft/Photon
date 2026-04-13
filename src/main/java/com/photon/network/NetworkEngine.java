@@ -1,67 +1,103 @@
 package com.photon.network;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.PhotonEngine;
 import com.photon.discord.BotEngine;
-import com.photon.informations.PhotonInfosManager;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.network.objects.ObjectNews;
+import com.photon.network.objects.ObjectServer;
+import com.photon.sql.AnticheatTable;
+import com.photon.sql.CrashReportTable;
+import com.photon.sql.DiscordLogTable;
+import com.photon.sql.DiscordProfileTable;
+import com.photon.sql.HWIDTable;
+import com.photon.sql.NewsTable;
+import com.photon.sql.PlayerAccountTable;
+import com.photon.util.NetworkOnly;
+import com.photon.util.PhotonLogTypes;
+import com.photon.web.WebServerEngine;
 
+import niwer.lumen.Console;
+import niwer.lumen.container.ConsoleFileManager;
+import niwer.queryon.DataBase;
+
+@NetworkOnly
 public class NetworkEngine {
 
-    private static final ExecutorService threadPool = Executors.newFixedThreadPool(10);
+    /* Network saves */
+    public static final List<ObjectNews> SAVED_NEWS_LIST = new ArrayList<>();
+    public static final List<ObjectServer> SAVED_SERVER_LIST = new ArrayList<>();
+    public static final Map<String, Connection> CONNECTED_CLIENTS_LIST = new HashMap<>();
 
-    @SuppressWarnings("resource")
-	public static void main(final String[] args) {
+    public static final DataBase DATA_BASE = new DataBase(NetworkDirectories.DATA_BASE_FILE);
+
+	public static void main(final String[] args) { load(args); }
+    
+    /**
+     * Load the Network Engine
+     * This method exist because it allows to start the NetworkEngine from {@link com.photon.NetworkClientSideTester#main(String[] args)}
+     * @param args The arguments passed to the main method
+     * @author Niwer
+     */
+	public static void load(final String[] args) {
 		try {
+            /* Register logger */
+            ConsoleFileManager.registerFileFor(NetworkDirectories.LOGS_DIR, PhotonEngine.LOGGER, "network");
+
             /* Load features */
 			NetworkDirectories.load();
+            NetworkDirectories.loadLogoOnServer();
 
-            
-            /* Register logs file */
-			ConsoleManager.registerFileHandler(new File(NetworkDirectories.logsDirectory, "network.log"), "network");
+            /* Register tables to the Data Base */
+            DATA_BASE
+                .registerTable(NewsTable.class)
+
+                /* Security */
+                .registerTable(HWIDTable.class)
+                .registerTable(AnticheatTable.class)
+                .registerTable(CrashReportTable.class)
+                .registerTable(DiscordLogTable.class)
+
+                /* User Accounts */
+                .registerTable(PlayerAccountTable.class)
+                .registerTable(DiscordProfileTable.class)
+            ;
             
             /* Connecting */
-			PhotonEngine.setIP(PhotonInfosManager.getCurrentIP());
+			PhotonEngine.setIP(PhotonEngine.getCurrentIP());
             
 			/* Check ip */
-            ConsoleManager.create("Starting Network Server on \"" + PhotonEngine.network_Ip + "\"!").withType(EnumLogType.NETWORK).end();
-			if(!PhotonEngine.network_Ip.isEmpty() && !PhotonEngine.network_Ip.equalsIgnoreCase(PhotonEngine.network_Ip_Local) && !PhotonInfosManager.isIPEquals(PhotonEngine.network_Ip)) {
-                ConsoleManager.create("Ip doesn't match. Closing Network!").withType(EnumLogType.NETWORK).error().end();
+            Console.log("Starting Network Server on \"" + PhotonEngine.network_Ip + "\"!").type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
+			if(!PhotonEngine.network_Ip.isEmpty() && !PhotonEngine.network_Ip.equalsIgnoreCase(PhotonEngine.LOCAL_IP) && !PhotonEngine.isIPEquals(PhotonEngine.network_Ip)) {
+                Console.log("Ip doesn't match. Closing Network!").type(PhotonLogTypes.NETWORK).error().container(PhotonEngine.LOGGER).send();
 				System.exit(0);
 				return;
 			}
 
-            /* Satrting the discord bot if token avalible */
-			if(NetworkDirectories.getConfig().discordBotToken !=null && !NetworkDirectories.getConfig().discordBotToken.isEmpty())
-                BotEngine.load(Arrays.asList(args).contains("--restart") ? "--restart" : null);
+            /* Starting the discord bot if token available */
+			if(NetworkDirectories.getConfig().discord_bot_token !=null && !NetworkDirectories.getConfig().discord_bot_token.isEmpty()) {
+                try {
+                    BotEngine.load(Arrays.asList(args).contains("--restart"));
+                    Console.log("Discord Bot started successfully").type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
+                } catch (Exception e) {
+                    Console.log("Failed to start Discord Bot: " + e.getMessage()).type(PhotonLogTypes.NETWORK).error().container(PhotonEngine.LOGGER).send();
+                    e.printStackTrace();
+                }
+            } else Console.log("Discord Bot token not configured, skipping bot startup").type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
 
-			NetworkConnectionServer.load();
+            /* Starts the web API and Server */
+            WebServerEngine.load();
 
-            /* Set-up request connection system */
-            final ServerSocket serverSocket = new ServerSocket(49554);
-            while (true) {
-                final Socket clientSocket = serverSocket.accept();
-                threadPool.submit(new ClientHandler(clientSocket));
-            }
+            /* Start Krynet itself */
+			NetworkLinkManager.load();
+            Console.log("Network Server is now running and waiting for connections...").type(PhotonLogTypes.NETWORK).sendToProcessor().container(PhotonEngine.LOGGER).send();
 		} catch(Exception e) { e.printStackTrace(); }
-        finally {
-            threadPool.shutdown(); // Arrête proprement le thread pool lorsque le serveur est arrêté
-        }
     }
 	
     /**
@@ -71,7 +107,7 @@ public class NetworkEngine {
      * @see Connection
      * @author Niwer
      */
-	public static Connection getPlayerConnection(String uuid) { return (uuid == null || uuid.isEmpty()) ? null : PhotonEngine.networkConnectionsList.get(uuid); }
+	public static Connection getPlayerConnection(String uuid) { return (uuid == null || uuid.isEmpty()) ? null : CONNECTED_CLIENTS_LIST.get(uuid); }
 	
     /**
      * Get the uuid of a player from his connection
@@ -81,10 +117,7 @@ public class NetworkEngine {
      * @author Niwer
      */
 	public static String getPlayerUUID(Connection connection) {
-        for(Entry<String, Connection> entry : PhotonEngine.networkConnectionsList.entrySet()) {
-        	if(entry.getValue().equals(connection)) return entry.getKey();
-        }
-        return "";
+        return CONNECTED_CLIENTS_LIST.entrySet().stream().filter(entry -> entry.getValue().equals(connection)).findFirst().get().getKey();
     }
 	
     /**
@@ -94,31 +127,6 @@ public class NetworkEngine {
      * @author Niwer
      */
 	public static List<Connection> getConnectedConnection() {
-    	List<Connection> list = new ArrayList<>();
-        for (Entry<String, Connection> entry : PhotonEngine.networkConnectionsList.entrySet()) {
-        	final Connection conn = entry.getValue();
-            if(conn != null && conn.isConnected()) list.add(conn);
-        }
-        return list;
-    }
-
-    /* Represent a client connection */
-    static class ClientHandler extends Thread {
-        private Socket clientSocket;
-
-        public ClientHandler(Socket socket) { this.clientSocket = socket; }
-
-        public void run() {
-            try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
-                String request = reader.readLine();
-                if(request.equalsIgnoreCase("getInfos")) {
-                    final String response = NetworkDirectories.getConfig().webUrl+";"+NetworkDirectories.getConfig().webPassword+";"+NetworkDirectories.getConfig().webUser;
-                    writer.println(response);
-                }
-                clientSocket.close();
-            } catch (IOException e) { e.printStackTrace(); }
-        }
+        return CONNECTED_CLIENTS_LIST.entrySet().stream().filter(entry -> entry.getValue() != null && entry.getValue().isConnected()).map(Entry::getValue).toList();
     }
 }

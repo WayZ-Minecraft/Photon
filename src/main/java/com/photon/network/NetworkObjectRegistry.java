@@ -9,12 +9,10 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
-import com.photon.informations.PhotonUpdaterManager;
+import com.photon.PhotonEngine;
 import com.photon.network.NetworkDirectories.NetworkConfig;
 import com.photon.network.listeners.INetworkMessageListener;
 import com.photon.network.messages.requests.ClientRequestAddClass;
@@ -26,6 +24,7 @@ import com.photon.network.messages.requests.ClientRequestNetworkConfig;
 import com.photon.network.messages.requests.ClientRequestRegisterConnection;
 import com.photon.network.messages.requests.ClientRequestSendDiscordLogs;
 import com.photon.network.messages.requests.ClientRequestSyncContentPacks;
+import com.photon.network.messages.requests.ClientRequestUpdate;
 import com.photon.network.messages.requests.account.ClientRequestAccount;
 import com.photon.network.messages.requests.account.ClientRequestAccountCreation;
 import com.photon.network.messages.requests.account.ClientRequestAccountVerification;
@@ -36,27 +35,29 @@ import com.photon.network.messages.response.ServerResponseNetworkConfig;
 import com.photon.network.messages.response.ServerResponseNewsList;
 import com.photon.network.messages.response.ServerResponseServerList;
 import com.photon.network.messages.response.ServerResponseSyncContentPack;
+import com.photon.network.messages.response.ServerResponseUpdate;
 import com.photon.network.messages.response.account.ServerResponseAccount;
 import com.photon.network.messages.response.account.ServerResponseValidAccount;
-import com.photon.network.objects.DownloadContentPacks;
-import com.photon.network.objects.ObjectHWIDs;
+import com.photon.network.objects.ObjectContentPack;
 import com.photon.network.objects.ObjectNews;
 import com.photon.network.objects.ObjectPlayerAccount;
 import com.photon.network.objects.ObjectServer;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.PhotonLogTypes;
+import com.photon.util.updater.UpdateChannel;
+import com.photon.util.updater.UpdateFileType;
+
+import niwer.lumen.Console;
+import niwer.lumen.EnumLogColor;
+import niwer.lumen.container.Container;
+import niwer.lumen.container.Processor;
+import niwer.lumen.types.ILogType;
+import niwer.queryon.SQLSerializable;
 
 public class NetworkObjectRegistry {
 	public static Kryo kryo;
 	private static ArrayList<Class<?>> classList = new ArrayList<>();
 	private static ByteArrayClassLoader loader = new ByteArrayClassLoader();
 	
-    /**
-     * Add a class to the list of classes to be registered for serialization
-     * @param name : The name of the class to add to the list of classes to be registered for serialization
-     * @param bytes : The bytes of the class to add to the list of classes to be registered for serialization
-     * @author Niwer
-     */
 	public static void addClass(String name, byte[] bytes) {
 		if(bytes == null) { return; }
 		Class<?> clazz = loader.findClass(name, bytes);
@@ -69,34 +70,25 @@ public class NetworkObjectRegistry {
 		}
 	}
 	
-    /**
-     * Add a class to the list of classes to be registered for serialization
-     * @param type : The class to add to the list of classes to be registered for serialization
-     * @author Niwer
-     */
 	public static void addClass(Class<?> type) {
 		if(type == null) { return; }
 		if(!classList.contains(type)) {
 			classList.add(type);
 			if(kryo !=null) kryo.register(type);
 		}
-		if(NetworkConnectionClient.client !=null) {
-			final ClientRequestAddClass packet = new ClientRequestAddClass();
-			packet.name = type.getName();
+		if(ClientLinkManager.client !=null) {
 			try {
-				final InputStream iStream = type.getClassLoader().getResourceAsStream(packet.name.replace('.', '/') + ".class");
-				packet.bytes = IOUtils.toByteArray(iStream);
+				final String name = type.getName();
+				final InputStream iStream = type.getClassLoader().getResourceAsStream(name.replace('.', '/') + ".class");
+                final byte[] bytes = iStream.readAllBytes();
 				iStream.close();
-			} catch(IOException e) { ConsoleManager.create(ConsoleManager.of(e)).withType(EnumLogType.NETWORK).error().end(); }
-			NetworkConnectionClient.client.sendTCP(packet);
+				
+				final ClientRequestAddClass packet = new ClientRequestAddClass(name, bytes);
+				ClientLinkManager.client.sendTCP(packet);
+			} catch(IOException e) { Console.log(e).type(PhotonLogTypes.NETWORK).error().container(PhotonEngine.LOGGER).send(); }
 		}
 	}
 	
-    /**
-     * Load all objects for serialization
-     * @param kryo : The kryo instance
-     * @author : Niwer
-     */
 	public static void load(final Kryo kryo) {
 		if(NetworkObjectRegistry.kryo == null) NetworkObjectRegistry.kryo = kryo;
         kryo.register(String.class);
@@ -118,9 +110,14 @@ public class NetworkObjectRegistry {
         kryo.register(byte[].class);
         kryo.register(byte.class);
 
-        kryo.register(PhotonUpdaterManager.class);
-        kryo.register(PhotonUpdaterManager.UpdateFileType.class);
-        kryo.register(PhotonUpdaterManager.UpdateChannel.class);
+        /* Base of packets */
+        kryo.register(SQLSerializable.class);
+        kryo.register(IPacket.class);
+
+        kryo.register(UpdateFileType.class);
+        kryo.register(UpdateChannel.class);
+        kryo.register(ClientRequestUpdate.class);
+        kryo.register(ServerResponseUpdate.class);
 
         kryo.register(ObjectPlayerAccount.class);
         kryo.register(ClientRequestAccount.class);
@@ -129,7 +126,6 @@ public class NetworkObjectRegistry {
         kryo.register(ServerResponseValidAccount.class);
         kryo.register(ServerResponseAccount.class);
         
-        kryo.register(EnumLogType.class);
         kryo.register(ClientRequestSendDiscordLogs.class);
         kryo.register(ClientRequestCrashReport.class);
         kryo.register(ClientRequestAnticheat.class);
@@ -153,12 +149,23 @@ public class NetworkObjectRegistry {
         kryo.register(ClientRequestAddListener.class);
 
         kryo.register(ClientRequestSyncContentPacks.class);
-        kryo.register(DownloadContentPacks.class);
+        kryo.register(ObjectContentPack.class);
         kryo.register(ServerResponseSyncContentPack.class);
 
-        kryo.register(ObjectHWIDs.class);
-        kryo.register(ObjectHWIDs.HWID.class);
         kryo.register(ClientRequestHWID.class);
+
+        /* Lumen logger */
+        {
+            kryo.register(Console.class);
+    
+            kryo.register(ILogType.class);
+            kryo.register(EnumLogColor.class);
+    
+            kryo.register(Container.class);
+            kryo.register(Processor.class);
+            // kryo.register(Logger.class);
+            // kryo.register(ConsoleHandler.class);
+        }
     }
 	
 	public static class ByteArrayClassLoader extends ClassLoader {
@@ -171,7 +178,7 @@ public class NetworkObjectRegistry {
 					Class<?> clazz = defineClass(name, bytes, 0, bytes.length);
 					list.put(name, clazz);
 					return clazz;
-				} catch(ClassFormatError e) { ConsoleManager.create(e.fillInStackTrace().toString()).withType(EnumLogType.NETWORK).error().end(); }
+				} catch(ClassFormatError e) { Console.log(e.fillInStackTrace().toString()).type(PhotonLogTypes.NETWORK).error().send(); }
 			}
 			return list.get(name);
 		}

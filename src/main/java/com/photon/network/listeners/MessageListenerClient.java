@@ -1,44 +1,35 @@
 package com.photon.network.listeners;
 
 import com.esotericsoftware.kryonet.Connection;
-import com.esotericsoftware.kryonet.FrameworkMessage.KeepAlive;
 import com.esotericsoftware.kryonet.Listener;
 import com.photon.PhotonEngine;
-import com.photon.network.NetworkDirectories;
+import com.photon.network.ClientLinkManager;
+import com.photon.network.IPacket;
 import com.photon.network.listeners.INetworkMessageListener.INetworkListenerSide;
-import com.photon.network.messages.response.ServerResponseNetworkConfig;
-import com.photon.network.messages.response.ServerResponseNewsList;
-import com.photon.network.messages.response.ServerResponseServerList;
-import com.photon.network.messages.response.account.ServerResponseAccount;
-import com.photon.network.messages.response.account.ServerResponseValidAccount;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.util.PhotonLogTypes;
 
-public class MessageListenerClient implements Listener
-{	
+import niwer.lumen.Console;
+
+public class MessageListenerClient implements Listener {
+    
     @Override
-    public void received(final Connection connection, final Object object) {
-        if(!(object instanceof KeepAlive)) ConsoleManager.create("Received object from server : " + object.getClass().getSimpleName()).withType(EnumLogType.NETWORK).end();
-        if (object instanceof ServerResponseAccount) {
-            PhotonEngine.clientPlayerProfile = ((ServerResponseAccount)object).givenProfile;
-            MessageListenerCommon.notifyObjectAsReceived(PhotonEngine.clientPlayerProfileWaiter);
-        } else if (object instanceof ServerResponseValidAccount) {
-            PhotonEngine.clientAccountResponse = (ServerResponseValidAccount)object;
-            MessageListenerCommon.notifyObjectAsReceived(PhotonEngine.clientAccountResponseWaiter);
-        } else if (object instanceof ServerResponseNewsList) {
-            PhotonEngine.clientNewsList = ((ServerResponseNewsList)object).newsObjects;
-            MessageListenerCommon.notifyObjectAsReceived(PhotonEngine.clientNewsListWaiter);
-        } else if (object instanceof ServerResponseServerList) {
-            PhotonEngine.clientServerList = ((ServerResponseServerList)object).serverObjects;
-            MessageListenerCommon.notifyObjectAsReceived(PhotonEngine.clientServerListWaiter);
-        } else if (object instanceof ServerResponseNetworkConfig) {
-            NetworkDirectories.config = ((ServerResponseNetworkConfig)object).config;
-            MessageListenerCommon.notifyObjectAsReceived(NetworkDirectories.configWaiter);
+    public void received(Connection connection, Object object) {
+        try {
+            if (object instanceof IPacket packet) packet.handle(connection);
+            MessageListenerCommon.dispatchToListeners(connection, object, INetworkListenerSide.CLIENT);
+        } catch (Exception e) {
+            Console.log("Unexpected error while handling: " + object.getClass().getSimpleName())
+                .type(PhotonLogTypes.NETWORK)
+                .error()
+                .container(PhotonEngine.LOGGER)
+                .send();
+            e.printStackTrace();
         }
+    }
 
-        /* Send to custom listeners */
-        for(INetworkMessageListener listener : MessageListenerCommon.listeners) {
-        	if(listener.useOn() == INetworkListenerSide.CLIENT) listener.received(connection, object);
-        }
+     @Override
+    public void disconnected(Connection connection) {
+        Console.log("Connection lost, attempting reconnection...").type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
+        ClientLinkManager.attemptReconnectionFromClient();
     }
 }

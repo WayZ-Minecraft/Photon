@@ -1,7 +1,7 @@
 package com.photon.network.objects;
 
 public class ObjectServer {
-	
+
     public int connectionID;
 
 	public String serverName;
@@ -17,4 +17,9 @@ public class ObjectServer {
     
     public String site;
     public String discord;
+
+    @Override
+    public int hashCode() {
+        return 0;
+    }
 }

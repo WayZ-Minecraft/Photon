@@ -10,8 +10,9 @@ import java.util.TimerTask;
 import javax.swing.JOptionPane;
 
 import com.photon.network.NetworkEngine;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
+
+import niwer.lumen.Console;
+import niwer.lumen.types.DefaultLogTypes;
 
 public class ApplicationUtils {
 
@@ -61,7 +62,7 @@ public class ApplicationUtils {
             final ProcessBuilder builder = new ProcessBuilder(list.toArray(new String[] {}));
             final Process process = builder.start();
             final int exitVal = process.waitFor();
-            ConsoleManager.create("Exit with "+exitVal).withType(EnumLogType.LAUNCHER).end();
+            Console.log("Exit with "+exitVal).type(DefaultLogTypes.INFO).send();
         }
 		catch (Exception e) { e.printStackTrace(); }
 		if(exit) exitProperly(time);

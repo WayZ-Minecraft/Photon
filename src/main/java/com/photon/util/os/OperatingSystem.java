@@ -4,100 +4,46 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.List;
 
 public enum OperatingSystem {
 
-	LINUX(new String[] { "linux", "unix" }),
-	WINDOWS(new String[] { "win", "windows" }), 
-	OSX(new String[] { "mac" }),
-	SOLARIS(new String[] { "solaris", "sunos" }),
-	UNKNOWN(new String[] { "unknown" });
+	LINUX("linux", "unix"),
+	WINDOWS("win", "windows"), 
+	OSX("mac"),
+	SOLARIS("solaris", "sunos"),
+	UNKNOWN("unknown");
 
-	/**
-	 * The OS Name in System Properties
-	 */
-	public static final String NAME = System.getProperty("os.name");
-	/**
-	 * The name
-	 */
-	private final String name;
-	/**
-	 * The Os Aliases
-	 */
-	private final String[] aliases;
+	private static final String SEPARATOR = System.getProperty("file.separator");
+	public static final String CURRENT_OS_NAME = System.getProperty("os.name");
 
-	/**
-	 * The Constructor
-	 * @param aliases The os aliases
-	 */
-	private OperatingSystem(String... aliases) {
-		if (aliases == null) {
-			throw new NullPointerException();
-		}
-		this.name = toString().toLowerCase();
-		this.aliases = aliases;
+	public final String NAME;
+	public final String[] NAME_ALIASES;
+
+	OperatingSystem(String... aliases) {
+		this.NAME = toString().toLowerCase();
+		this.NAME_ALIASES = aliases;
 	}
 
-	/**
-	 * @return The name
-	 */
-	public String getName() {
-		return this.name;
-	}
+	public boolean isSupported() { return this != OperatingSystem.UNKNOWN; }
 
-	/**
-	 * @return The aliases as a String[]
-	 */
-	public String[] getAliases() {
-		return this.aliases;
-	}
+	public boolean isUnsupported() { return this == UNKNOWN; }
 
-	/**
-	 * @return If is supported OS
-	 */
-	public boolean isSupported() {
-		return this != OperatingSystem.UNKNOWN;
-	}
-
-	/**
-	 * @return If is unsupported OS
-	 */
-	public boolean isUnsupported() {
-		return this == UNKNOWN;
-	}
-
-	/**
-	 * @return The Java Path
-	 */
-	public static String getJavaPath() {
+	public static String javaPath() {
 		if (System.getProperty("os.name").toLowerCase().contains("win")) return "\"" + System.getProperty("java.home") + "\\bin\\java" + "\"";
 		return System.getProperty("java.home") + "/bin/java";
 	}
 
-	/**
-	 * @return The Java directory
-	 */
-	public String getJavaDir() {
-		final String separator = System.getProperty("file.separator");
-		final String path = System.getProperty("java.home") + separator + "bin" + separator;
-		if (getCurrentPlatform() == OperatingSystem.WINDOWS && new File(path + "javaw.exe").isFile()) {
-			return path + "javaw.exe";
-		}
-		return path + "java";
+	public String javaDir() {
+		final String JAVA_HOME = System.getProperty("java.home") + SEPARATOR + "bin" + SEPARATOR;
+		if (currentPlatform() == OperatingSystem.WINDOWS && new File(JAVA_HOME + "javaw.exe").isFile()) return JAVA_HOME + "javaw.exe";
+		return JAVA_HOME + "java";
 	}
 
-	/**
-	 * @return The current Platform
-	 */
-	public static OperatingSystem getCurrentPlatform() {
-		final String osName = System.getProperty("os.name").toLowerCase();
+	public static OperatingSystem currentPlatform() {
+		final String OS_NAME = System.getProperty("os.name").toLowerCase();
 		for (final OperatingSystem os : values()) {
-			for (final String alias : os.getAliases()) {
-				if (osName.contains(alias)) {
-					return os;
-				}
+			for (final String alias : os.NAME_ALIASES) {
+				if (OS_NAME.contains(alias)) return os;
 			}
 		}
 		return OperatingSystem.UNKNOWN;
@@ -105,54 +51,46 @@ public enum OperatingSystem {
 
 	/**
 	 * Is this OS match with the part 
-	 * @param part The Part to match
+	 * @param osNameToTest The name to match
 	 * @return If it match
 	 */
-	public static boolean match(String part) {
-		if (part.contains(getCurrentPlatform().getName())) {
-			return true;
-		}
-		List<String> aliases = Arrays.asList(getCurrentPlatform().getAliases());
-		for (String alias : aliases) {
-			if (part.contains(alias)) {
-				return true;
-			}
+	public static boolean match(String osNameToTest) {
+		if (osNameToTest.contains(currentPlatform().NAME)) return true;
+		for (String alias : currentPlatform().NAME_ALIASES) {
+			if (osNameToTest.contains(alias)) return true;
 		}
 		return false;
 	}
+	
+	/**
+	 * Get the natives name for the current platform
+	 * 
+	 * @return The natives name for the current platform (e.g. "natives-windows-x64")
+	 */
+	public static String natives() { return nativesFor("natives"); }
 
 	/**
-	 * @return The current Platform
+	 * Get the natives name for the current platform
+	 * 
+	 * @param nativeName The base name of the natives (e.g. "natives")
+	 * @return The natives name for the current platform (e.g. "natives-windows-x64")
 	 */
-	public static OperatingSystem getCurrent() {
-		String osName = NAME.toLowerCase();
-		OperatingSystem[] var4;
-		int var3 = (var4 = values()).length;
-		for (int var2 = 0; var2 < var3; var2++) {
-			OperatingSystem os = var4[var2];
-			String[] var8 = os.aliases;
-			int var7 = os.aliases.length;
-			for (int var6 = 0; var6 < var7; var6++) {
-				String alias = var8[var6];
-				if (osName.contains(alias)) {
-					return os;
-				}
-			}
-		}
-		return UNKNOWN;
-	}
-	
-	public static String getCurrentNativesForOs(String nativeName) {
-		final String osName = System.getProperty("os.name").toLowerCase();
-		if (nativeName.contains(osName)) {
-			
-		}
-		return "natives-windows";
+	public static String nativesFor(String nativeName) {
+		final OperatingSystem OS = currentPlatform();
+		final Arch ARCH = javaBit();
+
+		return switch(OS) {
+			case WINDOWS -> ARCH == Arch.x64 ? nativeName + "-windows-x64" : nativeName + "-windows";
+			case LINUX -> ARCH == Arch.x64 ? nativeName + "-linux-x64" : nativeName + "-linux";
+			case OSX -> ARCH == Arch.x64 ? nativeName + "-osx-x64" : nativeName + "-osx";
+			default -> nativeName + "-windows";
+		};
 	}
 
 	/**
 	 * Open a link
-	 * @param link The string Url to open
+	 * 
+	 * @param link The String URL to open
 	 */
 	public static void openLink(final String link) {
 		try { openLink(new URI(link)); } catch (URISyntaxException e) {}
@@ -160,15 +98,16 @@ public enum OperatingSystem {
 
 	/**
 	 * Open a link
-	 * @param link The Url to open
+	 * 
+	 * @param link The URI to open
 	 */
 	public static void openLink(final URI link) {
 		try {
-			final Class<?> desktopClass = Class.forName("java.awt.Desktop");
-			final Object o = desktopClass.getMethod("getDesktop", (Class[]) new Class[0]).invoke(null, new Object[0]);
-			desktopClass.getMethod("browse", URI.class).invoke(o, link);
+			final Class<?> DESKTOP = Class.forName("java.awt.Desktop");
+			final Object o = DESKTOP.getMethod("getDesktop", new Class[0]).invoke(null, new Object[0]);
+			DESKTOP.getMethod("browse", URI.class).invoke(o, link);
 		} catch (Throwable e2) {
-			if (getCurrentPlatform() == OperatingSystem.OSX) {
+			if (currentPlatform() == OperatingSystem.OSX) {
 				try {
 					Runtime.getRuntime().exec(new String[] { "/usr/bin/open", link.toString() });
 				} catch (IOException e1) { System.out.println("Failed to open link " + link.toString()); }
@@ -179,44 +118,33 @@ public enum OperatingSystem {
 	/**
 	 * Get the Java Bit
 	 */
-	public static Arch getJavaBit() {
-		String res = System.getProperty("sun.arch.data.model");
-		if (res != null && res.equalsIgnoreCase("64"))
-			return Arch.x64;
+	public static Arch javaBit() {
+		final String ARCH = System.getProperty("sun.arch.data.model");
+		if (ARCH != null && ARCH.equalsIgnoreCase("64")) return Arch.x64;
 		return Arch.x86;
 	}
 
 	/**
 	 * Open a folder
+	 * 
 	 * @param path The Folder Path
+	 * @throws UnsupportedOperationException If the current OS is not supported
 	 */
 	public static void openFolder(final File path) {
-		final String absolutePath = path.getAbsolutePath();
-		final OperatingSystem os = getCurrentPlatform();
-		if (os == OperatingSystem.OSX) {
-			try {
-				Runtime.getRuntime().exec(new String[] { "/usr/bin/open", absolutePath });
-				return;
-			} catch (IOException e) {
-				System.out.println("Couldn't open " + path + " through /usr/bin/open");
-			}
-		}
-		if (os == OperatingSystem.WINDOWS) {
-			final String cmd = String.format("cmd.exe /C start \"Open file\" \"%s\"", absolutePath);
-			try {
-				Runtime.getRuntime().exec(cmd);
-				return;
-			} catch (IOException e2) {
-				System.out.println("Couldn't open " + path + " through cmd.exe");
-			}
-		}
+		final String PATH = path.getAbsolutePath();
+		final OperatingSystem OS = currentPlatform();
+		final ProcessBuilder PROCESS = switch (OS) {
+			case WINDOWS -> new ProcessBuilder("explorer.exe", PATH);
+			case LINUX -> new ProcessBuilder("xdg-open", PATH);
+			case OSX -> new ProcessBuilder("open", PATH);
+			default -> null;
+		};
+
+		if (PROCESS == null) throw new UnsupportedOperationException("Unsupported operating system: " + OS.NAME);
 		try {
-			final Class<?> desktopClass = Class.forName("java.awt.Desktop");
-			final Object desktop = desktopClass.getMethod("getDesktop", (Class[]) new Class[0]).invoke(null,
-					new Object[0]);
-			desktopClass.getMethod("browse", URI.class).invoke(desktop, path.toURI());
-		} catch (Throwable e3) {
-			System.out.println("Couldn't open " + path + " through Desktop.browse()");
+			PROCESS.start();
+		} catch (IOException e) {
+			System.out.println("Couldn't open " + path + " through " + PROCESS.command().get(0));
 		}
 	}
 }

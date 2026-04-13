@@ -1,51 +1,78 @@
 package com.photon;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 
-import com.esotericsoftware.kryonet.Connection;
-import com.photon.network.NetworkConnectionClient;
-import com.photon.network.messages.response.account.ServerResponseValidAccount;
-import com.photon.network.objects.ObjectNews;
-import com.photon.network.objects.ObjectPlayerAccount;
-import com.photon.network.objects.ObjectServer;
-import com.photon.util.ConsoleManager;
-import com.photon.util.ConsoleManager.EnumLogType;
+import com.photon.discord.BotEngine;
+import com.photon.network.ClientLinkManager;
+import com.photon.network.messages.requests.ClientRequestSendDiscordLogs;
+import com.photon.util.PhotonLogTypes;
+
+import niwer.lumen.Console;
+import niwer.lumen.LumenEngine;
+import niwer.lumen.container.Container;
 
 public class PhotonEngine {
-	
-    /* API Version */
-	public static final String VERSION = "1.0.0";
+    
+    /* Logger */
+    public static final Container LOGGER = LumenEngine.registerContainer("PhotonEngine").addProcessor((data, time, formattedMessage) -> {
+        if(BotEngine.isBotInitialized()) BotEngine.log(data);
+        else {
+            final ClientRequestSendDiscordLogs REQUEST = new ClientRequestSendDiscordLogs(data);
+            ClientLinkManager.sendTCP(REQUEST);
+        }
+    });
 
     /* Default network values */
-	public static final String network_Ip_Local = "localhost";
-	public static String network_Ip = network_Ip_Local;
+	public static final String LOCAL_IP = "localhost";
+	public static String network_Ip = LOCAL_IP;
     public static int network_Tcp = 54556;
     public static int network_Udp = 54556;
-    
-    /* Allow access to the player profile if requested before */
-    public static final Object clientPlayerProfileWaiter = new Object();
-    public static ObjectPlayerAccount clientPlayerProfile = new ObjectPlayerAccount();
 
-    /* Allow access to the player account if requested before */
-    public static final Object clientAccountResponseWaiter = new Object();
-    public static ServerResponseValidAccount clientAccountResponse = new ServerResponseValidAccount();
-    
-    /* Allow access to the news list if requested before */
-    public static final Object clientNewsListWaiter = new Object();
-    public static ArrayList<ObjectNews> clientNewsList = new ArrayList<>();
+    private static volatile String currentIP = null;
 
-    /* Allow access to the servers list if requested before */
-    public static final Object clientServerListWaiter = new Object();
-    public static ArrayList<ObjectServer> clientServerList = new ArrayList<>();
+    /**
+	 * Get the current IP of the user using the Amazon AWS service
+	 * @return the current IP of the user
+	 */
+    public static synchronized String getCurrentIP() {
+        if (currentIP != null) return currentIP;
+        
+        try {
+            final URL whatismyip = new URI("http://checkip.amazonaws.com").toURL();
+            final BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
+            currentIP = in.readLine();
+            in.close();
+            return currentIP;
+        } catch (IOException | URISyntaxException e) {}
+        return "UNKNOWN";
+    }
     
-    /* Network saves */
-    public static ArrayList<ObjectNews> networkNewsList = new ArrayList<>();
-    public static ArrayList<ObjectServer> networkServerList = new ArrayList<>();
-    public static HashMap<String, Connection> networkConnectionsList = new HashMap<>();
+	/**
+	 * Check if the current IP is equals to the given IP
+	 * @param ip the IP to check
+	 * @return true if the current IP is equals to the given IP
+     * @author Niwer
+	 */
+    public static boolean isIPEquals(String ip) { return ip.equalsIgnoreCase(getCurrentIP()); }
+    
+	/**
+	 * Check if the given IP is online (ping)
+	 * @param op the IP to check
+	 * @return true if the given IP is online
+	 * @throws UnknownHostException : if the IP is not valid
+	 * @throws IOException : if the IP is not reachable
+     * @author Niwer
+	 */
+	public static boolean isOnline(String op) throws UnknownHostException, IOException { return InetAddress.getByName(op).isReachable(100); }
 
     /**
      * Get the current date in the official format
@@ -66,7 +93,7 @@ public class PhotonEngine {
     }
 
     /**
-     * This allow to connect to the network, if unable to connect to the server, it will try to connect to the local server
+     * This allow to connect to the network, if unable to connect to the server, it won't try connecting to a local server
      * @param ip the IP of the server (V.P.S)
      * @throws IOException if the connection failed on the local server too
      */
@@ -81,13 +108,13 @@ public class PhotonEngine {
     public static void loadClient(String ip, boolean localHostFallback) throws IOException {
         try {
     		PhotonEngine.setIP(ip);
-    		NetworkConnectionClient.load();
+    		ClientLinkManager.load();
     	} catch (IOException e) {
-            ConsoleManager.create("Unable to connect to "+ip+ (localHostFallback ? ". Fallback to localhost" : "")).withType(EnumLogType.NETWORK).error().end();
+            Console.log("Unable to connect to "+ip+ (localHostFallback ? ". Fallback to localhost" : "")).type(PhotonLogTypes.NETWORK).error().container(PhotonEngine.LOGGER).send();
     		if(localHostFallback) {
                 try {
-                    PhotonEngine.setIP(network_Ip_Local);
-                    NetworkConnectionClient.load();
+                    PhotonEngine.setIP(LOCAL_IP);
+                    ClientLinkManager.load();
                 } catch(IOException ex) { throw ex; }
             }
     	}

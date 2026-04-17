@@ -53,7 +53,7 @@ public class NetworkClientSideTester {
                 ClientLinkManager.sendTCP(news);
 
                 /* Update Test */
-                String data = UpdaterManager.getSHA1(UpdateFileType.API, UpdateChannel.STABLE); //TODO
+                String data = UpdaterManager.getSHA1(UpdateFileType.API, UpdateChannel.STABLE);
                 Console.log("Received SHA1 for API update: " + data).type(PhotonLogTypes.TESTER).send();
             }
 

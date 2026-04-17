@@ -106,10 +106,13 @@ public class PhotonUserAuthManager
 		try {
 			final File ACCOUNT_FILE = new File(path, ProtectorManager.getHWID()+".accounts");
             if(ACCOUNT_FILE.exists()) {
-                final FileInputStream stream = new FileInputStream(ACCOUNT_FILE);
-                final String[] content = new String(ProtectorManager.readCompressedFile(stream)).split("/");
-                tryAuth(content[0], content[1], false, callback);
-                stream.close();
+				try (FileInputStream fis = new FileInputStream(ACCOUNT_FILE)) {
+					byte[] data = new byte[(int) ACCOUNT_FILE.length()];
+					fis.read(data);
+					String[] content = new String(data).split("/");
+
+					tryAuth(content[0], content[1], false, callback);
+				}
             }
         } catch(Exception e) { e.printStackTrace(); }
     }
@@ -128,7 +131,10 @@ public class PhotonUserAuthManager
 
 			/* Write into the file */
             final String content = email+"/"+ProtectorManager.hash(password);
-            ProtectorManager.writeCompressedFile(new FileOutputStream(ACCOUNT_FILE), content.getBytes());
+
+			try(FileOutputStream stream = new FileOutputStream(ACCOUNT_FILE)) {
+				stream.write(content.getBytes());
+            }
         } catch (IOException e) { e.printStackTrace(); }
     }
 

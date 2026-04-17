@@ -33,7 +33,7 @@ public class ClientRequestAccountVerification implements IPacket {
         final ObjectPlayerAccount profile = PlayerAccountTable.getAccountByEmail(email);
         final boolean exist = profile != null;
         
-        if (exist) {
+        if (profile != null) {
             final ServerResponseValidAccount response = new ServerResponseValidAccount(exist, profile.password.equals(password), profile);
             connection.sendTCP(response);
         }

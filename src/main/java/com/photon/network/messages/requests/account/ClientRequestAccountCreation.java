@@ -48,7 +48,7 @@ public class ClientRequestAccountCreation implements IPacket {
             profile = PlayerAccountTable.createAccount(username, email, password);
             exist = profile != null;
             
-            if (exist) Console.log("New account created: " + profile.username).sendToProcessor().type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
+            if (profile != null) Console.log("New account created: " + profile.username).sendToProcessor().type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
         }
         
         final ServerResponseValidAccount response = new ServerResponseValidAccount(exist, true, isEmailAlreadyUsed, isUsernameAlreadyUsed, false, profile);

@@ -1,31 +1,18 @@
 package com.photon.util;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.URLConnection;
 import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class ProtectorManager {
-
-	public static final int FILE_FORMAT_VERSION_V1 = 0; // GZIP compression
-	// public static final int FILE_FORMAT_VERSION_V2 = 1; // Zstd compression
-	private static int currentFormatVersion = FILE_FORMAT_VERSION_V1;
 	
 	public static final int TIME_OUT = 15000;
 	
@@ -140,143 +127,5 @@ public class ProtectorManager {
 			while (hashtext.length() < 32) hashtext.insert(0, '0');
 			return hashtext.toString();
         } catch (NoSuchAlgorithmException e) { return ""; } 
-	}
-
-	/**
-	 * Compress a string and return it as a byte array
-	 * @param str String to compress
-	 * @return byte[] of the compressed data
-	 * @throws IOException
-	 */
-	public static byte[] compressFromString(String str) throws IOException { return compress(str.getBytes()); }
-
-	/**
-	 * Compress data and return it as a byte array
-	 * @param buffer Buffer to compress
-	 * @return byte[] of the compressed data
-	 * @throws IOException
-	 */
-	public static byte[] compress(byte[] buffer) throws IOException {
-		var output = new ByteArrayOutputStream();
-		writeCompressedFile(output, buffer);
-		return output.toByteArray();
-	}
-
-	/**
-	 * Decompress a string and return it
-	 * @param buffer Buffer to decompress
-	 * @return String of the decompressed data
-	 * @throws IOException
-	 */
-	public static String decompressToString(byte[] buffer) throws IOException {
-		return new String(decompress(buffer));
-	}
-
-	/**
-	 * Decompress data and return it as a byte array
-	 * @param buffer Buffer to decompress
-	 * @return byte[] of the decompressed data
-	 * @throws IOException
-	 */
-	public static byte[] decompress(byte[] buffer) throws IOException {
-		return readCompressedFile(new ByteArrayInputStream(buffer));
-	}
-
-	/**
-	 * Compress data and write it to the stream
-	 * @param stream OutputStream to write to
-	 * @param buffer Buffer to write
-	 * @throws IOException
-	 */
-	public static void writeCompressedFile(OutputStream stream, byte[] buffer) throws IOException {
-		final DataOutputStream DOS = new DataOutputStream(stream);
-		DOS.writeByte(currentFormatVersion);
-		DOS.flush();
-		
-		OutputStream compressedStream;
-		if(currentFormatVersion == FILE_FORMAT_VERSION_V1) compressedStream = new GZIPOutputStream(DOS);
-		// else if(currentFormatVersion == FILE_FORMAT_VERSION_V2) compressedStream = new ZstdCompressorOutputStream(DOS);
-		else throw new IOException("Unsupported file format version: " + currentFormatVersion);
-
-		final DataOutputStream COMPRESSED_DOS = new DataOutputStream(compressedStream);
-		COMPRESSED_DOS.writeInt(buffer.length);
-		COMPRESSED_DOS.write(buffer);
-
-		/* Flush and close */
-		COMPRESSED_DOS.flush();
-		COMPRESSED_DOS.close();
-	}
-	
-	/**
-	 * Read compressed data from the stream
-	 * @param stream InputStream to read from
-	 * @return byte[] of the data
-	 * @throws IOException
-	 */
-	public static byte[] readCompressedFile(InputStream stream) throws IOException {
-		return decodeFile(stream).b;
-	}
-
-	/**
-	 * Decode the file from the stream
-	 * @param stream InputStream to read from
-	 * @return Pair of the version and the data
-	 * @throws IOException
-	 */
-	public static Pair<Integer, byte[]> decodeFile(InputStream stream) throws IOException {
-		BufferedInputStream bufferedStream = new BufferedInputStream(stream);
-		bufferedStream.mark(1);
-		final DataInputStream DIS = new DataInputStream(bufferedStream);
-		final byte VERSION = DIS.readByte();
-		
-		/* Choose the compression format */
-		InputStream decompressedStream;
-		if (VERSION == FILE_FORMAT_VERSION_V1) decompressedStream = new GZIPInputStream(DIS);
-		else if (VERSION == 31 /* If it's an older version of nebulae */) {
-			// Reset the stream and treat it as if it has no version byte
-			bufferedStream.reset();
-			decompressedStream = new GZIPInputStream(DIS);
-		}
-		// else if (VERSION == FILE_FORMAT_VERSION_V2) decompressedStream = new ZstdCompressorInputStream(DIS);
-		else throw new IOException("Unsupported file format version: " + VERSION);
-
-		/* Read the compressed data */
-		final DataInputStream READER = new DataInputStream(decompressedStream);
-		final byte[] BUFFER = new byte[READER.readInt()];
-		READER.readFully(BUFFER);
-
-		/* Flush and close */
-		READER.close();
-		return Pair.of((int) VERSION, BUFFER);
-	}
-	
-	/**
-	 * Get the format version of the stream
-	 * @param stream InputStream to read from
-	 * @return The format version of the file in the stream
-	 * @throws IOException
-	 */
-	public static int getFormatVersion(InputStream stream) throws IOException { return decodeFile(stream).a; }
-
-	public static final class Pair<A, B> {
-		public final A a;
-		public final B b;
-
-		public Pair(A a, B b) {
-			this.a = a;
-			this.b = b;
-		}
-
-		public static <A, B> Pair<A, B> of(A a, B b) { return new Pair<>(a, b); }
-
-		public A getA() { return a; }
-
-		public B getB() { return b; }
-
-		public boolean equals(Object o) { return this == o || (o instanceof Pair<?, ?> pair && a.equals(pair.a) && b.equals(pair.b)); }
-
-		public int hashCode() { return 31 * a.hashCode() + b.hashCode(); }
-
-		public String toString() { return "Pair{a=" + a + ", b=" + b + '}'; }
 	}
 }

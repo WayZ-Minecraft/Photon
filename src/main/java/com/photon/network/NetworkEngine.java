@@ -17,6 +17,7 @@ import com.photon.sql.CrashReportTable;
 import com.photon.sql.DiscordLogTable;
 import com.photon.sql.DiscordProfileTable;
 import com.photon.sql.HWIDTable;
+import com.photon.sql.LicenseTable;
 import com.photon.sql.NewsTable;
 import com.photon.sql.PlayerAccountTable;
 import com.photon.util.NetworkOnly;
@@ -60,6 +61,7 @@ public class NetworkEngine {
 
                 /* Security */
                 .registerTable(HWIDTable.class)
+                .registerTable(LicenseTable.class)
                 .registerTable(AnticheatTable.class)
                 .registerTable(CrashReportTable.class)
                 .registerTable(DiscordLogTable.class)

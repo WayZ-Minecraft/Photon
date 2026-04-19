@@ -4,6 +4,10 @@ import org.slf4j.LoggerFactory;
 
 import com.photon.network.NetworkDirectories;
 import com.photon.util.NetworkOnly;
+import com.photon.web.endpoints.IEndpoint;
+import com.photon.web.endpoints.RestartEndpoint;
+import com.photon.web.endpoints.accounts.CreateAccountEndpoint;
+import com.photon.web.endpoints.tebex.LicenseEndpoint;
 
 import ch.qos.logback.classic.Logger;
 import io.javalin.Javalin;
@@ -26,27 +30,10 @@ public class WebServerEngine {
             /* Set the static files directory (index.html, main.css, main.js, etc.) */
             cfg.staticFiles.add("/public");
             
-            //TODO
-            cfg.routes.get("/status", ctx -> ctx.result("Hello World"));
-
-            cfg.routes.post("/restart", ctx -> {
-                ctx.status(200).result("Restarting...");
-            });
-
-            // cfg.routes.post("/create_account", ctx -> {
-            //     final String username = ctx.formParam("username");
-            //     final String email = ctx.formParam("email");
-            //     final String password = ctx.formParam("password");
-
-            //     if(username == null || email == null || password == null) {
-            //         ctx.status(400).result("Missing parameters");
-            //         return;
-            //     }
-
-            //     SQLACcountManager.createAccount(username, email, password);
-
-            //     ctx.status(200).result("Account created successfully.");
-            // });
+            /* Endpoints */
+            IEndpoint.register(cfg, RestartEndpoint.class);
+            IEndpoint.register(cfg, LicenseEndpoint.class);
+            IEndpoint.register(cfg, CreateAccountEndpoint.class);
         });
 
         /* Start the web server */

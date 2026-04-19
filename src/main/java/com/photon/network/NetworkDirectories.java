@@ -167,6 +167,11 @@ public class NetworkDirectories
 		/* Web Server */
 		@SerializedName("webserver_port") public int webserver_port = 7070;
 
+		/* Licensing */
+		@SerializedName("license_product_id") public String license_product_id = "niwer-engine";
+		@SerializedName("tebex_webhook_secret") public String tebex_webhook_secret = "";
+		@SerializedName("license_default_duration_days") public long license_default_duration_days = 30L; // 30 days (1 month) default duration for licenses issued without an explicit expiration date
+
 		/* Versions infos */
 		@SerializedName("api_version") public String api_version = "1.0.0";
 		@SerializedName("mod_version") public String mod_version = "1.0.0";

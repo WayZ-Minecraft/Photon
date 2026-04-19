@@ -14,7 +14,6 @@ import niwer.lumen.Console;
  * @author Niwer
  * @author noz43
  */
-
 public class ClientRequestAccountCreation implements IPacket {
     private final String username;
     private final String email;

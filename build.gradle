@@ -15,10 +15,9 @@ repositories {
 
 /* 'api' allows the dependency to be exposed to consumers (ie. other projects that depend on this one) while implementation hides it. */
 dependencies {
-	implementation "com.github.crykn:kryonet:${project.kryonet_version}"
-	implementation "com.esotericsoftware:kryo:${project.kryo_version}"
-
-    implementation "com.azuriom:azauth:${project.azauth_version}" // See : https://azuriom.com/
+	// Use JUnit Jupiter for testing.
+    testImplementation "org.junit.jupiter:junit-jupiter:${project.junit_jupiter_version}"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     implementation "io.javalin:javalin:${project.javalin_version}"
     implementation "com.github.Niwer1525:Queryon:${project.queryon_version}"
@@ -31,12 +30,6 @@ dependencies {
 	api "com.github.Niwer1525:Lumen:${project.lumen_version}"
 
     /* SHADOWING */
-
-	shadow "com.github.crykn:kryonet:${project.kryonet_version}"
-	shadow "com.esotericsoftware:kryo:${project.kryo_version}"
-
-    shadow "com.azuriom:azauth:${project.azauth_version}" // See : https://azuriom.com/
-
     shadow "io.javalin:javalin:${project.javalin_version}"
 	shadow "com.github.Niwer1525:Queryon:${project.queryon_version}"
 	
@@ -46,68 +39,29 @@ dependencies {
 	shadow "com.google.code.gson:gson:${project.gson_version}"
     shadow "ch.qos.logback:logback-classic:${project.logback_version}" // JDA & Javalin are using this
 	shadow "com.github.Niwer1525:Lumen:${project.lumen_version}"
-	
 }
 
-tasks.withType(JavaCompile).configureEach { it.options.release = 21 }
-sourceCompatibility = targetCompatibility = JavaVersion.VERSION_21
+// Apply a specific Java toolchain to ease working on different environments.
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(21) }
+}
 
-version = '1.0.0'
-archivesBaseName = 'photon'
+tasks.named('test') {
+    useJUnitPlatform() // Use JUnit Platform for unit tests.
+	systemProperty 'net.bytebuddy.experimental', 'true'
+}
 
 /* Generate JAR */
 jar {
 	duplicatesStrategy 'exclude'
-   	manifest { attributes([ "Main-Class": "com.photon.network.NetworkEngine" ]) }
+   	manifest { attributes([ "Main-Class": "niwer.photon.PhotonEngine" ]) }
 }
-
-def commonExclusions = [
-	'natives/**',
-	'META-INF/*.SF',
-	'META-INF/*.DSA',
-	'META-INF/*.RSA',
-	'sqlite-jdbc.properties',
-	'photon_logo.png'
-]
-def thirdPartyExclusions = [
-	'net/**',
-	'ch/**',
-	'com/sun/mail/**',
-	'javax/mail/**',
-	'tomp2p/**',
-	'club/**',
-	'org/sqlite/**',
-	'com/azuriom/**',
-	'io/javalin/**',
-    'google/protobuf/**',
-    'org/eclipse/jetty/**',
-	'niwer/queryon/**'
-]
 
 /* Add all dependcies to the jar */
 shadowJar {
 	minimize()
    	configurations = [project.configurations.shadow]
-	commonExclusions.each { exclude it } // Exclude unnecessary files
 	archiveFileName = "network.jar"
 	archiveClassifier.set('')
 }
-
-task apiJar(type: Jar) {
-   	dependsOn shadowJar
-    def jarFile = shadowJar.outputs.files.singleFile
-    from zipTree(jarFile) // Unzip the shadow jar
-    (commonExclusions + thirdPartyExclusions + ['public/**', 'lang/**']).each { exclude it } // Exclude unnecessary files
-	exclude { details ->
-		if (!details.path.endsWith('.class')) return false
-		try {
-			// Class files are binary; ISO-8859-1 keeps a 1:1 byte-to-char mapping for a raw substring check.
-			return new String(details.file.bytes, 'ISO-8859-1').contains('Lcom/photon/util/NetworkOnly;')
-		} catch (Exception e) {
-			return false
-		}
-	} // Exclude @NetworkOnly classes
-    archiveFileName = "api.jar"
-}
-
-tasks.build.dependsOn shadowJar, apiJar
+tasks.build.dependsOn shadowJar

@@ -1,11 +1,15 @@
-package com.photon.web.endpoints;
+package com.photon.web.endpoints.servers;
 
 import com.photon.Directories;
 import com.photon.objects.ObjectServer;
 import com.photon.sql.ServerTable;
+import com.photon.web.endpoints.IEndpoint;
 
 import io.javalin.http.Context;
 
+/**
+ * Endpoint for adding or updating a server in the database. The server must provide its IP, port, name, and optionally a MOTD. The IP must match the request's remote IP for security reasons.
+ */
 public class AddServerEndpoint implements IEndpoint {
 
     @Override

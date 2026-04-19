@@ -9,7 +9,7 @@ import java.util.TimerTask;
 
 import javax.swing.JOptionPane;
 
-import com.photon.network.NetworkEngine;
+import com.photon.PhotonEngine;
 
 import niwer.lumen.Console;
 import niwer.lumen.types.DefaultLogTypes;
@@ -21,7 +21,7 @@ public class ApplicationUtils {
 
 	/**
 	 * Restart the current app
-	 * @param clazz The class of the app (ex: Network: {@link NetworkEngine#main() NetworkEngine})
+	 * @param clazz The class of the app (ex: Network: {@link PhotonEngine#main() PhotonEngine})
 	 * @param time The time in ms before exiting the command line
 	 * @param commands Additionals startup commands
 	 */

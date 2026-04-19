@@ -1,6 +1,6 @@
 package com.photon.sql;
 
-import com.photon.network.NetworkEngine;
+import com.photon.PhotonEngine;
 import com.photon.util.NetworkOnly;
 
 import niwer.queryon.DataBase;
@@ -33,7 +33,7 @@ public class CrashReportTable extends Table {
      * @param fileMessage The crash report message
      */
     public static void save(String userUUID, String fileName, String fileMessage) {
-        InsertionManager.insert(NetworkEngine.DATA_BASE, CrashReportTable.class, "userUUID", "fileName", "fileMessage")
+        InsertionManager.insert(PhotonEngine.DATA_BASE, CrashReportTable.class, "userUUID", "fileName", "fileMessage")
             .row(userUUID, fileName, fileMessage)
             .execute();
     }

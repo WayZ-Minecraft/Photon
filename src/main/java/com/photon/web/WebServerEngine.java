@@ -4,12 +4,16 @@ import org.slf4j.LoggerFactory;
 
 import com.photon.Directories;
 import com.photon.util.NetworkOnly;
+import com.photon.web.endpoints.AddAntiCheatReportEndpoint;
+import com.photon.web.endpoints.AddCrashReportEndpoint;
+import com.photon.web.endpoints.AddHWIDEndpoint;
 import com.photon.web.endpoints.IEndpoint;
-import com.photon.web.endpoints.AddServerEndpoint;
 import com.photon.web.endpoints.NetworkConfigEndpoint;
+import com.photon.web.endpoints.UpdateEndpoint;
 import com.photon.web.endpoints.RestartEndpoint;
-import com.photon.web.endpoints.ServerListEndpoint;
 import com.photon.web.endpoints.news.NewsListEndpoint;
+import com.photon.web.endpoints.servers.AddServerEndpoint;
+import com.photon.web.endpoints.servers.ServerListEndpoint;
 import com.photon.web.endpoints.accounts.CreateAccountEndpoint;
 import com.photon.web.endpoints.tebex.LicenseEndpoint;
 
@@ -36,12 +40,28 @@ public class WebServerEngine {
             
             /* Endpoints */
             IEndpoint.register(cfg, RestartEndpoint.class);
-            IEndpoint.register(cfg, LicenseEndpoint.class);
-            IEndpoint.register(cfg, CreateAccountEndpoint.class);
-            IEndpoint.register(cfg, AddServerEndpoint.class);
-            IEndpoint.register(cfg, NewsListEndpoint.class);
-            IEndpoint.register(cfg, ServerListEndpoint.class);
             IEndpoint.register(cfg, NetworkConfigEndpoint.class);
+            IEndpoint.register(cfg, AddCrashReportEndpoint.class);
+            IEndpoint.register(cfg, AddAntiCheatReportEndpoint.class);
+            IEndpoint.register(cfg, AddHWIDEndpoint.class);
+            IEndpoint.register(cfg, UpdateEndpoint.class);
+            {
+                /* Tebex */
+                IEndpoint.register(cfg, LicenseEndpoint.class);
+            }
+            {
+                /* Accounts */
+                IEndpoint.register(cfg, CreateAccountEndpoint.class);
+            }
+            {
+                /* Servers */
+                IEndpoint.register(cfg, AddServerEndpoint.class);
+                IEndpoint.register(cfg, ServerListEndpoint.class);
+            }
+            {
+                /* News */
+                IEndpoint.register(cfg, NewsListEndpoint.class);
+            }
         });
 
         /* Start the web server */

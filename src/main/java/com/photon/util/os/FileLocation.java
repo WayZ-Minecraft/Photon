@@ -15,7 +15,7 @@ public class FileLocation {
 	/**
 	 * Get the working directory for the application based on the operating system.
 	 * 
-	 * @param workDir The name of the working directory (e.g "Photon")
+	 * @param workDir The name of the working directory (e.g "Config")
 	 * @return The working directory as a File object
 	 */
 	public static File getWorkingDirectory(String workDir) {

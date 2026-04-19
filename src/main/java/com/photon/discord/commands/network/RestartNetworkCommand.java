@@ -1,7 +1,7 @@
 package com.photon.discord.commands.network;
 
+import com.photon.PhotonEngine;
 import com.photon.discord.commands.AbstractSlashCommand;
-import com.photon.network.NetworkEngine;
 import com.photon.util.NetworkOnly;
 import com.photon.util.TranslationManager;
 import com.photon.util.os.ApplicationUtils;
@@ -31,6 +31,6 @@ public class RestartNetworkCommand extends AbstractSlashCommand {
         if (!isConsoleChannel(event)) return; // Check if we're in the console channel
 
         event.reply(TranslationManager.format(event.getUser().getId(), "command.reply.restart_network.success")).setEphemeral(true).queue();
-        ApplicationUtils.restart(NetworkEngine.class, "--restart");
+        ApplicationUtils.restart(PhotonEngine.class, "--restart");
     }
 }

@@ -1,6 +1,6 @@
 package com.photon.sql;
 
-import com.photon.network.NetworkEngine;
+import com.photon.PhotonEngine;
 import com.photon.util.NetworkOnly;
 
 import niwer.queryon.DataBase;
@@ -33,7 +33,7 @@ public class AnticheatTable extends Table {
      * @param operatingSystem The operating system
      */
     public static void save(String userUUID, String fileName, String fileMessage, String operatingSystem) {
-        InsertionManager.insert(NetworkEngine.DATA_BASE, AnticheatTable.class, "userUUID", "fileName", "fileMessage", "operatingSystem")
+        InsertionManager.insert(PhotonEngine.DATA_BASE, AnticheatTable.class, "userUUID", "fileName", "fileMessage", "operatingSystem")
             .row(userUUID, fileName, fileMessage, operatingSystem)
             .execute();
     }

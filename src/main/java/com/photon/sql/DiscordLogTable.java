@@ -2,7 +2,7 @@ package com.photon.sql;
 
 import java.util.List;
 
-import com.photon.network.NetworkEngine;
+import com.photon.PhotonEngine;
 import com.photon.objects.ObjectDiscordLog;
 import com.photon.util.NetworkOnly;
 
@@ -59,27 +59,27 @@ public class DiscordLogTable extends Table {
      * @param durationSeconds    Duration in seconds for TIMEOUT, 0 otherwise
      */
     public static void save(String guildID, String discordID, ModerationType type, String reason, String moderatorDiscordID, long durationSeconds) {
-        InsertionManager.insert(NetworkEngine.DATA_BASE, DiscordLogTable.class, "guild_id", "discord_user_id", "moderation_type", "reason", "moderator_discord_id", "duration_seconds")
+        InsertionManager.insert(PhotonEngine.DATA_BASE, DiscordLogTable.class, "guild_id", "discord_user_id", "moderation_type", "reason", "moderator_discord_id", "duration_seconds")
             .row(guildID, discordID, type.name(), reason, moderatorDiscordID, durationSeconds)
             .execute();
     }
 
     public static List<ObjectDiscordLog> getByDiscordUserID(String discordUserID) {
-        return SelectionManager.select(NetworkEngine.DATA_BASE, DiscordLogTable.class)
+        return SelectionManager.select(PhotonEngine.DATA_BASE, DiscordLogTable.class)
             .where(Expression.of("discord_user_id").isEqualTo(discordUserID))
             .orderBy("timestamp", EnumOrder.ASC)
             .executeList(ObjectDiscordLog.class);
     }
 
     public static List<ObjectDiscordLog> getByGuild(String guildID) {
-        return SelectionManager.select(NetworkEngine.DATA_BASE, DiscordLogTable.class)
+        return SelectionManager.select(PhotonEngine.DATA_BASE, DiscordLogTable.class)
             .where(Expression.of("guild_id").isEqualTo(guildID))
             .orderBy("timestamp", EnumOrder.DESC)
             .executeList(ObjectDiscordLog.class);
     }
 
     public static List<ObjectDiscordLog> getByGuildAndType(String guildID, ModerationType type) {
-        return SelectionManager.select(NetworkEngine.DATA_BASE, DiscordLogTable.class)
+        return SelectionManager.select(PhotonEngine.DATA_BASE, DiscordLogTable.class)
             .where(
                 Expression.of("guild_id").isEqualTo(guildID)
                     .and(Expression.of("moderation_type").isEqualTo(type))
@@ -89,7 +89,7 @@ public class DiscordLogTable extends Table {
     }
 
     public static void deleteByDiscordID(String discordID) {
-        DeletionManager.delete(NetworkEngine.DATA_BASE, DiscordLogTable.class)
+        DeletionManager.delete(PhotonEngine.DATA_BASE, DiscordLogTable.class)
             .where(Expression.of("discord_user_id").isEqualTo(discordID))
             .execute();
     }

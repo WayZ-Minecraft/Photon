@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.photon.network.NetworkEngine;
+import com.photon.PhotonEngine;
 import com.photon.objects.ObjectNews;
 import com.photon.util.NetworkOnly;
 import com.photon.util.TranslationManager.Language;
@@ -34,7 +34,7 @@ public class NewsTable extends Table {
      * @throws SQLException if query execution fails
      */
     public static void createNews(ObjectNews news) throws SQLException {
-        InsertionManager.insert(NetworkEngine.DATA_BASE, NewsTable.class, "title", "contentEn", "contentFr", "date", "imagepath")
+        InsertionManager.insert(PhotonEngine.DATA_BASE, NewsTable.class, "title", "contentEn", "contentFr", "date", "imagepath")
             .row(news.title(), news.contentForLang(Language.ENGLISH), news.contentForLang(Language.FRENCH), new Date(news.date().getTime()), news.imageURL())
             .execute();
     }
@@ -46,7 +46,7 @@ public class NewsTable extends Table {
      */
     public static List<ObjectNews> getAllNews() {
         try {
-            return SelectionManager.select(NetworkEngine.DATA_BASE,NewsTable.class).executeList(ObjectNews.class);
+            return SelectionManager.select(PhotonEngine.DATA_BASE,NewsTable.class).executeList(ObjectNews.class);
         } catch (QueryonException e) {
             e.printStackTrace();
             return new ArrayList<>();

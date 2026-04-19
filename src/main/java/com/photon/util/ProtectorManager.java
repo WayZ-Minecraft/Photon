@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.net.URLConnection;
 import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
@@ -13,21 +12,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class ProtectorManager {
-	
-	public static final int TIME_OUT = 15000;
-	
-	/**
-	 * Adds properties to the URLConnection
-	 * @param connection URLConnection
-	 * @param exceptions URLs to exclude
-	 * @return URLConnection
-	 */
-	public static URLConnection addProperties(URLConnection connection, String... exceptions) {
-		connection.setConnectTimeout(TIME_OUT);
-		connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
-		return connection;
-	}
-	
+
 	/**
 	 * Gets the HWID of the computer
 	 * @return HWID

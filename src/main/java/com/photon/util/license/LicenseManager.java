@@ -72,12 +72,12 @@ public final class LicenseManager {
 	}
 
     /**
-     * Generate a new random license key using the format "PHOTON-XXXXX-XXXXX-XXXXX-XXXXX" where X is an uppercase letter or digit, excluding confusing characters.
+     * Generate a new random license key using the format "XXXXX-XXXXX-XXXXX-XXXXX" where X is an uppercase letter or digit, excluding confusing characters.
      * 
      * @return the generated license key
      */
 	public static String generateLicenseKey() {
-		final StringBuilder builder = new StringBuilder("PHOTON-");
+		final StringBuilder builder = new StringBuilder("");
 		for (int group = 0; group < 4; group++) {
 			if (group > 0) builder.append('-');
 			for (int index = 0; index < 5; index++) builder.append(LICENSE_ALPHABET[ThreadLocalRandom.current().nextInt(LICENSE_ALPHABET.length)]);

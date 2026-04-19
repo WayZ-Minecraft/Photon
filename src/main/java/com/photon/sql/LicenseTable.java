@@ -3,7 +3,6 @@ package com.photon.sql;
 import java.util.Date;
 
 import com.photon.PhotonEngine;
-import com.photon.network.NetworkEngine;
 import com.photon.objects.ObjectLicense;
 import com.photon.util.NetworkOnly;
 import com.photon.util.PhotonLogTypes;
@@ -54,7 +53,7 @@ public class LicenseTable extends Table {
 	public static String normalizeKey(String licenseKey) { return licenseKey == null ? null : licenseKey.trim().toUpperCase(); }
 
 	public static ObjectLicense issueLicense(String licenseKey, String productId, String customerName, String customerEmail, String tebexOrderId, Date expiresAt) {
-		InsertionManager.insert(NetworkEngine.DATA_BASE, LicenseTable.class, "license_key", "product_id", "customer_name", "customer_email", "tebex_order_id", "status", "expires_at")
+		InsertionManager.insert(PhotonEngine.DATA_BASE, LicenseTable.class, "license_key", "product_id", "customer_name", "customer_email", "tebex_order_id", "status", "expires_at")
 			.row(normalizeKey(licenseKey), productId, customerName, customerEmail, tebexOrderId, LicenseStatus.ISSUED.name(), expiresAt)
 			.execute();
 
@@ -63,7 +62,7 @@ public class LicenseTable extends Table {
 
 	public static ObjectLicense getByKey(String licenseKey) {
 		if (licenseKey == null || licenseKey.isBlank()) return null;
-		return SelectionManager.select(NetworkEngine.DATA_BASE, LicenseTable.class)
+		return SelectionManager.select(PhotonEngine.DATA_BASE, LicenseTable.class)
 			.where(Expression.of("license_key").isEqualTo(normalizeKey(licenseKey)))
 			.limit(1)
 			.executeSerializable(ObjectLicense.class);
@@ -71,7 +70,7 @@ public class LicenseTable extends Table {
 
 	public static ObjectLicense getByTebexOrderId(String tebexOrderId) {
 		if (tebexOrderId == null || tebexOrderId.isBlank()) return null;
-		return SelectionManager.select(NetworkEngine.DATA_BASE, LicenseTable.class)
+		return SelectionManager.select(PhotonEngine.DATA_BASE, LicenseTable.class)
 			.where(Expression.of("tebex_order_id").isEqualTo(tebexOrderId))
 			.limit(1)
 			.executeSerializable(ObjectLicense.class);
@@ -82,7 +81,7 @@ public class LicenseTable extends Table {
 	public static boolean activate(String licenseKey, String hwid) {
 		if (licenseKey == null || licenseKey.isBlank() || hwid == null || hwid.isBlank()) return false;
 		try {
-            UpdateManager.update(NetworkEngine.DATA_BASE, LicenseTable.class)
+            UpdateManager.update(PhotonEngine.DATA_BASE, LicenseTable.class)
                 .set("hwid", hwid)
                 .set("status", LicenseStatus.ACTIVE.name())
                 .set("activated_at", new Date())
@@ -98,7 +97,7 @@ public class LicenseTable extends Table {
 	public static boolean revoke(String licenseKey) {
 		if (licenseKey == null || licenseKey.isBlank()) return false;
         try {
-            UpdateManager.update(NetworkEngine.DATA_BASE, LicenseTable.class)
+            UpdateManager.update(PhotonEngine.DATA_BASE, LicenseTable.class)
                 .set("status", LicenseStatus.REVOKED.name())
                 .where(Expression.of("license_key").isEqualTo(normalizeKey(licenseKey)))
                 .execute();

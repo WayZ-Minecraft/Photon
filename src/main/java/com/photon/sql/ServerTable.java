@@ -6,7 +6,6 @@ import java.util.List;
 
 import com.photon.Directories;
 import com.photon.PhotonEngine;
-import com.photon.network.NetworkEngine;
 import com.photon.objects.ObjectServer;
 import com.photon.util.NetworkOnly;
 import com.photon.util.PhotonLogTypes;
@@ -42,7 +41,7 @@ public class ServerTable extends Table {
         final Date now = new Date();
 
         if (exists(server.serverIP, server.serverPort)) {
-            UpdateManager.update(NetworkEngine.DATA_BASE, ServerTable.class)
+            UpdateManager.update(PhotonEngine.DATA_BASE, ServerTable.class)
                 .set("server_name", server.serverName)
                 .set("server_motd", server.serverMOTD)
                 .set("queue_port", server.queuePort)
@@ -53,7 +52,7 @@ public class ServerTable extends Table {
                 .where(Expression.of("server_port").isEqualTo(server.serverPort))
                 .execute();
         } else {
-            InsertionManager.insert(NetworkEngine.DATA_BASE, ServerTable.class, 
+            InsertionManager.insert(PhotonEngine.DATA_BASE, ServerTable.class, 
                 "serverName", "serverMOTD", "serverIP", "serverPort", "queuePort", "last_seen_at", "site_url", "discord")
                 .row(server.serverName, server.serverMOTD, server.serverIP, server.serverPort, server.queuePort, now, server.site, server.discord)
                 .execute();
@@ -68,7 +67,7 @@ public class ServerTable extends Table {
     public static List<ObjectServer> getVisibleServers() {
         final Date cutoff = new Date(System.currentTimeMillis() - SERVER_VISIBILITY_TTL_MILLIS);
         try {
-            return SelectionManager.select(NetworkEngine.DATA_BASE, ServerTable.class)
+            return SelectionManager.select(PhotonEngine.DATA_BASE, ServerTable.class)
                 .executeList(ObjectServer.class)
                 .stream()
                 .filter(server -> server != null && server.last_seen_at != null && !server.last_seen_at.before(cutoff))
@@ -89,7 +88,7 @@ public class ServerTable extends Table {
     public static ObjectServer getServer(String ip, int port) {
         if (ip == null || ip.isBlank() || port <= 0) return null;
         try {
-            return SelectionManager.select(NetworkEngine.DATA_BASE, ServerTable.class)
+            return SelectionManager.select(PhotonEngine.DATA_BASE, ServerTable.class)
                 .where(Expression.of("server_ip").isEqualTo(ip))
                 .where(Expression.of("server_port").isEqualTo(port))
                 .limit(1)
@@ -101,7 +100,7 @@ public class ServerTable extends Table {
 
     private static boolean exists(String serverIP, int serverPort) {
         try {
-            return SelectionManager.select(NetworkEngine.DATA_BASE, ServerTable.class, "COUNT(*) as count")
+            return SelectionManager.select(PhotonEngine.DATA_BASE, ServerTable.class, "COUNT(*) as count")
                 .where(Expression.of("server_ip").isEqualTo(serverIP))
                 .where(Expression.of("server_port").isEqualTo(serverPort))
                 .executeHasResult();
@@ -113,7 +112,7 @@ public class ServerTable extends Table {
     private static void cleanupExpiredServers() {
         final Date cutoff = new Date(System.currentTimeMillis() - SERVER_VISIBILITY_TTL_MILLIS);
         try {
-            DeletionManager.delete(NetworkEngine.DATA_BASE, ServerTable.class)
+            DeletionManager.delete(PhotonEngine.DATA_BASE, ServerTable.class)
                 // .where(Expression.of("last_seen_at").isLessThan(cutoff)) // TODO not supported yet by Queryon
                 .execute();
         } catch (Exception e) {

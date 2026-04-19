@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 import com.photon.PhotonEngine;
-import com.photon.network.NetworkEngine;
 import com.photon.objects.ObjectPlayerAccount;
 import com.photon.util.NetworkOnly;
 import com.photon.util.PhotonLogTypes;
@@ -79,7 +78,7 @@ public class PlayerAccountTable extends Table {
         }
 
         final String UniqueUserID = UUID.randomUUID().toString();
-        InsertionManager.insert(NetworkEngine.DATA_BASE, PlayerAccountTable.class, "uuid", "username", "email", "password", "discordAuthCode", "friends")
+        InsertionManager.insert(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "uuid", "username", "email", "password", "discordAuthCode", "friends")
             .row(UniqueUserID, username.trim(), email.trim().toLowerCase(), password, ObjectPlayerAccount.generateAuthCode(), "[]")
             .execute();
 
@@ -91,7 +90,7 @@ public class PlayerAccountTable extends Table {
             Console.log("Cannot update Discord ID for null/empty UUID").error().container(PhotonEngine.LOGGER).send();
             return;
         }
-        UpdateManager.update(NetworkEngine.DATA_BASE, PlayerAccountTable.class)
+        UpdateManager.update(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
             .set("discordID", discordID)
             .where(Expression.of("uuid").isEqualTo(uuid))
             .execute();
@@ -110,7 +109,7 @@ public class PlayerAccountTable extends Table {
             Console.log("Cannot get account with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
             return null;
         }
-        return SelectionManager.select(NetworkEngine.DATA_BASE, PlayerAccountTable.class)
+        return SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
             .where(Expression.of("uuid").isEqualTo(uuid))
             .executeSerializable(ObjectPlayerAccount.class);
     }
@@ -128,7 +127,7 @@ public class PlayerAccountTable extends Table {
             return null;
         }
         final String NORMALIZED_EMAIL = email.trim().toLowerCase();
-        return SelectionManager.select(NetworkEngine.DATA_BASE, PlayerAccountTable.class)
+        return SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
             .where(Expression.of("LOWER(email)").isEqualTo(NORMALIZED_EMAIL))
             .executeSerializable(ObjectPlayerAccount.class);
     }
@@ -146,7 +145,7 @@ public class PlayerAccountTable extends Table {
             return null;
         }
         final String NORMALIZED_USERNAME = username.trim().toLowerCase();
-        return SelectionManager.select(NetworkEngine.DATA_BASE, PlayerAccountTable.class)
+        return SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
             .where(Expression.of("LOWER(username)").isEqualTo(NORMALIZED_USERNAME))
             .executeSerializable(ObjectPlayerAccount.class);
     }
@@ -162,7 +161,7 @@ public class PlayerAccountTable extends Table {
             Console.log("Cannot get account with null/empty Discord ID").error().container(PhotonEngine.LOGGER).send();
             return null;
         }
-        return SelectionManager.select(NetworkEngine.DATA_BASE, PlayerAccountTable.class)
+        return SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
             .where(Expression.of("discordID").isEqualTo(discordID))
             .executeSerializable(ObjectPlayerAccount.class);
     }
@@ -180,7 +179,7 @@ public class PlayerAccountTable extends Table {
             return false;
         }
         final String NORMALIZED_EMAIL = email.trim().toLowerCase();
-        return SelectionManager.select(NetworkEngine.DATA_BASE, PlayerAccountTable.class, "COUNT(*) as count")
+        return SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "COUNT(*) as count")
             .where(Expression.of("LOWER(email)").isEqualTo(NORMALIZED_EMAIL))
             .executeHasResult();
     }
@@ -194,11 +193,11 @@ public class PlayerAccountTable extends Table {
      */
     public static boolean usernameExists(String username) {
         if (username == null || username.trim().isEmpty()) {
-            Console.log("Cannot check existence of null/empty username").error().send();
+            Console.log("Cannot check existence of null/empty username").error().container(PhotonEngine.LOGGER).send();
             return false;
         }
         final String NORMALIZED_USERNAME = username.trim().toLowerCase();
-        return SelectionManager.select(NetworkEngine.DATA_BASE, PlayerAccountTable.class, "COUNT(*) as count")
+        return SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "COUNT(*) as count")
             .where(Expression.of("LOWER(username)").isEqualTo(NORMALIZED_USERNAME))
             .executeHasResult();
     }
@@ -215,7 +214,7 @@ public class PlayerAccountTable extends Table {
             return null;
         }
         final String NORMALIZED_EMAIL = email.trim().toLowerCase();
-        return SelectionManager.select(NetworkEngine.DATA_BASE, PlayerAccountTable.class, "discordAuthCode")
+        return SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "discordAuthCode")
             .where(Expression.of("LOWER(email)").isEqualTo(NORMALIZED_EMAIL))
             .executePrimitive(String.class);
     }
@@ -232,7 +231,7 @@ public class PlayerAccountTable extends Table {
             Console.log("Cannot validate auth code with null/empty parameters").error().container(PhotonEngine.LOGGER).send();
             return false;
         }
-        return SelectionManager.select(NetworkEngine.DATA_BASE, PlayerAccountTable.class, "COUNT(*) as count")
+        return SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "COUNT(*) as count")
             .where(
                 Expression.of("uuid").isEqualTo(givenUUID)
                     .and(Expression.of("discordAuthCode").isEqualTo(givenAuthCode))
@@ -245,7 +244,7 @@ public class PlayerAccountTable extends Table {
             Console.log("Cannot update serverCreator with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
             return;
         }
-        UpdateManager.update(NetworkEngine.DATA_BASE, PlayerAccountTable.class)
+        UpdateManager.update(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
             .set("serverCreator", isServerCreator)
             .where(Expression.of("uuid").isEqualTo(uuid))
             .execute();
@@ -261,7 +260,7 @@ public class PlayerAccountTable extends Table {
             Console.log("Cannot delete account with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
             return;
         }
-        DeletionManager.delete(NetworkEngine.DATA_BASE, PlayerAccountTable.class)
+        DeletionManager.delete(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
             .where(Expression.of("uuid").isEqualTo(uuid))
             .execute();
     }
@@ -272,6 +271,6 @@ public class PlayerAccountTable extends Table {
      * @return ArrayList of all accounts
      */
     public static List<ObjectPlayerAccount> getAllAccounts() {
-        return SelectionManager.select(NetworkEngine.DATA_BASE, PlayerAccountTable.class).executeList(ObjectPlayerAccount.class);
+        return SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class).executeList(ObjectPlayerAccount.class);
     }
 }

@@ -1,5 +1,6 @@
 package com.photon.web.endpoints.accounts;
 
+import com.photon.sql.PlayerAccountTable;
 import com.photon.web.endpoints.IEndpoint;
 
 import io.javalin.http.Context;
@@ -39,8 +40,13 @@ public class CreateAccountEndpoint implements IEndpoint {
             return;
         }
 
-        // .createAccount(username, email, password);
+        if(PlayerAccountTable.emailExists(email)) {
+            handler.status(400).result("An account with this email already exists.");
+            return;
+        }
 
-        handler.status(200).result("Account created successfully.");
+        /* Create the account */
+        // PlayerAccountTable.createAccount(username, email, password); //TODO Send back the created account's details or a success message after implementing the method in PlayerAccountTable
+        // handler.status(200).result("Account created successfully.");
     }
 }

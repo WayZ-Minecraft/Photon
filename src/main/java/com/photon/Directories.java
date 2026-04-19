@@ -2,13 +2,12 @@ package com.photon;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.Base64;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
@@ -17,7 +16,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 import com.photon.util.PhotonLogTypes;
-import com.photon.util.os.FileLocation;
 import com.photon.util.updater.UpdateChannel;
 import com.photon.util.updater.UpdateFileType;
 
@@ -64,6 +62,7 @@ public class Directories
 
 	/**
 	 * Save all directories and files
+	 * 
 	 * @note He save the config file
 	 * @see {@link #configFile}
 	 * @see {@link #config}
@@ -76,50 +75,28 @@ public class Directories
 		} catch (IOException e) {}
 	}
 	
-	/**
-	 * Load game logo from file and serialize it to byte array (SERVER SIDE)
-	 * @author Niwer (Added : Gathering default logo if not found)
-	 */
-	public static void loadLogoOnServer() {
-		if (!LOGO_FILE.exists()) {
-			Console.log("Game logo not found at: " + LOGO_FILE.getPath() + ". We'll try to gather the default one").type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
-
-			final InputStream STREAM = FileLocation.loadFile("photon_logo.png");
-			if (STREAM != null) {
-				try {
-					ImageIO.write(ImageIO.read(STREAM), "png", LOGO_FILE);
-				} catch (IOException e) {
-					Console.log("Failed to create logo file at: " + LOGO_FILE.getPath()).error().type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
-					e.printStackTrace();
-					return;
-				}
-			}
-		}
-		
+	public static String getOfficialLogoBase64() {
 		try {
-			if (!LOGO_FILE.exists()) {
-				Console.log("Game logo still not found, aborting logo load").error().type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
-				return;
-			}
-
+			/* Try to read the official logo file */
 			final BufferedImage IMAGE = ImageIO.read(LOGO_FILE);
 			if (IMAGE == null) {
 				Console.log("Failed to read game logo").error().type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
-				return;
+				return null;
 			}
 			
+			/* Convert the image to a byte array */
 			final ByteArrayOutputStream BAOS = new ByteArrayOutputStream();
 			ImageIO.write(IMAGE, "png", BAOS);
-			config.gameLogo = BAOS.toByteArray();
 			BAOS.close();
 			
-			Console.log("Game logo loaded successfully (" + config.gameLogo.length + " bytes)").type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
+			return Base64.getEncoder().encodeToString(BAOS.toByteArray()); // Encode the byte array to a Base64 string
 		} catch (IOException e) {
 			Console.log("Error loading game logo: " + e.getMessage()).error().type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
 			e.printStackTrace();
-		}
+			return null;
+		}	
 	}
-
+	
 	public static class NetworkConfig {
 		protected static final NetworkConfig DEFAULT = new NetworkConfig();
 
@@ -150,9 +127,6 @@ public class Directories
 				UpdateChannel.TEST, BASE_DIR.getPath()+"/services_update/launcher-test.jar"
 			)
 		);
-
-		/* Logo */
-		@SerializedName("main_logo") public byte[] gameLogo = null;
 		
 		/* Bot infos */
 		@SerializedName("bot_activity") public String bot_activity = "/";
@@ -180,38 +154,5 @@ public class Directories
 		@SerializedName("youtube_url") public String youtube_url = "https://youtube.com/";
 		@SerializedName("discord_url") public String discord_url = "https://discord.gg/";
 		@SerializedName("website_url") public String website_url = "https://example.com";
-
-		/**
-		 * Get the game logo from the web
-		 * @return the game logo from the web in a BufferedImage
-		 * @see getGameLogoInputStream()
-		 * @author Niwer
-		 */
-		public static BufferedImage getGameLogo() {
-			try {
-				final byte[] DATA = getConfig().gameLogo;
-				if (DATA == null || DATA.length == 0) return null;
-				
-				final ByteArrayInputStream STREAM = new ByteArrayInputStream(DATA);
-				final BufferedImage IMG = ImageIO.read(STREAM);
-				STREAM.close();
-				return IMG;
-			} catch (IOException e) {
-				e.printStackTrace();
-				return null;
-			}
-		}
-		
-		/**
-		 * Get the game logo from the web
-		 * @return the game logo from the web in a InputStream
-		 * @see getGameLogo()
-		 * @author Niwer
-		 */
-		public static InputStream getGameLogoInputStream() {
-			final byte[] DATA = getConfig().gameLogo;
-			if (DATA == null || DATA.length == 0) return null;
-			return new ByteArrayInputStream(DATA);
-		}
 	}
 }

@@ -1,6 +1,6 @@
 package com.photon.web.endpoints;
 
-import com.photon.network.NetworkEngine;
+import com.photon.PhotonEngine;
 import com.photon.util.os.ApplicationUtils;
 
 import io.javalin.http.Context;
@@ -24,7 +24,7 @@ public class RestartEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
-        ApplicationUtils.restart(NetworkEngine.class);
+        ApplicationUtils.restart(PhotonEngine.class);
         handler.status(200).result("Restarting...");
     }
 

@@ -1,6 +1,6 @@
 package com.photon.sql;
 
-import com.photon.network.NetworkEngine;
+import com.photon.PhotonEngine;
 import com.photon.util.NetworkOnly;
 import com.photon.util.TranslationManager.Language;
 
@@ -35,7 +35,7 @@ public class DiscordProfileTable extends Table {
      * @param discordUserID The discord id of the user
      */
     public static void createProfile(String discordUserID) {
-        InsertionManager.insertOrIgnore(NetworkEngine.DATA_BASE, DiscordProfileTable.class, "discord_user_id")
+        InsertionManager.insertOrIgnore(PhotonEngine.DATA_BASE, DiscordProfileTable.class, "discord_user_id")
             .row(discordUserID)
             .execute();
     }
@@ -47,7 +47,7 @@ public class DiscordProfileTable extends Table {
      * @return List of Languages or null if user has no preferences
      */
     public static Language getLanguage(String discordUserID) {
-        final String USER_LANG = SelectionManager.select(NetworkEngine.DATA_BASE, DiscordProfileTable.class, "language")
+        final String USER_LANG = SelectionManager.select(PhotonEngine.DATA_BASE, DiscordProfileTable.class, "language")
             .where(Expression.of("discord_user_id").isEqualTo(discordUserID))
             .executePrimitive(String.class);
 
@@ -62,7 +62,7 @@ public class DiscordProfileTable extends Table {
      */
     public static void setLanguage(String discordUserID, Language newUserLanguage) {
         createProfile(discordUserID);
-        UpdateManager.update(NetworkEngine.DATA_BASE, DiscordProfileTable.class)
+        UpdateManager.update(PhotonEngine.DATA_BASE, DiscordProfileTable.class)
             .set("language", newUserLanguage.name())
             .where(Expression.of("discord_user_id").isEqualTo(discordUserID))
             .execute();
@@ -75,7 +75,7 @@ public class DiscordProfileTable extends Table {
      * @return true if first connection, false otherwise
      */
     public static boolean isFirstConnection(String discordUserID) {
-        return SelectionManager.select(NetworkEngine.DATA_BASE, DiscordProfileTable.class, "first_connection")
+        return SelectionManager.select(PhotonEngine.DATA_BASE, DiscordProfileTable.class, "first_connection")
             .where(Expression.of("discord_user_id").isEqualTo(discordUserID))
             .executeHasResult();
     }
@@ -88,7 +88,7 @@ public class DiscordProfileTable extends Table {
      */
     public static void setFirstConnection(String discordUserID, boolean firstConnection) {
         createProfile(discordUserID);
-        UpdateManager.update(NetworkEngine.DATA_BASE, DiscordProfileTable.class)
+        UpdateManager.update(PhotonEngine.DATA_BASE, DiscordProfileTable.class)
             .set("first_connection", firstConnection)
             .where(Expression.of("discord_user_id").isEqualTo(discordUserID))
             .execute();

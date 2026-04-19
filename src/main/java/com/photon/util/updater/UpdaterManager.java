@@ -1,27 +1,27 @@
 package com.photon.util.updater;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
-import com.photon.PhotonClientData;
-import com.photon.network.ClientLinkManager;
-import com.photon.network.messages.requests.ClientRequestUpdate;
+import com.photon.Directories;
 
 public class UpdaterManager {
 
     public static final int DEFAULT_DOWNLOADER_THREADS_COUNT = 5;
-    private static ExecutorService downloader = null;
+    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(10))
+        .build();
 
     /**
      * Get the latest SHA1 of the chosen update type
@@ -29,21 +29,14 @@ public class UpdaterManager {
      * @return The sha1 of the update if there is one, UNKNOWN otherwise
      */
     public static String getSHA1(UpdateFileType type, UpdateChannel channel) {
-        PhotonClientData.UPDATE_SHA.reset();
-        ClientLinkManager.sendTCP(new ClientRequestUpdate(channel, type)); // Ask the server for the update data (SHA and File)
-
-        final CountDownLatch LATCH = new CountDownLatch(1);
-        PhotonClientData.UPDATE_SHA.onAvailable(v -> LATCH.countDown());
-        
         try {
-            LATCH.await(10, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            final UpdateMetadata metadata = fetchMetadata(type, channel);
+            return metadata != null ? metadata.sha1() : "UNKNOWN";
+        } catch (Exception e) {
+            return "UNKNOWN";
         }
-
-		return PhotonClientData.UPDATE_SHA.get();
     }
-    
+
     /**
      * Check if there is an update for the chosen type
      * @param type The type of the update (e.g MOD, LAUNCHER, API, NETWORK)
@@ -53,8 +46,9 @@ public class UpdaterManager {
     public static boolean hasUpdate(UpdateFileType type, UpdateChannel channel, final File file) {
         if(!file.exists()) return true; // If the file doesn't exist, we need to download it
 
-        final String SHA_1 = getSHA1(type, channel);
-        if(!SHA_1.equalsIgnoreCase("UNKNOWN") && !getUpdateDigest(file, "SHA", 40).equals(SHA_1)) return true;
+        final String sha1 = getSHA1(type, channel);
+        final String localSha = getUpdateDigest(file, "SHA", 40);
+        if (!"UNKNOWN".equalsIgnoreCase(sha1) && localSha != null && !localSha.equalsIgnoreCase(sha1)) return true;
         return false;
     }
 
@@ -80,14 +74,8 @@ public class UpdaterManager {
      * @return True if the file has been downloaded, false otherwise
      */
     public static boolean update(UpdateFileType type, UpdateChannel channel, File file, RunnableTask<Integer, Integer> callback) {
-        if(downloader == null) downloader = Executors.newFixedThreadPool(DEFAULT_DOWNLOADER_THREADS_COUNT);
-
-        boolean hasFinished = false;
-        if(hasUpdate(type, channel, file)) hasFinished = download(type, channel, file, callback);
-        else hasFinished = true;
-
-        if(hasFinished) downloader = null;
-        return hasFinished;
+        if(hasUpdate(type, channel, file)) return download(type, channel, file, callback);
+        return true;
     }
 
     /**
@@ -95,47 +83,27 @@ public class UpdaterManager {
      * @param downloaderThreadsCount The ammount of threads to use
      */
     public static void setDownloaderThreadsCount(int downloaderThreadsCount) {
-        if(downloader == null) downloader = Executors.newFixedThreadPool(downloaderThreadsCount);
+        // HTTP downloads are now synchronous. Kept for API compatibility.
     }
 
     private static boolean download(UpdateFileType type, UpdateChannel channel, File file, RunnableTask<Integer, Integer> callback) {
         try {
-            downloader.submit(new UpdateDownloader(file, callback));
-            downloader.shutdown();
-            downloader.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+            final UpdateDownload download = fetchDownload(type, channel);
+            if (download == null || download.data() == null) return false;
+
+            if (file.getParentFile() != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
+            Files.write(file.toPath(), download.data());
+            if (callback != null) callback.run(download.data().length, download.data().length);
             return true;
-        } catch (InterruptedException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            e.printStackTrace();
+        }
         return false;
     }
 
-    private static class UpdateDownloader extends Thread {
-        private final File file;
-        private final RunnableTask<Integer, Integer> callback;
-
-        public UpdateDownloader(final File file, RunnableTask<Integer, Integer> callback) {
-            this.file = file;
-            this.callback = callback;
-        }
-
-        @Override
-        public void run() {
-            System.out.println("Acquiring file '" + file.getName() + "'");
-            try(var bis = new BufferedInputStream(new ByteArrayInputStream(PhotonClientData.UPDATE_DATA.get())); var fos = new FileOutputStream(file)) {
-                
-                final int UPDATE_SIZE = PhotonClientData.UPDATE_DATA.get().length;
-                final int SIZE = 1024;
-                final byte[] DATA = new byte[SIZE];
-
-                int read;
-                int total = 0;
-                while ((read = bis.read(DATA, 0, SIZE)) != -1) {
-                    if(callback != null) callback.run(total += read, UPDATE_SIZE);
-                    fos.write(DATA, 0, read);
-                }
-            } catch (IOException e) { e.printStackTrace(); }
-        }
-    }
-    
     /**
      * Get the digest of a file
      * @param file The file to get the digest from
@@ -156,6 +124,41 @@ public class UpdaterManager {
 		} catch (Exception ex) {}
 		return null;
 	}
+
+    private static UpdateMetadata fetchMetadata(UpdateFileType type, UpdateChannel channel) throws IOException, InterruptedException {
+        final HttpRequest request = HttpRequest.newBuilder(buildUpdateUri(type, channel, true))
+            .timeout(Duration.ofSeconds(20))
+            .GET()
+            .build();
+
+        final HttpResponse<byte[]> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofByteArray());
+        if (response.statusCode() != 200) return null;
+
+        return Directories.GSON.fromJson(new String(response.body(), StandardCharsets.UTF_8), UpdateMetadata.class);
+    }
+
+    private static UpdateDownload fetchDownload(UpdateFileType type, UpdateChannel channel) throws IOException, InterruptedException {
+        final HttpRequest request = HttpRequest.newBuilder(buildUpdateUri(type, channel, false))
+            .timeout(Duration.ofSeconds(20))
+            .GET()
+            .build();
+
+        final HttpResponse<byte[]> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofByteArray());
+        if (response.statusCode() != 200) return null;
+
+        final String sha1 = response.headers().firstValue("x-photon-sha1").orElse("UNKNOWN");
+        return new UpdateDownload(sha1, response.body());
+    }
+
+    private static URI buildUpdateUri(UpdateFileType type, UpdateChannel channel, boolean metadata) {
+        // final String host = PhotonEngine.network_Ip == null || PhotonEngine.network_Ip.isBlank() ? PhotonEngine.LOCAL_IP : PhotonEngine.network_Ip;
+        final String host = "update.photonmc.com"; //TODO
+        return URI.create("http://" + host + ":" + Directories.getConfig().webserver_port + "/api/update?type=" + type.name() + "&channel=" + channel.name() + "&metadata=" + metadata);
+    }
+
+    private record UpdateMetadata(String sha1, int size) {}
+
+    private record UpdateDownload(String sha1, byte[] data) {}
 
     @FunctionalInterface
     public interface RunnableTask<T, X> {

@@ -8,8 +8,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 import com.photon.Directories;
+import com.photon.PhotonEngine;
 import com.photon.discord.commands.AbstractSlashCommand;
-import com.photon.network.NetworkEngine;
 import com.photon.util.NetworkOnly;
 import com.photon.util.TranslationManager;
 import com.photon.util.os.ApplicationUtils;
@@ -72,7 +72,7 @@ public class PostUpdateCommand extends AbstractSlashCommand {
                 /* If the updated file is the network, restart the network engine */
                 if (FILE_TYPE == UpdateFileType.NETWORK) {
                     event.reply(TranslationManager.format(USER_ID, "command.reply.post_update.success_with_restart")).queue();
-                    ApplicationUtils.restart(NetworkEngine.class, "--restart");
+                    ApplicationUtils.restart(PhotonEngine.class, "--restart");
                 } else event.reply(TranslationManager.format(USER_ID, "command.reply.post_update.success", FILE_TYPE, CHANNEL, OUTPUT_PATH)).queue();
             } catch (NoSuchFileException e) {
                 event.reply(TranslationManager.format(USER_ID, "command.reply.post_update.failure.wrong_path", OUTPUT_PATH)).setEphemeral(true).queue();

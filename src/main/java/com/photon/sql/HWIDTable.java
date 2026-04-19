@@ -1,6 +1,6 @@
 package com.photon.sql;
 
-import com.photon.network.NetworkEngine;
+import com.photon.PhotonEngine;
 import com.photon.util.NetworkOnly;
 
 import niwer.queryon.DataBase;
@@ -21,7 +21,6 @@ public class HWIDTable extends Table {
         super(db);
 
         this.addColumns(
-            createColumn(db, "userName", EnumColumnTypes.TEXT).notNull(),
             createColumn(db, "userUUID", EnumColumnTypes.TEXT).notNull().primaryKey(),
             createColumn(db, "userHWID", EnumColumnTypes.TEXT).notNull(),
             createColumn(db, "operatingSystem", EnumColumnTypes.TEXT).notNull()
@@ -31,14 +30,13 @@ public class HWIDTable extends Table {
     /**
      * Add or update a HWID entry in the database.
      * 
-     * @param userName The username
      * @param userUUID The user UUID
      * @param userHWID The hardware ID
      * @param operatingSystem The operating system
      */
-    public static void save(String userName, String userUUID, String userHWID, String operatingSystem) {
-        InsertionManager.insert(NetworkEngine.DATA_BASE, HWIDTable.class, "userName", "userUUID", "userHWID", "operatingSystem")
-            .row(userName, userUUID, userHWID, operatingSystem)
+    public static void save(String userUUID, String userHWID, String operatingSystem) {
+        InsertionManager.insert(PhotonEngine.DATA_BASE, HWIDTable.class, "userUUID", "userHWID", "operatingSystem")
+            .row(userUUID, userHWID, operatingSystem)
             .execute();
     }
 
@@ -49,7 +47,7 @@ public class HWIDTable extends Table {
      * @return true if HWID exists
      */
     public static boolean exist(String userUUID) {
-        return SelectionManager.select(NetworkEngine.DATA_BASE, HWIDTable.class, "userHWID")
+        return SelectionManager.select(PhotonEngine.DATA_BASE, HWIDTable.class, "userHWID")
             .where(Expression.of("userUUID").isEqualTo(userUUID))
             .limit(1)
             .executeHasResult();
@@ -62,7 +60,7 @@ public class HWIDTable extends Table {
      * @return The hardware ID or null if not found
      */
     public static String getHWID(String userUUID) {
-        return SelectionManager.select(NetworkEngine.DATA_BASE, HWIDTable.class, "userHWID")
+        return SelectionManager.select(PhotonEngine.DATA_BASE, HWIDTable.class, "userHWID")
             .where(Expression.of("userUUID").isEqualTo(userUUID))
             .limit(1)
             .executePrimitive(String.class);
@@ -75,7 +73,7 @@ public class HWIDTable extends Table {
      * @param userHWID The hardware ID
      */
     public static void deleteHWID(String userUUID, String userHWID) {
-        DeletionManager.delete(NetworkEngine.DATA_BASE, HWIDTable.class)
+        DeletionManager.delete(PhotonEngine.DATA_BASE, HWIDTable.class)
             .where(
                 Expression.of("userUUID").isEqualTo(userUUID).and(Expression.of("userHWID").isEqualTo(userHWID))
             )

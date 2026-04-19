@@ -10,8 +10,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.photon.PhotonEngine;
 import com.photon.discord.commands.AbstractSlashCommand;
-import com.photon.network.NetworkEngine;
 import com.photon.util.NetworkOnly;
 import com.photon.util.TranslationManager;
 
@@ -90,9 +90,9 @@ public class ExecuteSQLCommand extends AbstractSlashCommand {
      * @throws SQLException if query execution fails
      */
     private static String executeSQLCommandToArray(String command, boolean markdown) throws SQLException {
-        NetworkEngine.DATA_BASE.connect(); // Ensure we're connected to the database
+        PhotonEngine.DATA_BASE.connect(); // Ensure we're connected to the database
 
-        final Statement STATEMENT = NetworkEngine.DATA_BASE.sqlConnection().createStatement();
+        final Statement STATEMENT = PhotonEngine.DATA_BASE.sqlConnection().createStatement();
         final ResultSet RESULT = STATEMENT.executeQuery(command);
         final int COLUMN_COUNT = RESULT.getMetaData().getColumnCount();
         final int[] COLUMNS_WIDTHS = new int[COLUMN_COUNT]; // E.G : [5, 10, 3] for 3 columns
@@ -147,7 +147,7 @@ public class ExecuteSQLCommand extends AbstractSlashCommand {
         STATEMENT.close();
         RESULT.close();
 
-        NetworkEngine.DATA_BASE.disconnect();
+        PhotonEngine.DATA_BASE.disconnect();
 
         return new String(BUILDER.toString().getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
     }

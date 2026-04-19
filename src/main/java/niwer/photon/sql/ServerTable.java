@@ -1,0 +1,104 @@
+package niwer.photon.sql;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import niwer.lumen.Console;
+import niwer.photon.PhotonEngine;
+import niwer.photon.objects.ObjectServer;
+import niwer.photon.util.PhotonLogTypes;
+import niwer.queryon.DataBase;
+import niwer.queryon.queries.Expression;
+import niwer.queryon.queries.interaction.InsertionManager;
+import niwer.queryon.queries.interaction.SelectionManager;
+import niwer.queryon.queries.interaction.UpdateManager;
+import niwer.queryon.tables.Table;
+
+public class ServerTable extends Table {
+
+    public static final long SERVER_VISIBILITY_TTL_MILLIS = 30L * 24L * 60L * 60L * 1000L; // 30 days
+
+    public ServerTable(DataBase db) {
+        super(db);
+
+       this.addColumnsFromClass(ObjectServer.class)
+            .execute();
+    }
+
+    @Override public String name() { return "Server"; }
+
+    public static void saveOrUpdate(ObjectServer server) {
+        if (server == null || server.serverIP == null || server.serverIP.isBlank()) return;
+        if (server.serverPort <= 0) return;
+
+        final Date now = new Date();
+        if (exists(server.serverIP, server.serverPort)) {
+            UpdateManager.update(PhotonEngine.DATA_BASE, ServerTable.class)
+                .set("server_name", server.serverName)
+                .set("server_motd", server.serverMOTD)
+                .set("queue_port", server.queuePort)
+                .set("last_seen_at", now)
+                .set("site_url", server.site)
+                .set("discord", server.discord)
+                .where(Expression.of("server_ip").isEqualTo(server.serverIP))
+                .where(Expression.of("server_port").isEqualTo(server.serverPort))
+                .execute();
+        } else {
+            InsertionManager.insert(PhotonEngine.DATA_BASE, ServerTable.class, 
+                "serverName", "serverMOTD", "serverIP", "serverPort", "queuePort", "last_seen_at", "site_url", "discord")
+                .row(server.serverName, server.serverMOTD, server.serverIP, server.serverPort, server.queuePort, now, server.site, server.discord)
+                .execute();
+        }
+    }
+
+    /**
+     * Get the list of visible servers. This method also performs cleanup of expired servers based on the defined TTL.
+     * 
+     * @return A list of ObjectServer instances that are currently visible (i.e., have been seen within the TTL period)
+     */
+    public static List<ObjectServer> getVisibleServers() {
+        final Date cutoff = new Date(System.currentTimeMillis() - SERVER_VISIBILITY_TTL_MILLIS);
+        try {
+            return SelectionManager.select(PhotonEngine.DATA_BASE, ServerTable.class)
+                .executeList(ObjectServer.class)
+                .stream()
+                .filter(server -> server != null && server.last_seen_at != null && !server.last_seen_at.before(cutoff))
+                .toList();
+        } catch (Exception e) {
+            Console.log("Failed to load server list: " + e.getMessage()).type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Get a server by its IP and port. Returns null if not found or if input is invalid.
+     * 
+     * @param ip The server IP
+     * @param port The server port
+     * @return The ObjectServer if found, or null if not found or if input is invalid
+     */
+    public static ObjectServer getServer(String ip, int port) {
+        if (ip == null || ip.isBlank() || port <= 0) return null;
+        try {
+            return SelectionManager.select(PhotonEngine.DATA_BASE, ServerTable.class)
+                .where(Expression.of("server_ip").isEqualTo(ip))
+                .where(Expression.of("server_port").isEqualTo(port))
+                .limit(1)
+                .executeSerializable(ObjectServer.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static boolean exists(String serverIP, int serverPort) {
+        try {
+            return SelectionManager.select(PhotonEngine.DATA_BASE, ServerTable.class, "COUNT(*) as count")
+                .where(Expression.of("server_ip").isEqualTo(serverIP))
+                .where(Expression.of("server_port").isEqualTo(serverPort))
+                .executeHasResult();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+}

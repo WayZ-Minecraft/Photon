@@ -1,7 +1,7 @@
 
 package com.photon.discord.commands;
 
-import com.photon.network.objects.ObjectPlayerAccount;
+import com.photon.objects.ObjectPlayerAccount;
 import com.photon.sql.PlayerAccountTable;
 import com.photon.util.NetworkOnly;
 import com.photon.util.TranslationManager;

@@ -5,7 +5,7 @@ import java.util.Date;
 
 import com.photon.PhotonEngine;
 import com.photon.discord.commands.AbstractSlashCommand;
-import com.photon.network.objects.ObjectNews;
+import com.photon.objects.ObjectNews;
 import com.photon.sql.NewsTable;
 import com.photon.util.NetworkOnly;
 import com.photon.util.PhotonLogTypes;

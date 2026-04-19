@@ -3,7 +3,7 @@ package com.photon.sql;
 import java.util.List;
 
 import com.photon.network.NetworkEngine;
-import com.photon.network.objects.ObjectDiscordLog;
+import com.photon.objects.ObjectDiscordLog;
 import com.photon.util.NetworkOnly;
 
 import net.dv8tion.jda.api.audit.ActionType;

@@ -12,7 +12,7 @@ import com.photon.PhotonClientData;
 import com.photon.network.ClientLinkManager;
 import com.photon.network.messages.requests.account.ClientRequestAccountCreation;
 import com.photon.network.messages.requests.account.ClientRequestAccountVerification;
-import com.photon.network.objects.ObjectPlayerAccount;
+import com.photon.objects.ObjectPlayerAccount;
 import com.photon.util.ProtectorManager;
 
 public class PhotonUserAuthManager

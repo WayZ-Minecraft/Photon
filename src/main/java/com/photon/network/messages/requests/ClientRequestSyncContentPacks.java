@@ -4,10 +4,10 @@ import java.util.HashMap;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.network.IPacket;
-import com.photon.network.NetworkEngine;
 import com.photon.network.NetworkLinkManager;
 import com.photon.network.messages.response.ServerResponseSyncContentPack;
-import com.photon.network.objects.ObjectServer;
+import com.photon.objects.ObjectServer;
+import com.photon.sql.ServerTable;
 
 /**
  * @author Niwer
@@ -40,17 +40,15 @@ public class ClientRequestSyncContentPacks implements IPacket {
     
     @Override
     public void handle(Connection connection) {
-        for (ObjectServer server : NetworkEngine.SAVED_SERVER_LIST) {
-            if (server.serverIP.equalsIgnoreCase(ip) && server.serverPort == port) {
-                ServerResponseSyncContentPack response = new ServerResponseSyncContentPack(
-                    server.connectionID,
-                    filesCount,
-                    sha1
-                );
-                
-                NetworkLinkManager.SERVER.sendToTCP(server.connectionID, response);
-                break;
-            }
-        }
+        final ObjectServer server = ServerTable.getServer(ip, port);
+        // if (server != null && server.connectionID >= 0) {
+        //     ServerResponseSyncContentPack response = new ServerResponseSyncContentPack(
+        //         server.connectionID,
+        //         filesCount,
+        //         sha1
+        //     );
+
+        //     NetworkLinkManager.SERVER.sendToTCP(server.connectionID, response);
+        // }
     }
 }

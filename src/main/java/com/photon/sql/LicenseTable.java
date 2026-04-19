@@ -4,7 +4,7 @@ import java.util.Date;
 
 import com.photon.PhotonEngine;
 import com.photon.network.NetworkEngine;
-import com.photon.network.objects.ObjectLicense;
+import com.photon.objects.ObjectLicense;
 import com.photon.util.NetworkOnly;
 import com.photon.util.PhotonLogTypes;
 

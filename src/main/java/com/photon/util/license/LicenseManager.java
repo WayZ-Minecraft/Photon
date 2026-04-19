@@ -11,8 +11,8 @@ import java.util.Date;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.google.gson.JsonSyntaxException;
-import com.photon.network.NetworkDirectories;
-import com.photon.network.objects.ObjectLicense;
+import com.photon.Directories;
+import com.photon.objects.ObjectLicense;
 import com.photon.sql.LicenseTable;
 import com.photon.util.ProtectorManager;
 
@@ -46,7 +46,7 @@ public final class LicenseManager {
 		try {
 			final byte[] PAYLOAD_BYTES = Base64.getUrlDecoder().decode(PARTS[0]);
 			final byte[] SIGNATURE_BYTES = Base64.getUrlDecoder().decode(PARTS[1]);
-			final LicenseClaims CLAIMS = NetworkDirectories.GSON.fromJson(new String(PAYLOAD_BYTES, StandardCharsets.UTF_8), LicenseClaims.class);
+			final LicenseClaims CLAIMS = Directories.GSON.fromJson(new String(PAYLOAD_BYTES, StandardCharsets.UTF_8), LicenseClaims.class);
 
             /* Ensure the license claims are valid */
 			if (CLAIMS == null) return LicenseValidationResult.invalid(LicenseFailureReason.INVALID_PAYLOAD, "License payload could not be parsed");

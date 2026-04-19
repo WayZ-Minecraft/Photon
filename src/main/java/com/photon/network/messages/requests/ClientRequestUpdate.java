@@ -5,9 +5,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 import com.esotericsoftware.kryonet.Connection;
+import com.photon.Directories;
 import com.photon.PhotonEngine;
 import com.photon.network.IPacket;
-import com.photon.network.NetworkDirectories;
 import com.photon.network.messages.response.ServerResponseUpdate;
 import com.photon.util.ProtectorManager;
 import com.photon.util.updater.UpdateChannel;
@@ -35,7 +35,7 @@ public class ClientRequestUpdate implements IPacket {
     @Override
     public void handle(Connection connection) {
         try {
-            final String updatePath = NetworkDirectories.getPathForUpdateChannel(type, channel);
+            final String updatePath = Directories.getPathForUpdateChannel(type, channel);
             final File updateFile = new File(updatePath);
             if(!updateFile.exists()) {
                 Console.log("Unable to find the requested version file. Skipping update.").error().container(PhotonEngine.LOGGER).send();

@@ -3,7 +3,7 @@ package com.photon.network.messages.requests.account;
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.network.IPacket;
 import com.photon.network.messages.response.account.ServerResponseAccount;
-import com.photon.network.objects.ObjectPlayerAccount;
+import com.photon.objects.ObjectPlayerAccount;
 import com.photon.sql.PlayerAccountTable;
 
 /**

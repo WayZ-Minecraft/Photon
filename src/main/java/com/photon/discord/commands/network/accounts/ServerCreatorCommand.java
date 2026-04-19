@@ -2,9 +2,9 @@ package com.photon.discord.commands.network.accounts;
 
 import javax.annotation.Nonnull;
 
+import com.photon.Directories;
 import com.photon.discord.commands.AbstractSlashCommand;
-import com.photon.network.NetworkDirectories;
-import com.photon.network.objects.ObjectPlayerAccount;
+import com.photon.objects.ObjectPlayerAccount;
 import com.photon.sql.PlayerAccountTable;
 import com.photon.util.NetworkOnly;
 
@@ -79,7 +79,7 @@ public class ServerCreatorCommand extends AbstractSlashCommand {
         }
         
         /* Update Discord role if the account has a linked Discord ID */
-        final String ROLE_ID = NetworkDirectories.getConfig().server_creator_role_id;
+        final String ROLE_ID = Directories.getConfig().server_creator_role_id;
         @Nonnull final Guild GUILD = event.getGuild();
 
         /* Get the discord role */

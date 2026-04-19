@@ -3,7 +3,7 @@ package com.photon.discord.commands.network.accounts;
 import java.nio.charset.StandardCharsets;
 
 import com.photon.discord.commands.AbstractSlashCommand;
-import com.photon.network.objects.ObjectPlayerAccount;
+import com.photon.objects.ObjectPlayerAccount;
 import com.photon.sql.PlayerAccountTable;
 import com.photon.util.NetworkOnly;
 

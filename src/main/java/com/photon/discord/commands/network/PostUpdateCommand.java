@@ -7,8 +7,8 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
+import com.photon.Directories;
 import com.photon.discord.commands.AbstractSlashCommand;
-import com.photon.network.NetworkDirectories;
 import com.photon.network.NetworkEngine;
 import com.photon.util.NetworkOnly;
 import com.photon.util.TranslationManager;
@@ -56,7 +56,7 @@ public class PostUpdateCommand extends AbstractSlashCommand {
         final UpdateChannel CHANNEL = CHANNEL_ARG != null ? UpdateChannel.fromString(CHANNEL_ARG.getAsString()) : UpdateChannel.STABLE;
 
         /* Data to download the file */
-        final Path OUTPUT_PATH = Path.of(NetworkDirectories.getPathForUpdateChannel(FILE_TYPE, CHANNEL));
+        final Path OUTPUT_PATH = Path.of(Directories.getPathForUpdateChannel(FILE_TYPE, CHANNEL));
 
         /* Try upload the file */
         final String USER_ID = event.getUser().getId();

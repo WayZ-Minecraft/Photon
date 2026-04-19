@@ -6,7 +6,7 @@ import java.util.List;
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.PhotonClientData;
 import com.photon.network.IPacket;
-import com.photon.network.objects.ObjectNews;
+import com.photon.objects.ObjectNews;
 
 /**
  * @author Niwer

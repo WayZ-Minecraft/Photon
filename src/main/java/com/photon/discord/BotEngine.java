@@ -8,9 +8,9 @@ import javax.security.auth.login.LoginException;
 
 import org.slf4j.LoggerFactory;
 
+import com.photon.Directories;
 import com.photon.PhotonEngine;
 import com.photon.discord.commands.CommandsManager;
-import com.photon.network.NetworkDirectories;
 import com.photon.sql.DiscordLogTable;
 import com.photon.sql.DiscordLogTable.ModerationType;
 import com.photon.util.PhotonLogTypes;
@@ -61,8 +61,8 @@ public class BotEngine extends ListenerAdapter {
         final Logger JDA_LOGGER = (Logger) LoggerFactory.getLogger("net.dv8tion.jda");
         JDA_LOGGER.setLevel(ch.qos.logback.classic.Level.WARN);
         
-        botBuilder = JDABuilder.createDefault(NetworkDirectories.getConfig().discord_bot_token);
-        botBuilder.setActivity(Activity.playing(NetworkDirectories.getConfig().bot_activity));
+        botBuilder = JDABuilder.createDefault(Directories.getConfig().discord_bot_token);
+        botBuilder.setActivity(Activity.playing(Directories.getConfig().bot_activity));
         botBuilder.addEventListeners(new BotEngine());
         botBuilder.addEventListeners(new CommandsManager());
         botBuilder.enableIntents(GatewayIntent.MESSAGE_CONTENT);
@@ -101,7 +101,7 @@ public class BotEngine extends ListenerAdapter {
         guild = event.getGuild();
         guild.updateCommands().addCommands(CommandsManager.getGuildCommands()).queue();
         if (isRestarting) {
-            guild.getTextChannelById(NetworkDirectories.getConfig().network_console_channel_id).sendMessage("Network restarted").queue();
+            guild.getTextChannelById(Directories.getConfig().network_console_channel_id).sendMessage("Network restarted").queue();
             isRestarting = false;
         }
     }
@@ -181,7 +181,7 @@ public class BotEngine extends ListenerAdapter {
 
     public static boolean isOfficialGuild(Guild guildToCheck) {
         if(guildToCheck == null) return false;
-        return guildToCheck.getId().equals(NetworkDirectories.getConfig().official_discord_server_id);
+        return guildToCheck.getId().equals(Directories.getConfig().official_discord_server_id);
     }
 
     public static boolean hasConsoleChannel() { return getConsoleChannel() != null; }
@@ -197,8 +197,8 @@ public class BotEngine extends ListenerAdapter {
      */
     public static StandardGuildMessageChannel getConsoleChannel() {
         if(guild == null) return null;
-        if(NetworkDirectories.getConfig().network_console_channel_id == null || NetworkDirectories.getConfig().network_console_channel_id.isEmpty()) return null;
-        return guild.getTextChannelById(NetworkDirectories.getConfig().network_console_channel_id);
+        if(Directories.getConfig().network_console_channel_id == null || Directories.getConfig().network_console_channel_id.isEmpty()) return null;
+        return guild.getTextChannelById(Directories.getConfig().network_console_channel_id);
     }
 
     /**

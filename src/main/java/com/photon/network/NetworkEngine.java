@@ -8,10 +8,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.esotericsoftware.kryonet.Connection;
+import com.photon.Directories;
 import com.photon.PhotonEngine;
 import com.photon.discord.BotEngine;
-import com.photon.network.objects.ObjectNews;
-import com.photon.network.objects.ObjectServer;
+import com.photon.objects.ObjectNews;
 import com.photon.sql.AnticheatTable;
 import com.photon.sql.CrashReportTable;
 import com.photon.sql.DiscordLogTable;
@@ -20,6 +20,7 @@ import com.photon.sql.HWIDTable;
 import com.photon.sql.LicenseTable;
 import com.photon.sql.NewsTable;
 import com.photon.sql.PlayerAccountTable;
+import com.photon.sql.ServerTable;
 import com.photon.util.NetworkOnly;
 import com.photon.util.PhotonLogTypes;
 import com.photon.web.WebServerEngine;
@@ -33,10 +34,9 @@ public class NetworkEngine {
 
     /* Network saves */
     public static final List<ObjectNews> SAVED_NEWS_LIST = new ArrayList<>();
-    public static final List<ObjectServer> SAVED_SERVER_LIST = new ArrayList<>();
     public static final Map<String, Connection> CONNECTED_CLIENTS_LIST = new HashMap<>();
 
-    public static final DataBase DATA_BASE = new DataBase(NetworkDirectories.DATA_BASE_FILE);
+    public static final DataBase DATA_BASE = new DataBase(Directories.DATA_BASE_FILE);
 
 	public static void main(final String[] args) { load(args); }
     
@@ -49,11 +49,11 @@ public class NetworkEngine {
 	public static void load(final String[] args) {
 		try {
             /* Register logger */
-            ConsoleFileManager.registerFileFor(NetworkDirectories.LOGS_DIR, PhotonEngine.LOGGER, "network");
+            ConsoleFileManager.registerFileFor(Directories.LOGS_DIR, PhotonEngine.LOGGER, "network");
 
             /* Load features */
-			NetworkDirectories.load();
-            NetworkDirectories.loadLogoOnServer();
+			Directories.load();
+            Directories.loadLogoOnServer();
 
             /* Register tables to the Data Base */
             DATA_BASE
@@ -69,6 +69,7 @@ public class NetworkEngine {
                 /* User Accounts */
                 .registerTable(PlayerAccountTable.class)
                 .registerTable(DiscordProfileTable.class)
+                .registerTable(ServerTable.class)
             ;
             
             /* Connecting */
@@ -83,7 +84,7 @@ public class NetworkEngine {
 			}
 
             /* Starting the discord bot if token available */
-			if(NetworkDirectories.getConfig().discord_bot_token !=null && !NetworkDirectories.getConfig().discord_bot_token.isEmpty()) {
+			if(Directories.getConfig().discord_bot_token !=null && !Directories.getConfig().discord_bot_token.isEmpty()) {
                 try {
                     BotEngine.load(Arrays.asList(args).contains("--restart"));
                     Console.log("Discord Bot started successfully").type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();

@@ -4,7 +4,7 @@ import com.esotericsoftware.kryonet.Connection;
 import com.photon.PhotonEngine;
 import com.photon.network.IPacket;
 import com.photon.network.messages.response.account.ServerResponseValidAccount;
-import com.photon.network.objects.ObjectPlayerAccount;
+import com.photon.objects.ObjectPlayerAccount;
 import com.photon.sql.PlayerAccountTable;
 import com.photon.util.PhotonLogTypes;
 

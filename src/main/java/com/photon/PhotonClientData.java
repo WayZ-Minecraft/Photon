@@ -5,9 +5,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.photon.network.messages.response.account.ServerResponseValidAccount;
-import com.photon.network.objects.ObjectNews;
-import com.photon.network.objects.ObjectPlayerAccount;
-import com.photon.network.objects.ObjectServer;
+import com.photon.objects.ObjectNews;
+import com.photon.objects.ObjectPlayerAccount;
+import com.photon.objects.ObjectServer;
 import com.photon.util.AsyncValue;
 
 /**

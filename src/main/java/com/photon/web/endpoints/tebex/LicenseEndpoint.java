@@ -1,8 +1,8 @@
 package com.photon.web.endpoints.tebex;
 
 import com.google.gson.JsonObject;
-import com.photon.network.NetworkDirectories;
-import com.photon.network.objects.ObjectLicense;
+import com.photon.Directories;
+import com.photon.objects.ObjectLicense;
 import com.photon.util.license.LicenseManager;
 import com.photon.web.endpoints.IEndpoint;
 
@@ -32,18 +32,18 @@ public class LicenseEndpoint implements IEndpoint {
             return;
         }
 
-        final JsonObject body = NetworkDirectories.GSON.fromJson(handler.body(), JsonObject.class);
+        final JsonObject body = Directories.GSON.fromJson(handler.body(), JsonObject.class);
         if (body == null) {
             handler.status(400).result("Invalid JSON body");
             return;
         }
 
-        final String productId = getString(body, "product_id", "productId", NetworkDirectories.getConfig().license_product_id);
+        final String productId = getString(body, "product_id", "productId", Directories.getConfig().license_product_id);
         final String customerName = getString(body, "customer_name", "customerName", "");
         final String customerEmail = getString(body, "customer_email", "customerEmail", "");
         final String tebexOrderId = getString(body, "tebex_order_id", "order_id", "");
         final Long expiresAt = getLong(body, "expires_at", "expiresAt", null);
-        final Long durationDays = getLong(body, "duration_days", "durationDays", NetworkDirectories.getConfig().license_default_duration_days);
+        final Long durationDays = getLong(body, "duration_days", "durationDays", Directories.getConfig().license_default_duration_days);
 
         final Long computedExpiresAt = expiresAt != null ? expiresAt : (durationDays == null || durationDays <= 0L ? null : System.currentTimeMillis() + (durationDays * 86400000L));
         final ObjectLicense license = LicenseManager.issueLicense(productId, customerName, customerEmail, tebexOrderId, computedExpiresAt);
@@ -51,7 +51,7 @@ public class LicenseEndpoint implements IEndpoint {
     }
 
     private static boolean isValidTebexSecret(String headerSecret, String querySecret) {
-        final String expected = NetworkDirectories.getConfig().tebex_webhook_secret;
+        final String expected = Directories.getConfig().tebex_webhook_secret;
         if (expected == null || expected.isBlank()) return true;
         return expected.equals(headerSecret) || expected.equals(querySecret);
     }

@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import com.photon.PhotonEngine;
 import com.photon.network.NetworkEngine;
-import com.photon.network.objects.ObjectPlayerAccount;
+import com.photon.objects.ObjectPlayerAccount;
 import com.photon.util.NetworkOnly;
 import com.photon.util.PhotonLogTypes;
 

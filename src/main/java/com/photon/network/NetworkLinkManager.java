@@ -2,7 +2,7 @@ package com.photon.network;
 
 import com.esotericsoftware.kryonet.Server;
 import com.photon.PhotonEngine;
-import com.photon.network.NetworkDirectories.NetworkConfig;
+import com.photon.Directories.NetworkConfig;
 import com.photon.network.listeners.MessageListenerServer;
 import com.photon.util.NetworkOnly;
 import com.photon.util.PhotonLogTypes;

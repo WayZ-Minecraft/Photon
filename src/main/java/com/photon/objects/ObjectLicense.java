@@ -1,4 +1,4 @@
-package com.photon.network.objects;
+package com.photon.objects;
 
 import java.util.Date;
 

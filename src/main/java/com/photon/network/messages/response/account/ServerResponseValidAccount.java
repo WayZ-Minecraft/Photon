@@ -3,7 +3,7 @@ package com.photon.network.messages.response.account;
 import com.esotericsoftware.kryonet.Connection;
 import com.photon.PhotonClientData;
 import com.photon.network.IPacket;
-import com.photon.network.objects.ObjectPlayerAccount;
+import com.photon.objects.ObjectPlayerAccount;
 
 import org.jetbrains.annotations.Nullable;
 

@@ -3,12 +3,13 @@ package com.photon.network;
 import java.io.IOException;
 
 import com.esotericsoftware.kryonet.Client;
+import com.photon.Directories;
 import com.photon.PhotonEngine;
-import com.photon.network.NetworkDirectories.NetworkConfig;
+import com.photon.Directories.NetworkConfig;
 import com.photon.network.listeners.MessageListenerClient;
 import com.photon.network.listeners.MessageListenerCommon;
-import com.photon.network.messages.requests.ClientRequestNetworkConfig;
 import com.photon.network.messages.requests.ClientRequestRegisterConnection;
+import com.photon.network.http.NetworkWebClient;
 import com.photon.util.PhotonLogTypes;
 import com.photon.util.ProtectorManager;
 
@@ -21,17 +22,20 @@ public class ClientLinkManager {
     protected static Client client = new Client(NetworkConfig.WRITE_BUFFER_SIZE, NetworkConfig.OBJECT_BUFFER_SIZE);
     
     public static void load() throws IOException {
-        NetworkObjectRegistry.load(client.getKryo());
-    	new Thread(client, "Client Network Connection").start();
-        client.connect(5000, PhotonEngine.network_Ip, PhotonEngine.network_Tcp, PhotonEngine.network_Udp);
-    	client.addListener(new MessageListenerClient());
-    	client.addListener(new MessageListenerCommon());
         try {
-            if(NetworkDirectories.getConfig() == null || NetworkDirectories.getConfig().isEmpty()) {
-                ClientLinkManager.sendTCP(new ClientRequestNetworkConfig());
-                synchronized (NetworkDirectories.CONFIG_WAITER) { NetworkDirectories.CONFIG_WAITER.wait(); }
+            if(Directories.getConfig() == null || Directories.getConfig().isEmpty()) {
+                final NetworkConfig fetchedConfig = NetworkWebClient.fetchNetworkConfig(PhotonEngine.network_Ip, Directories.getConfig().webserver_port);
+                if (fetchedConfig != null) {
+                    Directories.config = fetchedConfig;
+                    Directories.save();
+                }
             }
-        } catch (InterruptedException e) { Console.log(e).type(PhotonLogTypes.NETWORK).error().send(); }
+        } catch (Exception e) { Console.log(e).type(PhotonLogTypes.NETWORK).error().send(); }
+        NetworkObjectRegistry.load(client.getKryo());
+	new Thread(client, "Client Network Connection").start();
+        client.connect(5000, PhotonEngine.network_Ip, PhotonEngine.network_Tcp, PhotonEngine.network_Udp);
+	client.addListener(new MessageListenerClient());
+	client.addListener(new MessageListenerCommon());
         ClientLinkManager.sendTCP(new ClientRequestRegisterConnection(ProtectorManager.getHWID()));
     }
     
@@ -45,6 +49,10 @@ public class ClientLinkManager {
     public static void sendUDP(Object obj) {
         if(!isConnected()) return;
         client.sendUDP(obj);
+    }
+
+    public static void refreshServerListFromWeb() throws IOException {
+        NetworkWebClient.refreshServerList(PhotonEngine.network_Ip, Directories.getConfig().webserver_port);
     }
     
     public static void attemptReconnectionFromClient() {

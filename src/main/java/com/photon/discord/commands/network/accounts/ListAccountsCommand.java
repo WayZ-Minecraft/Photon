@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.StringJoiner;
 
 import com.photon.discord.commands.AbstractSlashCommand;
-import com.photon.network.objects.ObjectPlayerAccount;
+import com.photon.objects.ObjectPlayerAccount;
 import com.photon.sql.PlayerAccountTable;
 import com.photon.util.NetworkOnly;
 import com.photon.util.TranslationManager;

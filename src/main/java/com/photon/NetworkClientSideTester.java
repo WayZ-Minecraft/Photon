@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.util.UUID;
 
 import com.photon.network.ClientLinkManager;
-import com.photon.network.NetworkDirectories;
-import com.photon.network.NetworkDirectories.NetworkConfig;
+import com.photon.PhotonClientData;
+import com.photon.Directories.NetworkConfig;
 import com.photon.network.NetworkEngine;
 import com.photon.network.messages.requests.ClientRequestAnticheat;
 import com.photon.network.messages.requests.ClientRequestCrashReport;
@@ -33,6 +33,13 @@ public class NetworkClientSideTester {
 
             /* Connecting to local network after trying to connect to a random IP */
             PhotonEngine.loadClient(PhotonEngine.LOCAL_IP);
+
+            try {
+                ClientLinkManager.refreshServerListFromWeb();
+                Console.log("Fetched server list from web: " + PhotonClientData.CLIENT_SERVER_LIST.size() + " entries").type(PhotonLogTypes.TESTER).send();
+            } catch (IOException e) {
+                Console.log("Failed to fetch server list from web: " + e.getMessage()).error().type(PhotonLogTypes.TESTER).send();
+            }
 
             final String GENERATED_USERNAME = "TestUser_" + System.currentTimeMillis() % 1000;
             final String GENERATED_UUID = UUID.randomUUID().toString();
@@ -72,7 +79,7 @@ public class NetworkClientSideTester {
                 if (LOGO == null) Console.log("Logo is NULL - not received from server yet or failed to load").error().send();
                 else
                     Console.log(
-                        String.format("Logo loaded successfully (Width: %dpx/Height: %dpx/Type: %d - Size : %d Kb)", LOGO.getWidth(), LOGO.getHeight(), LOGO.getType(), NetworkDirectories.getConfig().gameLogo.length / 1024)
+                        String.format("Logo loaded successfully (Width: %dpx/Height: %dpx/Type: %d - Size : %d Kb)", LOGO.getWidth(), LOGO.getHeight(), LOGO.getType(), Directories.getConfig().gameLogo.length / 1024)
                     ).container(PhotonEngine.LOGGER).send();
             }
 

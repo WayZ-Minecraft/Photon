@@ -1,4 +1,4 @@
-package com.photon.network.objects;
+package com.photon.objects;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.reflect.TypeToken;
+import com.photon.Directories;
 import com.photon.PhotonEngine;
-import com.photon.network.NetworkDirectories;
 
 import niwer.lumen.Console;
 import niwer.queryon.SQLSerializable;
@@ -66,7 +66,7 @@ public class ObjectPlayerAccount extends SQLSerializable<ObjectPlayerAccount> {
         if (this.firends == null || this.firends.isEmpty()) return new ArrayList<>();
         try {
             TypeToken<ArrayList<String>> typeToken = new TypeToken<ArrayList<String>>() {};
-            return NetworkDirectories.GSON.fromJson(this.firends, typeToken.getType());
+            return Directories.GSON.fromJson(this.firends, typeToken.getType());
         } catch (Exception e) {
             Console.log("Error parsing friends JSON for " + this.uuid + ": " + e.getMessage()).error().container(PhotonEngine.LOGGER).send();
             return new ArrayList<>();

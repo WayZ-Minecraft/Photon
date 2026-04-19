@@ -1,4 +1,4 @@
-package com.photon.network;
+package com.photon;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -16,7 +16,6 @@ import javax.imageio.ImageIO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
-import com.photon.PhotonEngine;
 import com.photon.util.PhotonLogTypes;
 import com.photon.util.os.FileLocation;
 import com.photon.util.updater.UpdateChannel;
@@ -24,7 +23,7 @@ import com.photon.util.updater.UpdateFileType;
 
 import niwer.lumen.Console;
 
-public class NetworkDirectories
+public class Directories
 {
 	public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();	
 	private static final Gson PRETTY_GSON = new GsonBuilder().setPrettyPrinting().create();	
@@ -34,7 +33,6 @@ public class NetworkDirectories
 	public static final File LOGO_FILE = new File(BASE_DIR + "/project_logo.png");
 	public static final File DATA_BASE_FILE = new File(BASE_DIR, "network.db");
 
-	public static final Object CONFIG_WAITER = new Object();
 	public static NetworkConfig config = NetworkConfig.DEFAULT;
 	public static File configFile = new File(BASE_DIR + "/config.json");
 	
@@ -62,7 +60,7 @@ public class NetworkDirectories
 		} catch (IOException e) {}
 	}
 
-	public static String getPathForUpdateChannel(UpdateFileType type, UpdateChannel channel) { return NetworkDirectories.getConfig().filePaths.get(type).get(channel); }
+	public static String getPathForUpdateChannel(UpdateFileType type, UpdateChannel channel) { return Directories.getConfig().filePaths.get(type).get(channel); }
 
 	/**
 	 * Save all directories and files

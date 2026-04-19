@@ -107,24 +107,24 @@ public final class LicenseManager {
 		final ObjectLicense license = LicenseTable.getByKey(normalizedKey);
 		if (license == null) return LicenseValidationResult.invalid(LicenseFailureReason.MISSING_LICENSE_KEY, "License key was not found in the Photon license database");
 
-		if (license.productId == null || !license.productId.equalsIgnoreCase(expectedProductId)) return LicenseValidationResult.invalid(LicenseFailureReason.PRODUCT_MISMATCH, "License is not valid for product '" + expectedProductId + "'");
-		if (LicenseTable.LicenseStatus.fromString(license.status) == LicenseTable.LicenseStatus.REVOKED) return LicenseValidationResult.invalid(LicenseFailureReason.UNEXPECTED_ERROR, "License key has been revoked");
+		if (license.productId() == null || !license.productId().equalsIgnoreCase(expectedProductId)) return LicenseValidationResult.invalid(LicenseFailureReason.PRODUCT_MISMATCH, "License is not valid for product '" + expectedProductId + "'");
+		if (LicenseTable.LicenseStatus.fromString(license.status()) == LicenseTable.LicenseStatus.REVOKED) return LicenseValidationResult.invalid(LicenseFailureReason.UNEXPECTED_ERROR, "License key has been revoked");
 		if (license.isExpired()) return LicenseValidationResult.invalid(LicenseFailureReason.EXPIRED, "License key has expired");
 
 		final String currentHardwareId = OperatingSystem.getHWID();
-		if (license.hwid != null && !license.hwid.isBlank()) {
-			if (!license.hwid.equalsIgnoreCase(currentHardwareId)) return LicenseValidationResult.invalid(LicenseFailureReason.HARDWARE_MISMATCH, "License key is bound to another machine");
+		if (license.hwid() != null && !license.hwid().isBlank()) {
+			if (!license.hwid().equalsIgnoreCase(currentHardwareId)) return LicenseValidationResult.invalid(LicenseFailureReason.HARDWARE_MISMATCH, "License key is bound to another machine");
 		} else if (currentHardwareId != null && !currentHardwareId.isBlank()) LicenseTable.activate(normalizedKey, currentHardwareId);
 
 		return LicenseValidationResult.valid(new LicenseClaims(
 			normalizedKey,
-			license.productId,
-			license.customerName,
-			license.customerEmail,
+			license.productId(),
+			license.customerName(),
+			license.customerEmail(),
 			currentHardwareId,
-			license.createdAt == null ? null : license.createdAt.getTime(),
-			license.expiresAt == null ? null : license.expiresAt.getTime(),
-			license.tebexOrderId
+			license.createdAt() == null ? null : license.createdAt().getTime(),
+			license.expiresAt() == null ? null : license.expiresAt().getTime(),
+			license.tebexOrderId()
 		));
 	}
 

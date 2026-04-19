@@ -61,7 +61,7 @@ public class ManagerAccountCommand extends AbstractSlashCommand {
                 event.reply("Not supported yet. Use the SQL Command.").setEphemeral(true).queue();
                 break;
             case DELETE:
-                PlayerAccountTable.deleteAccount(profile.uuid);
+                PlayerAccountTable.deleteAccount(profile.uuid());
                 event.reply("The profile has been deleted !").queue();
                 break;
         }

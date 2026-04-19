@@ -16,48 +16,41 @@ import niwer.queryon.tables.api.IColumnField;
 public class ObjectPlayerAccount extends SQLSerializable<ObjectPlayerAccount> {
 
     @IColumnField(name = "username", notNull = true)
-	public String username;
+	private String username;
 
     @IColumnField(name = "email", notNull = true)
-	public String email;
+	private String email;
 
     @IColumnField(name = "password", notNull = true)
-	public String password;
+	private String password;
 
     @IColumnField(name = "twoAuthFactor")
-	public boolean twoAuthFactor = false;
+	private boolean twoAuthFactor = false;
 
     @IColumnField(name = "uuid", notNull = true)
-	public String uuid;
+	private String uuid;
 	
     @IColumnField(name = "discordID", charLimit = 1024)
-    public String discordID;
+    private String discordID;
 
     @IColumnField(name = "discordAuthCode", notNull = true)
-    public String discordAuthCode;
-    
+    private String discordAuthCode = generateAuthCode();
     
     @IColumnField(name = "projectAuthor")
-    public boolean projectAuthor = false;
+    private boolean projectAuthor = false;
 
     @IColumnField(name = "serverCreator")
-    public boolean serverCreator = false;
+    private boolean serverCreator = false;
 
     @IColumnField(name = "shopCoins")
-    public int shopCoins = 0;
+    private int shopCoins = 0;
 
     @IColumnField(name = "friends")
-    public String firends = "[]"; // JSON Array of UUID friends
-    
-    public ObjectPlayerAccount() {
-    	this.discordAuthCode = generateAuthCode();
-    }
-    
+    private String firends = "[]"; // JSON Array of UUID friends
+
     public static String generateAuthCode() { return new BigInteger(40, new SecureRandom()).toString(32); }
 
-    public boolean hasDiscordLinked() {
-        return this.discordID != null && !this.discordID.isEmpty();
-    }
+    public boolean hasDiscordLinked() { return this.discordID != null && !this.discordID.isEmpty(); }
 
     public List<String> getFriendsList() {
         if (this.firends == null || this.firends.isEmpty()) return new ArrayList<>();
@@ -77,4 +70,24 @@ public class ObjectPlayerAccount extends SQLSerializable<ObjectPlayerAccount> {
                 + ", discordAuthCode=" + discordAuthCode + ", projectAuthor=" + projectAuthor
                 + ", serverCreator=" + serverCreator + ", shopCoins=" + shopCoins + ", firends=" + firends + "]";
     }
+
+    public String username() { return this.username; }
+
+    public String email() { return this.email; }
+
+    public String password() { return this.password; }
+
+    public boolean twoAuthFactor() { return this.twoAuthFactor; }
+
+    public String uuid() { return this.uuid; }
+
+    public String discordID() { return this.discordID; }
+
+    public String discordAuthCode() { return this.discordAuthCode; }
+
+    public boolean projectAuthor() { return this.projectAuthor; }
+
+    public boolean serverCreator() { return this.serverCreator; }
+
+    public int shopCoins() { return this.shopCoins; }
 }

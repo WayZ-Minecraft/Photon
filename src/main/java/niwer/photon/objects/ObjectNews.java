@@ -27,9 +27,9 @@ public class ObjectNews extends SQLSerializable<ObjectNews>
 
 	@IColumnField(name = "image")
 	private String imageUrl;
-	
-	public ObjectNews() {}
 
+	public ObjectNews() {}
+	
 	/**
 	 * Make a news object
 	 * @param title the title of the news

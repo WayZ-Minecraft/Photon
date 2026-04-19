@@ -7,34 +7,34 @@ import niwer.queryon.tables.api.IColumnField;
 
 public class ObjectLicense extends SQLSerializable<ObjectLicense> {
 	@IColumnField(name = "license_key", primaryKey = true, notNull = true)
-	public String licenseKey;
+	private String licenseKey;
 
 	@IColumnField(name = "product_id", notNull = true)
-	public String productId;
+	private String productId;
 
 	@IColumnField(name = "customer_name")
-	public String customerName;
+	private String customerName;
 
 	@IColumnField(name = "customer_email")
-	public String customerEmail;
+	private String customerEmail;
 
 	@IColumnField(name = "tebex_order_id")
-	public String tebexOrderId;
+	private String tebexOrderId;
 
 	@IColumnField(name = "hwid")
-	public String hwid;
+	private String hwid;
 
 	@IColumnField(name = "status", notNull = true)
-	public String status;
+	private String status;
 
 	@IColumnField(name = "created_at")
-	public Date createdAt = new Date();
+	private Date createdAt = new Date();
 
 	@IColumnField(name = "activated_at")
-	public Date activatedAt;
+	private Date activatedAt;
 
 	@IColumnField(name = "expires_at")
-	public Date expiresAt;
+	private Date expiresAt;
 
 	public ObjectLicense() {}
 
@@ -48,7 +48,25 @@ public class ObjectLicense extends SQLSerializable<ObjectLicense> {
 		this.expiresAt = expiresAt;
 	}
 
-	public boolean isExpired() {
-		return this.expiresAt != null && this.expiresAt.before(new Date());
-	}
+	public boolean isExpired() { return this.expiresAt != null && this.expiresAt.before(new Date()); }
+
+	public String licenseKey() { return this.licenseKey; }
+
+	public String productId() { return this.productId; }
+
+	public String customerName() { return this.customerName; }
+
+	public String customerEmail() { return this.customerEmail; }
+
+	public String tebexOrderId() { return this.tebexOrderId; }
+
+	public String hwid() { return this.hwid; }
+
+	public String status() { return this.status; }
+
+	public Date createdAt() { return this.createdAt; }
+
+	public Date activatedAt() { return this.activatedAt; }
+
+	public Date expiresAt() { return this.expiresAt; }
 }

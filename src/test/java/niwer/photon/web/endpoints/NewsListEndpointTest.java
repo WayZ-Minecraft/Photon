@@ -9,13 +9,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import niwer.photon.objects.ObjectNews;
-import niwer.photon.sql.NewsTable;
+import niwer.photon.sql.tables.NewsTableTest;
 
 class NewsListEndpointTest {
 
     @AfterEach
     void resetState() {
-        NewsTable.reset();
+        NewsTableTest.reset();
     }
 
     @Test
@@ -32,9 +32,9 @@ class NewsListEndpointTest {
             new ObjectNews(1, "Title 1", "English 1", "French 1", new Date(0L), "https://example.com/1.png"),
             new ObjectNews(2, "Title 2", "English 2", "French 2", new Date(1_000L), "https://example.com/2.png")
         );
-        NewsTable.setAllNews(news);
+        NewsTableTest.setAllNews(news);
 
-        final ContextStub stub = new ContextStub();
+        final ContextStubTest stub = new ContextStubTest();
         new niwer.photon.web.endpoints.news.NewsListEndpoint().handle(stub.context());
 
         assertEquals(news, stub.jsonBody());

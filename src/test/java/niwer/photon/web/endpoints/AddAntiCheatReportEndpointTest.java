@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
 
-import niwer.photon.sql.AnticheatTable;
+import niwer.photon.sql.tables.AnticheatTableTest;
 
 class AddAntiCheatReportEndpointTest {
 
@@ -19,7 +19,7 @@ class AddAntiCheatReportEndpointTest {
 
     @Test
     void rejectsMissingParameters() {
-        final ContextStub stub = new ContextStub();
+        final ContextStubTest stub = new ContextStubTest();
 
         new AddAntiCheatReportEndpoint().handle(stub.context());
 
@@ -29,7 +29,7 @@ class AddAntiCheatReportEndpointTest {
 
     @Test
     void rejectsBlankParameters() {
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .formParam("fileMessage", "message")
             .formParam("fileName", "")
             .formParam("userUUID", "uuid")
@@ -43,7 +43,7 @@ class AddAntiCheatReportEndpointTest {
 
     @Test
     void savesValidAntiCheatPayload() {
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .formParam("fileMessage", "Traceback")
             .formParam("fileName", "anticheat.log")
             .formParam("userUUID", "uuid-789")
@@ -51,10 +51,10 @@ class AddAntiCheatReportEndpointTest {
 
         new AddAntiCheatReportEndpoint().handle(stub.context());
 
-        assertEquals("uuid-789", AnticheatTable.lastUserUUID());
-        assertEquals("anticheat.log", AnticheatTable.lastFileName());
-        assertEquals("Traceback", AnticheatTable.lastFileMessage());
-        assertEquals("Windows", AnticheatTable.lastOperatingSystem());
+        assertEquals("uuid-789", AnticheatTableTest.lastUserUUID());
+        assertEquals("anticheat.log", AnticheatTableTest.lastFileName());
+        assertEquals("Traceback", AnticheatTableTest.lastFileMessage());
+        assertEquals("Windows", AnticheatTableTest.lastOperatingSystem());
         assertNull(stub.statusCode());
         assertNull(stub.resultBody());
     }

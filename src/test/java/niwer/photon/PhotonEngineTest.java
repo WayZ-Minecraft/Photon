@@ -83,10 +83,10 @@ class PhotonEngineTest {
             resetLoggerHandlers();
             resetDatabaseRegistry();
             Directories.configFile = configFile.toFile();
-            niwer.photon.discord.BotEngine.reset();
+            niwer.photon.discord.BotEngineTest.reset();
             assertDoesNotThrow(() -> PhotonEngine.main(new String[0]));
 
-            assertFalse(niwer.photon.discord.BotEngine.wasLoadCalled());
+            assertFalse(niwer.photon.discord.BotEngineTest.wasLoadCalled());
         } finally {
             resetLoggerHandlers();
             resetDatabaseRegistry();
@@ -105,11 +105,11 @@ class PhotonEngineTest {
             resetLoggerHandlers();
             resetDatabaseRegistry();
             Directories.configFile = configFile.toFile();
-            niwer.photon.discord.BotEngine.reset();
+            niwer.photon.discord.BotEngineTest.reset();
             assertDoesNotThrow(() -> PhotonEngine.main(new String[] { "--restart" }));
 
-            assertTrue(niwer.photon.discord.BotEngine.wasLoadCalled());
-            assertTrue(niwer.photon.discord.BotEngine.lastRestartValue());
+            assertTrue(niwer.photon.discord.BotEngineTest.wasLoadCalled());
+            assertTrue(niwer.photon.discord.BotEngineTest.lastRestartValue());
         } finally {
             resetLoggerHandlers();
             resetDatabaseRegistry();

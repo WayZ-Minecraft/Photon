@@ -1,15 +1,15 @@
-package niwer.photon.sql;
+package niwer.photon.sql.tables;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import niwer.photon.objects.ObjectNews;
 
-public final class NewsTable {
+public final class NewsTableTest {
 
     private static List<ObjectNews> allNews = new ArrayList<>();
 
-    private NewsTable() {}
+    private NewsTableTest() {}
 
     public static void reset() {
         allNews = new ArrayList<>();

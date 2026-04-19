@@ -35,7 +35,7 @@ class UpdateEndpointTest {
 
     @Test
     void rejectsMissingParameters() {
-        final ContextStub stub = new ContextStub();
+        final ContextStubTest stub = new ContextStubTest();
 
         new UpdateEndpoint().handle(stub.context());
 
@@ -45,7 +45,7 @@ class UpdateEndpointTest {
 
     @Test
     void rejectsInvalidTypeOrChannel() {
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .queryParam("type", "plugin")
             .queryParam("channel", "dev");
 
@@ -62,7 +62,7 @@ class UpdateEndpointTest {
             UpdateFileType.NETWORK, Map.of(UpdateChannel.DEV, "c:/nope/network-dev.jar")
         );
 
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .queryParam("type", "network")
             .queryParam("channel", "dev");
 
@@ -82,7 +82,7 @@ class UpdateEndpointTest {
             UpdateFileType.NETWORK, Map.of(UpdateChannel.DEV, file.toString())
         );
 
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .queryParam("type", "network")
             .queryParam("channel", "dev")
             .queryParam("metadata", "true");
@@ -107,7 +107,7 @@ class UpdateEndpointTest {
             UpdateFileType.NETWORK, Map.of(UpdateChannel.DEV, file.toString())
         );
 
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .queryParam("type", "network")
             .queryParam("channel", "dev");
 
@@ -129,7 +129,7 @@ class UpdateEndpointTest {
             UpdateFileType.NETWORK, Map.of(UpdateChannel.DEV, directory.toString())
         );
 
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .queryParam("type", "network")
             .queryParam("channel", "dev");
 

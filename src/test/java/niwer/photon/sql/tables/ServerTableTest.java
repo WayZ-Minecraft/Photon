@@ -1,16 +1,16 @@
-package niwer.photon.sql;
+package niwer.photon.sql.tables;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import niwer.photon.objects.ObjectServer;
 
-public final class ServerTable {
+public final class ServerTableTest {
 
     private static ObjectServer lastSavedServer;
     private static List<ObjectServer> visibleServers = new ArrayList<>();
 
-    private ServerTable() {}
+    private ServerTableTest() {}
 
     public static void reset() {
         lastSavedServer = null;

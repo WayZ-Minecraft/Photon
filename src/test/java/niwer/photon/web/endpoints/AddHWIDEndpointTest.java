@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
 
-import niwer.photon.sql.HWIDTable;
+import niwer.photon.sql.tables.HWIDTableTest;
 
 class AddHWIDEndpointTest {
 
@@ -19,7 +19,7 @@ class AddHWIDEndpointTest {
 
     @Test
     void rejectsMissingParameters() {
-        final ContextStub stub = new ContextStub();
+        final ContextStubTest stub = new ContextStubTest();
 
         new AddHWIDEndpoint().handle(stub.context());
 
@@ -29,7 +29,7 @@ class AddHWIDEndpointTest {
 
     @Test
     void rejectsBlankParameters() {
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .formParam("hwid", " ")
             .formParam("userUUID", "uuid")
             .formParam("operatingSystem", "Windows");
@@ -42,16 +42,16 @@ class AddHWIDEndpointTest {
 
     @Test
     void savesValidHwIDPayload() {
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .formParam("hwid", "hwid-123")
             .formParam("userUUID", "uuid-123")
             .formParam("operatingSystem", "Windows");
 
         new AddHWIDEndpoint().handle(stub.context());
 
-        assertEquals("uuid-123", HWIDTable.lastUserUUID());
-        assertEquals("hwid-123", HWIDTable.lastHWID());
-        assertEquals("Windows", HWIDTable.lastOperatingSystem());
+        assertEquals("uuid-123", HWIDTableTest.lastUserUUID());
+        assertEquals("hwid-123", HWIDTableTest.lastHWID());
+        assertEquals("Windows", HWIDTableTest.lastOperatingSystem());
         assertNull(stub.statusCode());
         assertNull(stub.resultBody());
     }

@@ -1,11 +1,11 @@
-package niwer.photon.sql;
+package niwer.photon.sql.tables;
 
-public final class PlayerAccountTable {
+public final class PlayerAccountTableTest {
 
     private static boolean emailExistsResult;
     private static String lastEmailChecked;
 
-    private PlayerAccountTable() {}
+    private PlayerAccountTableTest() {}
 
     public static void reset() {
         emailExistsResult = false;

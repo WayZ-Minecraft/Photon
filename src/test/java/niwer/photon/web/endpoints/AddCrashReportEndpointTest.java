@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
 
-import niwer.photon.sql.CrashReportTable;
+import niwer.photon.sql.tables.CrashReportTableTest;
 
 class AddCrashReportEndpointTest {
 
@@ -19,7 +19,7 @@ class AddCrashReportEndpointTest {
 
     @Test
     void rejectsMissingParameters() {
-        final ContextStub stub = new ContextStub();
+        final ContextStubTest stub = new ContextStubTest();
 
         new AddCrashReportEndpoint().handle(stub.context());
 
@@ -29,7 +29,7 @@ class AddCrashReportEndpointTest {
 
     @Test
     void rejectsBlankParameters() {
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .formParam("fileMessage", "")
             .formParam("fileName", "crash.log")
             .formParam("userUUID", "uuid");
@@ -42,16 +42,16 @@ class AddCrashReportEndpointTest {
 
     @Test
     void savesValidCrashReportPayload() {
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .formParam("fileMessage", "Traceback")
             .formParam("fileName", "crash.log")
             .formParam("userUUID", "uuid-456");
 
         new AddCrashReportEndpoint().handle(stub.context());
 
-        assertEquals("uuid-456", CrashReportTable.lastUserUUID());
-        assertEquals("crash.log", CrashReportTable.lastFileName());
-        assertEquals("Traceback", CrashReportTable.lastFileMessage());
+        assertEquals("uuid-456", CrashReportTableTest.lastUserUUID());
+        assertEquals("crash.log", CrashReportTableTest.lastFileName());
+        assertEquals("Traceback", CrashReportTableTest.lastFileMessage());
         assertNull(stub.statusCode());
         assertNull(stub.resultBody());
     }

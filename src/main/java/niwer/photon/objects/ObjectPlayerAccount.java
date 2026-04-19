@@ -22,7 +22,7 @@ public class ObjectPlayerAccount extends SQLSerializable<ObjectPlayerAccount> {
 	private String email;
 
     @IColumnField(name = "password", notNull = true)
-	private String password;
+	private transient String password; // This field should not be serialized to the gson (when sent to clients) for security reasons.
 
     @IColumnField(name = "twoAuthFactor")
 	private boolean twoAuthFactor = false;

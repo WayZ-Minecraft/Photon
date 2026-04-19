@@ -12,15 +12,9 @@ import io.javalin.http.Context;
  */
 public class AddServerEndpoint implements IEndpoint {
 
-    @Override
-    public String path() {
-        return "/api/add-server";
-    }
+    @Override public String path() { return "/api/add-server"; }
 
-    @Override
-    public HttpMethod method() {
-        return HttpMethod.POST;
-    }
+    @Override public HttpMethod method() { return HttpMethod.POST; }
 
     @Override
     public void handle(Context handler) {

@@ -1,9 +1,9 @@
 package niwer.photon.web.endpoints.accounts;
 
+import io.javalin.http.Context;
+import niwer.photon.objects.ObjectPlayerAccount;
 import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.web.endpoints.IEndpoint;
-
-import io.javalin.http.Context;
 
 /**
  * Endpoint to handle account creation. This is a placeholder implementation and should be properly implemented with necessary validations, password hashing, and database storage.
@@ -12,15 +12,9 @@ import io.javalin.http.Context;
  */
 public class CreateAccountEndpoint implements IEndpoint {
 
-    @Override
-    public String path() {
-        return "/accounts/create_account";
-    }
+    @Override public String path() { return "/accounts/create_account"; }
 
-    @Override
-    public HttpMethod method() {
-        return HttpMethod.POST;
-    }
+    @Override public HttpMethod method() { return HttpMethod.POST; }
 
     @Override
     public void handle(Context handler) {
@@ -40,13 +34,42 @@ public class CreateAccountEndpoint implements IEndpoint {
             return;
         }
 
+        /* Ensure the email address is valid */
+        if(!validEmailAddress(email)) {
+            handler.status(400).result("Invalid email address");
+            return;
+        }
+
+        /* Ensure the password is at least 8 characters long */
+        if(password.length() < 8) {
+            handler.status(400).result("Password must be at least 8 characters long");
+            return;
+        }
+
+        /* Ensure the email address is not already in use */
         if(PlayerAccountTable.emailExists(email)) {
             handler.status(400).result("An account with this email already exists.");
             return;
         }
 
+        /* Ensure the username is not already in use */
+        if(PlayerAccountTable.usernameExists(username)) {
+            handler.status(400).result("An account with this username already exists.");
+            return;
+        }
+
         /* Create the account */
-        // PlayerAccountTable.createAccount(username, email, password); //TODO Send back the created account's details or a success message after implementing the method in PlayerAccountTable
-        // handler.status(200).result("Account created successfully.");
+        final ObjectPlayerAccount ACCOUNT = PlayerAccountTable.createAccount(username, email, password);
+        if(ACCOUNT == null) {
+            handler.status(500).result("Failed to create account");
+            return;
+        }
+
+        handler.json(ACCOUNT); // Send the created account's details as a JSON response
     }
+
+    private static boolean validEmailAddress(String email) {
+		final Pattern EMAIL_PATTERN = Pattern.compile("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}");
+        return EMAIL_PATTERN.matcher(email).matches();
+	}
 }

@@ -2,22 +2,22 @@ package niwer.photon.web;
 
 import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.classic.Logger;
+import io.javalin.Javalin;
 import niwer.photon.Directories;
 import niwer.photon.web.endpoints.AddAntiCheatReportEndpoint;
 import niwer.photon.web.endpoints.AddCrashReportEndpoint;
 import niwer.photon.web.endpoints.AddHWIDEndpoint;
 import niwer.photon.web.endpoints.IEndpoint;
 import niwer.photon.web.endpoints.NetworkConfigEndpoint;
-import niwer.photon.web.endpoints.UpdateEndpoint;
 import niwer.photon.web.endpoints.RestartEndpoint;
+import niwer.photon.web.endpoints.UpdateEndpoint;
+import niwer.photon.web.endpoints.accounts.AuthAccountEndpoint;
+import niwer.photon.web.endpoints.accounts.CreateAccountEndpoint;
 import niwer.photon.web.endpoints.news.NewsListEndpoint;
 import niwer.photon.web.endpoints.servers.AddServerEndpoint;
 import niwer.photon.web.endpoints.servers.ServerListEndpoint;
-import niwer.photon.web.endpoints.accounts.CreateAccountEndpoint;
 import niwer.photon.web.endpoints.tebex.LicenseEndpoint;
-
-import ch.qos.logback.classic.Logger;
-import io.javalin.Javalin;
 
 public class WebServerEngine {
 
@@ -50,6 +50,7 @@ public class WebServerEngine {
             {
                 /* Accounts */
                 IEndpoint.register(cfg, CreateAccountEndpoint.class);
+                IEndpoint.register(cfg, AuthAccountEndpoint.class);
             }
             {
                 /* Servers */

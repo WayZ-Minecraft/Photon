@@ -1,30 +1,29 @@
-package niwer.photon.sqlreal;
+package niwer.photon.sql;
 
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
-import java.util.Objects;
 
-final class SqlProductionTestSupport {
+public final class SqlProductionTestSupportTest {
 
-    private static final ClassLoader PARENT = SqlProductionTestSupport.class.getClassLoader();
-    private static final ProductionSqlClassLoader LOADER = new ProductionSqlClassLoader(resolveUrls(), PARENT);
+    private static final ClassLoader PARENT = SqlProductionTestSupportTest.class.getClassLoader();
+    private static final ProductionSqlClassLoaderTest LOADER = new ProductionSqlClassLoaderTest(resolveUrls(), PARENT);
 
-    private SqlProductionTestSupport() {}
+    private SqlProductionTestSupportTest() {}
 
-    static Class<?> load(String className) throws ClassNotFoundException {
+    public static Class<?> load(String className) throws ClassNotFoundException {
         return Class.forName(className, true, LOADER);
     }
 
-    static Object invokeStatic(String className, String methodName, Class<?>[] parameterTypes, Object... arguments) throws Exception {
+    public static Object invokeStatic(String className, String methodName, Class<?>[] parameterTypes, Object... arguments) throws Exception {
         return load(className).getDeclaredMethod(methodName, parameterTypes).invoke(null, arguments);
     }
 
-    static Object newInstance(String className, Class<?>[] parameterTypes, Object... arguments) throws Exception {
+    public static Object newInstance(String className, Class<?>[] parameterTypes, Object... arguments) throws Exception {
         return load(className).getDeclaredConstructor(parameterTypes).newInstance(arguments);
     }
 
-    static Class<?> nestedClass(String outerClassName, String nestedSimpleName) throws ClassNotFoundException {
+    public static Class<?> nestedClass(String outerClassName, String nestedSimpleName) throws ClassNotFoundException {
         return load(outerClassName + "$" + nestedSimpleName);
     }
 
@@ -40,9 +39,9 @@ final class SqlProductionTestSupport {
         }
     }
 
-    private static final class ProductionSqlClassLoader extends URLClassLoader {
+    private static final class ProductionSqlClassLoaderTest extends URLClassLoader {
 
-        private ProductionSqlClassLoader(URL[] urls, ClassLoader parent) {
+        private ProductionSqlClassLoaderTest(URL[] urls, ClassLoader parent) {
             super(urls, parent);
         }
 

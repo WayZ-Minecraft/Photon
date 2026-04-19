@@ -7,15 +7,9 @@ import io.javalin.http.Context;
 
 public class NewsListEndpoint implements IEndpoint {
 
-    @Override
-    public String path() {
-        return "/api/news";
-    }
+    @Override public String path() { return "/api/news"; }
 
-    @Override
-    public HttpMethod method() {
-        return HttpMethod.GET;
-    }
+    @Override public HttpMethod method() { return HttpMethod.GET; }
 
     @Override
     public void handle(Context handler) {

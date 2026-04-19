@@ -10,13 +10,13 @@ import org.junit.jupiter.api.Test;
 
 import niwer.photon.Directories;
 import niwer.photon.objects.ObjectServer;
-import niwer.photon.sql.ServerTable;
+import niwer.photon.sql.tables.ServerTableTest;
 
 class AddServerEndpointTest {
 
     @AfterEach
     void resetState() {
-        ServerTable.reset();
+        ServerTableTest.reset();
         Directories.config = Directories.getConfig();
     }
 
@@ -30,7 +30,7 @@ class AddServerEndpointTest {
 
     @Test
     void rejectsInvalidJsonPayload() {
-        final ContextStub stub = new ContextStub().body("not-json");
+        final ContextStubTest stub = new ContextStubTest().body("not-json");
 
         new niwer.photon.web.endpoints.servers.AddServerEndpoint().handle(stub.context());
 
@@ -40,7 +40,7 @@ class AddServerEndpointTest {
 
     @Test
     void rejectsNullJsonPayload() {
-        final ContextStub stub = new ContextStub().body("null");
+        final ContextStubTest stub = new ContextStubTest().body("null");
 
         new niwer.photon.web.endpoints.servers.AddServerEndpoint().handle(stub.context());
 
@@ -50,7 +50,7 @@ class AddServerEndpointTest {
 
     @Test
     void rejectsMismatchedIp() {
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .ip("127.0.0.1")
             .body(Directories.GSON.toJson(serverPayload("192.0.2.1", 25565, "Server")));
 
@@ -62,7 +62,7 @@ class AddServerEndpointTest {
 
     @Test
     void rejectsInvalidPortAndMissingName() {
-        final ContextStub invalidPort = new ContextStub()
+        final ContextStubTest invalidPort = new ContextStubTest()
             .ip("127.0.0.1")
             .body(Directories.GSON.toJson(serverPayload("127.0.0.1", 0, "Server")));
 
@@ -70,7 +70,7 @@ class AddServerEndpointTest {
         assertEquals(400, invalidPort.statusCode());
         assertEquals("Invalid server port", invalidPort.resultBody());
 
-        final ContextStub missingName = new ContextStub()
+        final ContextStubTest missingName = new ContextStubTest()
             .ip("127.0.0.1")
             .body(Directories.GSON.toJson(serverPayload("127.0.0.1", 25565, "   ")));
 
@@ -87,7 +87,7 @@ class AddServerEndpointTest {
         payload.site = "https://example.com";
         payload.discord = "https://discord.gg/example";
 
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .ip("127.0.0.1")
             .body(Directories.GSON.toJson(payload));
 
@@ -97,8 +97,8 @@ class AddServerEndpointTest {
         final ObjectServer saved = (ObjectServer) stub.jsonBody();
         assertEquals("Photon Server", saved.serverName);
         assertEquals(2048, saved.serverMOTD.length());
-        assertEquals(saved, ServerTable.lastSavedServer());
-        assertEquals("Photon Server", ServerTable.lastSavedServer().serverName);
+        assertEquals(saved, ServerTableTest.lastSavedServer());
+        assertEquals("Photon Server", ServerTableTest.lastSavedServer().serverName);
     }
 
     @Test
@@ -106,7 +106,7 @@ class AddServerEndpointTest {
         final ObjectServer payload = serverPayload("127.0.0.1", 25565, "x".repeat(80));
         payload.serverMOTD = null;
 
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .ip("127.0.0.1")
             .body(Directories.GSON.toJson(payload));
 

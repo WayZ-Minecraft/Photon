@@ -1,12 +1,12 @@
-package niwer.photon.sql;
+package niwer.photon.sql.tables;
 
-public final class HWIDTable {
+public final class HWIDTableTest {
 
     private static String lastUserUUID;
     private static String lastHWID;
     private static String lastOperatingSystem;
 
-    private HWIDTable() {}
+    private HWIDTableTest() {}
 
     public static void reset() {
         lastUserUUID = null;

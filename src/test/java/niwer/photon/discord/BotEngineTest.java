@@ -2,12 +2,12 @@ package niwer.photon.discord;
 
 import niwer.lumen.Console;
 
-public final class BotEngine {
+public final class BotEngineTest {
 
     private static boolean loadCalled;
     public static boolean lastRestartValue;
 
-    private BotEngine() {}
+    private BotEngineTest() {}
 
     public static void reset() {
         loadCalled = false;

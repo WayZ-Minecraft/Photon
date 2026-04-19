@@ -8,7 +8,7 @@ import java.util.Map;
 
 import io.javalin.http.Context;
 
-final class ContextStub {
+final class ContextStubTest {
 
     private final Map<String, String> formParams = new HashMap<>();
     private final Map<String, String> queryParams = new HashMap<>();
@@ -24,11 +24,11 @@ final class ContextStub {
 
     private final Context proxy;
 
-    ContextStub() {
+    ContextStubTest() {
         this.proxy = (Context) Proxy.newProxyInstance(
             Context.class.getClassLoader(),
             new Class<?>[] { Context.class },
-            new Handler()
+            new HandlerTest()
         );
     }
 
@@ -36,27 +36,27 @@ final class ContextStub {
         return this.proxy;
     }
 
-    ContextStub formParam(String key, String value) {
+    ContextStubTest formParam(String key, String value) {
         this.formParams.put(key, value);
         return this;
     }
 
-    ContextStub queryParam(String key, String value) {
+    ContextStubTest queryParam(String key, String value) {
         this.queryParams.put(key, value);
         return this;
     }
 
-    ContextStub requestHeader(String key, String value) {
+    ContextStubTest requestHeader(String key, String value) {
         this.requestHeaders.put(key, value);
         return this;
     }
 
-    ContextStub body(String value) {
+    ContextStubTest body(String value) {
         this.body = value;
         return this;
     }
 
-    ContextStub ip(String value) {
+    ContextStubTest ip(String value) {
         this.ip = value;
         return this;
     }
@@ -81,10 +81,12 @@ final class ContextStub {
         return this.responseHeaders;
     }
 
-    private final class Handler implements InvocationHandler {
+    private final class HandlerTest implements InvocationHandler {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
+            if(args == null) args = new Object[0];
+
             final String name = method.getName();
             final int argCount = args == null ? 0 : args.length;
 

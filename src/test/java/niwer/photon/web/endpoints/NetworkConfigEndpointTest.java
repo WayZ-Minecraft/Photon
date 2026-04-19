@@ -43,7 +43,7 @@ class NetworkConfigEndpointTest {
         Directories.config = config;
         setCurrentIp("203.0.113.10");
 
-        final ContextStub stub = new ContextStub();
+        final ContextStubTest stub = new ContextStubTest();
         new NetworkConfigEndpoint().handle(stub.context());
 
         assertNotNull(stub.jsonBody());

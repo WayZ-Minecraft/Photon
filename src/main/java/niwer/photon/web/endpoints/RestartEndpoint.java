@@ -12,15 +12,9 @@ import io.javalin.http.Context;
  */
 public class RestartEndpoint implements IEndpoint {
 
-    @Override
-    public String path() {
-        return "/restart";
-    }
+    @Override public String path() { return "/restart"; }
 
-    @Override
-    public HttpMethod method() {
-        return HttpMethod.POST;
-    }
+    @Override public HttpMethod method() { return HttpMethod.POST; }
 
     @Override
     public void handle(Context handler) {

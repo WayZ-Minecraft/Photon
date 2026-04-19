@@ -23,16 +23,19 @@ class ObjectNewsTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void discordEmbedCopiesTheNewsFields() {
         final Date date = new Date(0L);
         final ObjectNews news = new ObjectNews(7, "Photon update", "English content", "Contenu français", date, "https://example.com/news.png");
 
         final var embed = news.discordEmbed().build();
-
         assertEquals("Photon update", embed.getTitle());
         assertNotNull(embed.getDescription());
-        assertTrue(embed.getDescription().contains("🇬🇧English content"));
-        assertTrue(embed.getDescription().contains("🇫🇷Contenu français"));
+        assertNotNull(embed.getDescription());
+        if(embed.getDescription() != null) {
+            assertTrue(embed.getDescription().contains("🇬🇧English content"));
+            assertTrue(embed.getDescription().contains("🇫🇷Contenu français"));
+        }
         assertNotNull(embed.getImage());
         assertEquals("https://example.com/news.png", embed.getImage().getUrl());
         assertEquals(OffsetDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC), embed.getTimestamp());

@@ -14,13 +14,13 @@ import com.google.gson.JsonSyntaxException;
 
 import niwer.photon.Directories;
 import niwer.photon.objects.ObjectLicense;
-import niwer.photon.sql.LicenseTable;
+import niwer.photon.sql.tables.LicenseTableTest;
 
 class LicenseEndpointTest {
 
     @AfterEach
     void resetState() {
-        LicenseTable.reset();
+        LicenseTableTest.reset();
         Directories.config = Directories.getConfig();
     }
 
@@ -37,7 +37,7 @@ class LicenseEndpointTest {
         Directories.config = new Directories.NetworkConfig();
         Directories.config.tebex_webhook_secret = "top-secret";
 
-        final ContextStub stub = new ContextStub().body("{}");
+        final ContextStubTest stub = new ContextStubTest().body("{}");
 
         new niwer.photon.web.endpoints.tebex.LicenseEndpoint().handle(stub.context());
 
@@ -50,7 +50,7 @@ class LicenseEndpointTest {
         Directories.config = new Directories.NetworkConfig();
         Directories.config.tebex_webhook_secret = "";
 
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .requestHeader("X-Photon-Secret", "anything")
             .body("{\"product_id\":\"prod-1\"}");
 
@@ -65,7 +65,7 @@ class LicenseEndpointTest {
         Directories.config = new Directories.NetworkConfig();
         Directories.config.tebex_webhook_secret = "";
 
-        final ContextStub stub = new ContextStub().body("null");
+        final ContextStubTest stub = new ContextStubTest().body("null");
 
         assertThrows(JsonSyntaxException.class, () -> new niwer.photon.web.endpoints.tebex.LicenseEndpoint().handle(stub.context()));
     }
@@ -75,7 +75,7 @@ class LicenseEndpointTest {
         Directories.config = new Directories.NetworkConfig();
         Directories.config.tebex_webhook_secret = "";
 
-        final ContextStub stub = new ContextStub().body("not-json");
+        final ContextStubTest stub = new ContextStubTest().body("not-json");
 
         assertThrows(JsonSyntaxException.class, () -> new niwer.photon.web.endpoints.tebex.LicenseEndpoint().handle(stub.context()));
     }
@@ -88,7 +88,7 @@ class LicenseEndpointTest {
         Directories.config.license_default_duration_days = 30L;
 
         final long expiresAt = System.currentTimeMillis() + 123_456L;
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .requestHeader("X-Photon-Secret", "top-secret")
             .body("""
                 {
@@ -111,8 +111,8 @@ class LicenseEndpointTest {
         assertEquals("order-1", license.tebexOrderId());
         assertEquals(new Date(expiresAt), license.expiresAt());
         assertTrue(license.licenseKey().matches("[A-HJ-NP-Z2-9]{5}(?:-[A-HJ-NP-Z2-9]{5}){3}"));
-        assertEquals(LicenseTable.normalizeKey(LicenseTable.lastIssueLicenseKey()), license.licenseKey());
-        assertEquals("product-a", LicenseTable.lastIssueProductId());
+        assertEquals(LicenseTableTest.normalizeKey(LicenseTableTest.lastIssueLicenseKey()), license.licenseKey());
+        assertEquals("product-a", LicenseTableTest.lastIssueProductId());
     }
 
     @Test
@@ -122,7 +122,7 @@ class LicenseEndpointTest {
         Directories.config.license_product_id = "default-product";
         Directories.config.license_default_duration_days = 2L;
 
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .queryParam("secret", "top-secret")
             .body("""
                 {
@@ -153,7 +153,7 @@ class LicenseEndpointTest {
         Directories.config.license_product_id = "default-product";
         Directories.config.license_default_duration_days = 1L;
 
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .requestHeader("X-Photon-Secret", "top-secret")
             .body("""
                 {

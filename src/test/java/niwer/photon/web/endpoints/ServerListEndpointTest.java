@@ -9,13 +9,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import niwer.photon.objects.ObjectServer;
-import niwer.photon.sql.ServerTable;
+import niwer.photon.sql.tables.ServerTableTest;
 
 class ServerListEndpointTest {
 
     @AfterEach
     void resetState() {
-        ServerTable.reset();
+        ServerTableTest.reset();
     }
 
     @Test
@@ -33,9 +33,9 @@ class ServerListEndpointTest {
         server.serverIP = "127.0.0.1";
         server.serverPort = 25565;
         server.last_seen_at = new Date();
-        ServerTable.setVisibleServers(List.of(server));
+        ServerTableTest.setVisibleServers(List.of(server));
 
-        final ContextStub stub = new ContextStub();
+        final ContextStubTest stub = new ContextStubTest();
         new niwer.photon.web.endpoints.servers.ServerListEndpoint().handle(stub.context());
 
         assertEquals(List.of(server), stub.jsonBody());

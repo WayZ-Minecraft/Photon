@@ -1,10 +1,10 @@
-package niwer.photon.sql;
+package niwer.photon.sql.tables;
 
 import java.util.Date;
 
 import niwer.photon.objects.ObjectLicense;
 
-public final class LicenseTable {
+public final class LicenseTableTest {
 
     private static boolean existsResult;
     private static String lastIssueLicenseKey;
@@ -14,7 +14,7 @@ public final class LicenseTable {
     private static String lastIssueTebexOrderId;
     private static Date lastIssueExpiresAt;
 
-    private LicenseTable() {}
+    private LicenseTableTest() {}
 
     public static void reset() {
         existsResult = false;

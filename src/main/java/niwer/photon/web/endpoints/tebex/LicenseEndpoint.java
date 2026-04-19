@@ -15,15 +15,9 @@ import io.javalin.http.Context;
  */
 public class LicenseEndpoint implements IEndpoint {
 
-    @Override
-    public String path() {
-        return "/tebex/license";
-    }
+    @Override public String path() { return "/tebex/license"; }
 
-    @Override
-    public HttpMethod method() {
-        return HttpMethod.POST;
-    }
+    @Override public HttpMethod method() { return HttpMethod.POST; }
 
     @Override
     public void handle(Context handler) {

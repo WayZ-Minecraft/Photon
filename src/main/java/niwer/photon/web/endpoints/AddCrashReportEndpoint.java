@@ -2,6 +2,7 @@ package niwer.photon.web.endpoints;
 
 import niwer.photon.PhotonEngine;
 import niwer.photon.sql.CrashReportTable;
+import niwer.photon.sql.CrashReportTable.CrashReportSides;
 import niwer.photon.util.PhotonLogTypes;
 
 import io.javalin.http.Context;
@@ -15,23 +16,23 @@ public class AddCrashReportEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
-        final String fileMessage = handler.formParam("fileMessage");
-        final String fileName = handler.formParam("fileName");
-        final String userUUID = handler.formParam("userUUID");
+        final String FILE_MESSAGE = handler.formParam("fileMessage");
+        final String USER_UUID = handler.formParam("userUUID");
+        final String SIDE = handler.formParam("side");
 
         /* Ensure all parameters are provided */
-        if (fileMessage == null || fileName == null || userUUID == null) {
+        if (FILE_MESSAGE == null || USER_UUID == null || SIDE == null) {
             handler.status(400).result("Missing parameters");
             return;
         }
 
         /* Ensure parameters are not blank */
-        if (fileMessage.isBlank() || fileName.isBlank() || userUUID.isBlank()) {
+        if (FILE_MESSAGE.isBlank() || USER_UUID.isBlank() || SIDE.isBlank()) {
             handler.status(400).result("Parameters cannot be blank");
             return;
         }
 
-        CrashReportTable.save(userUUID, fileName, fileMessage);
-        Console.log("Crash report received: " + userUUID).sendToProcessor().type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
+        CrashReportTable.save(USER_UUID, SIDE, FILE_MESSAGE, CrashReportSides.fromString(SIDE));
+        Console.log("Crash report received: " + USER_UUID).sendToProcessor().type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
     }
 }

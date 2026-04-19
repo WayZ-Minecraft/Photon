@@ -6,13 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-import niwer.photon.sql.PlayerAccountTable;
+import niwer.photon.sql.tables.PlayerAccountTableTest;
 
 class CreateAccountEndpointTest {
 
     @AfterEach
     void resetState() {
-        PlayerAccountTable.reset();
+        PlayerAccountTableTest.reset();
     }
 
     @Test
@@ -25,7 +25,7 @@ class CreateAccountEndpointTest {
 
     @Test
     void rejectsMissingParameters() {
-        final ContextStub stub = new ContextStub();
+        final ContextStubTest stub = new ContextStubTest();
 
         new niwer.photon.web.endpoints.accounts.CreateAccountEndpoint().handle(stub.context());
 
@@ -35,7 +35,7 @@ class CreateAccountEndpointTest {
 
     @Test
     void rejectsBlankParameters() {
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .formParam("username", " ")
             .formParam("email", "alice@example.com")
             .formParam("password", "secret");
@@ -48,32 +48,32 @@ class CreateAccountEndpointTest {
 
     @Test
     void rejectsExistingEmail() {
-        PlayerAccountTable.setEmailExistsResult(true);
+        PlayerAccountTableTest.setEmailExistsResult(true);
 
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .formParam("username", "alice")
             .formParam("email", "alice@example.com")
             .formParam("password", "secret");
 
         new niwer.photon.web.endpoints.accounts.CreateAccountEndpoint().handle(stub.context());
 
-        assertEquals("alice@example.com", PlayerAccountTable.lastEmailChecked());
+        assertEquals("alice@example.com", PlayerAccountTableTest.lastEmailChecked());
         assertEquals(400, stub.statusCode());
         assertEquals("An account with this email already exists.", stub.resultBody());
     }
 
     @Test
     void returnsWithoutSettingAResponseWhenEmailIsAvailable() {
-        PlayerAccountTable.setEmailExistsResult(false);
+        PlayerAccountTableTest.setEmailExistsResult(false);
 
-        final ContextStub stub = new ContextStub()
+        final ContextStubTest stub = new ContextStubTest()
             .formParam("username", "alice")
             .formParam("email", "alice@example.com")
             .formParam("password", "secret");
 
         new niwer.photon.web.endpoints.accounts.CreateAccountEndpoint().handle(stub.context());
 
-        assertEquals("alice@example.com", PlayerAccountTable.lastEmailChecked());
+        assertEquals("alice@example.com", PlayerAccountTableTest.lastEmailChecked());
         assertNull(stub.statusCode());
         assertNull(stub.resultBody());
     }

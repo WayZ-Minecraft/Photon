@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 import io.javalin.Javalin;
 import niwer.photon.Directories;
+import niwer.photon.web.endpoints.HomeEndpoint;
+import niwer.photon.web.endpoints.StatusServersEndpoint;
 import niwer.photon.web.endpoints.AddAntiCheatReportEndpoint;
 import niwer.photon.web.endpoints.AddCrashReportEndpoint;
 import niwer.photon.web.endpoints.AddHWIDEndpoint;
@@ -12,6 +14,16 @@ import niwer.photon.web.endpoints.IEndpoint;
 import niwer.photon.web.endpoints.NetworkConfigEndpoint;
 import niwer.photon.web.endpoints.RestartEndpoint;
 import niwer.photon.web.endpoints.UpdateEndpoint;
+import niwer.photon.web.endpoints.admin.AdminConfigEndpoint;
+import niwer.photon.web.endpoints.admin.AdminLoginEndpoint;
+import niwer.photon.web.endpoints.admin.AdminMeEndpoint;
+import niwer.photon.web.endpoints.admin.AdminNewsCreateEndpoint;
+import niwer.photon.web.endpoints.admin.AdminNewsDeleteEndpoint;
+import niwer.photon.web.endpoints.admin.AdminNewsItemEndpoint;
+import niwer.photon.web.endpoints.admin.AdminRestartEndpoint;
+import niwer.photon.web.endpoints.admin.AdminTableDataEndpoint;
+import niwer.photon.web.endpoints.admin.AdminTablesEndpoint;
+import niwer.photon.web.endpoints.admin.UpdateAdminConfigEndpoint;
 import niwer.photon.web.endpoints.accounts.AuthAccountEndpoint;
 import niwer.photon.web.endpoints.accounts.CreateAccountEndpoint;
 import niwer.photon.web.endpoints.news.NewsListEndpoint;
@@ -37,12 +49,27 @@ public class WebServerEngine {
             cfg.staticFiles.add("/public");
             
             /* Endpoints */
+            IEndpoint.register(cfg, HomeEndpoint.class);
+            IEndpoint.register(cfg, StatusServersEndpoint.class);
             IEndpoint.register(cfg, RestartEndpoint.class);
             IEndpoint.register(cfg, NetworkConfigEndpoint.class);
             IEndpoint.register(cfg, AddCrashReportEndpoint.class);
             IEndpoint.register(cfg, AddAntiCheatReportEndpoint.class);
             IEndpoint.register(cfg, AddHWIDEndpoint.class);
             IEndpoint.register(cfg, UpdateEndpoint.class);
+            {
+                /* Admin panel */
+                IEndpoint.register(cfg, AdminLoginEndpoint.class);
+                IEndpoint.register(cfg, AdminMeEndpoint.class);
+                IEndpoint.register(cfg, AdminConfigEndpoint.class);
+                IEndpoint.register(cfg, UpdateAdminConfigEndpoint.class);
+                IEndpoint.register(cfg, AdminRestartEndpoint.class);
+                IEndpoint.register(cfg, AdminTablesEndpoint.class);
+                IEndpoint.register(cfg, AdminTableDataEndpoint.class);
+                IEndpoint.register(cfg, AdminNewsCreateEndpoint.class);
+                IEndpoint.register(cfg, AdminNewsItemEndpoint.class);
+                IEndpoint.register(cfg, AdminNewsDeleteEndpoint.class);
+            }
             {
                 /* Tebex */
                 IEndpoint.register(cfg, LicenseEndpoint.class);

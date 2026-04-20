@@ -2,6 +2,7 @@ package niwer.photon.web.endpoints;
 
 import niwer.photon.PhotonEngine;
 import niwer.photon.util.os.ApplicationUtils;
+import niwer.photon.web.AdminSessionManager;
 
 import io.javalin.http.Context;
 
@@ -18,7 +19,9 @@ public class RestartEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
-        ApplicationUtils.restart(PhotonEngine.class);
+        if (AdminSessionManager.requireProjectAuthor(handler) == null) return;
+
+        ApplicationUtils.restart(PhotonEngine.class, "--restart");
         handler.status(200).result("Restarting...");
     }
 

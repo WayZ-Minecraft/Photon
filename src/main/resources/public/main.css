@@ -1,0 +1,439 @@
+* {
+	box-sizing: border-box;
+}
+
+:root {
+	color-scheme: light;
+	--bg: #f4f6f8;
+	--panel: #ffffff;
+	--border: #d9e1ea;
+	--text: #16202a;
+	--muted: #5f6b7a;
+	--accent: #2457ff;
+	--accent-soft: #e8eeff;
+	--danger: #c2415d;
+	--shadow: 0 8px 24px rgba(18, 32, 50, 0.08);
+}
+
+html, body {
+	margin: 0;
+	min-height: 100%;
+	background: var(--bg);
+	color: var(--text);
+	font-family: Inter, "Segoe UI", Arial, sans-serif;
+	line-height: 1.5;
+}
+
+body {
+	padding: 20px;
+}
+
+button, input, textarea, select {
+	font: inherit;
+}
+
+button {
+	border: 0;
+	border-radius: 10px;
+	padding: 0.8rem 1rem;
+	cursor: pointer;
+}
+
+input, textarea, select {
+	width: 100%;
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	padding: 0.8rem 0.95rem;
+	background: #fff;
+	color: var(--text);
+}
+
+input:focus, textarea:focus, select:focus {
+	outline: 2px solid var(--accent-soft);
+	border-color: var(--accent);
+}
+
+label {
+	display: grid;
+	gap: 0.4rem;
+}
+
+p, h1, h2, h3 {
+	margin: 0;
+}
+
+h1 {
+	font-size: clamp(1.9rem, 3vw, 3rem);
+	line-height: 1.1;
+	margin-bottom: 0.5rem;
+}
+
+h2 {
+	font-size: 1.2rem;
+}
+
+.eyebrow,
+.hint,
+.nav-hint,
+.app-footer p,
+.data-card p,
+.news-card p,
+.news-columns span,
+.data-grid span,
+label span {
+	color: var(--muted);
+}
+
+.page-shell {
+	width: min(1200px, 100%);
+	margin: 0 auto;
+	display: grid;
+	gap: 16px;
+}
+
+.panel,
+.page,
+.modal {
+	background: var(--panel);
+	border: 1px solid var(--border);
+	border-radius: 16px;
+	box-shadow: var(--shadow);
+}
+
+.app-header,
+.app-nav,
+.app-footer {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	align-items: center;
+	padding: 14px 16px;
+}
+
+.brand-block {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.brand-mark {
+	width: 38px;
+	height: 38px;
+	border-radius: 10px;
+	display: grid;
+	place-items: center;
+	background: var(--accent);
+	color: #fff;
+	font-weight: 700;
+}
+
+.header-actions,
+.footer-links,
+.button-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+
+.app-nav {
+	flex-wrap: wrap;
+}
+
+.nav-link,
+.secondary,
+.tab-button {
+	background: #eef2f7;
+	color: var(--text);
+}
+
+.nav-link.active,
+.tab-button.active {
+	background: var(--accent-soft);
+	color: var(--accent);
+}
+
+.nav-spacer {
+	flex: 1;
+}
+
+.page {
+	display: none;
+	padding: 18px;
+}
+
+.page-active {
+	display: block;
+}
+
+.layout {
+	display: grid;
+	gap: 16px;
+}
+
+.hero {
+	display: grid;
+	gap: 16px;
+}
+
+.hero-copy {
+	display: grid;
+	gap: 8px;
+}
+
+.hero-text {
+	max-width: 68ch;
+	color: var(--muted);
+}
+
+.hero-actions {
+	margin-top: 4px;
+}
+
+.hero-stats {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px;
+}
+
+.stat-card,
+.data-card,
+.news-card,
+.empty-state {
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	background: #fff;
+}
+
+.stat-card {
+	padding: 14px;
+}
+
+.stat-card span {
+	display: block;
+	margin-bottom: 0.25rem;
+}
+
+.data-card,
+.news-card {
+	padding: 14px;
+}
+
+.panel-header,
+.data-card-top,
+.news-card-head,
+.restart-panel {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	align-items: start;
+}
+
+.stacked-form,
+.config-grid,
+.table-toolbar,
+.panel-split,
+.feed,
+.grid-list,
+.modal-body,
+.modal-panel {
+	display: grid;
+	gap: 12px;
+}
+
+.cards {
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.config-grid {
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.panel-split {
+	grid-template-columns: 0.9fr 1.1fr;
+}
+
+.data-grid,
+.news-columns {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	gap: 10px;
+	margin-top: 10px;
+}
+
+.compact-grid {
+	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.table-toolbar {
+	grid-template-columns: 1fr 180px;
+}
+
+.table-wrap {
+	overflow: auto;
+	border: 1px solid var(--border);
+	border-radius: 12px;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	min-width: 720px;
+	background: #fff;
+}
+
+th, td {
+	padding: 0.8rem 0.9rem;
+	border-bottom: 1px solid var(--border);
+	text-align: left;
+	vertical-align: top;
+}
+
+th {
+	background: #f7f9fc;
+}
+
+.status-pill {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.4rem 0.75rem;
+	border-radius: 999px;
+	background: var(--accent-soft);
+	color: var(--accent);
+	font-size: 0.9rem;
+}
+
+.status-pill.neutral {
+	background: #eef2f7;
+	color: var(--muted);
+}
+
+.primary {
+	background: var(--accent);
+	color: #fff;
+}
+
+.danger {
+	background: var(--danger);
+	color: #fff;
+}
+
+.ghost {
+	background: transparent;
+	border: 1px solid var(--border);
+}
+
+.hint {
+	margin-top: 4px;
+}
+
+.empty-state {
+	padding: 12px;
+	color: var(--muted);
+}
+
+.modal-backdrop {
+	position: fixed;
+	inset: 0;
+	background: rgba(10, 16, 24, 0.45);
+	display: grid;
+	place-items: center;
+	z-index: 1000;
+	padding: 16px;
+}
+
+.modal {
+	width: min(720px, 100%);
+	padding: 16px;
+	max-height: calc(100vh - 32px);
+	overflow: auto;
+}
+
+.modal-header {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	align-items: start;
+	margin-bottom: 14px;
+}
+
+.modal-tabs {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin-bottom: 12px;
+}
+
+.modal-panel {
+	display: none;
+}
+
+.modal-panel.active {
+	display: grid;
+}
+
+.toast {
+	position: fixed;
+	right: 16px;
+	bottom: 16px;
+	padding: 0.85rem 1rem;
+	border-radius: 12px;
+	background: #fff;
+	border: 1px solid var(--border);
+	box-shadow: var(--shadow);
+	opacity: 0;
+	transform: translateY(10px);
+	transition: opacity 150ms ease, transform 150ms ease;
+	z-index: 1100;
+}
+
+.toast.show {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+.toast-success { border-color: #b9e3c6; }
+.toast-error { border-color: #efb5c0; }
+
+@media (max-width: 900px) {
+	.app-header,
+	.app-nav,
+	.app-footer,
+	.panel-header,
+	.data-card-top,
+	.news-card-head,
+	.restart-panel,
+	.modal-header {
+		flex-direction: column;
+		align-items: start;
+	}
+
+	.panel-split,
+	.table-toolbar,
+	.hero-stats,
+	.news-columns {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (max-width: 640px) {
+	body {
+		padding: 12px;
+	}
+
+	.page,
+	.app-header,
+	.app-nav,
+	.app-footer {
+		padding: 12px;
+	}
+
+	.header-actions button,
+	.button-row button {
+		flex: 1 1 auto;
+	}
+
+	table {
+		min-width: 560px;
+	}
+}

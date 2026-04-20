@@ -71,6 +71,16 @@ public class ServerTable extends Table {
         }
     }
 
+    public static List<ObjectServer> getAllServers() {
+        try {
+            return SelectionManager.select(PhotonEngine.DATA_BASE, ServerTable.class)
+                .executeList(ObjectServer.class);
+        } catch (Exception e) {
+            Console.log("Failed to load all servers: " + e.getMessage()).type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
+            return new ArrayList<>();
+        }
+    }
+
     /**
      * Get a server by its IP and port. Returns null if not found or if input is invalid.
      * 

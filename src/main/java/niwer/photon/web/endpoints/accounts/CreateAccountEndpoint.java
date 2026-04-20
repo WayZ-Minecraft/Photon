@@ -1,5 +1,7 @@
 package niwer.photon.web.endpoints.accounts;
 
+import java.util.regex.Pattern;
+
 import io.javalin.http.Context;
 import niwer.photon.objects.ObjectPlayerAccount;
 import niwer.photon.sql.PlayerAccountTable;

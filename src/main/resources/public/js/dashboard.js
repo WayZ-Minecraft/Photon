@@ -35,6 +35,13 @@ class DashboardApp {
                 return;
             }
 
+            const scrollButton = event.target.closest('[data-scroll-to]');
+            if (scrollButton) {
+                const target = document.getElementById(scrollButton.dataset.scrollTo);
+                target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return;
+            }
+
             const pageButton = event.target.closest('[data-go-page]');
             if (pageButton) {
                 this.pageManager.go(pageButton.dataset.goPage);
@@ -73,18 +80,9 @@ class DashboardApp {
     renderAll() {
         this.renderPublic();
         this.renderAdmin();
-        this.renderHeaderState();
-    }
-
-    renderHeaderState() {
-        const authState = el('authState');
-        if (authState) {
-            authState.textContent = appState.account ? `Signed in as ${appState.account.username || appState.account.email}` : 'Logged out';
-        }
     }
 
     renderPublic() {
-        this.renderHeroStats();
         this.renderServers();
     }
 
@@ -93,31 +91,13 @@ class DashboardApp {
         this.renderTables();
     }
 
-    renderHeroStats() {
-        const host = el('heroStats');
-        if (!host) return;
-
-        const stats = [
-            { label: 'Servers', value: appState.servers.length },
-            { label: 'Tables', value: appState.tables.length },
-            { label: 'Auth', value: appState.account ? 'Online' : 'Locked' },
-        ];
-
-        host.innerHTML = stats.map(({ label, value }) => `
-            <div class="stat-card">
-                <span>${escapeHtml(label)}</span>
-                <strong>${escapeHtml(value)}</strong>
-            </div>
-        `).join('');
-    }
-
     renderServers() {
         const list = el('serverList');
         const count = el('serverCount');
         if (!list || !count) return;
 
         if (!appState.servers.length) {
-            list.innerHTML = '<div class="empty-state">No saved servers were found.</div>';
+            list.innerHTML = '<div class="empty-state">No servers were found.</div>';
             count.textContent = '0 servers';
             return;
         }
@@ -213,6 +193,7 @@ class DashboardApp {
             appState.tables = [];
             this.renderAdmin();
             this.renderHeaderState();
+            this.refreshPages();
             return;
         }
 
@@ -222,6 +203,7 @@ class DashboardApp {
         this.renderAdmin();
         this.renderHeaderState();
         await this.loadActiveTable();
+        this.refreshPages();
     }
 
     async loadActiveTable() {
@@ -235,27 +217,53 @@ class DashboardApp {
     async handleLogin(event) {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
-        const payload = {
-            email: String(formData.get('email') || '').trim(),
-            password: String(formData.get('password') || ''),
-        };
+        const requestBody = new URLSearchParams();
+        requestBody.set('email', String(formData.get('email') || '').trim());
+        requestBody.set('password', String(formData.get('password') || ''));
 
-        const response = await fetch('/api/admin/login', {
+        const body = requestBody.toString();
+        const headers = { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' };
+
+        const adminResponse = await fetch('/api/admin/login', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
+            headers,
+            body,
         });
 
-        const contentType = response.headers.get('content-type') || '';
-        const body = contentType.includes('application/json') ? await response.json() : await response.text();
-        if (!response.ok) throw new Error(typeof body === 'string' ? body : 'Login failed');
+        if (adminResponse.ok) {
+            const adminPayload = await adminResponse.json();
+            appState.token = adminPayload.token;
+            appState.account = adminPayload.account;
+            localStorage.setItem('photon-admin-token', appState.token);
+            localStorage.setItem('photon-account', JSON.stringify(appState.account));
+            notify('Signed in', 'success');
+            this.header.refresh();
+            await Promise.all([
+                this.loadPublicData(),
+                this.loadAdminData(),
+            ]);
+            return;
+        }
 
-        appState.token = body.token;
-        appState.account = body.account;
-        localStorage.setItem('photon-admin-token', appState.token);
-        notify('Admin session started', 'success');
+        const publicResponse = await fetch('/accounts/auth_account', {
+            method: 'POST',
+            headers,
+            body,
+        });
+
+        const contentType = publicResponse.headers.get('content-type') || '';
+        const payload = contentType.includes('application/json') ? await publicResponse.json() : await publicResponse.text();
+        if (!publicResponse.ok) throw new Error(typeof payload === 'string' ? payload : 'Login failed');
+
+        appState.token = '';
+        appState.account = payload;
+        localStorage.setItem('photon-account', JSON.stringify(payload));
+        localStorage.removeItem('photon-admin-token');
+        notify('Signed in', 'success');
         this.header.refresh();
-        await this.loadAdminData();
+        this.renderAdmin();
+        await this.loadPublicData();
+        this.refreshPages();
     }
 
     async handleCreateAccount(event) {
@@ -315,9 +323,11 @@ class DashboardApp {
         appState.config = null;
         appState.tables = [];
         appState.activeTable = null;
+        localStorage.removeItem('photon-account');
         localStorage.removeItem('photon-admin-token');
         this.header.refresh();
         this.renderAdmin();
+        this.refreshPages();
         notify('Session cleared');
     }
 
@@ -381,6 +391,12 @@ export function bootstrapDashboard() {
 
     app.renderAll();
     app.refreshPages();
+
+    app.loadPublicData().catch((error) => notify(error.message, 'error'));
+
+    if (appState.token) {
+        app.loadAdminData().catch((error) => notify(error.message, 'error'));
+    }
 
     return app;
 }

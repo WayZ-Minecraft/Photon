@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Photon Control Room</title>
+        <title>Niwer's Engine - Control Panel</title>
         <link rel="stylesheet" href="./main.css">
         <script type="module" src="./js/main.js"></script>
     </head>
@@ -16,34 +16,15 @@
 
                 <main class="layout">
                     <section class="panel page page-active" data-page="overview">
-                        <div class="hero panel-inner">
-                            <div class="hero-copy">
-                                <p class="eyebrow">Photon network console</p>
-                                <h1>One place for status, config, and tables.</h1>
-                                <p class="hero-text">
-                                    Start with the navigation above. Public status stays visible to everyone, while project authors can sign in to manage the rest.
-                                </p>
+                        <div class="overview-section" id="serverPanel">
+                            <div class="panel-header">
+                                <div>
+                                    <p class="eyebrow">Public status</p>
+                                </div>
+                                <span class="status-pill neutral" id="serverCount">0 servers</span>
                             </div>
-                            <div class="hero-stats" id="heroStats"></div>
+                            <div id="serverList" class="cards grid-list"></div>
                         </div>
-
-                        <div class="button-row hero-actions">
-                            <button type="button" class="primary" data-open-modal="auth">Sign in</button>
-                            <button type="button" class="secondary" data-open-modal="createAccount">Create account</button>
-                            <button type="button" class="secondary" data-go-page="status">View servers</button>
-                            
-                        </div>
-                    </section>
-
-                    <section class="panel page" data-page="status">
-                        <div class="panel-header">
-                            <div>
-                                <p class="eyebrow">Public status</p>
-                                <h2>Saved servers</h2>
-                            </div>
-                            <span class="status-pill neutral" id="serverCount">0 servers</span>
-                        </div>
-                        <div id="serverList" class="cards grid-list"></div>
                     </section>
 
                     

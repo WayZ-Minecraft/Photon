@@ -177,9 +177,10 @@ public class PlayerAccountTable extends Table {
             return false;
         }
         final String NORMALIZED_EMAIL = email.trim().toLowerCase();
-        return SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "COUNT(*) as count")
+        final Integer count = SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "COUNT(*) as count")
             .where(Expression.of("LOWER(email)").isEqualTo(NORMALIZED_EMAIL))
-            .executeHasResult();
+            .executePrimitive(Integer.class);
+        return count != null && count > 0;
     }
 
     /**
@@ -195,9 +196,10 @@ public class PlayerAccountTable extends Table {
             return false;
         }
         final String NORMALIZED_USERNAME = username.trim().toLowerCase();
-        return SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "COUNT(*) as count")
+        final Integer count = SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "COUNT(*) as count")
             .where(Expression.of("LOWER(username)").isEqualTo(NORMALIZED_USERNAME))
-            .executeHasResult();
+            .executePrimitive(Integer.class);
+        return count != null && count > 0;
     }
 
     /**

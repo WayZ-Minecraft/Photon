@@ -1,6 +1,17 @@
+const storedAccount = localStorage.getItem('photon-account');
+
+let account = null;
+if (storedAccount) {
+    try {
+        account = JSON.parse(storedAccount);
+    } catch {
+        account = null;
+    }
+}
+
 export const appState = {
     token: localStorage.getItem('photon-admin-token') || '',
-    account: null,
+    account,
     tables: [],
     activeTable: null,
     servers: [],
@@ -31,8 +42,7 @@ export const configFields = [
 
 export const pageDefinitions = [
     { key: 'overview', label: 'Overview' },
-    { key: 'status', label: 'Status' },
-    { key: 'config', label: 'Config' },
-    { key: 'tables', label: 'Tables' },
-    { key: 'operations', label: 'Operations' },
+    { key: 'config', label: 'Config', requiresAuth: true },
+    { key: 'tables', label: 'Tables', requiresAuth: true },
+    { key: 'operations', label: 'Operations', requiresAuth: true },
 ];

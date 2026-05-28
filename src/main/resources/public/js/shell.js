@@ -6,6 +6,13 @@ export class PageManager {
         this.pageElements = [];
     }
 
+    canAccessPage(page) {
+        const definition = pageDefinitions.find((item) => item.key === page);
+        if (!definition) return false;
+
+        return !definition.requiresAuth || Boolean(appState.token);
+    }
+
     bind() {
         this.pageElements = Array.from(document.querySelectorAll('[data-page]'));
 
@@ -16,7 +23,7 @@ export class PageManager {
     }
 
     go(page, pushHash = true) {
-        const target = pageDefinitions.some((definition) => definition.key === page) ? page : 'overview';
+        const target = this.canAccessPage(page) ? page : 'overview';
         appState.page = target;
 
         if (pushHash && window.location.hash.replace('#', '') !== target) {
@@ -37,30 +44,29 @@ export class PageManager {
 
 export class NavigationBar {
     render() {
+        const visiblePages = pageDefinitions.filter((page) => !page.requiresAuth || Boolean(appState.token));
+        const authActions = appState.account
+            ? '<button type="button" class="secondary" data-action="logout">Logout</button>'
+            : `
+                <button type="button" class="secondary" data-open-modal="auth">Sign in</button>
+                <button type="button" class="secondary" data-open-modal="createAccount">Create account</button>
+            `;
+        const pageButtons = visiblePages.map((page) => `
+            <button type="button" class="nav-link ${page.key === appState.page ? 'active' : ''}" data-nav-link="${page.key}" data-go-page="${page.key}">${escapeHtml(page.label)}</button>
+        `).join('');
+
         return `
             <header class="app-header panel">
                 <div class="brand-block">
-                    <div class="brand-mark">P</div>
-                    <div>
-                        <p class="eyebrow">Photon control room</p>
-                        <strong>Network operations</strong>
-                    </div>
+                    <img class="brand-mark" src="./assets/photon_logo.png" alt="Photon logo">
                 </div>
-                <div class="header-actions">
-                    <span class="status-pill neutral" id="authState">Logged out</span>
-                    <button type="button" class="secondary" data-open-modal="auth">Sign in</button>
-                    <button type="button" class="secondary" data-open-modal="createAccount">Create account</button>
-                    <button type="button" class="secondary" data-action="logout">Logout</button>
+                <div class="header-actions header-pages">
+                    ${pageButtons}
+                </div>
+                <div class="header-actions header-auth">
+                    ${authActions}
                 </div>
             </header>
-
-            <nav class="app-nav panel">
-                ${pageDefinitions.map((page) => `
-                    <button type="button" class="nav-link ${page.key === appState.page ? 'active' : ''}" data-nav-link="${page.key}" data-go-page="${page.key}">${escapeHtml(page.label)}</button>
-                `).join('')}
-                <div class="nav-spacer"></div>
-                <span class="nav-hint">Use the pages for status, config, tables, and operations.</span>
-            </nav>
         `;
     }
 
@@ -75,14 +81,7 @@ export class FooterBar {
         const accountLabel = appState.account ? `Signed in as ${appState.account.username || appState.account.email}` : 'Public access';
         return `
             <footer class="app-footer panel">
-                <div>
-                    <strong>Photon web panel</strong>
-                    <p>${escapeHtml(accountLabel)}</p>
-                </div>
-                <div class="footer-links">
-                    <span>${escapeHtml(new Date().getFullYear())}</span>
-                    <span>Public status and project-author tools</span>
-                </div>
+                <p>Photon web panel</p>
             </footer>
         `;
     }
@@ -193,7 +192,6 @@ export class ModalManager {
         this.root.querySelectorAll('[data-auth-tab]').forEach((button) => {
             button.addEventListener('click', () => {
                 const nextTab = button.dataset.authTab;
-                this.root.querySelectorAll('[data-auth-tab]').forEach((tabButton) => tabButton.classList.toggle('active', tabButton.dataset.authTab === nextTab));
                 this.root.querySelectorAll('[data-auth-panel]').forEach((panel) => panel.classList.toggle('active', panel.dataset.authPanel === nextTab));
             });
         });

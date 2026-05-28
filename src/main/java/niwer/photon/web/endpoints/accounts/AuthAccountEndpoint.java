@@ -18,24 +18,23 @@ public class AuthAccountEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
-        final String username = handler.formParam("username");
         final String email = handler.formParam("email");
         final String password = handler.formParam("password");
 
         /* Ensure all parameters are provided */
-        if(username == null || email == null || password == null) {
+        if(email == null || password == null) {
             handler.status(400).result("Missing parameters");
             return;
         }
 
         /* Ensure no parameters are blank */
-        if(username.isBlank() || email.isBlank() || password.isBlank()) {
+        if(email.isBlank() || password.isBlank()) {
             handler.status(400).result("Parameters cannot be blank");
             return;
         }
 
         /* Authenticate the user */
-        final ObjectPlayerAccount ACCOUNT = PlayerAccountTable.getAccountByEmail(email);
+        final ObjectPlayerAccount ACCOUNT = lookupAccountByEmail(email);
         if(ACCOUNT == null) {
             handler.status(401).result("No account found with the provided email");
             return;
@@ -46,5 +45,9 @@ public class AuthAccountEndpoint implements IEndpoint {
         }
 
         handler.json(ACCOUNT); // Send the authenticated account's details as a JSON response
+    }
+
+    protected ObjectPlayerAccount lookupAccountByEmail(String email) {
+        return PlayerAccountTable.getAccountByEmail(email);
     }
 }

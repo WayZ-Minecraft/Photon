@@ -49,25 +49,37 @@ public class CreateAccountEndpoint implements IEndpoint {
         }
 
         /* Ensure the email address is not already in use */
-        if(PlayerAccountTable.emailExists(email)) {
-            handler.status(400).result("An account with this email already exists.");
+        if(emailExists(email)) {
+            handler.status(400).result("An account with this email already exists. Sign in instead.");
             return;
         }
 
         /* Ensure the username is not already in use */
-        if(PlayerAccountTable.usernameExists(username)) {
+        if(usernameExists(username)) {
             handler.status(400).result("An account with this username already exists.");
             return;
         }
 
         /* Create the account */
-        final ObjectPlayerAccount ACCOUNT = PlayerAccountTable.createAccount(username, email, password);
+        final ObjectPlayerAccount ACCOUNT = createAccount(username, email, password);
         if(ACCOUNT == null) {
             handler.status(500).result("Failed to create account");
             return;
         }
 
         handler.json(ACCOUNT); // Send the created account's details as a JSON response
+    }
+
+    protected boolean emailExists(String email) {
+        return PlayerAccountTable.emailExists(email);
+    }
+
+    protected boolean usernameExists(String username) {
+        return PlayerAccountTable.usernameExists(username);
+    }
+
+    protected ObjectPlayerAccount createAccount(String username, String email, String password) {
+        return PlayerAccountTable.createAccount(username, email, password);
     }
 
     private static boolean validEmailAddress(String email) {

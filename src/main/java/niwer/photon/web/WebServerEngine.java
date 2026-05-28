@@ -17,16 +17,12 @@ import niwer.photon.web.endpoints.UpdateEndpoint;
 import niwer.photon.web.endpoints.admin.AdminConfigEndpoint;
 import niwer.photon.web.endpoints.admin.AdminLoginEndpoint;
 import niwer.photon.web.endpoints.admin.AdminMeEndpoint;
-import niwer.photon.web.endpoints.admin.AdminNewsCreateEndpoint;
-import niwer.photon.web.endpoints.admin.AdminNewsDeleteEndpoint;
-import niwer.photon.web.endpoints.admin.AdminNewsItemEndpoint;
 import niwer.photon.web.endpoints.admin.AdminRestartEndpoint;
 import niwer.photon.web.endpoints.admin.AdminTableDataEndpoint;
 import niwer.photon.web.endpoints.admin.AdminTablesEndpoint;
 import niwer.photon.web.endpoints.admin.UpdateAdminConfigEndpoint;
 import niwer.photon.web.endpoints.accounts.AuthAccountEndpoint;
 import niwer.photon.web.endpoints.accounts.CreateAccountEndpoint;
-import niwer.photon.web.endpoints.news.NewsListEndpoint;
 import niwer.photon.web.endpoints.servers.AddServerEndpoint;
 import niwer.photon.web.endpoints.servers.ServerListEndpoint;
 import niwer.photon.web.endpoints.tebex.LicenseEndpoint;
@@ -66,9 +62,6 @@ public class WebServerEngine {
                 IEndpoint.register(cfg, AdminRestartEndpoint.class);
                 IEndpoint.register(cfg, AdminTablesEndpoint.class);
                 IEndpoint.register(cfg, AdminTableDataEndpoint.class);
-                IEndpoint.register(cfg, AdminNewsCreateEndpoint.class);
-                IEndpoint.register(cfg, AdminNewsItemEndpoint.class);
-                IEndpoint.register(cfg, AdminNewsDeleteEndpoint.class);
             }
             {
                 /* Tebex */
@@ -84,10 +77,6 @@ public class WebServerEngine {
                 IEndpoint.register(cfg, AddServerEndpoint.class);
                 IEndpoint.register(cfg, ServerListEndpoint.class);
             }
-            {
-                /* News */
-                IEndpoint.register(cfg, NewsListEndpoint.class);
-            }
         });
 
         /* Start the web server */
@@ -101,7 +90,6 @@ public class WebServerEngine {
      * - Server management page (with authentication) -> The hard part
      * 
      * - Network panel (with authentication with project creator)
-     * - News management page (with authentication)
      * - Network Logo upload page (with authentication)
      * 
      * - Update from webserver (with authentication)

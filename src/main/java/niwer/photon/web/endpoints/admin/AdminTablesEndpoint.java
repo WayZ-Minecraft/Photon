@@ -9,7 +9,6 @@ import niwer.photon.web.endpoints.IEndpoint;
 public class AdminTablesEndpoint implements IEndpoint {
 
     private static final List<TableInfo> TABLES = List.of(
-        new TableInfo("News", "News", "Published news entries"),
         new TableInfo("Server", "Servers", "Saved server status rows"),
         new TableInfo("PlayerAccount", "Accounts", "Registered player accounts"),
         new TableInfo("License", "Licenses", "Issued Tebex licenses"),

@@ -77,8 +77,6 @@ h2 {
 .nav-hint,
 .app-footer p,
 .data-card p,
-.news-card p,
-.news-columns span,
 .data-grid span,
 label span {
 	color: var(--muted);
@@ -198,7 +196,6 @@ label span {
 
 .stat-card,
 .data-card,
-.news-card,
 .empty-state {
 	border: 1px solid var(--border);
 	border-radius: 12px;
@@ -214,14 +211,12 @@ label span {
 	margin-bottom: 0.25rem;
 }
 
-.data-card,
-.news-card {
+.data-card {
 	padding: 14px;
 }
 
 .panel-header,
 .data-card-top,
-.news-card-head,
 .restart-panel {
 	display: flex;
 	justify-content: space-between;
@@ -253,8 +248,7 @@ label span {
 	grid-template-columns: 0.9fr 1.1fr;
 }
 
-.data-grid,
-.news-columns {
+.data-grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 	gap: 10px;
@@ -401,7 +395,6 @@ th {
 	.app-footer,
 	.panel-header,
 	.data-card-top,
-	.news-card-head,
 	.restart-panel,
 	.modal-header {
 		flex-direction: column;
@@ -410,8 +403,7 @@ th {
 
 	.panel-split,
 	.table-toolbar,
-	.hero-stats,
-	.news-columns {
+	.hero-stats {
 		grid-template-columns: 1fr;
 	}
 }

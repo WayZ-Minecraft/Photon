@@ -3,7 +3,6 @@ export const appState = {
     account: null,
     tables: [],
     activeTable: null,
-    news: [],
     servers: [],
     config: null,
     page: window.location.hash.replace('#', '') || 'overview',
@@ -33,7 +32,6 @@ export const configFields = [
 export const pageDefinitions = [
     { key: 'overview', label: 'Overview' },
     { key: 'status', label: 'Status' },
-    { key: 'news', label: 'News' },
     { key: 'config', label: 'Config' },
     { key: 'tables', label: 'Tables' },
     { key: 'operations', label: 'Operations' },

@@ -7,7 +7,6 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 
 import niwer.photon.discord.commands.network.ExecuteSQLCommand;
-import niwer.photon.discord.commands.network.NewsCommand;
 import niwer.photon.discord.commands.network.PostUpdateCommand;
 import niwer.photon.discord.commands.network.RestartNetworkCommand;
 import niwer.photon.discord.commands.network.accounts.DeleteAllAccountCommand;
@@ -39,7 +38,6 @@ public class CommandsManager extends ListenerAdapter {
         new ClearCommand().register();
         {
             /* Official Server commands */
-            new NewsCommand().register();
             new RestartNetworkCommand().register();
             new PostUpdateCommand().register();
 

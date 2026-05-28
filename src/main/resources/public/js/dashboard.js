@@ -46,18 +46,6 @@ class DashboardApp {
                 this.handleLogout().catch((error) => notify(error.message, 'error'));
                 return;
             }
-
-            const editNewsButton = event.target.closest('[data-edit-news]');
-            if (editNewsButton) {
-                const newsItem = appState.news.find((news) => Number(news.id) === Number(editNewsButton.dataset.editNews));
-                this.modalManager.open('news', newsItem || {});
-                return;
-            }
-
-            const deleteNewsButton = event.target.closest('[data-delete-news]');
-            if (deleteNewsButton) {
-                this.deleteNews(Number(deleteNewsButton.dataset.deleteNews)).catch((error) => notify(error.message, 'error'));
-            }
         });
 
         el('saveConfigButton')?.addEventListener('click', () => {
@@ -98,7 +86,6 @@ class DashboardApp {
     renderPublic() {
         this.renderHeroStats();
         this.renderServers();
-        this.renderNews();
     }
 
     renderAdmin() {
@@ -112,7 +99,6 @@ class DashboardApp {
 
         const stats = [
             { label: 'Servers', value: appState.servers.length },
-            { label: 'News posts', value: appState.news.length },
             { label: 'Tables', value: appState.tables.length },
             { label: 'Auth', value: appState.account ? 'Online' : 'Locked' },
         ];
@@ -157,45 +143,6 @@ class DashboardApp {
                 </article>
             `;
         }).join('');
-    }
-
-    renderNews() {
-        const feed = el('newsFeed');
-        const count = el('newsCount');
-        if (!feed || !count) return;
-
-        if (!appState.news.length) {
-            feed.innerHTML = '<div class="empty-state">No news items yet.</div>';
-            count.textContent = '0 posts';
-            return;
-        }
-
-        count.textContent = `${appState.news.length} posts`;
-        feed.innerHTML = appState.news.map((item) => `
-            <article class="news-card">
-                <div class="news-card-head">
-                    <div>
-                        <h3>${escapeHtml(item.title || 'Untitled')}</h3>
-                        <p>${formatDate(item.date)}</p>
-                    </div>
-                    <div class="button-row compact">
-                        <button type="button" class="secondary" data-edit-news="${item.id}">Edit</button>
-                        <button type="button" class="danger ghost" data-delete-news="${item.id}">Delete</button>
-                    </div>
-                </div>
-                <div class="news-columns">
-                    <div>
-                        <span>English</span>
-                        <p>${escapeHtml(item.contentEn || '')}</p>
-                    </div>
-                    <div>
-                        <span>French</span>
-                        <p>${escapeHtml(item.contentFr || '')}</p>
-                    </div>
-                </div>
-                ${item.imageUrl ? `<img src="${escapeHtml(item.imageUrl)}" alt="News image">` : ''}
-            </article>
-        `).join('');
     }
 
     renderConfig() {
@@ -256,7 +203,6 @@ class DashboardApp {
 
     async loadPublicData() {
         appState.servers = await api('/api/status/servers');
-        appState.news = await api('/api/news');
         this.renderPublic();
     }
 
@@ -333,41 +279,6 @@ class DashboardApp {
         notify('Account created. You can sign in now.', 'success');
     }
 
-    async handleNewsModalSubmit(event) {
-        event.preventDefault();
-        if (!appState.token) throw new Error('Sign in first');
-
-        const formData = new FormData(event.currentTarget);
-        const newsId = String(formData.get('id') || '').trim();
-        const payload = {
-            title: String(formData.get('title') || '').trim(),
-            contentEn: String(formData.get('contentEn') || '').trim(),
-            contentFr: String(formData.get('contentFr') || '').trim(),
-            imageUrl: String(formData.get('imageUrl') || '').trim(),
-        };
-
-        if (!payload.title || !payload.contentEn || !payload.contentFr) {
-            throw new Error('News title and both content fields are required');
-        }
-
-        if (newsId) {
-            await api(`/api/admin/news/${encodeURIComponent(newsId)}`, {
-                method: 'PUT',
-                body: JSON.stringify(payload),
-            });
-            notify('News updated', 'success');
-        } else {
-            await api('/api/admin/news', {
-                method: 'POST',
-                body: JSON.stringify(payload),
-            });
-            notify('News created', 'success');
-        }
-
-        await this.loadPublicData();
-        await this.loadAdminData();
-    }
-
     async saveConfig() {
         if (!appState.token) throw new Error('Sign in first');
 
@@ -388,16 +299,6 @@ class DashboardApp {
         });
         this.renderConfig();
         notify('Config saved', 'success');
-    }
-
-    async deleteNews(id) {
-        if (!appState.token) throw new Error('Sign in first');
-        if (!window.confirm('Delete this news entry?')) return;
-
-        await api(`/api/admin/news/${encodeURIComponent(id)}`, { method: 'DELETE' });
-        notify('News deleted', 'success');
-        await this.loadPublicData();
-        await this.loadAdminData();
     }
 
     async restartApp() {
@@ -453,18 +354,6 @@ export function bootstrapDashboard() {
             if (actionButton && actionButton.dataset.action === 'logout') {
                 app.handleLogout().catch((error) => notify(error.message, 'error'));
                 return;
-            }
-
-            const editNewsButton = event.target.closest('[data-edit-news]');
-            if (editNewsButton) {
-                const newsItem = appState.news.find((news) => Number(news.id) === Number(editNewsButton.dataset.editNews));
-                app.modalManager.open('news', newsItem || {});
-                return;
-            }
-
-            const deleteNewsButton = event.target.closest('[data-delete-news]');
-            if (deleteNewsButton) {
-                app.deleteNews(Number(deleteNewsButton.dataset.deleteNews)).catch((error) => notify(error.message, 'error'));
             }
         });
     }

@@ -5,6 +5,8 @@ import java.util.regex.Pattern;
 import io.javalin.http.Context;
 import niwer.photon.objects.ObjectPlayerAccount;
 import niwer.photon.sql.PlayerAccountTable;
+import niwer.photon.sql.SubscriptionTable;
+import niwer.photon.web.UserSessionManager;
 import niwer.photon.web.endpoints.IEndpoint;
 
 /**
@@ -60,6 +62,11 @@ public class CreateAccountEndpoint implements IEndpoint {
             return;
         }
 
+        if (!SubscriptionTable.isActive(email)) {
+            handler.status(403).result("An active subscription is required to create an account");
+            return;
+        }
+
         /* Create the account */
         final ObjectPlayerAccount ACCOUNT = createAccount(username, email, password);
         if(ACCOUNT == null) {
@@ -67,7 +74,15 @@ public class CreateAccountEndpoint implements IEndpoint {
             return;
         }
 
-        handler.json(ACCOUNT.toPublicMap()); // Send the created account's public details as a JSON response
+        final UserSessionManager.AuthSession session = UserSessionManager.login(email, password);
+        if (session == null) {
+            handler.status(500).result("Failed to create session");
+            return;
+        }
+
+        final var response = ACCOUNT.toPublicMap();
+        response.putAll(SubscriptionTable.subscriptionDetails(ACCOUNT.getEmail()));
+        handler.json(new LoginResponse(session.token(), response));
     }
 
     protected boolean emailExists(String email) {
@@ -86,4 +101,6 @@ public class CreateAccountEndpoint implements IEndpoint {
 		final Pattern EMAIL_PATTERN = Pattern.compile("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}");
         return EMAIL_PATTERN.matcher(email).matches();
 	}
+
+        private record LoginResponse(String token, Object account) {}
 }

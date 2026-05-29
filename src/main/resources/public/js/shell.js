@@ -7,7 +7,11 @@ export class PageManager {
     }
 
     canAccessAccountPages() {
-        return Boolean(appState.token) || Boolean(appState.account);
+        return Boolean(appState.token) || Boolean(appState.userToken) || Boolean(appState.account);
+    }
+
+    canAccessSubscriptionPages() {
+        return Boolean(appState.userToken) && Boolean(appState.account?.subscriber);
     }
 
     canAccessAuthorPages() {
@@ -19,6 +23,7 @@ export class PageManager {
         if (!definition) return false;
 
         if (definition.requiresLogin) return this.canAccessAccountPages();
+        if (definition.requiresSubscription) return this.canAccessSubscriptionPages();
         if (definition.requiresAuth) return this.canAccessAuthorPages();
         return true;
     }
@@ -57,6 +62,7 @@ export class NavigationBar {
         const visiblePages = pageDefinitions.filter((page) => {
             if (page.key === 'user') return false;
             if (page.requiresLogin) return Boolean(appState.token) || Boolean(appState.account);
+            if (page.requiresSubscription) return Boolean(appState.userToken) && Boolean(appState.account?.subscriber);
             if (page.requiresAuth) return Boolean(appState.token) || Boolean(appState.account?.administrator);
             return true;
         });

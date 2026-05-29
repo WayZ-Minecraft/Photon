@@ -3,6 +3,7 @@ import { appState } from './state.js';
 export async function api(path, options = {}) {
     const headers = new Headers(options.headers || {});
     if (appState.token) headers.set('Authorization', `Bearer ${appState.token}`);
+    if (appState.userToken) headers.set('X-Photon-User-Token', appState.userToken);
     const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
     if (options.body && !isFormData && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
 

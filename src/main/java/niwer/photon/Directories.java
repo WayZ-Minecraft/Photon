@@ -93,9 +93,9 @@ public class Directories
 	
 	public static class NetworkConfig {
 		private static final NetworkConfig DEFAULT = new NetworkConfig();
-		private static final String SERVICES_UPDATE_DIR = BASE_DIR.getPath() + "/services_update/";
-
+		
 		private static Map<UpdateChannel, String> updatePaths(String fileName) {
+			final String SERVICES_UPDATE_DIR = BASE_DIR.getPath() + "/services_update/";
 			return Map.of(
 				UpdateChannel.STABLE, SERVICES_UPDATE_DIR + fileName + ".jar",
 				UpdateChannel.DEV, SERVICES_UPDATE_DIR + fileName + "-dev.jar",

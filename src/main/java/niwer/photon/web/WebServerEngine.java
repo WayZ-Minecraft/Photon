@@ -13,8 +13,12 @@ import niwer.photon.web.endpoints.IEndpoint;
 import niwer.photon.web.endpoints.NetworkConfigEndpoint;
 import niwer.photon.web.endpoints.StatusServersEndpoint;
 import niwer.photon.web.endpoints.accounts.AuthAccountEndpoint;
+import niwer.photon.web.endpoints.accounts.AccountLicenseCreateEndpoint;
+import niwer.photon.web.endpoints.accounts.AccountLicenseListEndpoint;
+import niwer.photon.web.endpoints.accounts.AccountLicenseRevokeEndpoint;
 import niwer.photon.web.endpoints.accounts.ChangePasswordEndpoint;
 import niwer.photon.web.endpoints.accounts.CreateAccountEndpoint;
+import niwer.photon.web.endpoints.accounts.UserMeEndpoint;
 import niwer.photon.web.endpoints.accounts.UpdateProfileEndpoint;
 import niwer.photon.web.endpoints.admin.AdminConfigEndpoint;
 import niwer.photon.web.endpoints.admin.AdminLoginEndpoint;
@@ -27,7 +31,8 @@ import niwer.photon.web.endpoints.admin.AdminUpdateEndpoint;
 import niwer.photon.web.endpoints.admin.AdminUploadUpdateEndpoint;
 import niwer.photon.web.endpoints.servers.AddServerEndpoint;
 import niwer.photon.web.endpoints.servers.ServerListEndpoint;
-import niwer.photon.web.endpoints.tebex.LicenseEndpoint;
+import niwer.photon.web.endpoints.tebex.SubscriptionEndpoint;
+import niwer.photon.web.endpoints.tebex.TebexLoginEndpoint;
 
 public class WebServerEngine {
 
@@ -43,6 +48,7 @@ public class WebServerEngine {
 
         /* Load admin sessions */
         AdminSessionManager.load();
+        UserSessionManager.load();
 
         /* Create the web server */
         final var WEB_SERVER = Javalin.create(cfg -> {
@@ -70,14 +76,19 @@ public class WebServerEngine {
             }
             {
                 /* Tebex */
-                IEndpoint.register(cfg, LicenseEndpoint.class);
+                IEndpoint.register(cfg, SubscriptionEndpoint.class);
+                IEndpoint.register(cfg, TebexLoginEndpoint.class);
             }
             {
                 /* Accounts */
                 IEndpoint.register(cfg, CreateAccountEndpoint.class);
                 IEndpoint.register(cfg, AuthAccountEndpoint.class);
+                IEndpoint.register(cfg, UserMeEndpoint.class);
                 IEndpoint.register(cfg, ChangePasswordEndpoint.class);
                 IEndpoint.register(cfg, UpdateProfileEndpoint.class);
+                IEndpoint.register(cfg, AccountLicenseListEndpoint.class);
+                IEndpoint.register(cfg, AccountLicenseCreateEndpoint.class);
+                IEndpoint.register(cfg, AccountLicenseRevokeEndpoint.class);
             }
             {
                 /* Servers */

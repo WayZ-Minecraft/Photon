@@ -54,10 +54,24 @@ class DashboardApp {
                 return;
             }
 
+            const revokeButton = event.target.closest('[data-action="revoke-license"]');
+            if (revokeButton) {
+                this.revokeLicense(revokeButton.dataset.licenseKey || '').catch((error) => notify(error.message, 'error'));
+                return;
+            }
+
             const actionButton = event.target.closest('[data-action]');
             if (actionButton && actionButton.dataset.action === 'logout') {
                 this.handleLogout().catch((error) => notify(error.message, 'error'));
                 return;
+            }
+        });
+
+        document.addEventListener('submit', (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLFormElement)) return;
+            if (target.id === 'licenseForm') {
+                this.handleCreateLicense(event).catch((error) => notify(error.message, 'error'));
             }
         });
 
@@ -89,6 +103,7 @@ class DashboardApp {
     renderAll() {
         this.renderPublic();
         this.renderUser();
+        this.renderLicenses();
         this.renderAdmin();
     }
 
@@ -177,6 +192,75 @@ class DashboardApp {
                 this.copyToClipboard(button.dataset.copyText || '', button.dataset.copyLabel || 'value').catch((error) => notify(error.message, 'error'));
             });
         });
+    }
+
+    renderLicenses() {
+        const mount = el('licensesPage');
+        if (!mount) return;
+
+        if (!appState.account) {
+            mount.innerHTML = '<div class="empty-state">Sign in to manage your licenses.</div>';
+            return;
+        }
+
+        if (!appState.account.subscriber) {
+            mount.innerHTML = '<div class="empty-state">Your subscription is not active yet. Once Tebex confirms it, this area will unlock automatically.</div>';
+            return;
+        }
+
+        const licenses = Array.isArray(appState.licenses) ? appState.licenses : [];
+        const licenseCards = licenses.length ? licenses.map((license) => `
+            <article class="data-card">
+                <div class="data-card-top">
+                    <div>
+                        <h3>${escapeHtml(license.licenseKey || license.license_key || '—')}</h3>
+                        <p>${escapeHtml(license.productId || license.product_id || '—')}</p>
+                    </div>
+                    <span class="status-pill ${String(license.status || '').toUpperCase() === 'REVOKED' ? 'danger' : 'neutral'}">${escapeHtml(license.status || '—')}</span>
+                </div>
+                <div class="data-grid compact-grid">
+                    <div><span>Customer</span><strong>${formatValue(license.customerName || license.customer_name)}</strong></div>
+                    <div><span>Email</span><strong>${formatValue(license.customerEmail || license.customer_email)}</strong></div>
+                    <div><span>Created</span><strong>${formatDate(license.createdAt || license.created_at)}</strong></div>
+                    <div><span>Expires</span><strong>${formatDate(license.expiresAt || license.expires_at)}</strong></div>
+                </div>
+                <div class="button-row compact">
+                    <button type="button" class="secondary" data-action="revoke-license" data-license-key="${escapeHtml(license.licenseKey || license.license_key || '')}">Revoke</button>
+                </div>
+            </article>
+        `).join('') : '<div class="empty-state">No licenses have been created yet.</div>';
+
+        mount.innerHTML = `
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Licenses</p>
+                    <h2>Create and manage keys</h2>
+                </div>
+                <span class="status-pill positive">Active subscription</span>
+            </div>
+
+            <div class="data-card stacked-form">
+                <form id="licenseForm" class="stacked-form" onsubmit="event.preventDefault()">
+                    <label>
+                        <span>Customer name</span>
+                        <input type="text" name="customer_name" placeholder="Your name or team name" value="${escapeHtml(appState.account?.username ?? '')}">
+                    </label>
+                    <label>
+                        <span>Duration in days</span>
+                        <input type="number" name="duration_days" min="1" step="1" placeholder="30">
+                    </label>
+                    <label>
+                        <span>Tebex order ID</span>
+                        <input type="text" name="tebex_order_id" placeholder="Optional order reference">
+                    </label>
+                    <div class="button-row">
+                        <button type="submit" class="primary">Create license</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="data-grid user-grid licenses-grid">${licenseCards}</div>
+        `;
     }
 
     renderAdmin() {
@@ -312,6 +396,24 @@ class DashboardApp {
         this.refreshPages();
     }
 
+    async loadAccountData() {
+        if (!appState.userToken) {
+            appState.licenses = [];
+            this.renderUser();
+            this.renderLicenses();
+            this.header.refresh();
+            this.refreshPages();
+            return;
+        }
+
+        appState.account = await api('/accounts/me');
+        appState.licenses = appState.account?.subscriber ? await api('/accounts/licenses') : [];
+        this.renderUser();
+        this.renderLicenses();
+        this.header.refresh();
+        this.refreshPages();
+    }
+
     async loadActiveTable() {
         if (!appState.token || !appState.activeTable) return;
 
@@ -339,8 +441,10 @@ class DashboardApp {
         if (adminResponse.ok) {
             const adminPayload = await adminResponse.json();
             appState.token = adminPayload.token;
+            appState.userToken = '';
             appState.account = adminPayload.account;
             localStorage.setItem('photon-admin-token', appState.token);
+            localStorage.removeItem('photon-user-token');
             localStorage.setItem('photon-account', JSON.stringify(appState.account));
             notify('Signed in as administrator', 'success');
             this.header.refresh();
@@ -363,14 +467,17 @@ class DashboardApp {
         if (!publicResponse.ok) throw new Error(typeof payload === 'string' ? payload : 'Login failed');
 
         appState.token = '';
-        appState.account = payload;
-        localStorage.setItem('photon-account', JSON.stringify(payload));
+        appState.userToken = payload.token || '';
+        appState.account = payload.account || payload;
+        localStorage.setItem('photon-user-token', appState.userToken);
+        localStorage.setItem('photon-account', JSON.stringify(appState.account));
         localStorage.removeItem('photon-admin-token');
         notify('Signed in', 'success');
         this.header.refresh();
         this.renderUser();
         this.renderAdmin();
         await this.loadPublicData();
+        await this.loadAccountData();
         this.refreshPages();
     }
 
@@ -439,6 +546,7 @@ class DashboardApp {
         }
         this.header.refresh();
         this.renderUser();
+        this.renderLicenses();
         notify('Profile updated', 'success');
     }
 
@@ -477,7 +585,59 @@ class DashboardApp {
         const payload = contentType.includes('application/json') ? await response.json() : await response.text();
         if (!response.ok) throw new Error(typeof payload === 'string' ? payload : 'Account creation failed');
 
+        appState.userToken = payload.token || '';
+        appState.account = payload.account || payload;
+        localStorage.setItem('photon-user-token', appState.userToken);
+        localStorage.setItem('photon-account', JSON.stringify(appState.account));
+        this.header.refresh();
+        this.renderUser();
+        this.renderLicenses();
+        await this.loadAccountData();
         notify('Account created. You can sign in now.', 'success');
+    }
+
+    async handleCreateLicense(event) {
+        event.preventDefault();
+        if (!appState.userToken) throw new Error('Sign in first');
+        if (!appState.account?.subscriber) throw new Error('Active subscription required');
+
+        const formData = new FormData(event.currentTarget);
+        const payload = {
+            customer_name: String(formData.get('customer_name') || '').trim(),
+            tebex_order_id: String(formData.get('tebex_order_id') || '').trim(),
+        };
+
+        const durationDays = String(formData.get('duration_days') || '').trim();
+        if (durationDays) payload.duration_days = Number(durationDays);
+
+        const license = await api('/accounts/licenses', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        });
+
+        appState.licenses = [license, ...(appState.licenses || [])];
+        event.currentTarget.reset();
+        this.renderLicenses();
+        notify('License created', 'success');
+    }
+
+    async revokeLicense(licenseKey) {
+        if (!appState.userToken) throw new Error('Sign in first');
+        if (!licenseKey) throw new Error('Missing license key');
+        if (!window.confirm('Revoke this license?')) return;
+
+        const license = await api('/accounts/licenses/revoke', {
+            method: 'POST',
+            body: JSON.stringify({ license_key: licenseKey }),
+        });
+
+        appState.licenses = (appState.licenses || []).map((entry) => {
+            const key = entry.licenseKey || entry.license_key;
+            if (key !== (license.licenseKey || license.license_key)) return entry;
+            return license;
+        });
+        this.renderLicenses();
+        notify('License revoked', 'success');
     }
 
     async saveConfig(formElement = null) {
@@ -541,14 +701,18 @@ class DashboardApp {
 
     async handleLogout() {
         appState.token = '';
+        appState.userToken = '';
         appState.account = null;
         appState.config = null;
         appState.tables = [];
+        appState.licenses = [];
         appState.activeTable = null;
         localStorage.removeItem('photon-account');
         localStorage.removeItem('photon-admin-token');
+        localStorage.removeItem('photon-user-token');
         this.header.refresh();
         this.renderUser();
+        this.renderLicenses();
         this.renderAdmin();
         this.refreshPages();
         notify('Session cleared');
@@ -562,65 +726,16 @@ class DashboardApp {
 export function bootstrapDashboard() {
     const app = new DashboardApp();
 
-    const template = el('appTemplate');
-    el('appShell').appendChild(template.content.cloneNode(true));
-    app.pageManager.bind();
-    app.header.refresh();
-    app.footer.refresh();
-
-    if (document.body.dataset.photonChromeBound !== 'true') {
-        document.body.dataset.photonChromeBound = 'true';
-        document.addEventListener('click', (event) => {
-            const openModalButton = event.target.closest('[data-open-modal]');
-            if (openModalButton) {
-                app.modalManager.open(openModalButton.dataset.openModal, { account: appState.account });
-                return;
-            }
-
-            const pageButton = event.target.closest('[data-go-page]');
-            if (pageButton) {
-                app.pageManager.go(pageButton.dataset.goPage);
-                return;
-            }
-
-            const actionButton = event.target.closest('[data-action]');
-            if (actionButton && actionButton.dataset.action === 'logout') {
-                app.handleLogout().catch((error) => notify(error.message, 'error'));
-                return;
-            }
-        });
-    }
-
-    // Save button removed from template; editing is done via modal
-
-    el('restartButton')?.addEventListener('click', () => {
-        app.restartApp().catch((error) => notify(error.message, 'error'));
-    });
-
-    el('refreshTableButton')?.addEventListener('click', () => {
-        app.loadActiveTable().catch((error) => notify(error.message, 'error'));
-    });
-
-    el('tableSelect')?.addEventListener('change', (event) => {
-        appState.activeTable = event.target.value;
-        app.loadActiveTable().catch((error) => notify(error.message, 'error'));
-    });
-
-    el('tableLimit')?.addEventListener('change', () => {
-        app.loadActiveTable().catch((error) => notify(error.message, 'error'));
-    });
-
-    el('updateUploadForm')?.addEventListener('submit', (event) => {
-        app.uploadVersion(event).catch((error) => notify(error.message, 'error'));
-    });
-
-    app.renderAll();
-    app.refreshPages();
+    app.mount();
 
     app.loadPublicData().catch((error) => notify(error.message, 'error'));
 
     if (appState.token) {
         app.loadAdminData().catch((error) => notify(error.message, 'error'));
+    }
+
+    if (appState.userToken) {
+        app.loadAccountData().catch((error) => notify(error.message, 'error'));
     }
 
     return app;

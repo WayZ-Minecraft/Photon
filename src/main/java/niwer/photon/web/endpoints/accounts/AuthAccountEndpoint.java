@@ -3,6 +3,8 @@ package niwer.photon.web.endpoints.accounts;
 import io.javalin.http.Context;
 import niwer.photon.objects.ObjectPlayerAccount;
 import niwer.photon.sql.PlayerAccountTable;
+import niwer.photon.sql.SubscriptionTable;
+import niwer.photon.web.UserSessionManager;
 import niwer.photon.web.endpoints.IEndpoint;
 
 /**
@@ -44,10 +46,20 @@ public class AuthAccountEndpoint implements IEndpoint {
             return;
         }
 
-        handler.json(ACCOUNT.toPublicMap()); // Send the authenticated account's public details as a JSON response
+        final UserSessionManager.AuthSession session = UserSessionManager.login(email, password);
+        if (session == null) {
+            handler.status(401).result("Invalid credentials or access denied");
+            return;
+        }
+
+        final var account = ACCOUNT.toPublicMap();
+        account.putAll(SubscriptionTable.subscriptionDetails(ACCOUNT.getEmail()));
+        handler.json(new LoginResponse(session.token(), account));
     }
 
     protected ObjectPlayerAccount lookupAccountByEmail(String email) {
         return PlayerAccountTable.getAccountByEmail(email);
     }
+
+    private record LoginResponse(String token, Object account) {}
 }

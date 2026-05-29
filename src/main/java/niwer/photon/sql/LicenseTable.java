@@ -1,6 +1,7 @@
 package niwer.photon.sql;
 
 import java.util.Date;
+import java.util.List;
 
 import niwer.photon.PhotonEngine;
 import niwer.photon.objects.ObjectLicense;
@@ -72,6 +73,14 @@ public class LicenseTable extends Table {
 			.where(Expression.of("tebex_order_id").isEqualTo(tebexOrderId))
 			.limit(1)
 			.executeSerializable(ObjectLicense.class);
+	}
+
+	public static List<ObjectLicense> getByCustomerEmail(String customerEmail) {
+		if (customerEmail == null || customerEmail.isBlank()) return List.of();
+		final String normalizedEmail = customerEmail.trim().toLowerCase();
+		return SelectionManager.select(PhotonEngine.DATA_BASE, LicenseTable.class)
+			.where(Expression.of("LOWER(customer_email)").isEqualTo(normalizedEmail))
+			.executeList(ObjectLicense.class);
 	}
 
 	public static boolean exists(String licenseKey) { return getByKey(licenseKey) != null; }

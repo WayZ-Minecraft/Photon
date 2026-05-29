@@ -20,6 +20,7 @@ import niwer.photon.sql.DiscordProfileTable;
 import niwer.photon.sql.HWIDTable;
 import niwer.photon.sql.LicenseTable;
 import niwer.photon.sql.PlayerAccountTable;
+import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.sql.ServerTable;
 import niwer.photon.util.PhotonLogTypes;
 import niwer.photon.web.WebServerEngine;
@@ -106,6 +107,7 @@ public class PhotonEngine {
             /* Security */
             .registerTable(HWIDTable.class)
             .registerTable(LicenseTable.class)
+            .registerTable(SubscriptionTable.class)
             .registerTable(AnticheatTable.class)
             .registerTable(CrashReportTable.class)
             .registerTable(DiscordLogTable.class)

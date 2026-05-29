@@ -11,10 +11,12 @@ if (storedAccount) {
 
 export const appState = {
     token: localStorage.getItem('photon-admin-token') || '',
+    userToken: localStorage.getItem('photon-user-token') || '',
     account,
     tables: [],
     activeTable: null,
     servers: [],
+    licenses: [],
     config: null,
     page: window.location.hash.replace('#', '') || 'overview',
 };
@@ -43,6 +45,7 @@ export const configFields = [
 export const pageDefinitions = [
     { key: 'overview', label: 'Overview' },
     { key: 'user', label: 'User', requiresLogin: true },
+    { key: 'licenses', label: 'Licenses', requiresSubscription: true },
     { key: 'config', label: 'Config', requiresAuth: true },
     { key: 'tables', label: 'Tables', requiresAuth: true },
     { key: 'operations', label: 'Operations', requiresAuth: true },

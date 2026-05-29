@@ -22,9 +22,9 @@ import niwer.photon.web.endpoints.admin.AdminMeEndpoint;
 import niwer.photon.web.endpoints.admin.AdminRestartEndpoint;
 import niwer.photon.web.endpoints.admin.AdminTableDataEndpoint;
 import niwer.photon.web.endpoints.admin.AdminTablesEndpoint;
-import niwer.photon.web.endpoints.admin.AdminUploadUpdateEndpoint;
 import niwer.photon.web.endpoints.admin.AdminUpdateConfigEndpoint;
 import niwer.photon.web.endpoints.admin.AdminUpdateEndpoint;
+import niwer.photon.web.endpoints.admin.AdminUploadUpdateEndpoint;
 import niwer.photon.web.endpoints.servers.AddServerEndpoint;
 import niwer.photon.web.endpoints.servers.ServerListEndpoint;
 import niwer.photon.web.endpoints.tebex.LicenseEndpoint;
@@ -40,6 +40,9 @@ public class WebServerEngine {
             final Logger JETTY_LOGGER = (Logger) LoggerFactory.getLogger("org.eclipse.jetty");
             JETTY_LOGGER.setLevel(ch.qos.logback.classic.Level.WARN);
         }
+
+        /* Load admin sessions */
+        AdminSessionManager.load();
 
         /* Create the web server */
         final var WEB_SERVER = Javalin.create(cfg -> {
@@ -86,17 +89,4 @@ public class WebServerEngine {
         /* Start the web server */
         WEB_SERVER.start(Directories.getConfig().webserver_port);
     }
-
-    /**
-     * Features to add :
-     * - Public Status (Servers) page
-     * 
-     * - Server management page (with authentication) -> The hard part
-     * 
-     * - Network panel (with authentication with project creator)
-     * - Network Logo upload page (with authentication)
-     * 
-     * - Update from webserver (with authentication)
-     * (Every bot command should be available from webserver)
-     */
 }

@@ -1,5 +1,6 @@
 package niwer.photon.objects;
 
+import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.LinkedHashMap;
@@ -72,6 +73,28 @@ public class ObjectPlayerAccount extends SQLSerializable<ObjectPlayerAccount> {
         response.put("administrator", isAdministrator());
         response.put("serverCreator", isServerCreator());
         return response;
+    }
+
+    public static ObjectPlayerAccount fromSnapshot(String username, String email, String uuid, String discordID, String discordAuthCode, boolean administrator, boolean serverCreator) {
+        final ObjectPlayerAccount account = new ObjectPlayerAccount();
+        try {
+            setField(account, "username", username);
+            setField(account, "email", email);
+            setField(account, "uuid", uuid);
+            setField(account, "discordID", discordID);
+            setField(account, "discordAuthCode", discordAuthCode);
+            setField(account, "administrator", String.valueOf(administrator));
+            setField(account, "serverCreator", String.valueOf(serverCreator));
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Unable to rebuild account snapshot", e);
+        }
+        return account;
+    }
+
+    private static void setField(ObjectPlayerAccount account, String fieldName, Object value) throws ReflectiveOperationException {
+        final Field field = ObjectPlayerAccount.class.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(account, value);
     }
 
     private static boolean isTruthy(String value) {

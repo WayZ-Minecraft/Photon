@@ -42,6 +42,7 @@ export const configFields = [
 
 export const pageDefinitions = [
     { key: 'overview', label: 'Overview' },
+    { key: 'user', label: 'User', requiresLogin: true },
     { key: 'config', label: 'Config', requiresAuth: true },
     { key: 'tables', label: 'Tables', requiresAuth: true },
     { key: 'operations', label: 'Operations', requiresAuth: true },

@@ -5,6 +5,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.javalin.http.Context;
+import niwer.lumen.Console;
 import niwer.photon.objects.ObjectPlayerAccount;
 import niwer.photon.sql.PlayerAccountTable;
 
@@ -22,24 +23,23 @@ public final class AdminSessionManager {
         if (email == null || password == null) return null;
 
         final ObjectPlayerAccount account = PlayerAccountTable.getAccountByEmail(email);
-        if (account == null || account.password() == null || !account.password().equals(password) || !account.projectAuthor()) {
-            return null;
-        }
+        Console.log("hey" + account.administrator()).send();
+        if (account == null || account.password() == null || !account.password().equals(password) || !account.administrator()) return null;
 
         final String token = UUID.randomUUID().toString().replace("-", "");
         SESSIONS.put(token, new Session(account.uuid(), account.email(), System.currentTimeMillis()));
         return new AuthSession(token, account);
     }
 
-    public static ObjectPlayerAccount requireProjectAuthor(Context handler) {
+    public static ObjectPlayerAccount requireAdministrator(Context handler) {
         final ObjectPlayerAccount account = accountFromRequest(handler);
         if (account == null) {
             handler.status(401).result("Unauthorized");
             return null;
         }
 
-        if (!account.projectAuthor()) {
-            handler.status(403).result("Project author access required");
+        if (!account.administrator()) {
+            handler.status(403).result("Administrator access required");
             return null;
         }
 

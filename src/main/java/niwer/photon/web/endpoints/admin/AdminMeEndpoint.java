@@ -12,9 +12,9 @@ public class AdminMeEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
-        final var account = AdminSessionManager.requireProjectAuthor(handler);
+        final var account = AdminSessionManager.requireAdministrator(handler);
         if (account == null) return;
 
-        handler.json(account);
+        handler.json(account.toPublicMap());
     }
 }

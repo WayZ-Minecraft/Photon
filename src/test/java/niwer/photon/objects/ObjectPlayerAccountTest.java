@@ -42,7 +42,7 @@ class ObjectPlayerAccountTest {
         setField(account, "uuid", "uuid-1");
         setField(account, "discordID", "discord-1");
         setField(account, "discordAuthCode", "code-1");
-        setField(account, "projectAuthor", true);
+        setField(account, "administrator", true);
         setField(account, "serverCreator", true);
 
         assertEquals("alice", account.username());
@@ -52,7 +52,7 @@ class ObjectPlayerAccountTest {
         assertEquals("uuid-1", account.uuid());
         assertEquals("discord-1", account.discordID());
         assertEquals("code-1", account.discordAuthCode());
-        assertTrue(account.projectAuthor());
+        assertTrue(account.administrator());
         assertTrue(account.serverCreator());
 
         assertTrue(account.toString().contains("username=alice"));

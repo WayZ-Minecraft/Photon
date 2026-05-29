@@ -6,11 +6,21 @@ export class PageManager {
         this.pageElements = [];
     }
 
+    canAccessAccountPages() {
+        return Boolean(appState.token) || Boolean(appState.account);
+    }
+
+    canAccessAuthorPages() {
+        return Boolean(appState.token) || Boolean(appState.account?.administrator);
+    }
+
     canAccessPage(page) {
         const definition = pageDefinitions.find((item) => item.key === page);
         if (!definition) return false;
 
-        return !definition.requiresAuth || Boolean(appState.account?.projectAuthor);
+        if (definition.requiresLogin) return this.canAccessAccountPages();
+        if (definition.requiresAuth) return this.canAccessAuthorPages();
+        return true;
     }
 
     bind() {
@@ -44,9 +54,21 @@ export class PageManager {
 
 export class NavigationBar {
     render() {
-        const visiblePages = pageDefinitions.filter((page) => !page.requiresAuth || Boolean(appState.account?.projectAuthor));
+        const visiblePages = pageDefinitions.filter((page) => {
+            if (page.key === 'user') return false;
+            if (page.requiresLogin) return Boolean(appState.token) || Boolean(appState.account);
+            if (page.requiresAuth) return Boolean(appState.token) || Boolean(appState.account?.administrator);
+            return true;
+        });
         const authActions = appState.account
-            ? '<button type="button" class="secondary" data-action="logout">Logout</button>'
+            ? `
+                <button type="button" class="nav-link icon-button ${appState.page === 'user' ? 'active' : ''}" data-nav-link="user" data-go-page="user" aria-label="User page" title="User page">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path fill="currentColor" d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5Zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5Z"/>
+                    </svg>
+                    <span class="sr-only">User</span>
+                </button>
+            `
             : `
                 <button type="button" class="secondary" data-open-modal="auth">Sign in</button>
                 <button type="button" class="secondary" data-open-modal="createAccount">Create account</button>
@@ -115,8 +137,12 @@ export class ModalManager {
             return;
         }
 
-        const title = this.active.kind === 'auth' ? 'Sign in' : 'Create account';
-        const body = this.renderAuthOrAccountForm();
+        const title = this.active.kind === 'auth'
+            ? 'Sign in'
+            : this.active.kind === 'profile'
+                ? 'Edit profile'
+                : 'Create account';
+        const body = this.active.kind === 'profile' ? this.renderProfileForm() : this.renderAuthOrAccountForm();
 
         this.root.innerHTML = `
             <div class="modal-backdrop" data-modal-close>
@@ -212,6 +238,77 @@ export class ModalManager {
         `;
     }
 
+    renderProfileForm() {
+        const account = this.active.payload?.account ?? appState.account ?? {};
+        return `
+            <form id="profileForm" class="modal-panel active stacked-form">
+                <div>
+                    <p class="eyebrow">Account</p>
+                    <h3>Edit your profile</h3>
+                </div>
+                <label>
+                    <span>Username</span>
+                    <input type="text" name="username" autocomplete="username" value="${escapeHtml(account.username ?? '')}" required>
+                </label>
+                <label>
+                    <span>Email</span>
+                    <input type="email" name="email" autocomplete="email" value="${escapeHtml(account.email ?? '')}" required>
+                </label>
+                <hr class="form-divider">
+                <label>
+                    <span>New password</span>
+                    <div class="password-field-row">
+                        <input type="password" name="newPassword" autocomplete="new-password" placeholder="Leave empty to keep your current password">
+                        <button type="button" class="secondary password-toggle" data-password-toggle data-target="newPassword" aria-label="Show password" aria-pressed="false">
+                            <svg class="password-toggle-icon password-toggle-icon-show" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Zm10 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" fill="currentColor"></path>
+                            </svg>
+                            <svg class="password-toggle-icon password-toggle-icon-hide" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path d="M3.5 4.5 19.5 20.5l1.4-1.4-2.7-2.7C21 15 22 12 22 12s-3.5-7-10-7c-1.5 0-2.9.3-4.1.8L4.9 3.1 3.5 4.5ZM9 10l1.6 1.6A2 2 0 0 1 12 10a2 2 0 0 1 2 2c0 .4-.1.7-.3 1l1.6 1.6A4 4 0 0 0 9 10Zm3 8c6.5 0 10-7 10-7s-1-2-3.2-4.1l-2.1 2.1c.8.9 1.3 1.8 1.6 2.4-1.1 2-3.6 5-6.3 5-.7 0-1.4-.1-2-.3l-1.8 1.8c1.2.4 2.5.6 3.8.6Zm-8.2-2.9 2.1-2.1C4.8 12.1 4 12 4 12s3.5-7 10-7c.9 0 1.8.1 2.6.3l1.8-1.8C16.9 3.6 14.6 3 12 3 5.5 3 2 12 2 12s1 2 3.2 4.1Z" fill="currentColor"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </label>
+                <p id="profilePasswordMeter" class="hint form-feedback password-strength" aria-live="polite">Password strength: empty</p>
+                <label>
+                    <span>Confirm new password</span>
+                    <div class="password-field-row">
+                        <input type="password" name="confirmPassword" autocomplete="new-password" placeholder="Repeat the new password">
+                        <button type="button" class="secondary password-toggle" data-password-toggle data-target="confirmPassword" aria-label="Show password" aria-pressed="false">
+                            <svg class="password-toggle-icon password-toggle-icon-show" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Zm10 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" fill="currentColor"></path>
+                            </svg>
+                            <svg class="password-toggle-icon password-toggle-icon-hide" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path d="M3.5 4.5 19.5 20.5l1.4-1.4-2.7-2.7C21 15 22 12 22 12s-3.5-7-10-7c-1.5 0-2.9.3-4.1.8L4.9 3.1 3.5 4.5ZM9 10l1.6 1.6A2 2 0 0 1 12 10a2 2 0 0 1 2 2c0 .4-.1.7-.3 1l1.6 1.6A4 4 0 0 0 9 10Zm3 8c6.5 0 10-7 10-7s-1-2-3.2-4.1l-2.1 2.1c.8.9 1.3 1.8 1.6 2.4-1.1 2-3.6 5-6.3 5-.7 0-1.4-.1-2-.3l-1.8 1.8c1.2.4 2.5.6 3.8.6Zm-8.2-2.9 2.1-2.1C4.8 12.1 4 12 4 12s3.5-7 10-7c.9 0 1.8.1 2.6.3l1.8-1.8C16.9 3.6 14.6 3 12 3 5.5 3 2 12 2 12s1 2 3.2 4.1Z" fill="currentColor"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </label>
+                <p id="profilePasswordFeedback" class="hint form-feedback" aria-live="polite"></p>
+                <hr class="form-divider">
+                <label>
+                    <span>Current password</span>
+                    <div class="password-field-row">
+                        <input type="password" name="currentPassword" autocomplete="current-password" placeholder="Confirm your identity" required>
+                        <button type="button" class="secondary password-toggle" data-password-toggle data-target="currentPassword" aria-label="Show password" aria-pressed="false">
+                            <svg class="password-toggle-icon password-toggle-icon-show" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Zm10 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" fill="currentColor"></path>
+                            </svg>
+                            <svg class="password-toggle-icon password-toggle-icon-hide" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path d="M3.5 4.5 19.5 20.5l1.4-1.4-2.7-2.7C21 15 22 12 22 12s-3.5-7-10-7c-1.5 0-2.9.3-4.1.8L4.9 3.1 3.5 4.5ZM9 10l1.6 1.6A2 2 0 0 1 12 10a2 2 0 0 1 2 2c0 .4-.1.7-.3 1l1.6 1.6A4 4 0 0 0 9 10Zm3 8c6.5 0 10-7 10-7s-1-2-3.2-4.1l-2.1 2.1c.8.9 1.3 1.8 1.6 2.4-1.1 2-3.6 5-6.3 5-.7 0-1.4-.1-2-.3l-1.8 1.8c1.2.4 2.5.6 3.8.6Zm-8.2-2.9 2.1-2.1C4.8 12.1 4 12 4 12s3.5-7 10-7c.9 0 1.8.1 2.6.3l1.8-1.8C16.9 3.6 14.6 3 12 3 5.5 3 2 12 2 12s1 2 3.2 4.1Z" fill="currentColor"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </label>
+                <p id="profileUpdateFeedback" class="hint form-feedback" aria-live="polite"></p>
+                <div class="button-row">
+                    <button type="button" class="secondary" data-modal-close>Cancel</button>
+                    <button type="submit" class="primary">Save changes</button>
+                </div>
+            </form>
+        `;
+    }
+
 
     bind() {
         this.root.querySelectorAll('[data-modal-close]').forEach((button) => {
@@ -255,6 +352,47 @@ export class ModalManager {
             });
         });
 
+        const profileForm = this.root.querySelector('#profileForm');
+        if (profileForm) {
+            const updateProfilePasswordMeter = () => {
+                const password = profileForm.querySelector('[name="newPassword"]')?.value || '';
+                const meter = this.root.querySelector('#profilePasswordMeter');
+
+                if (!meter) return;
+
+                const strength = password.length === 0 ? 0 : password.length < 6 ? 1 : password.length < 10 ? 2 : password.length < 14 ? 3 : password.length < 18 ? 4 : 5;
+                const strengthLabel = ['empty', 'weak', 'fair', 'good', 'strong', 'excellent'][strength];
+                meter.dataset.strength = String(strength);
+                meter.textContent = `Password strength: ${strengthLabel}`;
+            };
+
+            const updateProfileFeedback = () => {
+                const password = profileForm.querySelector('[name="newPassword"]')?.value || '';
+                const confirmPassword = profileForm.querySelector('[name="confirmPassword"]')?.value || '';
+                const feedback = this.root.querySelector('#profilePasswordFeedback');
+
+                if (!feedback) return;
+
+                const hasMismatch = password.length > 0 && confirmPassword.length > 0 && password !== confirmPassword;
+                feedback.textContent = hasMismatch ? 'Passwords do not match.' : '';
+                feedback.dataset.state = hasMismatch ? 'error' : 'idle';
+            };
+
+            profileForm.querySelectorAll('[name="newPassword"], [name="confirmPassword"]').forEach((input) => {
+                input.addEventListener('input', () => {
+                    updateProfilePasswordMeter();
+                    updateProfileFeedback();
+                });
+            });
+
+            updateProfilePasswordMeter();
+            updateProfileFeedback();
+
+            profileForm.addEventListener('submit', (event) => {
+                this.app.handlePasswordChange(event).then(() => this.close()).catch((error) => notify(error.message, 'error'));
+            });
+        }
+
         const createAccountForm = this.root.querySelector('#createAccountForm');
         if (createAccountForm) {
             const updatePasswordMeter = () => {
@@ -265,7 +403,6 @@ export class ModalManager {
 
                 const strength = password.length === 0 ? 0 : password.length < 6 ? 1 : password.length < 10 ? 2 : password.length < 14 ? 3 : password.length < 18 ? 4 : 5;
                 const strengthLabel = ['empty', 'weak', 'fair', 'good', 'strong', 'excellent'][strength];
-
                 meter.dataset.strength = String(strength);
                 meter.textContent = `Password strength: ${strengthLabel}`;
             };

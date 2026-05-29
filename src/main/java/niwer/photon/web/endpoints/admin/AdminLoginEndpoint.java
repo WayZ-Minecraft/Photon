@@ -18,14 +18,14 @@ public class AdminLoginEndpoint implements IEndpoint {
             handler.status(400).result("Missing parameters");
             return;
         }
-
+        
         final AdminSessionManager.AuthSession session = AdminSessionManager.login(credentials.email, credentials.password);
         if (session == null) {
             handler.status(401).result("Invalid credentials or access denied");
             return;
         }
 
-        handler.json(new LoginResponse(session.token(), session.account()));
+        handler.json(new LoginResponse(session.token(), session.account().toPublicMap()));
     }
 
     private static Credentials readCredentials(Context handler) {

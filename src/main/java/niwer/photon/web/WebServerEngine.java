@@ -13,7 +13,9 @@ import niwer.photon.web.endpoints.IEndpoint;
 import niwer.photon.web.endpoints.NetworkConfigEndpoint;
 import niwer.photon.web.endpoints.StatusServersEndpoint;
 import niwer.photon.web.endpoints.accounts.AuthAccountEndpoint;
+import niwer.photon.web.endpoints.accounts.ChangePasswordEndpoint;
 import niwer.photon.web.endpoints.accounts.CreateAccountEndpoint;
+import niwer.photon.web.endpoints.accounts.UpdateProfileEndpoint;
 import niwer.photon.web.endpoints.admin.AdminConfigEndpoint;
 import niwer.photon.web.endpoints.admin.AdminLoginEndpoint;
 import niwer.photon.web.endpoints.admin.AdminMeEndpoint;
@@ -69,6 +71,8 @@ public class WebServerEngine {
                 /* Accounts */
                 IEndpoint.register(cfg, CreateAccountEndpoint.class);
                 IEndpoint.register(cfg, AuthAccountEndpoint.class);
+                IEndpoint.register(cfg, ChangePasswordEndpoint.class);
+                IEndpoint.register(cfg, UpdateProfileEndpoint.class);
             }
             {
                 /* Servers */

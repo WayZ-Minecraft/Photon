@@ -13,7 +13,7 @@ public class AdminUpdateConfigEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
-        if (AdminSessionManager.requireProjectAuthor(handler) == null) return;
+        if (AdminSessionManager.requireAdministrator(handler) == null) return;
 
         final ConfigUpdateRequest request;
         try {

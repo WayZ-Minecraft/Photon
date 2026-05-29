@@ -21,7 +21,7 @@ public class AdminTableDataEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
-        if (AdminSessionManager.requireProjectAuthor(handler) == null) return;
+        if (AdminSessionManager.requireAdministrator(handler) == null) return;
 
         final String tableName = handler.pathParam("table");
         final AdminTablesEndpoint.TableInfo tableInfo = AdminTablesEndpoint.getTables().stream()

@@ -31,7 +31,7 @@ class DashboardApp {
         document.addEventListener('click', (event) => {
             const openModalButton = event.target.closest('[data-open-modal]');
             if (openModalButton) {
-                this.modalManager.open(openModalButton.dataset.openModal);
+                this.modalManager.open(openModalButton.dataset.openModal, { account: appState.account });
                 return;
             }
 
@@ -75,15 +75,48 @@ class DashboardApp {
         el('tableLimit')?.addEventListener('change', () => {
             this.loadActiveTable().catch((error) => notify(error.message, 'error'));
         });
+
     }
 
     renderAll() {
         this.renderPublic();
+        this.renderUser();
         this.renderAdmin();
     }
 
     renderPublic() {
         this.renderServers();
+    }
+
+    renderUser() {
+        const mount = el('userPage');
+        if (!mount) return;
+
+        if (!appState.account) {
+            mount.innerHTML = '<div class="empty-state">Sign in to view your account details.</div>';
+            return;
+        }
+
+        const accountEntries = Object.entries(appState.account).map(([key, value]) => `
+            <div class="user-field">
+                <span>${escapeHtml(key)}</span>
+                <strong>${escapeHtml(value ?? '—')}</strong>
+            </div>
+        `).join('');
+
+        mount.innerHTML = `
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Account</p>
+                    <h2>Your profile</h2>
+                </div>
+                <div class="button-row">
+                    <button type="button" class="secondary" data-open-modal="profile">Edit profile</button>
+                    <button type="button" class="danger" data-action="logout">Logout</button>
+                </div>
+            </div>
+            <div class="data-grid user-grid">${accountEntries}</div>
+        `;
     }
 
     renderAdmin() {
@@ -191,6 +224,7 @@ class DashboardApp {
             appState.account = null;
             appState.config = null;
             appState.tables = [];
+            this.renderUser();
             this.renderAdmin();
             this.renderHeaderState();
             this.refreshPages();
@@ -200,6 +234,7 @@ class DashboardApp {
         appState.account = await api('/api/admin/me');
         appState.config = await api('/api/admin/config');
         appState.tables = await api('/api/admin/tables');
+        this.renderUser();
         this.renderAdmin();
         this.renderHeaderState();
         await this.loadActiveTable();
@@ -236,8 +271,9 @@ class DashboardApp {
             appState.account = adminPayload.account;
             localStorage.setItem('photon-admin-token', appState.token);
             localStorage.setItem('photon-account', JSON.stringify(appState.account));
-            notify('Signed in', 'success');
+            notify('Signed in as administrator', 'success');
             this.header.refresh();
+            this.renderUser();
             await Promise.all([
                 this.loadPublicData(),
                 this.loadAdminData(),
@@ -261,9 +297,73 @@ class DashboardApp {
         localStorage.removeItem('photon-admin-token');
         notify('Signed in', 'success');
         this.header.refresh();
+        this.renderUser();
         this.renderAdmin();
         await this.loadPublicData();
         this.refreshPages();
+    }
+
+    async handlePasswordChange(event) {
+        event.preventDefault();
+
+        if (!appState.account?.email) throw new Error('Sign in first');
+
+        const formData = new FormData(event.currentTarget);
+        const username = String(formData.get('username') || '').trim();
+        const email = String(formData.get('email') || '').trim();
+        const currentPassword = String(formData.get('currentPassword') || '');
+        const newPassword = String(formData.get('newPassword') || '');
+        const confirmPassword = String(formData.get('confirmPassword') || '');
+        const feedback = document.getElementById('profileUpdateFeedback');
+
+        if (!username || !email) {
+            if (feedback) {
+                feedback.textContent = 'Username and email are required.';
+                feedback.dataset.state = 'error';
+            }
+            throw new Error('Username and email are required');
+        }
+
+        if ((newPassword || confirmPassword) && newPassword !== confirmPassword) {
+            if (feedback) {
+                feedback.textContent = 'Passwords do not match.';
+                feedback.dataset.state = 'error';
+            }
+            throw new Error('Passwords do not match');
+        }
+
+        if (newPassword && newPassword.length < 8) {
+            if (feedback) {
+                feedback.textContent = 'Password must be at least 8 characters long.';
+                feedback.dataset.state = 'error';
+            }
+            throw new Error('Password must be at least 8 characters long');
+        }
+
+        const account = await api('/accounts/update_profile', {
+            method: 'POST',
+            body: JSON.stringify({
+                uuid: appState.account.uuid,
+                currentPassword,
+                username,
+                email,
+                newPassword,
+                confirmPassword,
+            }),
+        });
+
+        appState.account = account;
+        localStorage.setItem('photon-account', JSON.stringify(account));
+
+        if (feedback) {
+            feedback.textContent = '';
+            feedback.dataset.state = 'idle';
+        }
+
+        event.currentTarget.reset();
+        this.header.refresh();
+        this.renderUser();
+        notify('Profile updated', 'success');
     }
 
     async handleCreateAccount(event) {
@@ -343,6 +443,7 @@ class DashboardApp {
         localStorage.removeItem('photon-account');
         localStorage.removeItem('photon-admin-token');
         this.header.refresh();
+        this.renderUser();
         this.renderAdmin();
         this.refreshPages();
         notify('Session cleared');
@@ -367,7 +468,7 @@ export function bootstrapDashboard() {
         document.addEventListener('click', (event) => {
             const openModalButton = event.target.closest('[data-open-modal]');
             if (openModalButton) {
-                app.modalManager.open(openModalButton.dataset.openModal);
+                app.modalManager.open(openModalButton.dataset.openModal, { account: appState.account });
                 return;
             }
 

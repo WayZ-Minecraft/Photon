@@ -212,6 +212,19 @@ label span {
 	color: var(--text);
 }
 
+.nav-link.icon-button {
+	min-width: 50px;
+	padding: 0.8rem;
+	display: inline-grid;
+	place-items: center;
+	line-height: 0;
+}
+
+.nav-link.icon-button svg {
+	width: 20px;
+	height: 20px;
+}
+
 .nav-link.active,
 .tab-button.active {
 	background: var(--accent-soft);
@@ -310,6 +323,38 @@ label span {
 	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 	gap: 10px;
 	margin-top: 10px;
+}
+
+.user-grid {
+	grid-template-columns: 1fr;
+	margin-bottom: 18px;
+}
+
+.user-password-form {
+	padding-top: 6px;
+}
+
+.form-divider {
+	width: 100%;
+	border: 0;
+	border-top: 1px solid var(--border);
+	margin: 18px 0 16px;
+}
+
+.user-field {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	align-items: start;
+	padding: 12px 14px;
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	background: #fff;
+}
+
+.user-field strong {
+	text-align: right;
+	word-break: break-word;
 }
 
 .compact-grid {

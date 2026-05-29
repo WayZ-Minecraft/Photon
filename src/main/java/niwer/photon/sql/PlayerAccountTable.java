@@ -3,11 +3,10 @@ package niwer.photon.sql;
 import java.util.List;
 import java.util.UUID;
 
+import niwer.lumen.Console;
 import niwer.photon.PhotonEngine;
 import niwer.photon.objects.ObjectPlayerAccount;
 import niwer.photon.util.PhotonLogTypes;
-
-import niwer.lumen.Console;
 import niwer.queryon.DataBase;
 import niwer.queryon.queries.Expression;
 import niwer.queryon.queries.interaction.DeletionManager;
@@ -36,7 +35,7 @@ public class PlayerAccountTable extends Table {
             createColumn(db, "twoAuthFactor", EnumColumnTypes.BOOLEAN).defaultValue(false),
             createColumn(db, "discordID", 1024),
             createColumn(db, "discordAuthCode", 255).notNull(),
-            createColumn(db, "projectAuthor", EnumColumnTypes.BOOLEAN).defaultValue(false),
+            createColumn(db, "administrator", EnumColumnTypes.BOOLEAN).defaultValue(false),
             createColumn(db, "serverCreator", EnumColumnTypes.BOOLEAN).defaultValue(false),
             createColumn(db, "shopCoins", EnumColumnTypes.INT).defaultValue(0, Expression.of("shopCoins").isGreaterThanOrEqualTo(0)), // Default to 0 and non-negative constraint
             createColumn(db, "friends", EnumColumnTypes.TEXT)
@@ -250,7 +249,63 @@ public class PlayerAccountTable extends Table {
             .execute();
     }
 
-        /**
+    public static void setadministrator(String uuid, boolean isadministrator) {
+        if (uuid == null || uuid.trim().isEmpty()) {
+            Console.log("Cannot update administrator with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
+            return;
+        }
+        UpdateManager.update(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
+            .set("administrator", isadministrator)
+            .where(Expression.of("uuid").isEqualTo(uuid))
+            .execute();
+    }
+
+    public static void setUsername(String uuid, String username) {
+        if (uuid == null || uuid.trim().isEmpty()) {
+            Console.log("Cannot update username with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
+            return;
+        }
+        if (username == null || username.isBlank()) {
+            Console.log("Cannot update username with null/empty value").error().container(PhotonEngine.LOGGER).send();
+            return;
+        }
+        UpdateManager.update(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
+            .set("username", username.trim())
+            .where(Expression.of("uuid").isEqualTo(uuid))
+            .execute();
+    }
+
+    public static void setEmail(String uuid, String email) {
+        if (uuid == null || uuid.trim().isEmpty()) {
+            Console.log("Cannot update email with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
+            return;
+        }
+        if (email == null || email.isBlank()) {
+            Console.log("Cannot update email with null/empty value").error().container(PhotonEngine.LOGGER).send();
+            return;
+        }
+        UpdateManager.update(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
+            .set("email", email.trim().toLowerCase())
+            .where(Expression.of("uuid").isEqualTo(uuid))
+            .execute();
+    }
+
+    public static void setPassword(String uuid, String password) {
+        if (uuid == null || uuid.trim().isEmpty()) {
+            Console.log("Cannot update password with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
+            return;
+        }
+        if (password == null || password.isBlank()) {
+            Console.log("Cannot update password with null/empty value").error().container(PhotonEngine.LOGGER).send();
+            return;
+        }
+        UpdateManager.update(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
+            .set("password", password)
+            .where(Expression.of("uuid").isEqualTo(uuid))
+            .execute();
+    }
+
+    /**
      * Delete an account by UUID.
      * 
      * @param uuid The account UUID to delete

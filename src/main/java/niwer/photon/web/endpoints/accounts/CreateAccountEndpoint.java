@@ -67,7 +67,7 @@ public class CreateAccountEndpoint implements IEndpoint {
             return;
         }
 
-        handler.json(ACCOUNT); // Send the created account's details as a JSON response
+        handler.json(ACCOUNT.toPublicMap()); // Send the created account's public details as a JSON response
     }
 
     protected boolean emailExists(String email) {

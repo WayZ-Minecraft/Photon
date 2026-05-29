@@ -44,7 +44,7 @@ public class AuthAccountEndpoint implements IEndpoint {
             return;
         }
 
-        handler.json(ACCOUNT); // Send the authenticated account's details as a JSON response
+        handler.json(ACCOUNT.toPublicMap()); // Send the authenticated account's public details as a JSON response
     }
 
     protected ObjectPlayerAccount lookupAccountByEmail(String email) {

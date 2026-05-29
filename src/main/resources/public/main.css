@@ -40,6 +40,18 @@ button {
 	cursor: pointer;
 }
 
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
 input, textarea, select {
 	width: 100%;
 	border: 1px solid var(--border);
@@ -57,6 +69,58 @@ input:focus, textarea:focus, select:focus {
 label {
 	display: grid;
 	gap: 0.4rem;
+}
+
+.password-field-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.password-field-row input {
+	flex: 1;
+}
+
+.password-toggle {
+	min-width: 44px;
+	min-height: 44px;
+	display: inline-grid;
+	place-items: center;
+	padding: 0;
+	flex: 0 0 44px;
+	background: #eef2f7;
+	color: var(--muted);
+	border: 1px solid var(--border);
+	line-height: 0;
+	transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.password-toggle:hover,
+.password-toggle:focus-visible {
+	background: var(--accent-soft);
+	color: var(--accent);
+	border-color: var(--accent);
+}
+
+.password-toggle-icon {
+	width: 20px;
+	height: 20px;
+	display: none;
+	flex: none;
+}
+
+
+.password-toggle .password-toggle-icon-show {
+	display: block;
+}
+
+.password-toggle[data-visible="true"] .password-toggle-icon-show,
+.password-toggle[data-visible="true"] .password-toggle-icon-hide {
+	display: block;
+}
+
+.password-toggle[data-visible="true"] .password-toggle-icon-show {
+	display: none;
 }
 
 p, h1, h2, h3 {
@@ -315,6 +379,44 @@ th {
 	font-size: 0.95rem;
 }
 
+.form-feedback {
+	min-height: 1.2em;
+}
+
+.form-feedback[data-state="error"] {
+	color: var(--danger);
+}
+
+.password-strength {
+	margin-top: 4px;
+	font-size: 0.88rem;
+	transition: color 120ms ease;
+}
+
+.password-strength[data-strength="0"] {
+	color: var(--muted);
+}
+
+.password-strength[data-strength="1"] {
+	color: #c2415d;
+}
+
+.password-strength[data-strength="2"] {
+	color: #d97706;
+}
+
+.password-strength[data-strength="3"] {
+	color: #b45309;
+}
+
+.password-strength[data-strength="4"] {
+	color: #1f7a4f;
+}
+
+.password-strength[data-strength="5"] {
+	color: var(--accent);
+}
+
 .empty-state {
 	padding: 12px;
 	color: var(--muted);
@@ -335,6 +437,16 @@ th {
 	padding: 16px;
 	max-height: calc(100vh - 32px);
 	overflow: auto;
+}
+
+.modal-close {
+	min-width: 44px;
+	min-height: 44px;
+	display: inline-grid;
+	place-items: center;
+	padding: 0;
+	font-size: 1.6rem;
+	line-height: 1;
 }
 
 .modal-header {

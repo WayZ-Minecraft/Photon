@@ -53,6 +53,6 @@ public class ListAccountsCommand extends AbstractSlashCommand {
     }
     
     public static String formatAccount(ObjectPlayerAccount account) {
-        return "- " + account.email() + " " + account.username() + " " + account.uuid() + " " + account.shopCoins() + "€$ " + (account.projectAuthor() ? "He's Project Creator" : "He's not a Project Creator");
+        return "- " + account.email() + " " + account.username() + " " + account.uuid() + " " + (account.projectAuthor() ? "He's Project Creator" : "He's not a Project Creator");
     }
 }

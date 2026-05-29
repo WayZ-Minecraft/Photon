@@ -269,10 +269,27 @@ class DashboardApp {
     async handleCreateAccount(event) {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
+        const password = String(formData.get('password') || '');
+        const confirmPassword = String(formData.get('confirmPassword') || '');
+        const feedback = document.getElementById('createAccountFeedback');
+
+        if (password !== confirmPassword) {
+            if (feedback) {
+                feedback.textContent = 'Passwords do not match.';
+                feedback.dataset.state = 'error';
+            }
+            throw new Error('Passwords do not match');
+        }
+
+        if (feedback) {
+            feedback.textContent = '';
+            feedback.dataset.state = 'idle';
+        }
+
         const body = new URLSearchParams();
         body.set('username', String(formData.get('username') || '').trim());
         body.set('email', String(formData.get('email') || '').trim());
-        body.set('password', String(formData.get('password') || ''));
+        body.set('password', password);
 
         const response = await fetch('/accounts/create_account', {
             method: 'POST',

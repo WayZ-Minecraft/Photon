@@ -17,6 +17,7 @@ import niwer.photon.Directories;
 import niwer.photon.util.os.OperatingSystem;
 import niwer.photon.util.updater.UpdateChannel;
 import niwer.photon.util.updater.UpdateFileType;
+import niwer.photon.web.endpoints.admin.AdminUpdateEndpoint;
 
 class UpdateEndpointTest {
 
@@ -27,7 +28,7 @@ class UpdateEndpointTest {
 
     @Test
     void exposesTheExpectedPathAndMethod() {
-        final UpdateEndpoint endpoint = new UpdateEndpoint();
+        final AdminUpdateEndpoint endpoint = new AdminUpdateEndpoint();
 
         assertEquals("/api/update", endpoint.path());
         assertEquals(IEndpoint.HttpMethod.GET, endpoint.method());
@@ -37,7 +38,7 @@ class UpdateEndpointTest {
     void rejectsMissingParameters() {
         final ContextStubTest stub = new ContextStubTest();
 
-        new UpdateEndpoint().handle(stub.context());
+        new AdminUpdateEndpoint().handle(stub.context());
 
         assertEquals(400, stub.statusCode());
         assertEquals("Missing parameters", stub.resultBody());
@@ -49,7 +50,7 @@ class UpdateEndpointTest {
             .queryParam("type", "plugin")
             .queryParam("channel", "dev");
 
-        new UpdateEndpoint().handle(stub.context());
+        new AdminUpdateEndpoint().handle(stub.context());
 
         assertEquals(400, stub.statusCode());
         assertEquals("Invalid update type or channel", stub.resultBody());
@@ -66,7 +67,7 @@ class UpdateEndpointTest {
             .queryParam("type", "network")
             .queryParam("channel", "dev");
 
-        new UpdateEndpoint().handle(stub.context());
+        new AdminUpdateEndpoint().handle(stub.context());
 
         assertEquals(404, stub.statusCode());
         assertEquals("Update not found", stub.resultBody());
@@ -87,7 +88,7 @@ class UpdateEndpointTest {
             .queryParam("channel", "dev")
             .queryParam("metadata", "true");
 
-        new UpdateEndpoint().handle(stub.context());
+        new AdminUpdateEndpoint().handle(stub.context());
 
         assertNotNull(stub.jsonBody());
         assertEquals(OperatingSystem.hash(file.toFile(), "SHA-1"), invokeRecordGetter(stub.jsonBody(), "sha1"));
@@ -111,7 +112,7 @@ class UpdateEndpointTest {
             .queryParam("type", "network")
             .queryParam("channel", "dev");
 
-        new UpdateEndpoint().handle(stub.context());
+        new AdminUpdateEndpoint().handle(stub.context());
 
         assertEquals("application/octet-stream", stub.contentType());
         assertEquals(OperatingSystem.hash(file.toFile(), "SHA-1"), stub.responseHeaders().get("Update-Sha1"));
@@ -133,7 +134,7 @@ class UpdateEndpointTest {
             .queryParam("type", "network")
             .queryParam("channel", "dev");
 
-        new UpdateEndpoint().handle(stub.context());
+        new AdminUpdateEndpoint().handle(stub.context());
 
         assertEquals(500, stub.statusCode());
         assertEquals("Unable to read update file", stub.resultBody());

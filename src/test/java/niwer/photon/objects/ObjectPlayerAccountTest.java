@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Field;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -22,28 +21,14 @@ class ObjectPlayerAccountTest {
     }
 
     @Test
-    void discordLinkAndFriendsHelpersBehaveAsExpected() {
+    void discordLinkHelpersBehaveAsExpected() {
         final ObjectPlayerAccount account = new ObjectPlayerAccount();
 
         assertFalse(account.hasDiscordLinked());
 
         setField(account, "discordID", "1234567890");
-        setField(account, "firends", "[\"alpha\",\"beta\"]");
 
         assertTrue(account.hasDiscordLinked());
-        assertEquals(List.of("alpha", "beta"), account.getFriendsList());
-    }
-
-    @Test
-    void getFriendsListReturnsEmptyListForBlankOrInvalidJson() {
-        final ObjectPlayerAccount blank = new ObjectPlayerAccount();
-        setField(blank, "firends", "");
-
-        final ObjectPlayerAccount invalid = new ObjectPlayerAccount();
-        setField(invalid, "firends", "not-json");
-
-        assertTrue(blank.getFriendsList().isEmpty());
-        assertTrue(invalid.getFriendsList().isEmpty());
     }
 
     @Test
@@ -59,7 +44,6 @@ class ObjectPlayerAccountTest {
         setField(account, "discordAuthCode", "code-1");
         setField(account, "projectAuthor", true);
         setField(account, "serverCreator", true);
-        setField(account, "shopCoins", 42);
 
         assertEquals("alice", account.username());
         assertEquals("alice@example.com", account.email());
@@ -70,10 +54,8 @@ class ObjectPlayerAccountTest {
         assertEquals("code-1", account.discordAuthCode());
         assertTrue(account.projectAuthor());
         assertTrue(account.serverCreator());
-        assertEquals(42, account.shopCoins());
 
         assertTrue(account.toString().contains("username=alice"));
-        assertTrue(account.toString().contains("shopCoins=42"));
     }
 
     @Test

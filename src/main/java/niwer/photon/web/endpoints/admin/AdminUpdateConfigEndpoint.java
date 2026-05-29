@@ -5,7 +5,7 @@ import niwer.photon.Directories;
 import niwer.photon.web.AdminSessionManager;
 import niwer.photon.web.endpoints.IEndpoint;
 
-public class UpdateAdminConfigEndpoint implements IEndpoint {
+public class AdminUpdateConfigEndpoint implements IEndpoint {
 
     @Override public String path() { return "/api/admin/config"; }
 

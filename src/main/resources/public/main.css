@@ -311,7 +311,23 @@ label span {
 }
 
 .config-grid {
-	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	grid-template-columns: 1fr;
+	gap: 12px;
+}
+
+.config-field {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 8px;
+	padding: 12px;
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	background: var(--panel);
+}
+
+.config-field span {
+	color: var(--muted);
+	font-weight: 600;
 }
 
 .panel-split {
@@ -352,9 +368,51 @@ label span {
 	background: #fff;
 }
 
+.user-copy-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 44px;
+	gap: 8px;
+	align-items: center;
+}
+
+.user-field-value-row {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 8px;
+	min-width: 0;
+}
+
 .user-field strong {
 	text-align: right;
 	word-break: break-word;
+}
+
+.copy-button {
+	min-width: 44px;
+	min-height: 44px;
+	height: 44px;
+	display: inline-grid;
+	place-items: center;
+	padding: 0;
+	flex: 0 0 44px;
+	background: #eef2f7;
+	color: var(--muted);
+	border: 1px solid var(--border);
+	line-height: 0;
+	transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.copy-button:hover,
+.copy-button:focus-visible {
+	background: var(--accent-soft);
+	color: var(--accent);
+	border-color: var(--accent);
+}
+
+.copy-button svg {
+	width: 20px;
+	height: 20px;
 }
 
 .compact-grid {

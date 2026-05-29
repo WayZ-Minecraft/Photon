@@ -40,7 +40,9 @@
                                 <p class="eyebrow">Network config</p>
                                 <h2>Edit runtime settings</h2>
                             </div>
-                            <button type="button" class="primary" id="saveConfigButton">Save config</button>
+                            <div class="button-row">
+                                <button type="button" class="secondary" data-open-modal="config">Edit config</button>
+                            </div>
                         </div>
                         <form id="configForm" class="config-grid"></form>
                     </section>
@@ -66,13 +68,51 @@
                     </section>
 
                     <section class="panel page" data-page="operations">
-                        <div class="panel-header">
-                            <div>
-                                <p class="eyebrow">Operations</p>
-                                <h2>Restart the application</h2>
-                                <p class="hint">Protected by project-author authentication.</p>
+                        <div class="stacked-form">
+                            <div class="panel-header">
+                                <div>
+                                    <p class="eyebrow">Operations</p>
+                                    <h2>Restart the application</h2>
+                                </div>
+                                <button type="button" class="danger" id="restartButton">Restart</button>
                             </div>
-                            <button type="button" class="danger" id="restartButton">Restart Photon</button>
+
+                            <div class="data-card">
+                                <div class="panel-header">
+                                    <div>
+                                        <p class="eyebrow">Updates</p>
+                                        <h2>Upload new version</h2>
+                                    </div>
+                                </div>
+                                <form id="updateUploadForm" class="stacked-form" enctype="multipart/form-data">
+                                    <label>
+                                        <span>Build file (.jar)</span>
+                                        <input type="file" name="file" accept=".jar,application/java-archive" required>
+                                    </label>
+                                    <label>
+                                        <span>File type</span>
+                                        <select name="file_type" required>
+                                            <option value="MOD">MOD</option>
+                                            <option value="LAUNCHER">LAUNCHER</option>
+                                            <option value="API">API</option>
+                                            <option value="NETWORK">NETWORK</option>
+                                        </select>
+                                    </label>
+                                    <label>
+                                        <span>Channel</span>
+                                        <select name="channel">
+                                            <option value="STABLE">STABLE</option>
+                                            <option value="ALPHA">ALPHA</option>
+                                            <option value="BETA">BETA</option>
+                                            <option value="DEV">DEV</option>
+                                            <option value="TEST">TEST</option>
+                                        </select>
+                                    </label>
+                                    <div class="button-row">
+                                        <button type="submit" class="primary">Upload update</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </section>
                 </main>

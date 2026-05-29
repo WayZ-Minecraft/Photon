@@ -29,6 +29,12 @@ class DashboardApp {
         document.body.dataset.photonChromeBound = 'true';
 
         document.addEventListener('click', (event) => {
+            const copyButton = event.target.closest('[data-copy-text]');
+            if (copyButton) {
+                this.copyToClipboard(copyButton.dataset.copyText || '', copyButton.dataset.copyLabel || 'value').catch((error) => notify(error.message, 'error'));
+                return;
+            }
+
             const openModalButton = event.target.closest('[data-open-modal]');
             if (openModalButton) {
                 this.modalManager.open(openModalButton.dataset.openModal, { account: appState.account });
@@ -55,9 +61,7 @@ class DashboardApp {
             }
         });
 
-        el('saveConfigButton')?.addEventListener('click', () => {
-            this.saveConfig().catch((error) => notify(error.message, 'error'));
-        });
+        // Save button removed from template; editing is done via modal
 
         el('restartButton')?.addEventListener('click', () => {
             this.restartApp().catch((error) => notify(error.message, 'error'));
@@ -76,12 +80,44 @@ class DashboardApp {
             this.loadActiveTable().catch((error) => notify(error.message, 'error'));
         });
 
+        el('updateUploadForm')?.addEventListener('submit', (event) => {
+            this.uploadVersion(event).catch((error) => notify(error.message, 'error'));
+        });
+
     }
 
     renderAll() {
         this.renderPublic();
         this.renderUser();
         this.renderAdmin();
+    }
+
+    async copyToClipboard(text, label) {
+        if (!text) throw new Error(`No ${label} value to copy`);
+
+        try {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(text);
+            } else {
+                throw new Error('Clipboard API unavailable');
+            }
+        } catch {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', 'true');
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            textarea.style.pointerEvents = 'none';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            textarea.setSelectionRange(0, textarea.value.length);
+            const copied = document.execCommand('copy');
+            textarea.remove();
+            if (!copied) throw new Error(`Failed to copy ${label}`);
+        }
+
+        notify(`${label} copied`, 'success');
     }
 
     renderPublic() {
@@ -97,11 +133,27 @@ class DashboardApp {
             return;
         }
 
+        const copyableFields = new Set(['username', 'uuid', 'discordAuthCode']);
         const accountEntries = Object.entries(appState.account).map(([key, value]) => `
-            <div class="user-field">
-                <span>${escapeHtml(key)}</span>
-                <strong>${escapeHtml(value ?? '—')}</strong>
-            </div>
+            ${copyableFields.has(key) ? `
+                <div class="user-copy-row">
+                    <div class="user-field">
+                        <span>${escapeHtml(key)}</span>
+                        <strong>${escapeHtml(value ?? '—')}</strong>
+                    </div>
+                    <button type="button" class="secondary copy-button" data-copy-text="${escapeHtml(value ?? '')}" data-copy-label="${escapeHtml(key)}" aria-label="Copy ${escapeHtml(key)}" title="Copy ${escapeHtml(key)}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path fill="currentColor" d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1Zm3 4H10a2 2 0 0 0-2 2v14h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 16H10V7h9v14Z"></path>
+                        </svg>
+                        <span class="sr-only">Copy ${escapeHtml(key)}</span>
+                    </button>
+                </div>
+            ` : `
+                <div class="user-field">
+                    <span>${escapeHtml(key)}</span>
+                    <strong>${escapeHtml(value ?? '—')}</strong>
+                </div>
+            `}
         `).join('');
 
         mount.innerHTML = `
@@ -117,6 +169,14 @@ class DashboardApp {
             </div>
             <div class="data-grid user-grid">${accountEntries}</div>
         `;
+
+        mount.querySelectorAll('[data-copy-text]').forEach((button) => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.copyToClipboard(button.dataset.copyText || '', button.dataset.copyLabel || 'value').catch((error) => notify(error.message, 'error'));
+            });
+        });
     }
 
     renderAdmin() {
@@ -159,20 +219,31 @@ class DashboardApp {
     }
 
     renderConfig() {
-        const form = el('configForm');
-        if (!form) return;
+        const mount = el('configForm');
+        if (!mount) return;
 
         if (!appState.config) {
-            form.innerHTML = '<div class="empty-state">Sign in to load the editable config.</div>';
+            mount.innerHTML = '<div class="empty-state">Sign in to load the editable config.</div>';
             return;
         }
 
-        form.innerHTML = configFields.map(({ key, label, type }) => `
-            <label class="config-field">
+        const entries = configFields.map(({ key, label }) => `
+            <div class="user-field">
                 <span>${escapeHtml(label)}</span>
-                <input type="${type}" data-config-key="${key}" value="${escapeHtml(appState.config[key] ?? '')}">
-            </label>
+                <strong>${escapeHtml(String(appState.config[key] ?? ''))}</strong>
+            </div>
         `).join('');
+
+        mount.innerHTML = `<div class="data-grid user-grid">${entries}</div>`;
+
+        // append an Edit button into the surrounding panel header if present
+        const panel = mount.closest('.panel');
+        const headerButtons = panel?.querySelector('.panel-header .button-row');
+        if (headerButtons && !headerButtons.querySelector('[data-open-modal="config"]')) {
+            headerButtons.insertAdjacentHTML('afterbegin', '<button type="button" class="secondary" data-open-modal="config">Edit config</button>');
+        }
+
+        // no per-field copy buttons on config page (use read-only rows)
     }
 
     renderTables() {
@@ -226,7 +297,7 @@ class DashboardApp {
             appState.tables = [];
             this.renderUser();
             this.renderAdmin();
-            this.renderHeaderState();
+            this.header.refresh();
             this.refreshPages();
             return;
         }
@@ -236,7 +307,7 @@ class DashboardApp {
         appState.tables = await api('/api/admin/tables');
         this.renderUser();
         this.renderAdmin();
-        this.renderHeaderState();
+        this.header.refresh();
         await this.loadActiveTable();
         this.refreshPages();
     }
@@ -360,7 +431,12 @@ class DashboardApp {
             feedback.dataset.state = 'idle';
         }
 
-        event.currentTarget.reset();
+        try {
+            const formEl = event?.currentTarget ?? document.getElementById('profileForm');
+            if (formEl && typeof formEl.reset === 'function') formEl.reset();
+        } catch (e) {
+            // ignore reset errors
+        }
         this.header.refresh();
         this.renderUser();
         notify('Profile updated', 'success');
@@ -404,11 +480,12 @@ class DashboardApp {
         notify('Account created. You can sign in now.', 'success');
     }
 
-    async saveConfig() {
+    async saveConfig(formElement = null) {
         if (!appState.token) throw new Error('Sign in first');
 
         const payload = {};
-        el('configForm')?.querySelectorAll('[data-config-key]').forEach((input) => {
+        const root = formElement ?? el('configForm');
+        root?.querySelectorAll('[data-config-key]').forEach((input) => {
             const key = input.dataset.configKey;
             if (input.type === 'number') {
                 payload[key] = input.value === '' ? null : Number(input.value);
@@ -432,6 +509,34 @@ class DashboardApp {
 
         await api('/api/admin/restart', { method: 'POST' });
         notify('Restart requested', 'success');
+    }
+
+    async uploadVersion(event) {
+        event.preventDefault();
+        if (!appState.token) throw new Error('Sign in first');
+
+        const form = event.currentTarget;
+        if (!(form instanceof HTMLFormElement)) throw new Error('Invalid upload form');
+
+        const formData = new FormData(form);
+        const file = formData.get('file');
+        const fileType = String(formData.get('file_type') || '').trim();
+        const channel = String(formData.get('channel') || 'STABLE').trim();
+
+        if (!(file instanceof File) || file.size === 0) throw new Error('Please select a .jar file');
+        if (!file.name.toLowerCase().endsWith('.jar')) throw new Error('Only .jar files are allowed');
+        if (!fileType) throw new Error('File type is required');
+
+        formData.set('file_type', fileType);
+        formData.set('channel', channel || 'STABLE');
+
+        const result = await api('/api/admin/updates/upload', {
+            method: 'POST',
+            body: formData,
+        });
+
+        form.reset();
+        notify(result?.message || 'Update uploaded successfully', 'success');
     }
 
     async handleLogout() {
@@ -486,9 +591,7 @@ export function bootstrapDashboard() {
         });
     }
 
-    el('saveConfigButton')?.addEventListener('click', () => {
-        app.saveConfig().catch((error) => notify(error.message, 'error'));
-    });
+    // Save button removed from template; editing is done via modal
 
     el('restartButton')?.addEventListener('click', () => {
         app.restartApp().catch((error) => notify(error.message, 'error'));
@@ -505,6 +608,10 @@ export function bootstrapDashboard() {
 
     el('tableLimit')?.addEventListener('change', () => {
         app.loadActiveTable().catch((error) => notify(error.message, 'error'));
+    });
+
+    el('updateUploadForm')?.addEventListener('submit', (event) => {
+        app.uploadVersion(event).catch((error) => notify(error.message, 'error'));
     });
 
     app.renderAll();

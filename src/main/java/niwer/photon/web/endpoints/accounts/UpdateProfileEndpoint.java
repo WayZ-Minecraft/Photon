@@ -43,8 +43,8 @@ public class UpdateProfileEndpoint implements IEndpoint {
             return;
         }
 
-        final String nextUsername = request.username != null ? request.username.trim() : account.username();
-        final String nextEmail = request.email != null ? request.email.trim().toLowerCase() : account.email();
+        final String nextUsername = request.username != null ? request.username.trim() : account.getUsername();
+        final String nextEmail = request.email != null ? request.email.trim().toLowerCase() : account.getEmail();
         final String nextPassword = request.newPassword != null ? request.newPassword : null;
 
         if (nextUsername.isBlank() || nextEmail.isBlank()) {
@@ -52,22 +52,22 @@ public class UpdateProfileEndpoint implements IEndpoint {
             return;
         }
 
-        if (!nextUsername.equalsIgnoreCase(account.username())) {
+        if (!nextUsername.equalsIgnoreCase(account.getUsername())) {
             final ObjectPlayerAccount existingUsername = PlayerAccountTable.getAccountByUsername(nextUsername);
-            if (existingUsername != null && !existingUsername.uuid().equals(account.uuid())) {
+            if (existingUsername != null && !existingUsername.getUuid().equals(account.getUuid())) {
                 handler.status(400).result("An account with this username already exists.");
                 return;
             }
-            PlayerAccountTable.setUsername(account.uuid(), nextUsername);
+            PlayerAccountTable.setUsername(account.getUuid(), nextUsername);
         }
 
-        if (!nextEmail.equalsIgnoreCase(account.email())) {
+        if (!nextEmail.equalsIgnoreCase(account.getEmail())) {
             final ObjectPlayerAccount existingEmail = PlayerAccountTable.getAccountByEmail(nextEmail);
-            if (existingEmail != null && !existingEmail.uuid().equals(account.uuid())) {
+            if (existingEmail != null && !existingEmail.getUuid().equals(account.getUuid())) {
                 handler.status(400).result("An account with this email already exists.");
                 return;
             }
-            PlayerAccountTable.setEmail(account.uuid(), nextEmail);
+            PlayerAccountTable.setEmail(account.getUuid(), nextEmail);
         }
 
         if (nextPassword != null && !nextPassword.isBlank()) {
@@ -79,10 +79,10 @@ public class UpdateProfileEndpoint implements IEndpoint {
                 handler.status(400).result("Passwords do not match");
                 return;
             }
-            PlayerAccountTable.setPassword(account.uuid(), nextPassword);
+            PlayerAccountTable.setPassword(account.getUuid(), nextPassword);
         }
 
-        final ObjectPlayerAccount updatedAccount = PlayerAccountTable.getAccountByUUID(account.uuid());
+        final ObjectPlayerAccount updatedAccount = PlayerAccountTable.getAccountByUUID(account.getUuid());
         handler.json(updatedAccount == null ? account.toPublicMap() : updatedAccount.toPublicMap());
     }
 

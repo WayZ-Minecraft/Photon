@@ -48,7 +48,7 @@ public class ChangePasswordEndpoint implements IEndpoint {
             return;
         }
 
-        PlayerAccountTable.setPassword(account.uuid(), request.newPassword);
+        PlayerAccountTable.setPassword(account.getUuid(), request.newPassword);
         handler.json(account.toPublicMap());
     }
 

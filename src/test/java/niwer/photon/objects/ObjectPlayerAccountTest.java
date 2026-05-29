@@ -16,8 +16,8 @@ class ObjectPlayerAccountTest {
     void constructorGeneratesDiscordAuthCode() {
         final ObjectPlayerAccount account = new ObjectPlayerAccount();
 
-        assertNotNull(account.discordAuthCode());
-        assertTrue(account.discordAuthCode().matches("[0-9a-v]+"));
+        assertNotNull(account.getDiscordAuthCode());
+        assertTrue(account.getDiscordAuthCode().matches("[0-9a-v]+"));
     }
 
     @Test
@@ -38,22 +38,20 @@ class ObjectPlayerAccountTest {
         setField(account, "username", "alice");
         setField(account, "email", "alice@example.com");
         setField(account, "password", "secret");
-        setField(account, "twoAuthFactor", true);
         setField(account, "uuid", "uuid-1");
         setField(account, "discordID", "discord-1");
         setField(account, "discordAuthCode", "code-1");
         setField(account, "administrator", true);
         setField(account, "serverCreator", true);
 
-        assertEquals("alice", account.username());
-        assertEquals("alice@example.com", account.email());
+        assertEquals("alice", account.getUsername());
+        assertEquals("alice@example.com", account.getEmail());
         assertEquals("secret", account.password());
-        assertTrue(account.twoAuthFactor());
-        assertEquals("uuid-1", account.uuid());
-        assertEquals("discord-1", account.discordID());
-        assertEquals("code-1", account.discordAuthCode());
-        assertTrue(account.administrator());
-        assertTrue(account.serverCreator());
+        assertEquals("uuid-1", account.getUuid());
+        assertEquals("discord-1", account.getDiscordID());
+        assertEquals("code-1", account.getDiscordAuthCode());
+        assertTrue(account.isAdministrator());
+        assertTrue(account.isServerCreator());
 
         assertTrue(account.toString().contains("username=alice"));
     }

@@ -22,6 +22,7 @@ import niwer.photon.web.endpoints.admin.AdminMeEndpoint;
 import niwer.photon.web.endpoints.admin.AdminRestartEndpoint;
 import niwer.photon.web.endpoints.admin.AdminTableDataEndpoint;
 import niwer.photon.web.endpoints.admin.AdminTablesEndpoint;
+import niwer.photon.web.endpoints.admin.AdminUploadUpdateEndpoint;
 import niwer.photon.web.endpoints.admin.AdminUpdateConfigEndpoint;
 import niwer.photon.web.endpoints.admin.AdminUpdateEndpoint;
 import niwer.photon.web.endpoints.servers.AddServerEndpoint;
@@ -59,6 +60,7 @@ public class WebServerEngine {
                 IEndpoint.register(cfg, AdminMeEndpoint.class);
                 IEndpoint.register(cfg, AdminConfigEndpoint.class);
                 IEndpoint.register(cfg, AdminUpdateConfigEndpoint.class);
+                IEndpoint.register(cfg, AdminUploadUpdateEndpoint.class);
                 IEndpoint.register(cfg, AdminRestartEndpoint.class);
                 IEndpoint.register(cfg, AdminTablesEndpoint.class);
                 IEndpoint.register(cfg, AdminTableDataEndpoint.class);

@@ -136,6 +136,6 @@ public class Directories
 		@SerializedName("twitch_url") public String twitch_url = "https://twitch.tv/";
 		@SerializedName("youtube_url") public String youtube_url = "https://youtube.com/";
 		@SerializedName("discord_url") public String discord_url = "https://discord.gg/";
-		@SerializedName("website_url") public String website_url = "https://example.com";
+		@SerializedName("website_url") public String website_url = "https://google.com";
 	}
 }

@@ -1,4 +1,4 @@
-import { appState, pageDefinitions } from './state.js';
+import { appState, pageDefinitions, configFields } from './state.js';
 import { el, escapeHtml, notify } from './utils.js';
 
 export class PageManager {
@@ -141,8 +141,13 @@ export class ModalManager {
             ? 'Sign in'
             : this.active.kind === 'profile'
                 ? 'Edit profile'
-                : 'Create account';
-        const body = this.active.kind === 'profile' ? this.renderProfileForm() : this.renderAuthOrAccountForm();
+                : this.active.kind === 'config'
+                    ? 'Edit config'
+                    : 'Create account';
+
+        const body = this.active.kind === 'profile' ? this.renderProfileForm()
+            : this.active.kind === 'config' ? this.renderConfigForm()
+            : this.renderAuthOrAccountForm();
 
         this.root.innerHTML = `
             <div class="modal-backdrop" data-modal-close>
@@ -171,7 +176,7 @@ export class ModalManager {
                 <button type="button" class="tab-button ${initialTab === 'create' ? 'active' : ''}" data-auth-tab="create">Create account</button>
             </div>
             <div class="modal-body">
-                <form id="signInForm" class="modal-panel ${initialTab === 'signIn' ? 'active' : ''}" data-auth-panel="signIn">
+                <form id="signInForm" onsubmit="event.preventDefault()" class="modal-panel ${initialTab === 'signIn' ? 'active' : ''}" data-auth-panel="signIn">
                     <label>
                         <span>Email</span>
                         <input type="email" name="email" autocomplete="email" placeholder="author@project.com" required>
@@ -193,7 +198,7 @@ export class ModalManager {
                     <button type="submit" class="primary">Sign in</button>
                 </form>
 
-                <form id="createAccountForm" class="modal-panel ${initialTab === 'create' ? 'active' : ''}" data-auth-panel="create">
+                <form id="createAccountForm" onsubmit="event.preventDefault()" class="modal-panel ${initialTab === 'create' ? 'active' : ''}" data-auth-panel="create">
                     <label>
                         <span>Username</span>
                         <input type="text" name="username" autocomplete="username" placeholder="Your username" required>
@@ -241,7 +246,7 @@ export class ModalManager {
     renderProfileForm() {
         const account = this.active.payload?.account ?? appState.account ?? {};
         return `
-            <form id="profileForm" class="modal-panel active stacked-form">
+            <form id="profileForm" onsubmit="event.preventDefault()" class="modal-panel active stacked-form">
                 <div>
                     <p class="eyebrow">Account</p>
                     <h3>Edit your profile</h3>
@@ -301,6 +306,30 @@ export class ModalManager {
                     </div>
                 </label>
                 <p id="profileUpdateFeedback" class="hint form-feedback" aria-live="polite"></p>
+                <div class="button-row">
+                    <button type="button" class="secondary" data-modal-close>Cancel</button>
+                    <button type="submit" class="primary">Save changes</button>
+                </div>
+            </form>
+        `;
+    }
+
+    renderConfigForm() {
+        const config = this.active.payload?.config ?? appState.config ?? {};
+        const fields = (configFields || Object.keys(config).map(k => ({ key: k, label: k, type: 'text' }))).map(({ key, label, type }) => `
+            <label>
+                <span>${escapeHtml(label)}</span>
+                <input type="${type}" data-config-key="${key}" value="${escapeHtml(config[key] ?? '')}">
+            </label>
+        `).join('');
+
+        return `
+            <form id="configModalForm" onsubmit="event.preventDefault()" class="modal-panel active stacked-form">
+                <div>
+                    <p class="eyebrow">Network config</p>
+                    <h3>Edit runtime settings</h3>
+                </div>
+                ${fields}
                 <div class="button-row">
                     <button type="button" class="secondary" data-modal-close>Cancel</button>
                     <button type="submit" class="primary">Save changes</button>
@@ -431,6 +460,14 @@ export class ModalManager {
 
             createAccountForm.addEventListener('submit', (event) => {
                 this.app.handleCreateAccount(event).then(() => this.close()).catch((error) => notify(error.message, 'error'));
+            });
+        }
+
+        const configModalForm = this.root.querySelector('#configModalForm');
+        if (configModalForm) {
+            configModalForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                this.app.saveConfig(configModalForm).then(() => this.close()).catch((error) => notify(error.message, 'error'));
             });
         }
         

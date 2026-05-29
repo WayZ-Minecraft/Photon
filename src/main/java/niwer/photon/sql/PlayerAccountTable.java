@@ -32,13 +32,10 @@ public class PlayerAccountTable extends Table {
             createColumn(db, "username", EnumColumnTypes.TEXT).unique().notNull(),
             createColumn(db, "email", EnumColumnTypes.TEXT).unique().notNull(),
             createColumn(db, "password", EnumColumnTypes.TEXT).notNull(),
-            createColumn(db, "twoAuthFactor", EnumColumnTypes.BOOLEAN).defaultValue(false),
             createColumn(db, "discordID", 1024),
             createColumn(db, "discordAuthCode", 255).notNull(),
             createColumn(db, "administrator", EnumColumnTypes.BOOLEAN).defaultValue(false),
-            createColumn(db, "serverCreator", EnumColumnTypes.BOOLEAN).defaultValue(false),
-            createColumn(db, "shopCoins", EnumColumnTypes.INT).defaultValue(0, Expression.of("shopCoins").isGreaterThanOrEqualTo(0)), // Default to 0 and non-negative constraint
-            createColumn(db, "friends", EnumColumnTypes.TEXT)
+            createColumn(db, "serverCreator", EnumColumnTypes.BOOLEAN).defaultValue(false)
         ).execute();
     }
 
@@ -249,13 +246,13 @@ public class PlayerAccountTable extends Table {
             .execute();
     }
 
-    public static void setadministrator(String uuid, boolean isadministrator) {
+    public static void setAdministrator(String uuid, boolean isAdministrator) {
         if (uuid == null || uuid.trim().isEmpty()) {
             Console.log("Cannot update administrator with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
             return;
         }
         UpdateManager.update(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
-            .set("administrator", isadministrator)
+            .set("administrator", isAdministrator)
             .where(Expression.of("uuid").isEqualTo(uuid))
             .execute();
     }
@@ -303,6 +300,16 @@ public class PlayerAccountTable extends Table {
             .set("password", password)
             .where(Expression.of("uuid").isEqualTo(uuid))
             .execute();
+    }
+
+    public static boolean isAdministrator(String uuid) {
+        if (uuid == null || uuid.trim().isEmpty()) {
+            Console.log("Cannot read administrator flag with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
+            return false;
+        }
+
+        final ObjectPlayerAccount account = getAccountByUUID(uuid);
+        return account != null && account.isAdministrator();
     }
 
     /**

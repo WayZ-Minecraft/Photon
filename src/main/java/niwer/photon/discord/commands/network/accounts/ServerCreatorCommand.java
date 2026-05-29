@@ -68,11 +68,11 @@ public class ServerCreatorCommand extends AbstractSlashCommand {
         }
         
         /* Update serverCreator in DB */
-        PlayerAccountTable.setServerCreator(PLAYER_ACCOUNT.uuid(), IS_ADD_ACTION);
+        PlayerAccountTable.setServerCreator(PLAYER_ACCOUNT.getUuid(), IS_ADD_ACTION);
         
         /* If there's no Discord link, only update the database */
         if (!PLAYER_ACCOUNT.hasDiscordLinked()) {
-            event.reply((IS_ADD_ACTION ? "Added" : "Removed") + " Server Creator for **" + PLAYER_ACCOUNT.username() + "** (no Discord linked, only DB updated).").queue();
+            event.reply((IS_ADD_ACTION ? "Added" : "Removed") + " Server Creator for **" + PLAYER_ACCOUNT.getUsername() + "** (no Discord linked, only DB updated).").queue();
             return;
         }
         
@@ -88,7 +88,7 @@ public class ServerCreatorCommand extends AbstractSlashCommand {
         }
 
         /* Try to update the Discord role */
-        GUILD.retrieveMemberById(PLAYER_ACCOUNT.discordID()).queue(member -> updateDiscordRole(GUILD, member, ROLE, IS_ADD_ACTION), err -> event.reply("Discord user not found (ID: " + PLAYER_ACCOUNT.discordID() + ").").setEphemeral(true).queue());
+        GUILD.retrieveMemberById(PLAYER_ACCOUNT.getDiscordID()).queue(member -> updateDiscordRole(GUILD, member, ROLE, IS_ADD_ACTION), err -> event.reply("Discord user not found (ID: " + PLAYER_ACCOUNT.getDiscordID() + ").").setEphemeral(true).queue());
     }
 
     private static void updateDiscordRole(Guild guild, Member member, Role role, boolean shouldAdd) {

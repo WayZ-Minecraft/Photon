@@ -60,11 +60,11 @@ public class AdministratorCommand extends AbstractSlashCommand {
         }
         
         /* Update administrator in DB */
-        PlayerAccountTable.setadministrator(PLAYER_ACCOUNT.uuid(), IS_ADD_ACTION);
+        PlayerAccountTable.setAdministrator(PLAYER_ACCOUNT.getUuid(), IS_ADD_ACTION);
         
         /* If there's no Discord link, only update the database */
         if (!PLAYER_ACCOUNT.hasDiscordLinked()) {
-            event.reply((IS_ADD_ACTION ? "Added" : "Removed") + " Project Author for **" + PLAYER_ACCOUNT.username() + "** (no Discord linked, only DB updated).").queue();
+            event.reply((IS_ADD_ACTION ? "Added" : "Removed") + " Project Author for **" + PLAYER_ACCOUNT.getUsername() + "** (no Discord linked, only DB updated).").queue();
             return;
         }
     }

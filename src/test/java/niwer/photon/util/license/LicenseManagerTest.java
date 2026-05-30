@@ -67,7 +67,7 @@ class LicenseManagerTest {
         assertEquals("hardware-1", claims.hardware_id());
         assertEquals(10L, claims.issued_at());
         assertEquals(20L, claims.expires_at());
-        assertEquals("order-1", claims.tebex_order_id());
+        assertEquals("order-1", claims.order_id());
     }
 
     @Test

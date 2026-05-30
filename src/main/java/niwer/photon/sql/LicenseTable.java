@@ -38,7 +38,7 @@ public class LicenseTable extends Table {
 			createColumn(db, "product_id", EnumColumnTypes.TEXT).notNull(),
 			createColumn(db, "customer_name", EnumColumnTypes.TEXT),
 			createColumn(db, "customer_email", EnumColumnTypes.TEXT),
-			createColumn(db, "tebex_order_id", EnumColumnTypes.TEXT).unique(),
+			createColumn(db, "order_id", EnumColumnTypes.TEXT).unique(),
 			createColumn(db, "hwid", EnumColumnTypes.TEXT),
 			createColumn(db, "status", EnumColumnTypes.TEXT).notNull().defaultValue(LicenseStatus.ISSUED.name()),
 			createColumn(db, "created_at", EnumColumnTypes.DATE_TIME).defaultValue("CURRENT_TIMESTAMP"),
@@ -51,9 +51,9 @@ public class LicenseTable extends Table {
 
 	public static String normalizeKey(String licenseKey) { return licenseKey == null ? null : licenseKey.trim().toUpperCase(); }
 
-	public static ObjectLicense issueLicense(String licenseKey, String productId, String customerName, String customerEmail, String tebexOrderId, Date expiresAt) {
-		InsertionManager.insert(PhotonEngine.DATA_BASE, LicenseTable.class, "license_key", "product_id", "customer_name", "customer_email", "tebex_order_id", "status", "expires_at")
-			.row(normalizeKey(licenseKey), productId, customerName, customerEmail, tebexOrderId, LicenseStatus.ISSUED.name(), expiresAt)
+	public static ObjectLicense issueLicense(String licenseKey, String productId, String customerName, String customerEmail, String orderId, Date expiresAt) {
+		InsertionManager.insert(PhotonEngine.DATA_BASE, LicenseTable.class, "license_key", "product_id", "customer_name", "customer_email", "order_id", "status", "expires_at")
+			.row(normalizeKey(licenseKey), productId, customerName, customerEmail, orderId, LicenseStatus.ISSUED.name(), expiresAt)
 			.execute();
 
 		return getByKey(licenseKey);
@@ -67,10 +67,10 @@ public class LicenseTable extends Table {
 			.executeSerializable(ObjectLicense.class);
 	}
 
-	public static ObjectLicense getByTebexOrderId(String tebexOrderId) {
-		if (tebexOrderId == null || tebexOrderId.isBlank()) return null;
+	public static ObjectLicense getByOrderId(String orderId) {
+		if (orderId == null || orderId.isBlank()) return null;
 		return SelectionManager.select(PhotonEngine.DATA_BASE, LicenseTable.class)
-			.where(Expression.of("tebex_order_id").isEqualTo(tebexOrderId))
+			.where(Expression.of("order_id").isEqualTo(orderId))
 			.limit(1)
 			.executeSerializable(ObjectLicense.class);
 	}

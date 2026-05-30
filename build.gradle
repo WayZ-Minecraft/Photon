@@ -39,6 +39,10 @@ dependencies {
 	shadow "com.google.code.gson:gson:${project.gson_version}"
     shadow "ch.qos.logback:logback-classic:${project.logback_version}" // JDA & Javalin are using this
 	shadow "com.github.Niwer1525:Lumen:${project.lumen_version}"
+
+	// Stripe SDK
+	implementation "com.stripe:stripe-java:20.0.0"
+	shadow "com.stripe:stripe-java:20.0.0"
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

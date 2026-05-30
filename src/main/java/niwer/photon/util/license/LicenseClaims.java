@@ -14,5 +14,5 @@ public record LicenseClaims(
     String hardware_id,
     Long issued_at,
     Long expires_at,
-    String tebex_order_id
+    String order_id
 ) {}

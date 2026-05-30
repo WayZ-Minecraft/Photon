@@ -31,8 +31,7 @@ import niwer.photon.web.endpoints.admin.AdminUpdateEndpoint;
 import niwer.photon.web.endpoints.admin.AdminUploadUpdateEndpoint;
 import niwer.photon.web.endpoints.servers.AddServerEndpoint;
 import niwer.photon.web.endpoints.servers.ServerListEndpoint;
-import niwer.photon.web.endpoints.tebex.SubscriptionEndpoint;
-import niwer.photon.web.endpoints.tebex.TebexLoginEndpoint;
+import niwer.photon.web.endpoints.stripe.StripeWebhookEndpoint;
 
 public class WebServerEngine {
 
@@ -75,9 +74,8 @@ public class WebServerEngine {
                 IEndpoint.register(cfg, AdminTableDataEndpoint.class);
             }
             {
-                /* Tebex */
-                IEndpoint.register(cfg, SubscriptionEndpoint.class);
-                IEndpoint.register(cfg, TebexLoginEndpoint.class);
+                /* Stripe */
+                IEndpoint.register(cfg, StripeWebhookEndpoint.class);
             }
             {
                 /* Accounts */

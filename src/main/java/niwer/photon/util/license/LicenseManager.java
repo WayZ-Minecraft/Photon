@@ -91,15 +91,15 @@ public final class LicenseManager {
      * @param productId The product id this license is valid for
      * @param customerName The name of the customer this license is issued to (optional)
      * @param customerEmail The email of the customer this license is issued to (optional)
-     * @param tebexOrderId The associated Tebex order id for this license, if it was purchased through the official Tebex store (optional, but must be unique if provided)
+     * @param orderId The associated order id for this license, if it was purchased through the official store (optional, but must be unique if provided)
      * @param expiresAtMillis The expiration date of the license in milliseconds since epoch, or null/0 for no expiration
      * @return the issued ObjectLicense containing all the license information, including the generated license key
      */
-	public static ObjectLicense issueLicense(final String productId, final String customerName, final String customerEmail, final String tebexOrderId, final Long expiresAtMillis) {
+	public static ObjectLicense issueLicense(final String productId, final String customerName, final String customerEmail, final String orderId, final Long expiresAtMillis) {
 		final Date expiresAt = expiresAtMillis == null || expiresAtMillis <= 0L ? null : new Date(expiresAtMillis);
 		String licenseKey = generateLicenseKey();
 		while (LicenseTable.exists(licenseKey)) licenseKey = generateLicenseKey();
-		return LicenseTable.issueLicense(licenseKey, productId, customerName, customerEmail, tebexOrderId, expiresAt);
+		return LicenseTable.issueLicense(licenseKey, productId, customerName, customerEmail, orderId, expiresAt);
 	}
 
 	private static LicenseValidationResult validateDatabaseLicense(final String licenseKey, final String expectedProductId) {
@@ -124,7 +124,7 @@ public final class LicenseManager {
 			currentHardwareId,
 			license.createdAt() == null ? null : license.createdAt().getTime(),
 			license.expiresAt() == null ? null : license.expiresAt().getTime(),
-			license.tebexOrderId()
+			license.orderId()
 		));
 	}
 

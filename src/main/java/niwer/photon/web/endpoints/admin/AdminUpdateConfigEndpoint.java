@@ -37,7 +37,8 @@ public class AdminUpdateConfigEndpoint implements IEndpoint {
         if (request.server_creator_role_id != null) config.server_creator_role_id = request.server_creator_role_id;
         if (request.webserver_port != null) config.webserver_port = request.webserver_port;
         if (request.license_product_id != null) config.license_product_id = request.license_product_id;
-        if (request.tebex_webhook_secret != null) config.tebex_webhook_secret = request.tebex_webhook_secret;
+        if (request.stripe_api_key != null) config.stripe_api_key = request.stripe_api_key;
+        if (request.stripe_webhook_secret != null) config.stripe_webhook_signature = request.stripe_webhook_secret;
         if (request.license_default_duration_days != null) config.license_default_duration_days = request.license_default_duration_days;
         if (request.api_version != null) config.api_version = request.api_version;
         if (request.mod_version != null) config.mod_version = request.mod_version;
@@ -61,7 +62,8 @@ public class AdminUpdateConfigEndpoint implements IEndpoint {
         String server_creator_role_id,
         Integer webserver_port,
         String license_product_id,
-        String tebex_webhook_secret,
+        String stripe_api_key,
+        String stripe_webhook_secret,
         Long license_default_duration_days,
         String api_version,
         String mod_version,

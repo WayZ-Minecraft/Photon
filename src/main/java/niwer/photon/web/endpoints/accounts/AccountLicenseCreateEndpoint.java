@@ -30,10 +30,10 @@ public class AccountLicenseCreateEndpoint implements IEndpoint {
         final String customerName = getString(body, "customer_name", "customerName", account.getUsername());
         final Long durationDays = getLong(body, "duration_days", "durationDays", Directories.getConfig().license_default_duration_days);
         final Long expiresAt = getLong(body, "expires_at", "expiresAt", null);
-        final String tebexOrderId = getString(body, "tebex_order_id", "tebexOrderId", "");
+        final String orderId = getString(body, "order_id", "orderId", "");
 
         final Long computedExpiresAt = expiresAt != null ? expiresAt : (durationDays == null || durationDays <= 0L ? null : System.currentTimeMillis() + (durationDays * 86400000L));
-        final ObjectLicense license = LicenseManager.issueLicense(productId, customerName, account.getEmail(), tebexOrderId, computedExpiresAt);
+        final ObjectLicense license = LicenseManager.issueLicense(productId, customerName, account.getEmail(), orderId, computedExpiresAt);
         handler.status(200).json(license);
     }
 

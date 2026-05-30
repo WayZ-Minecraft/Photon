@@ -18,8 +18,8 @@ public class ObjectLicense extends SQLSerializable<ObjectLicense> {
 	@IColumnField(name = "customer_email")
 	private String customerEmail;
 
-	@IColumnField(name = "tebex_order_id")
-	private String tebexOrderId;
+	@IColumnField(name = "order_id")
+	private String orderId;
 
 	@IColumnField(name = "hwid")
 	private String hwid;
@@ -38,12 +38,12 @@ public class ObjectLicense extends SQLSerializable<ObjectLicense> {
 
 	public ObjectLicense() {}
 
-	public ObjectLicense(String licenseKey, String productId, String customerName, String customerEmail, String tebexOrderId, String status, Date expiresAt) {
+	public ObjectLicense(String licenseKey, String productId, String customerName, String customerEmail, String orderId, String status, Date expiresAt) {
 		this.licenseKey = licenseKey;
 		this.productId = productId;
 		this.customerName = customerName;
 		this.customerEmail = customerEmail;
-		this.tebexOrderId = tebexOrderId;
+		this.orderId = orderId;
 		this.status = status;
 		this.expiresAt = expiresAt;
 	}
@@ -58,7 +58,7 @@ public class ObjectLicense extends SQLSerializable<ObjectLicense> {
 
 	public String customerEmail() { return this.customerEmail; }
 
-	public String tebexOrderId() { return this.tebexOrderId; }
+	public String orderId() { return this.orderId; }
 
 	public String hwid() { return this.hwid; }
 

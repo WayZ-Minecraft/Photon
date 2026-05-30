@@ -33,7 +33,7 @@ class ObjectLicenseTest {
         assertEquals("product-1", license.productId());
         assertEquals("Alice", license.customerName());
         assertEquals("alice@example.com", license.customerEmail());
-        assertEquals("order-1", license.tebexOrderId());
+        assertEquals("order-1", license.orderId());
         assertEquals("hardware-1", license.hwid());
         assertEquals("ACTIVE", license.status());
         assertNotNull(license.createdAt());

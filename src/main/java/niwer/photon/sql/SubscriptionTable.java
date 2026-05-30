@@ -34,8 +34,8 @@ public class SubscriptionTable extends Table {
         this.addColumns(
             createColumn(db, "customer_email", EnumColumnTypes.TEXT).primaryKey(),
             createColumn(db, "customer_name", EnumColumnTypes.TEXT),
-            createColumn(db, "tebex_customer_id", EnumColumnTypes.TEXT),
-            createColumn(db, "tebex_subscription_id", EnumColumnTypes.TEXT).unique(),
+            createColumn(db, "customer_id", EnumColumnTypes.TEXT),
+            createColumn(db, "subscription_id", EnumColumnTypes.TEXT).unique(),
             createColumn(db, "status", EnumColumnTypes.TEXT).notNull().defaultValue(SubscriptionStatus.ACTIVE.name()),
             createColumn(db, "expires_at", EnumColumnTypes.DATE_TIME),
             createColumn(db, "updated_at", EnumColumnTypes.DATE_TIME).defaultValue("CURRENT_TIMESTAMP")
@@ -62,20 +62,20 @@ public class SubscriptionTable extends Table {
             .executeList(ObjectSubscription.class);
     }
 
-    public static ObjectSubscription upsertSubscription(String email, String customerName, String tebexCustomerId, String tebexSubscriptionId, SubscriptionStatus status, Date expiresAt) {
+    public static ObjectSubscription upsertSubscription(String email, String customerName, String customerId, String subscriptionId, SubscriptionStatus status, Date expiresAt) {
         final String normalizedEmail = normalizeEmail(email);
         final Date updatedAt = new Date();
         final ObjectSubscription current = getByEmail(normalizedEmail);
 
         if (current == null) {
-            InsertionManager.insert(PhotonEngine.DATA_BASE, SubscriptionTable.class, "customer_email", "customer_name", "tebex_customer_id", "tebex_subscription_id", "status", "expires_at", "updated_at")
-                .row(normalizedEmail, customerName, tebexCustomerId, tebexSubscriptionId, status.name(), expiresAt, updatedAt)
+            InsertionManager.insert(PhotonEngine.DATA_BASE, SubscriptionTable.class, "customer_email", "customer_name", "customer_id", "subscription_id", "status", "expires_at", "updated_at")
+                .row(normalizedEmail, customerName, customerId, subscriptionId, status.name(), expiresAt, updatedAt)
                 .execute();
         } else {
             UpdateManager.update(PhotonEngine.DATA_BASE, SubscriptionTable.class)
                 .set("customer_name", customerName)
-                .set("tebex_customer_id", tebexCustomerId)
-                .set("tebex_subscription_id", tebexSubscriptionId)
+                .set("customer_id", customerId)
+                .set("subscription_id", subscriptionId)
                 .set("status", status.name())
                 .set("expires_at", expiresAt)
                 .set("updated_at", updatedAt)

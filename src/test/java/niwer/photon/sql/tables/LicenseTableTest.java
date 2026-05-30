@@ -11,7 +11,7 @@ public final class LicenseTableTest {
     private static String lastIssueProductId;
     private static String lastIssueCustomerName;
     private static String lastIssueCustomerEmail;
-    private static String lastIssueTebexOrderId;
+    private static String lastIssueOrderId;
     private static Date lastIssueExpiresAt;
 
     private LicenseTableTest() {}
@@ -22,7 +22,7 @@ public final class LicenseTableTest {
         lastIssueProductId = null;
         lastIssueCustomerName = null;
         lastIssueCustomerEmail = null;
-        lastIssueTebexOrderId = null;
+        lastIssueOrderId = null;
         lastIssueExpiresAt = null;
     }
 
@@ -38,20 +38,20 @@ public final class LicenseTableTest {
         return existsResult;
     }
 
-    public static ObjectLicense issueLicense(String licenseKey, String productId, String customerName, String customerEmail, String tebexOrderId, Date expiresAt) {
+    public static ObjectLicense issueLicense(String licenseKey, String productId, String customerName, String customerEmail, String orderId, Date expiresAt) {
         lastIssueLicenseKey = licenseKey;
         lastIssueProductId = productId;
         lastIssueCustomerName = customerName;
         lastIssueCustomerEmail = customerEmail;
-        lastIssueTebexOrderId = tebexOrderId;
+        lastIssueOrderId = orderId;
         lastIssueExpiresAt = expiresAt;
-        return new ObjectLicense(normalizeKey(licenseKey), productId, customerName, customerEmail, tebexOrderId, "ISSUED", expiresAt);
+        return new ObjectLicense(normalizeKey(licenseKey), productId, customerName, customerEmail, orderId, "ISSUED", expiresAt);
     }
 
     public static String lastIssueLicenseKey() { return lastIssueLicenseKey; }
     public static String lastIssueProductId() { return lastIssueProductId; }
     public static String lastIssueCustomerName() { return lastIssueCustomerName; }
     public static String lastIssueCustomerEmail() { return lastIssueCustomerEmail; }
-    public static String lastIssueTebexOrderId() { return lastIssueTebexOrderId; }
+    public static String lastIssueOrderId() { return lastIssueOrderId; }
     public static Date lastIssueExpiresAt() { return lastIssueExpiresAt; }
 }

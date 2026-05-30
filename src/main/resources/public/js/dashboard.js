@@ -204,7 +204,7 @@ class DashboardApp {
         }
 
         if (!appState.account.subscriber) {
-            mount.innerHTML = '<div class="empty-state">Your subscription is not active yet. Once Tebex confirms it, this area will unlock automatically.</div>';
+            mount.innerHTML = '<div class="empty-state">Your subscription is not active yet. Once Stripe confirms it, this area will unlock automatically.</div>';
             return;
         }
 
@@ -250,8 +250,8 @@ class DashboardApp {
                         <input type="number" name="duration_days" min="1" step="1" placeholder="30">
                     </label>
                     <label>
-                        <span>Tebex order ID</span>
-                        <input type="text" name="tebex_order_id" placeholder="Optional order reference">
+                        <span>Order ID</span>
+                        <input type="text" name="order_id" placeholder="Optional order reference">
                     </label>
                     <div class="button-row">
                         <button type="submit" class="primary">Create license</button>
@@ -604,7 +604,7 @@ class DashboardApp {
         const formData = new FormData(event.currentTarget);
         const payload = {
             customer_name: String(formData.get('customer_name') || '').trim(),
-            tebex_order_id: String(formData.get('tebex_order_id') || '').trim(),
+            order_id: String(formData.get('order_id') || '').trim(),
         };
 
         const durationDays = String(formData.get('duration_days') || '').trim();

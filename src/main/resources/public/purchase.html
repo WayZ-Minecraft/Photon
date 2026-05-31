@@ -25,12 +25,8 @@
                             <div class="password-field-row">
                                 <input id="purchaseTokenVal" type="password" readonly autocomplete="off" spellcheck="false" style="font-family:monospace;">
                                 <button type="button" id="toggleToken" class="secondary password-toggle" aria-label="Show session ID" aria-pressed="false" data-visible="false">
-                                    <svg id="toggleTokenShowIcon" class="password-toggle-icon password-toggle-icon-show" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                        <path d="M12 5c5.5 0 9.7 4.3 11 7-1.3 2.7-5.5 7-11 7S2.3 14.7 1 12c1.3-2.7 5.5-7 11-7Zm0 2C8 7 4.8 9.7 3.4 12 4.8 14.3 8 17 12 17s7.2-2.7 8.6-5C19.2 9.7 16 7 12 7Zm0 1.8A3.2 3.2 0 1 1 12 15a3.2 3.2 0 0 1 0-6.2Zm0 2A1.2 1.2 0 1 0 12 13.2a1.2 1.2 0 0 0 0-2.4Z" fill="currentColor"></path>
-                                    </svg>
-                                    <svg id="toggleTokenHideIcon" class="password-toggle-icon password-toggle-icon-hide" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                        <path d="m3.5 4.5 16 16 1.4-1.4-2.7-2.7C21 15 22 12 22 12s-3.5-7-10-7c-1.5 0-2.9.3-4.1.8L4.9 3.1 3.5 4.5ZM9 10l1.6 1.6A2 2 0 0 1 12 10a2 2 0 0 1 2 2c0 .4-.1.7-.3 1l1.6 1.6A4 4 0 0 0 9 10Zm3 8c6.5 0 10-7 10-7s-1-2-3.2-4.1l-2.1 2.1c.8.9 1.3 1.8 1.6 2.4-1.1 2-3.6 5-6.3 5-.7 0-1.4-.1-2-.3l-1.8 1.8c1.2.4 2.5.6 3.8.6Zm-8.2-2.9 2.1-2.1C4.8 12.1 4 12 4 12s3.5-7 10-7c.9 0 1.8.1 2.6.3l1.8-1.8C16.9 3.6 14.6 3 12 3 5.5 3 2 12 2 12s1 2 3.2 4.1Z" fill="currentColor"></path>
-                                    </svg>
+                                        <i id="toggleTokenShowIcon" class="password-toggle-icon password-toggle-icon-show fas fa-eye" aria-hidden="true"></i>
+                                        <i id="toggleTokenHideIcon" class="password-toggle-icon password-toggle-icon-hide fas fa-eye-slash" aria-hidden="true"></i>
                                 </button>
                                 <button type="button" id="copyToken" class="secondary copy-button" aria-label="Copy session ID" title="Copy session ID">
                                     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -61,23 +57,19 @@
                     </div>
                     <label>
                         <span>Username</span>
-                        <input type="text" name="username" autocomplete="username" placeholder="Your username" required>
+                        <input type="text" name="username" autocomplete="username" placeholder="JoeDalton_" required>
                     </label>
                     <label>
                         <span>Email</span>
-                        <input type="email" name="email" autocomplete="email" placeholder="author@project.com" required>
+                        <input type="email" name="email" autocomplete="email" placeholder="joe@gmail.com" required>
                     </label>
                     <label class="password-field">
                         <span>Password</span>
                         <div class="password-field-row">
-                            <input type="password" name="password" autocomplete="new-password" placeholder="Create a password" required>
+                            <input type="password" name="password" autocomplete="new-password" placeholder="$aZf*&my1HJd3" required>
                             <button type="button" class="secondary password-toggle" data-password-toggle data-target="password" aria-label="Show password" aria-pressed="false" data-visible="false">
-                                <svg class="password-toggle-icon password-toggle-icon-show" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Zm10 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" fill="currentColor"></path>
-                                </svg>
-                                <svg class="password-toggle-icon password-toggle-icon-hide" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                    <path d="M3.5 4.5 19.5 20.5l1.4-1.4-2.7-2.7C21 15 22 12 22 12s-3.5-7-10-7c-1.5 0-2.9.3-4.1.8L4.9 3.1 3.5 4.5ZM9 10l1.6 1.6A2 2 0 0 1 12 10a2 2 0 0 1 2 2c0 .4-.1.7-.3 1l1.6 1.6A4 4 0 0 0 9 10Zm3 8c6.5 0 10-7 10-7s-1-2-3.2-4.1l-2.1 2.1c.8.9 1.3 1.8 1.6 2.4-1.1 2-3.6 5-6.3 5-.7 0-1.4-.1-2-.3l-1.8 1.8c1.2.4 2.5.6 3.8.6Zm-8.2-2.9 2.1-2.1C4.8 12.1 4 12 4 12s3.5-7 10-7c.9 0 1.8.1 2.6.3l1.8-1.8C16.9 3.6 14.6 3 12 3 5.5 3 2 12 2 12s1 2 3.2 4.1Z" fill="currentColor"></path>
-                                </svg>
+                                <i class="password-toggle-icon password-toggle-icon-show fas fa-eye" aria-hidden="true"></i>
+                                <i class="password-toggle-icon password-toggle-icon-hide fas fa-eye-slash" aria-hidden="true"></i>
                             </button>
                         </div>
                     </label>
@@ -87,12 +79,8 @@
                         <div class="password-field-row">
                             <input type="password" name="confirmPassword" autocomplete="new-password" placeholder="Repeat your password" required>
                             <button type="button" class="secondary password-toggle" data-password-toggle data-target="confirmPassword" aria-label="Show password" aria-pressed="false" data-visible="false">
-                                <svg class="password-toggle-icon password-toggle-icon-show" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Zm10 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" fill="currentColor"></path>
-                                </svg>
-                                <svg class="password-toggle-icon password-toggle-icon-hide" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                    <path d="M3.5 4.5 19.5 20.5l1.4-1.4-2.7-2.7C21 15 22 12 22 12s-3.5-7-10-7c-1.5 0-2.9.3-4.1.8L4.9 3.1 3.5 4.5ZM9 10l1.6 1.6A2 2 0 0 1 12 10a2 2 0 0 1 2 2c0 .4-.1.7-.3 1l1.6 1.6A4 4 0 0 0 9 10Zm3 8c6.5 0 10-7 10-7s-1-2-3.2-4.1l-2.1 2.1c.8.9 1.3 1.8 1.6 2.4-1.1 2-3.6 5-6.3 5-.7 0-1.4-.1-2-.3l-1.8 1.8c1.2.4 2.5.6 3.8.6Zm-8.2-2.9 2.1-2.1C4.8 12.1 4 12 4 12s3.5-7 10-7c.9 0 1.8.1 2.6.3l1.8-1.8C16.9 3.6 14.6 3 12 3 5.5 3 2 12 2 12s1 2 3.2 4.1Z" fill="currentColor"></path>
-                                </svg>
+                                <i class="password-toggle-icon password-toggle-icon-show fas fa-eye" aria-hidden="true"></i>
+                                <i class="password-toggle-icon password-toggle-icon-hide fas fa-eye-slash" aria-hidden="true"></i>
                             </button>
                         </div>
                     </label>
@@ -110,7 +98,7 @@
                     </div>
                     <label>
                         <span>Email</span>
-                        <input type="email" name="email" autocomplete="email" placeholder="author@project.com" required>
+                        <input type="email" name="email" autocomplete="email" placeholder="joe@gmail.com" required>
                     </label>
                     <label class="password-field">
                         <span>Password</span>

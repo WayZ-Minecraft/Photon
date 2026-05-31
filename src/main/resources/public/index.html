@@ -6,6 +6,7 @@
         <link rel="icon" href="./assets/photon_logo.png">
         <title>Niwer's Engine - Control Panel</title>
         <link rel="stylesheet" href="./main.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
         <script type="module" src="./js/main.js"></script>
     </head>
     <body>
@@ -23,7 +24,10 @@
                                 <div>
                                     <p class="eyebrow">Public status</p>
                                 </div>
-                                <span class="status-pill neutral" id="serverCount">0 servers</span>
+                                <span class="status-pill neutral" id="serverCount">
+                                    <span id="serverCountNumber">0</span>
+                                    <i class="fas fa-server servers-icon" aria-hidden="true"></i>
+                                </span>
                             </div>
                             <div id="serverList" class="cards grid-list"></div>
                         </div>

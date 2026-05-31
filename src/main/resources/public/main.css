@@ -103,24 +103,32 @@ label {
 }
 
 .password-toggle-icon {
-	width: 20px;
-	height: 20px;
+	font-size: 16px;
 	display: none;
+	line-height: 0;
 	flex: none;
+	width: 16px;
+	height: 16px;
+	place-items: center;
+	justify-items: center;
 }
 
+.password-toggle-icon svg {
+	width: 100%;
+	height: 100%;
+	display: block;
+}
 
 .password-toggle .password-toggle-icon-show {
-	display: block;
-}
-
-.password-toggle[data-visible="true"] .password-toggle-icon-show,
-.password-toggle[data-visible="true"] .password-toggle-icon-hide {
-	display: block;
+	display: inline-grid;
 }
 
 .password-toggle[data-visible="true"] .password-toggle-icon-show {
 	display: none;
+}
+
+.password-toggle[data-visible="true"] .password-toggle-icon-hide {
+	display: inline-grid;
 }
 
 p, h1, h2, h3 {
@@ -141,7 +149,6 @@ h2 {
 .hint,
 .nav-hint,
 .app-footer p,
-.data-card p,
 .data-grid span,
 label span {
 	color: var(--muted);
@@ -220,9 +227,14 @@ label span {
 	line-height: 0;
 }
 
+.nav-link.icon-button i,
 .nav-link.icon-button svg {
-	width: 20px;
-	height: 20px;
+	font-size: 16px;
+	width: 18px;
+	height: 18px;
+	display: inline-block;
+	line-height: 1;
+	vertical-align: middle;
 }
 
 .nav-link.active,
@@ -410,9 +422,14 @@ label span {
 	border-color: var(--accent);
 }
 
+.copy-button i,
 .copy-button svg {
-	width: 20px;
-	height: 20px;
+	font-size: 14px;
+	width: 16px;
+	height: 16px;
+	display: inline-block;
+	line-height: 1;
+	vertical-align: middle;
 }
 
 .compact-grid {
@@ -455,6 +472,33 @@ th {
 	background: var(--accent-soft);
 	color: var(--accent);
 	font-size: 0.9rem;
+}
+
+.status-pill .servers-icon {
+	font-size: 14px;
+	margin-left: 8px;
+	display: inline-block;
+	line-height: 1;
+	vertical-align: middle;
+}
+
+/* Per-icon visual tuning to harmonize apparent weight */
+.fas.fa-eye,
+.fas.fa-eye-slash {
+	transform: none;
+	opacity: 1;
+}
+
+.fas.fa-user {
+	transform: translateY(0.3px) scale(1);
+}
+
+.fas.fa-clone {
+	transform: none;
+}
+
+.fas.fa-sign-out-alt {
+	transform: translateY(0.5px) scale(1);
 }
 
 .status-pill.neutral {

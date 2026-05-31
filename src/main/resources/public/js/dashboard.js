@@ -198,9 +198,7 @@ class DashboardApp {
                         <strong>${escapeHtml(value ?? '—')}</strong>
                     </div>
                     <button type="button" class="secondary copy-button" data-copy-text="${escapeHtml(value ?? '')}" data-copy-label="${escapeHtml(key)}" aria-label="Copy ${escapeHtml(key)}" title="Copy ${escapeHtml(key)}">
-                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                            <path fill="currentColor" d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1Zm3 4H10a2 2 0 0 0-2 2v14h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 16H10V7h9v14Z"></path>
-                        </svg>
+                        <i class="fas fa-clone" aria-hidden="true"></i>
                         <span class="sr-only">Copy ${escapeHtml(key)}</span>
                     </button>
                 </div>
@@ -219,8 +217,14 @@ class DashboardApp {
                     <h2>Your profile</h2>
                 </div>
                 <div class="button-row">
-                    <button type="button" class="secondary" data-open-modal="profile">Edit profile</button>
-                    <button type="button" class="danger" data-action="logout">Logout</button>
+                    <button type="button" class="nav-link icon-button" data-open-modal="profile" aria-label="Edit profile" title="Edit profile">
+                        <i class="fas fa-pencil-alt" aria-hidden="true"></i>
+                        <span class="sr-only">Edit profile</span>
+                    </button>
+                    <button type="button" class="copy-button" data-action="logout" aria-label="Logout" title="Logout" style="background: var(--danger); color: #fff; border-color: var(--danger);">
+                        <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+                        <span class="sr-only">Logout</span>
+                    </button>
                 </div>
             </div>
             <div class="data-grid user-grid">${accountEntries}</div>
@@ -316,11 +320,15 @@ class DashboardApp {
 
         if (!appState.servers.length) {
             list.innerHTML = '<div class="empty-state">No servers were found.</div>';
-            count.textContent = '0 servers';
+            const numberEl = count.querySelector('#serverCountNumber');
+            if (numberEl) numberEl.textContent = '0';
+            else count.textContent = '0';
             return;
         }
 
-        count.textContent = `${appState.servers.length} servers`;
+        const numberEl = count.querySelector('#serverCountNumber');
+        if (numberEl) numberEl.textContent = String(appState.servers.length);
+        else count.textContent = `${appState.servers.length} servers`;
         list.innerHTML = appState.servers.map((server) => {
             const title = server.serverName || `${server.serverIP || 'Unknown'}:${server.serverPort || '—'}`;
             const subtitle = `${server.serverIP || 'Unknown'}:${server.serverPort || '—'} · queue ${server.queuePort ?? '—'}`;

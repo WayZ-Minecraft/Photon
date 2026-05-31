@@ -19,7 +19,7 @@ public class UserMeEndpoint implements IEndpoint {
         if (account == null) return;
 
         final Map<String, Object> response = account.toPublicMap();
-        response.putAll(SubscriptionTable.subscriptionDetails(account.getEmail()));
+        response.putAll(SubscriptionTable.subscriptionDetails(account.getEmail(), account.getUuid()));
         handler.json(response);
     }
 }

@@ -23,7 +23,7 @@ public final class StripeStartupSync {
     public static void run(String apiKey) {
         if (apiKey == null || apiKey.isBlank()) {
             Console.log("Stripe startup sync skipped: stripe_api_key is not configured")
-                .type(PhotonLogTypes.NETWORK)
+                .type(PhotonLogTypes.STRIPE)
                 .container(PhotonEngine.LOGGER)
                 .send();
             return;
@@ -99,12 +99,12 @@ public final class StripeStartupSync {
             }
 
             Console.log("Stripe startup sync finished: subscriptions=" + seenSubscriptions + ", upserted=" + upserted + ", skippedNoEmail=" + skippedNoEmail + ", errors=" + errors)
-                .type(PhotonLogTypes.NETWORK)
+                .type(PhotonLogTypes.STRIPE)
                 .container(PhotonEngine.LOGGER)
                 .send();
         } catch (Exception e) {
             Console.log("Stripe startup sync failed: " + e.getMessage())
-                .type(PhotonLogTypes.NETWORK)
+                .type(PhotonLogTypes.STRIPE)
                 .error()
                 .container(PhotonEngine.LOGGER)
                 .send();

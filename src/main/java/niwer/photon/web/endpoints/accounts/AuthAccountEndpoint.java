@@ -53,7 +53,7 @@ public class AuthAccountEndpoint implements IEndpoint {
         }
 
         final var account = ACCOUNT.toPublicMap();
-        account.putAll(SubscriptionTable.subscriptionDetails(ACCOUNT.getEmail()));
+        account.putAll(SubscriptionTable.subscriptionDetails(ACCOUNT.getEmail(), ACCOUNT.getUuid()));
         handler.json(new LoginResponse(session.token(), account));
     }
 

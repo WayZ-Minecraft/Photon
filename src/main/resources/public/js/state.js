@@ -13,6 +13,7 @@ export const appState = {
     token: localStorage.getItem('photon-admin-token') || '',
     userToken: localStorage.getItem('photon-user-token') || '',
     account,
+    purchaseToken: new URLSearchParams(window.location.search).get('token') || '',
     tables: [],
     activeTable: null,
     servers: [],

@@ -19,7 +19,7 @@ public class AccountLicenseListEndpoint implements IEndpoint {
     public void handle(Context handler) {
         final var account = UserSessionManager.requireAccount(handler);
         if (account == null) return;
-        if (!SubscriptionTable.isActive(account.getEmail())) {
+        if (!SubscriptionTable.isActive(account.getEmail(), account.getUuid())) {
             handler.status(403).result("Active subscription required");
             return;
         }

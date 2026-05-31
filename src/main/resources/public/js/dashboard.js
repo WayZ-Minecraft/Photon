@@ -22,6 +22,21 @@ class DashboardApp {
         this.wireChromeEvents();
         this.renderAll();
         this.pageManager.go(appState.page, false);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const shouldOpenAuth = (!appState.account) && (urlParams.get('auth') === '1' || window.location.hash === '#auth');
+        if (shouldOpenAuth) {
+            this.modalManager.open('auth');
+            urlParams.delete('auth');
+            const nextQuery = urlParams.toString();
+            const nextHash = window.location.hash === '#auth' ? '' : window.location.hash;
+            const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}${nextHash}`;
+            window.history.replaceState({}, document.title, nextUrl);
+        }
+
+        if (appState.purchaseToken && !appState.account) {
+            this.modalManager.open('createAccount', { purchaseToken: appState.purchaseToken });
+        }
     }
 
     wireChromeEvents() {
@@ -37,7 +52,7 @@ class DashboardApp {
 
             const openModalButton = event.target.closest('[data-open-modal]');
             if (openModalButton) {
-                this.modalManager.open(openModalButton.dataset.openModal, { account: appState.account });
+                this.modalManager.open(openModalButton.dataset.openModal, { account: appState.account, purchaseToken: appState.purchaseToken });
                 return;
             }
 
@@ -136,6 +151,32 @@ class DashboardApp {
     }
 
     renderPublic() {
+        const purchaseMount = el('purchasePanel');
+        if (purchaseMount) {
+            if (appState.account?.subscriber) {
+                purchaseMount.innerHTML = `
+                    <div class="panel-header">
+                        <div>
+                            <p class="eyebrow">Subscription</p>
+                            <h2>Your account is already linked</h2>
+                        </div>
+                        <span class="status-pill positive">Active</span>
+                    </div>
+                    <div class="empty-state">You already have an active subscription. If you just finished checkout, the registration modal should open automatically.</div>
+                `;
+            } else {
+                purchaseMount.innerHTML = `
+                    <div class="panel-header">
+                        <div>
+                            <p class="eyebrow">Purchase</p>
+                            <h2>Subscription</h2>
+                        </div>
+                    </div>
+                    <div class="empty-state">You haven't completed a purchase yet. To complete a purchase, go to <a href="https://niwer.dev/store">the store</a>.</div>
+                `;
+            }
+        }
+
         this.renderServers();
     }
 
@@ -556,6 +597,7 @@ class DashboardApp {
         const password = String(formData.get('password') || '');
         const confirmPassword = String(formData.get('confirmPassword') || '');
         const feedback = document.getElementById('createAccountFeedback');
+        const purchaseToken = String(formData.get('token') || appState.purchaseToken || '').trim();
 
         if (password !== confirmPassword) {
             if (feedback) {
@@ -574,6 +616,7 @@ class DashboardApp {
         body.set('username', String(formData.get('username') || '').trim());
         body.set('email', String(formData.get('email') || '').trim());
         body.set('password', password);
+        if (purchaseToken) body.set('token', purchaseToken);
 
         const response = await fetch('/accounts/create_account', {
             method: 'POST',
@@ -589,6 +632,10 @@ class DashboardApp {
         appState.account = payload.account || payload;
         localStorage.setItem('photon-user-token', appState.userToken);
         localStorage.setItem('photon-account', JSON.stringify(appState.account));
+        if (purchaseToken) {
+            appState.purchaseToken = '';
+            window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+        }
         this.header.refresh();
         this.renderUser();
         this.renderLicenses();

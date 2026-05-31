@@ -29,10 +29,12 @@ This project exposes several HTTP endpoints for accounts, admin operations, serv
 
 - **Stripe (Checkout & webhooks)**
 	- In `network/config.json` set `stripe_webhook_signature` to the private signature key from your Stripe dashboard (not the public API key). This is used to verify incoming webhook events from Stripe.
+	- Set `stripe_api_key` in `network/config.json` to enable Stripe checkout session creation.
 	- `POST /stripe/webhook` — Stripe webhook endpoint
 		- Receives events (e.g. `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`).
+		- Also consumes `checkout.session.completed` to complete the purchase-token flow.
 - **Accounts (user-facing)**
-	- `POST /accounts/create_account` — Create account (requires active subscription).
+	- `POST /accounts/create_account` — Create account (requires active subscription, or a valid purchase token in the `token` form field).
 	- `POST /accounts/auth_account` — Login, returns `{ token, account }`.
 	- `GET /accounts/me` — Get current user (auth: `X-Photon-User-Token` or `Authorization: Bearer <token>`).
 	- `POST /accounts/change_password` — Change password.

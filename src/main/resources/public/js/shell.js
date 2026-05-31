@@ -176,6 +176,7 @@ export class ModalManager {
 
     renderAuthOrAccountForm() {
         const initialTab = this.active.kind === 'createAccount' ? 'create' : 'signIn';
+        const purchaseToken = this.active.payload?.purchaseToken || appState.purchaseToken || '';
         return `
             <div class="modal-tabs" data-auth-tabs>
                 <button type="button" class="tab-button ${initialTab === 'signIn' ? 'active' : ''}" data-auth-tab="signIn">Sign in</button>
@@ -205,6 +206,8 @@ export class ModalManager {
                 </form>
 
                 <form id="createAccountForm" onsubmit="event.preventDefault()" class="modal-panel ${initialTab === 'create' ? 'active' : ''}" data-auth-panel="create">
+                    ${purchaseToken ? '<input type="hidden" name="token" value="' + escapeHtml(purchaseToken) + '">' : ''}
+                    ${purchaseToken ? '<p class="hint">Purchase token detected. Your subscription will be linked automatically after account creation.</p>' : ''}
                     <label>
                         <span>Username</span>
                         <input type="text" name="username" autocomplete="username" placeholder="Your username" required>

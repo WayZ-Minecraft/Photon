@@ -10,6 +10,9 @@ public class ObjectSubscription extends SQLSerializable<ObjectSubscription> {
     @IColumnField(name = "customer_email", primaryKey = true, notNull = true)
     private String customerEmail;
 
+    @IColumnField(name = "account_uuid")
+    private String accountUuid;
+
     @IColumnField(name = "customer_name")
     private String customerName;
 
@@ -30,8 +33,9 @@ public class ObjectSubscription extends SQLSerializable<ObjectSubscription> {
 
     public ObjectSubscription() {}
 
-    public ObjectSubscription(String customerEmail, String customerName, String customerId, String subscriptionId, String status, Date expiresAt, Date updatedAt) {
+    public ObjectSubscription(String customerEmail, String accountUuid, String customerName, String customerId, String subscriptionId, String status, Date expiresAt, Date updatedAt) {
         this.customerEmail = customerEmail;
+        this.accountUuid = accountUuid;
         this.customerName = customerName;
         this.customerId = customerId;
         this.subscriptionId = subscriptionId;
@@ -45,6 +49,7 @@ public class ObjectSubscription extends SQLSerializable<ObjectSubscription> {
     }
 
     public String customerEmail() { return customerEmail; }
+    public String accountUuid() { return accountUuid; }
     public String customerName() { return customerName; }
     public String customerId() { return customerId; }
     public String subscriptionId() { return subscriptionId; }

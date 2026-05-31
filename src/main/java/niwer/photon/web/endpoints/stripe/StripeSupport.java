@@ -4,9 +4,12 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.StringJoiner;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -29,12 +32,46 @@ final class StripeSupport {
         return invoiceId == null || invoiceId.isBlank() ? null : resolveInvoiceById(apiKey, invoiceId);
     }
 
+	protected static JsonObject resolveCheckoutSession(String apiKey, String payload) {
+		final String checkoutSessionId = extractDataObjectId(payload);
+		return checkoutSessionId == null || checkoutSessionId.isBlank() ? null : resolveCheckoutSessionById(apiKey, checkoutSessionId);
+	}
+
     protected static JsonObject resolveSubscriptionById(String apiKey, String subscriptionId) {
         return subscriptionId == null || subscriptionId.isBlank() ? null : getStripeObject(apiKey, "/v1/subscriptions/" + urlEncode(subscriptionId));
     }
 
     protected static JsonObject resolveInvoiceById(String apiKey, String invoiceId) {
         return invoiceId == null || invoiceId.isBlank() ? null : getStripeObject(apiKey, "/v1/invoices/" + urlEncode(invoiceId));
+    }
+
+    protected static JsonObject resolveCheckoutSessionById(String apiKey, String checkoutSessionId) {
+        return checkoutSessionId == null || checkoutSessionId.isBlank() ? null : getStripeObject(apiKey, "/v1/checkout/sessions/" + urlEncode(checkoutSessionId));
+    }
+
+    protected static JsonObject createCheckoutSession(String apiKey, Map<String, String> parameters) {
+        if (apiKey == null || apiKey.isBlank() || parameters == null || parameters.isEmpty()) return null;
+
+        try {
+            final StringJoiner body = new StringJoiner("&");
+            parameters.forEach((key, value) -> {
+                if (key != null && value != null) body.add(urlEncode(key) + "=" + urlEncode(value));
+            });
+
+            final HttpRequest request = HttpRequest.newBuilder(URI.create("https://api.stripe.com/v1/checkout/sessions"))
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(BodyPublishers.ofString(body.toString()))
+                .build();
+
+            final HttpResponse<String> response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() < 200 || response.statusCode() >= 300) return null;
+
+            return JsonParser.parseString(response.body()).getAsJsonObject();
+        } catch (IOException | InterruptedException | IllegalArgumentException ignored) {
+            return null;
+        }
     }
 
     protected static JsonObject listSubscriptionsPage(String apiKey, String startingAfter, int limit) {

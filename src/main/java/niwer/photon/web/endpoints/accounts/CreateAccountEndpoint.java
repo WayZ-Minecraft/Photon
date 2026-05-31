@@ -4,6 +4,7 @@ import java.util.regex.Pattern;
 
 import io.javalin.http.Context;
 import niwer.photon.objects.ObjectPlayerAccount;
+import niwer.photon.sql.PurchaseTokenTable;
 import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.web.UserSessionManager;
@@ -25,6 +26,7 @@ public class CreateAccountEndpoint implements IEndpoint {
         final String username = handler.formParam("username");
         final String email = handler.formParam("email");
         final String password = handler.formParam("password");
+        final String checkoutSessionId = firstNonBlank(handler.formParam("checkoutSessionId"), handler.formParam("token"));
 
         /* Ensure all parameters are provided */
         if(username == null || email == null || password == null) {
@@ -62,7 +64,13 @@ public class CreateAccountEndpoint implements IEndpoint {
             return;
         }
 
-        if (!SubscriptionTable.isActive(email)) {
+        final boolean hasPurchaseReference = checkoutSessionId != null && !checkoutSessionId.isBlank();
+        if (hasPurchaseReference) {
+            if (!canRedeemPurchaseReference(checkoutSessionId)) {
+                handler.status(403).result("Invalid or expired purchase token");
+                return;
+            }
+        } else if (!hasActiveSubscription(email, null)) {
             handler.status(403).result("An active subscription is required to create an account");
             return;
         }
@@ -74,14 +82,20 @@ public class CreateAccountEndpoint implements IEndpoint {
             return;
         }
 
-        final UserSessionManager.AuthSession session = UserSessionManager.login(email, password);
+        if (hasPurchaseReference && !redeemPurchaseReference(checkoutSessionId, ACCOUNT)) {
+            PlayerAccountTable.deleteAccount(ACCOUNT.getUuid());
+            handler.status(500).result("Failed to link purchase token");
+            return;
+        }
+
+        final UserSessionManager.AuthSession session = createSession(email, password);
         if (session == null) {
             handler.status(500).result("Failed to create session");
             return;
         }
 
         final var response = ACCOUNT.toPublicMap();
-        response.putAll(SubscriptionTable.subscriptionDetails(ACCOUNT.getEmail()));
+        response.putAll(SubscriptionTable.subscriptionDetails(ACCOUNT.getEmail(), ACCOUNT.getUuid()));
         handler.json(new LoginResponse(session.token(), response));
     }
 
@@ -101,6 +115,28 @@ public class CreateAccountEndpoint implements IEndpoint {
 		final Pattern EMAIL_PATTERN = Pattern.compile("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}");
         return EMAIL_PATTERN.matcher(email).matches();
 	}
+
+    private static String firstNonBlank(String first, String second) {
+        if (first != null && !first.isBlank()) return first;
+        if (second != null && !second.isBlank()) return second;
+        return null;
+    }
+
+    protected boolean canRedeemPurchaseReference(String purchaseReference) {
+        return PurchaseTokenTable.canRedeem(purchaseReference);
+    }
+
+    protected boolean redeemPurchaseReference(String purchaseReference, ObjectPlayerAccount account) {
+        return PurchaseTokenTable.redeem(purchaseReference, account);
+    }
+
+    protected boolean hasActiveSubscription(String email, String accountUuid) {
+        return SubscriptionTable.isActive(email, accountUuid);
+    }
+
+    protected UserSessionManager.AuthSession createSession(String email, String password) {
+        return UserSessionManager.login(email, password);
+    }
 
         private record LoginResponse(String token, Object account) {}
 }

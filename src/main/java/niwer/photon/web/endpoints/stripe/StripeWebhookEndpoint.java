@@ -13,6 +13,7 @@ import niwer.lumen.Console;
 import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
 import niwer.photon.objects.ObjectSubscription;
+import niwer.photon.sql.PurchaseTokenTable;
 import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.sql.SubscriptionTable.SubscriptionStatus;
 import niwer.photon.util.PhotonLogTypes;
@@ -66,6 +67,11 @@ public class StripeWebhookEndpoint implements IEndpoint {
                 return;
             }
 
+            if (type.startsWith("checkout.session.")) {
+                handleCheckoutSessionEvent(handler, payload, apiKey, type);
+                return;
+            }
+
             if (type.startsWith("invoice.")) {
                 handleInvoiceEvent(handler, payload, apiKey, type);
                 return;
@@ -107,6 +113,65 @@ public class StripeWebhookEndpoint implements IEndpoint {
         handler.status(200).json(subscriptionRecord);
     }
 
+    private static void handleCheckoutSessionEvent(Context handler, String payload, String apiKey, String type) {
+        final JsonObject checkoutSession = StripeSupport.resolveCheckoutSession(apiKey, payload);
+        if (checkoutSession == null) {
+            ignore(handler, "missing checkout session object for event " + type, true);
+            return;
+        }
+
+        final JsonObject metadata = StripeSupport.getObject(checkoutSession, "metadata");
+        final String purchaseToken = StripeSupport.firstNonBlank(
+            StripeSupport.getString(checkoutSession, "client_reference_id"),
+            StripeSupport.getString(metadata, "purchase_token"),
+            StripeSupport.getString(metadata, "purchaseToken"),
+            StripeSupport.getString(checkoutSession, "id")
+        );
+        if (purchaseToken == null || purchaseToken.isBlank()) {
+            ignore(handler, "missing purchase token for checkout session " + StripeSupport.getString(checkoutSession, "id"), false);
+            return;
+        }
+
+        final JsonObject customerDetails = StripeSupport.getObject(checkoutSession, "customer_details");
+        final JsonObject subscription = StripeSupport.resolveSubscriptionById(apiKey, StripeSupport.getString(checkoutSession, "subscription"));
+        final StripeSupport.CustomerPayload customerPayload = StripeSupport.resolveCustomer(
+            apiKey,
+            StripeSupport.getString(checkoutSession, "customer"),
+            metadata,
+            StripeSupport.firstNonBlank(StripeSupport.getString(customerDetails, "email"), StripeSupport.getString(checkoutSession, "customer_email"))
+        );
+        final String subscriptionId = StripeSupport.getString(subscription, "id");
+        final long periodEnd = subscription == null ? 0L : StripeSupport.getLong(subscription, "current_period_end") * 1000L;
+        final SubscriptionStatus status = StripeSupport.stripeStatusToLocal(subscription == null ? StripeSupport.getString(checkoutSession, "status") : StripeSupport.getString(subscription, "status"));
+
+        final var purchase = PurchaseTokenTable.completePurchase(
+            purchaseToken,
+            StripeSupport.getString(checkoutSession, "id"),
+            StripeSupport.getString(checkoutSession, "customer"),
+            subscriptionId,
+            customerPayload.email(),
+            customerPayload.name(),
+            status.name(),
+            periodEnd == 0L ? null : new java.util.Date(periodEnd)
+        );
+
+        if (purchase == null) {
+            ignore(handler, "missing pending purchase for token " + purchaseToken, false);
+            return;
+        }
+
+        final ObjectSubscription subscriptionRecord = SubscriptionTable.upsertSubscription(
+            purchase.customerEmail(),
+            purchase.customerName(),
+            purchase.stripeCustomerId(),
+            subscriptionId,
+            status,
+            periodEnd == 0L ? null : new java.util.Date(periodEnd)
+        );
+
+        handler.status(200).json(subscriptionRecord);
+    }
+
     private static void handleInvoiceEvent(Context handler, String payload, String apiKey, String type) {
         final JsonObject invoice = StripeSupport.resolveInvoice(apiKey, payload);
         if (invoice == null) {
@@ -141,7 +206,7 @@ public class StripeWebhookEndpoint implements IEndpoint {
     }
 
     private static void ignore(Context handler, String reason, boolean plainIgnoredResponse) {
-        Console.log("Stripe webhook ignored: " + reason).type(PhotonLogTypes.NETWORK).error().container(PhotonEngine.LOGGER).send();
+        Console.log("Stripe webhook ignored: " + reason).type(PhotonLogTypes.STRIPE).error().container(PhotonEngine.LOGGER).send();
         handler.status(200).result(plainIgnoredResponse ? "ignored" : "missing customer email");
     }
 }

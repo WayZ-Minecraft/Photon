@@ -28,6 +28,8 @@ dependencies {
 	api "com.google.code.gson:gson:${project.gson_version}"
     api "ch.qos.logback:logback-classic:${project.logback_version}" // JDA & Javalin are using this
 	api "com.github.Niwer1525:Lumen:${project.lumen_version}"
+	implementation "de.mkammerer:argon2-jvm:${project.argon2_version}"
+	implementation "de.mkammerer:argon2-jvm-nolibs:${project.argon2_version}"
 
     /* SHADOWING */
     shadow "io.javalin:javalin:${project.javalin_version}"
@@ -39,6 +41,8 @@ dependencies {
 	shadow "com.google.code.gson:gson:${project.gson_version}"
     shadow "ch.qos.logback:logback-classic:${project.logback_version}" // JDA & Javalin are using this
 	shadow "com.github.Niwer1525:Lumen:${project.lumen_version}"
+	shadow "de.mkammerer:argon2-jvm:${project.argon2_version}"
+	shadow "de.mkammerer:argon2-jvm-nolibs:${project.argon2_version}"
 
 	// Stripe SDK
 	implementation "com.stripe:stripe-java:20.0.0"

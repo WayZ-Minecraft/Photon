@@ -1,19 +1,22 @@
 package niwer.photon.web.endpoints;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Field;
 
 import org.junit.jupiter.api.Test;
 
 import niwer.photon.objects.ObjectPlayerAccount;
+import niwer.photon.util.PasswordHasher;
 
 class AuthAccountEndpointTest {
 
     @Test
     void signsInWithEmailAndPasswordOnly() {
-        final ObjectPlayerAccount account = account("alice", "alice@example.com", "secret");
+        final ObjectPlayerAccount account = account("alice", "alice@example.com", PasswordHasher.hash("secret"));
         final ContextStubTest stub = new ContextStubTest()
             .formParam("email", "alice@example.com")
             .formParam("password", "secret");
@@ -24,12 +27,27 @@ class AuthAccountEndpointTest {
                 assertEquals("alice@example.com", email);
                 return account;
             }
+
+            @Override
+            protected niwer.photon.web.UserSessionManager.AuthSession createSession(String email, String password) {
+                assertEquals("alice@example.com", email);
+                assertEquals("secret", password);
+                return new niwer.photon.web.UserSessionManager.AuthSession("session-token", account);
+            }
+
+            @Override
+            protected java.util.Map<String, Object> accountResponse(ObjectPlayerAccount currentAccount) {
+                return currentAccount.toPublicMap();
+            }
         };
 
         endpoint.handle(stub.context());
 
         assertNull(stub.statusCode());
-        assertEquals(account, stub.jsonBody());
+        assertNotNull(stub.jsonBody());
+        final String response = stub.jsonBody().toString();
+        assertTrue(response.contains("session-token"));
+        assertTrue(response.contains("alice@example.com"));
     }
 
     @Test
@@ -48,7 +66,7 @@ class AuthAccountEndpointTest {
         setField(account, "email", email);
         setField(account, "password", password);
         setField(account, "uuid", "uuid-123");
-        setField(account, "administrator", false);
+        setField(account, "administrator", "false");
         return account;
     }
 

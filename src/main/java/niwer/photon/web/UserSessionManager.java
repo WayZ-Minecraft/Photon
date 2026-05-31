@@ -52,7 +52,11 @@ public final class UserSessionManager {
 
     public static AuthSession login(String email, String password) {
         final ObjectPlayerAccount account = PlayerAccountTable.getAccountByEmail(email);
-        if (account == null || password == null || !password.equals(account.password())) return null;
+                if (account == null || password == null || !PlayerAccountTable.passwordMatches(account.password(), password)) return null;
+
+		if (!PlayerAccountTable.isArgon2Password(account.password())) {
+			PlayerAccountTable.setPassword(account.getUuid(), password);
+		}
 
         final String token = UUID.randomUUID().toString().replace("-", "");
         SESSIONS.put(token, new Session(snapshot(account), System.currentTimeMillis()));

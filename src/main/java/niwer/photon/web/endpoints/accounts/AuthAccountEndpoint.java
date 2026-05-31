@@ -41,24 +41,36 @@ public class AuthAccountEndpoint implements IEndpoint {
             handler.status(401).result("No account found with the provided email");
             return;
         }
-        if(!ACCOUNT.password().equals(password)) {
+        if(!PlayerAccountTable.passwordMatches(ACCOUNT.password(), password)) {
             handler.status(401).result("Incorrect password");
             return;
         }
 
-        final UserSessionManager.AuthSession session = UserSessionManager.login(email, password);
+        if (!PlayerAccountTable.isArgon2Password(ACCOUNT.password())) {
+            PlayerAccountTable.setPassword(ACCOUNT.getUuid(), password);
+        }
+
+        final UserSessionManager.AuthSession session = createSession(email, password);
         if (session == null) {
             handler.status(401).result("Invalid credentials or access denied");
             return;
         }
 
-        final var account = ACCOUNT.toPublicMap();
-        account.putAll(SubscriptionTable.subscriptionDetails(ACCOUNT.getEmail(), ACCOUNT.getUuid()));
-        handler.json(new LoginResponse(session.token(), account));
+        handler.json(new LoginResponse(session.token(), accountResponse(ACCOUNT)));
     }
 
     protected ObjectPlayerAccount lookupAccountByEmail(String email) {
         return PlayerAccountTable.getAccountByEmail(email);
+    }
+
+    protected UserSessionManager.AuthSession createSession(String email, String password) {
+        return UserSessionManager.login(email, password);
+    }
+
+    protected java.util.Map<String, Object> accountResponse(ObjectPlayerAccount account) {
+        final var response = account.toPublicMap();
+        response.putAll(SubscriptionTable.subscriptionDetails(account.getEmail(), account.getUuid()));
+        return response;
     }
 
     private record LoginResponse(String token, Object account) {}

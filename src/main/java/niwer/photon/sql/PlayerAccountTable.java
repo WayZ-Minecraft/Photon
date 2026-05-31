@@ -6,6 +6,7 @@ import java.util.UUID;
 import niwer.lumen.Console;
 import niwer.photon.PhotonEngine;
 import niwer.photon.objects.ObjectPlayerAccount;
+import niwer.photon.util.PasswordHasher;
 import niwer.photon.util.PhotonLogTypes;
 import niwer.queryon.DataBase;
 import niwer.queryon.queries.Expression;
@@ -72,8 +73,14 @@ public class PlayerAccountTable extends Table {
         }
 
         final String UniqueUserID = UUID.randomUUID().toString();
-        InsertionManager.insert(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "uuid", "username", "email", "password", "discordAuthCode")
-            .row(UniqueUserID, username.trim(), email.trim().toLowerCase(), password, ObjectPlayerAccount.generateAuthCode())
+            final String hashedPassword = hashPassword(password);
+            if (hashedPassword == null) {
+                Console.log("Cannot hash password for account creation").type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
+                return null;
+            }
+
+            InsertionManager.insert(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "uuid", "username", "email", "password", "discordAuthCode")
+                .row(UniqueUserID, username.trim(), email.trim().toLowerCase(), hashedPassword, ObjectPlayerAccount.generateAuthCode())
             .execute();
 
         return getAccountByUUID(UniqueUserID);
@@ -296,11 +303,29 @@ public class PlayerAccountTable extends Table {
             Console.log("Cannot update password with null/empty value").error().container(PhotonEngine.LOGGER).send();
             return;
         }
-        UpdateManager.update(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
-            .set("password", password)
+            final String hashedPassword = hashPassword(password);
+            if (hashedPassword == null) {
+                Console.log("Cannot hash password for update").type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
+                return;
+            }
+
+            UpdateManager.update(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
+                .set("password", hashedPassword)
             .where(Expression.of("uuid").isEqualTo(uuid))
             .execute();
     }
+
+        public static boolean passwordMatches(String storedPassword, String rawPassword) {
+            return PasswordHasher.matches(storedPassword, rawPassword);
+        }
+
+        public static boolean isArgon2Password(String password) {
+            return PasswordHasher.isArgon2Hash(password);
+        }
+
+        public static String hashPassword(String password) {
+            return PasswordHasher.hash(password);
+        }
 
     public static boolean isAdministrator(String uuid) {
         if (uuid == null || uuid.trim().isEmpty()) {

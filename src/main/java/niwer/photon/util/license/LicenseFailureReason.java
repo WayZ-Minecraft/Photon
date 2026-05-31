@@ -17,5 +17,6 @@ public enum LicenseFailureReason {
     PRODUCT_MISMATCH,
     EXPIRED,
     HARDWARE_MISMATCH,
+    SUBSCRIPTION_INACTIVE,
     UNEXPECTED_ERROR
 }

@@ -28,7 +28,7 @@ public final class UserSessionManager {
 
     public record AuthSession(String token, ObjectPlayerAccount account) {}
 
-    private record AccountSnapshot(String username, String email, String uuid, String discordID, String discordAuthCode) {}
+    private record AccountSnapshot(String username, String email, String uuid, String discordID, String discordAuthCode, boolean administrator, boolean serverCreator) {}
 
     private record Session(AccountSnapshot account, long createdAt) {}
 
@@ -88,7 +88,14 @@ public final class UserSessionManager {
         if (session == null) return null;
 
         final AccountSnapshot snapshot = session.account();
-        return ObjectPlayerAccount.fromSnapshot(snapshot.username(), snapshot.email(), snapshot.uuid(), snapshot.discordID(), snapshot.discordAuthCode(), false, false);
+        if (snapshot == null || snapshot.uuid() == null || snapshot.uuid().isBlank()) return null;
+
+        final ObjectPlayerAccount account = PlayerAccountTable.getAccountByUUID(snapshot.uuid());
+        if (account == null) {
+            return ObjectPlayerAccount.fromSnapshot(snapshot.username(), snapshot.email(), snapshot.uuid(), snapshot.discordID(), snapshot.discordAuthCode(), snapshot.administrator(), snapshot.serverCreator());
+        }
+
+        return account;
     }
 
     public static void logout(String token) {
@@ -122,7 +129,9 @@ public final class UserSessionManager {
             account.getEmail(),
             account.getUuid(),
             account.getDiscordID(),
-            account.getDiscordAuthCode()
+            account.getDiscordAuthCode(),
+            account.isAdministrator(),
+            account.isServerCreator()
         );
     }
 }

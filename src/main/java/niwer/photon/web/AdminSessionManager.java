@@ -84,23 +84,34 @@ public final class AdminSessionManager {
 
     public static ObjectPlayerAccount accountFromRequest(Context handler) {
         final String token = extractToken(handler);
-        if (token == null || token.isBlank()) return null;
+        if (token == null || token.isBlank()) {
+            final ObjectPlayerAccount userAccount = UserSessionManager.accountFromRequest(handler);
+            return userAccount != null && userAccount.isAdministrator() ? userAccount : null;
+        }
 
         final Session session = SESSIONS.get(token);
-        if (session == null) return null;
+        if (session == null) {
+            final ObjectPlayerAccount userAccount = UserSessionManager.accountFromRequest(handler);
+            return userAccount != null && userAccount.isAdministrator() ? userAccount : null;
+        }
 
         final AccountSnapshot snapshot = session.account();
-        if (snapshot == null) return null;
+        if (snapshot == null || snapshot.uuid() == null || snapshot.uuid().isBlank()) return null;
 
-        return ObjectPlayerAccount.fromSnapshot(
-            snapshot.username(),
-            snapshot.email(),
-            snapshot.uuid(),
-            snapshot.discordID(),
-            snapshot.discordAuthCode(),
-            snapshot.administrator(),
-            snapshot.serverCreator()
-        );
+        final ObjectPlayerAccount account = PlayerAccountTable.getAccountByUUID(snapshot.uuid());
+        if (account == null) {
+            return ObjectPlayerAccount.fromSnapshot(
+                snapshot.username(),
+                snapshot.email(),
+                snapshot.uuid(),
+                snapshot.discordID(),
+                snapshot.discordAuthCode(),
+                snapshot.administrator(),
+                snapshot.serverCreator()
+            );
+        }
+
+        return account;
     }
 
     public static void logout(String token) {

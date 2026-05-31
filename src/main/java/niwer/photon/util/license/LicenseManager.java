@@ -11,9 +11,11 @@ import java.util.Date;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.google.gson.JsonSyntaxException;
+
 import niwer.photon.Directories;
 import niwer.photon.objects.ObjectLicense;
 import niwer.photon.sql.LicenseTable;
+import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.os.OperatingSystem;
 
 /**
@@ -95,11 +97,11 @@ public final class LicenseManager {
      * @param expiresAtMillis The expiration date of the license in milliseconds since epoch, or null/0 for no expiration
      * @return the issued ObjectLicense containing all the license information, including the generated license key
      */
-	public static ObjectLicense issueLicense(final String productId, final String customerName, final String customerEmail, final String orderId, final Long expiresAtMillis) {
+	public static ObjectLicense issueLicense(final String productId, final String name, final String customerEmail, final String creatorUuid, final Long expiresAtMillis) {
 		final Date expiresAt = expiresAtMillis == null || expiresAtMillis <= 0L ? null : new Date(expiresAtMillis);
 		String licenseKey = generateLicenseKey();
 		while (LicenseTable.exists(licenseKey)) licenseKey = generateLicenseKey();
-		return LicenseTable.issueLicense(licenseKey, productId, customerName, customerEmail, orderId, expiresAt);
+		return LicenseTable.issueLicense(licenseKey, productId, name, customerEmail, creatorUuid, expiresAt);
 	}
 
 	private static LicenseValidationResult validateDatabaseLicense(final String licenseKey, final String expectedProductId) {
@@ -111,6 +113,12 @@ public final class LicenseManager {
 		if (LicenseTable.LicenseStatus.fromString(license.status()) == LicenseTable.LicenseStatus.REVOKED) return LicenseValidationResult.invalid(LicenseFailureReason.UNEXPECTED_ERROR, "License key has been revoked");
 		if (license.isExpired()) return LicenseValidationResult.invalid(LicenseFailureReason.EXPIRED, "License key has expired");
 
+		// Ensure creator's subscription is active; license becomes usable again if subscription restarts
+		final boolean subscriptionActive = license.creatorUuid() != null && !license.creatorUuid().isBlank()
+			? SubscriptionTable.isActive(license.customerEmail(), license.creatorUuid())
+			: SubscriptionTable.isActive(license.customerEmail());
+		if (!subscriptionActive) return LicenseValidationResult.invalid(LicenseFailureReason.SUBSCRIPTION_INACTIVE, "License creator subscription is not active");
+
 		final String currentHardwareId = OperatingSystem.getHWID();
 		if (license.hwid() != null && !license.hwid().isBlank()) {
 			if (!license.hwid().equalsIgnoreCase(currentHardwareId)) return LicenseValidationResult.invalid(LicenseFailureReason.HARDWARE_MISMATCH, "License key is bound to another machine");
@@ -119,12 +127,11 @@ public final class LicenseManager {
 		return LicenseValidationResult.valid(new LicenseClaims(
 			normalizedKey,
 			license.productId(),
-			license.customerName(),
+			license.name(),
 			license.customerEmail(),
 			currentHardwareId,
 			license.createdAt() == null ? null : license.createdAt().getTime(),
-			license.expiresAt() == null ? null : license.expiresAt().getTime(),
-			license.orderId()
+			license.expiresAt() == null ? null : license.expiresAt().getTime()
 		));
 	}
 

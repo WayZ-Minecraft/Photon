@@ -107,7 +107,9 @@ export class FooterBar {
         const accountLabel = appState.account ? `Signed in as ${appState.account.username || appState.account.email}` : 'Public access';
         return `
             <footer class="app-footer panel">
-                <p>Photon web panel</p>
+                <a href="https://niwer.dev/store" target="_blank" rel="noreferrer">
+                    <i class="fas fa-store" aria-hidden="true"></i>
+                </a>
             </footer>
         `;
     }
@@ -147,10 +149,13 @@ export class ModalManager {
                 ? 'Edit profile'
                 : this.active.kind === 'config'
                     ? 'Edit config'
-                    : 'Create account';
+                    : this.active.kind === 'createLicense'
+                        ? 'Create license'
+                        : 'Create account';
 
         const body = this.active.kind === 'profile' ? this.renderProfileForm()
             : this.active.kind === 'config' ? this.renderConfigForm()
+            : this.active.kind === 'createLicense' ? this.renderLicenseForm()
             : this.renderAuthOrAccountForm();
 
         this.root.innerHTML = `
@@ -170,6 +175,28 @@ export class ModalManager {
         `;
 
         this.bind();
+    }
+
+    renderLicenseForm() {
+        return `
+            <div class="modal-body">
+                <form id="licenseForm" onsubmit="event.preventDefault()" class="modal-panel active stacked-form">
+                    <label>
+                        <span>Name</span>
+                        <input type="text" name="name" placeholder="A name to identify this license key (e.g. 'John's license')" required>
+                    </label>
+                    <label>
+                        <span>Duration in days</span>
+                        <input type="number" name="duration_days" min="1" step="1" placeholder="30">
+                    </label>
+                    
+                    <div class="button-row">
+                        <button type="button" class="secondary" data-modal-close>Cancel</button>
+                        <button type="submit" class="primary">Create license</button>
+                    </div>
+                </form>
+            </div>
+        `;
     }
 
     renderAuthOrAccountForm() {
@@ -451,6 +478,13 @@ export class ModalManager {
 
             createAccountForm.addEventListener('submit', (event) => {
                 this.app.handleCreateAccount(event).then(() => this.close()).catch((error) => notify(error.message, 'error'));
+            });
+        }
+
+        const licenseForm = this.root.querySelector('#licenseForm');
+        if (licenseForm) {
+            licenseForm.addEventListener('submit', (event) => {
+                this.app.handleCreateLicense(event).then(() => this.close()).catch((error) => notify(error.message, 'error'));
             });
         }
 

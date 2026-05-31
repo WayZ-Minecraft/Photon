@@ -297,6 +297,15 @@ label span {
 	padding: 14px;
 }
 
+/* Remove boxed background for the Updates upload subsection */
+.data-card:has(#updateUploadForm) {
+	background: none;
+	border-color: transparent;
+	box-shadow: none;
+	padding: 0;
+	border-radius: 0;
+}
+
 .panel-header,
 .data-card-top,
 .restart-panel {
@@ -446,11 +455,32 @@ label span {
 	border-radius: 12px;
 }
 
+.license-table-wrap {
+	margin-top: 10px;
+	background: #fff;
+}
+
 table {
 	width: 100%;
 	border-collapse: collapse;
 	min-width: 720px;
 	background: #fff;
+}
+
+#dataTable {
+	table-layout: fixed;
+	min-width: 100%;
+}
+
+#dataTable th,
+#dataTable td {
+	white-space: normal;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
+
+.license-table {
+	min-width: 980px;
 }
 
 th, td {
@@ -462,6 +492,72 @@ th, td {
 
 th {
 	background: #f7f9fc;
+	font-size: 0.86rem;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--muted);
+	white-space: nowrap;
+}
+
+.license-table tbody tr:hover {
+	background: #fbfcfe;
+}
+
+.license-table tbody tr:last-child td {
+	border-bottom: 0;
+}
+
+.license-table td {
+	vertical-align: middle;
+}
+
+.license-cell-main {
+	display: grid;
+	gap: 2px;
+	min-width: 0;
+}
+
+.license-cell-main strong {
+	font-size: 0.98rem;
+	word-break: break-word;
+}
+
+.license-cell-subtitle {
+	color: var(--muted);
+	font-size: 0.9rem;
+	word-break: break-word;
+}
+
+.license-key-inline {
+	display: inline-block;
+	max-width: 100%;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-family: monospace;
+	font-size: 0.95rem;
+	color: var(--text);
+}
+
+.license-status-header,
+.license-status-cell,
+.license-actions-header,
+.license-actions-cell {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.license-status-cell {
+	min-width: 110px;
+}
+
+.license-actions-cell {
+	min-width: 170px;
+}
+
+.license-actions {
+	justify-content: flex-end;
+	margin-top: 8px;
 }
 
 .status-pill {
@@ -685,5 +781,9 @@ th {
 
 	table {
 		min-width: 560px;
+	}
+
+	.license-table {
+		min-width: 820px;
 	}
 }

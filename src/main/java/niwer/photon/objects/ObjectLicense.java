@@ -1,5 +1,9 @@
 package niwer.photon.objects;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 
 import niwer.queryon.SQLSerializable;
@@ -12,14 +16,14 @@ public class ObjectLicense extends SQLSerializable<ObjectLicense> {
 	@IColumnField(name = "product_id", notNull = true)
 	private String productId;
 
-	@IColumnField(name = "customer_name")
-	private String customerName;
+	@IColumnField(name = "name")
+	private String name;
 
 	@IColumnField(name = "customer_email")
 	private String customerEmail;
 
-	@IColumnField(name = "order_id")
-	private String orderId;
+	@IColumnField(name = "creator_uuid")
+	private String creatorUuid;
 
 	@IColumnField(name = "hwid")
 	private String hwid;
@@ -28,7 +32,7 @@ public class ObjectLicense extends SQLSerializable<ObjectLicense> {
 	private String status;
 
 	@IColumnField(name = "created_at")
-	private Date createdAt = new Date();
+	private String createdAt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
 
 	@IColumnField(name = "activated_at")
 	private Date activatedAt;
@@ -38,12 +42,12 @@ public class ObjectLicense extends SQLSerializable<ObjectLicense> {
 
 	public ObjectLicense() {}
 
-	public ObjectLicense(String licenseKey, String productId, String customerName, String customerEmail, String orderId, String status, Date expiresAt) {
+	public ObjectLicense(String licenseKey, String productId, String name, String customerEmail, String creatorUuid, String status, Date expiresAt) {
 		this.licenseKey = licenseKey;
 		this.productId = productId;
-		this.customerName = customerName;
+		this.name = name;
 		this.customerEmail = customerEmail;
-		this.orderId = orderId;
+		this.creatorUuid = creatorUuid;
 		this.status = status;
 		this.expiresAt = expiresAt;
 	}
@@ -54,19 +58,39 @@ public class ObjectLicense extends SQLSerializable<ObjectLicense> {
 
 	public String productId() { return this.productId; }
 
-	public String customerName() { return this.customerName; }
+	public String name() { return this.name; }
 
 	public String customerEmail() { return this.customerEmail; }
 
-	public String orderId() { return this.orderId; }
+	public String creatorUuid() { return this.creatorUuid; }
 
 	public String hwid() { return this.hwid; }
 
 	public String status() { return this.status; }
 
-	public Date createdAt() { return this.createdAt; }
+	public Date createdAt() {
+		return parseDate(this.createdAt);
+	}
 
 	public Date activatedAt() { return this.activatedAt; }
 
 	public Date expiresAt() { return this.expiresAt; }
+
+	private static Date parseDate(String value) {
+		if (value == null || value.isBlank()) return null;
+		if ("CURRENT_TIMESTAMP".equalsIgnoreCase(value)) return null;
+
+		for (DateTimeFormatter formatter : new DateTimeFormatter[] {
+			DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"),
+			DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
+		}) {
+			try {
+				return Date.from(LocalDateTime.parse(value, formatter).atZone(ZoneId.systemDefault()).toInstant());
+			} catch (DateTimeParseException ignored) {
+				// try the next format
+			}
+		}
+
+		return null;
+	}
 }

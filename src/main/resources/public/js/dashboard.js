@@ -82,14 +82,6 @@ class DashboardApp {
             }
         });
 
-        document.addEventListener('submit', (event) => {
-            const target = event.target;
-            if (!(target instanceof HTMLFormElement)) return;
-            if (target.id === 'licenseForm') {
-                this.handleCreateLicense(event).catch((error) => notify(error.message, 'error'));
-            }
-        });
-
         // Save button removed from template; editing is done via modal
 
         el('restartButton')?.addEventListener('click', () => {
@@ -158,18 +150,16 @@ class DashboardApp {
                     <div class="panel-header">
                         <div>
                             <p class="eyebrow">Subscription</p>
-                            <h2>Your account is already linked</h2>
                         </div>
                         <span class="status-pill positive">Active</span>
                     </div>
-                    <div class="empty-state">You already have an active subscription. If you just finished checkout, the registration modal should open automatically.</div>
+                    <div class="empty-state">You already have an active subscription.</div>
                 `;
             } else {
                 purchaseMount.innerHTML = `
                     <div class="panel-header">
                         <div>
                             <p class="eyebrow">Purchase</p>
-                            <h2>Subscription</h2>
                         </div>
                     </div>
                     <div class="empty-state">You haven't completed a purchase yet. To complete a purchase, go to <a href="https://niwer.dev/store">the store</a>.</div>
@@ -253,27 +243,75 @@ class DashboardApp {
             return;
         }
 
-        const licenses = Array.isArray(appState.licenses) ? appState.licenses : [];
-        const licenseCards = licenses.length ? licenses.map((license) => `
-            <article class="data-card">
-                <div class="data-card-top">
-                    <div>
-                        <h3>${escapeHtml(license.licenseKey || license.license_key || '—')}</h3>
-                        <p>${escapeHtml(license.productId || license.product_id || '—')}</p>
-                    </div>
-                    <span class="status-pill ${String(license.status || '').toUpperCase() === 'REVOKED' ? 'danger' : 'neutral'}">${escapeHtml(license.status || '—')}</span>
-                </div>
-                <div class="data-grid compact-grid">
-                    <div><span>Customer</span><strong>${formatValue(license.customerName || license.customer_name)}</strong></div>
-                    <div><span>Email</span><strong>${formatValue(license.customerEmail || license.customer_email)}</strong></div>
-                    <div><span>Created</span><strong>${formatDate(license.createdAt || license.created_at)}</strong></div>
-                    <div><span>Expires</span><strong>${formatDate(license.expiresAt || license.expires_at)}</strong></div>
-                </div>
-                <div class="button-row compact">
-                    <button type="button" class="secondary" data-action="revoke-license" data-license-key="${escapeHtml(license.licenseKey || license.license_key || '')}">Revoke</button>
-                </div>
-            </article>
-        `).join('') : '<div class="empty-state">No licenses have been created yet.</div>';
+        const rawLicenses = Array.isArray(appState.licenses) ? appState.licenses : [];
+        const normalizedLicenses = rawLicenses
+            .map((license, index) => {
+                const normalized = this.normalizeLicenseEntry(license);
+                return normalized ? { ...normalized, _index: index } : null;
+            })
+            .filter(Boolean);
+        const skippedCount = Math.max(0, rawLicenses.length - normalizedLicenses.length);
+
+        const licenseRows = normalizedLicenses.length ? normalizedLicenses.map((license) => {
+            const isRevoked = String(license.status || '').toUpperCase() === 'REVOKED';
+            const statusLabel = isRevoked
+                ? 'Revoked'
+                : String(license.status || '').toUpperCase() === 'ACTIVE'
+                    ? 'Active'
+                    : 'Pending activation';
+            return `
+                <tr class="license-table-row">
+                    <td>
+                        <div class="license-cell-main">
+                            <strong>${formatValue(license.name)}</strong>
+                            <span class="license-cell-subtitle">${escapeHtml(license.productId || '—')}</span>
+                        </div>
+                    </td>
+                    <td>${formatDate(license.createdAt)}</td>
+                    <td>${formatDate(license.expiresAt)}</td>
+                    <td>
+                        <code class="license-key-inline">${escapeHtml(license.licenseKey || '—')}</code>
+                    </td>
+                    <td class="license-status-cell">
+                        <span class="status-pill ${isRevoked ? 'danger' : 'neutral'}">${escapeHtml(statusLabel)}</span>
+                    </td>
+                    <td class="license-actions-cell">
+                        <div class="button-row compact license-actions">
+                            ${isRevoked ? '' : `
+                            <button type="button" class="secondary copy-button" data-copy-text="${escapeHtml(license.licenseKey || '')}" data-copy-label="license key" aria-label="Copy license key" title="Copy">
+                                <i class="fas fa-copy" aria-hidden="true"></i>
+                                <span class="sr-only">Copy license key</span>
+                            </button>
+                            `}
+                            ${isRevoked ? '' : `
+                            <button type="button" class="danger" data-action="revoke-license" data-license-key="${escapeHtml(license.licenseKey || '')}" aria-label="Delete license" title="Delete">
+                                <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                                <span class="sr-only">Delete license</span>
+                            </button>
+                            `}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('') : '';
+
+        const licenseContent = normalizedLicenses.length ? `
+            <div class="table-wrap license-table-wrap">
+                <table class="license-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Created at</th>
+                            <th>Expires</th>
+                            <th>Key</th>
+                            <th class="license-status-header">Status</th>
+                            <th class="license-actions-header">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>${licenseRows}</tbody>
+                </table>
+            </div>
+        ` : '<div class="empty-state">No readable licenses were found yet.</div>';
 
         mount.innerHTML = `
             <div class="panel-header">
@@ -281,31 +319,61 @@ class DashboardApp {
                     <p class="eyebrow">Licenses</p>
                     <h2>Create and manage keys</h2>
                 </div>
-                <span class="status-pill positive">Active subscription</span>
+                <div class="button-row">
+                    <button type="button" class="nav-link icon-button" data-open-modal="createLicense" aria-label="Add license" title="Add license">
+                        <i class="fas fa-plus" aria-hidden="true"></i>
+                        <span class="sr-only">Add license</span>
+                    </button>
+                    <span class="status-pill positive">Active subscription</span>
+                </div>
             </div>
 
-            <div class="data-card stacked-form">
-                <form id="licenseForm" class="stacked-form" onsubmit="event.preventDefault()">
-                    <label>
-                        <span>Customer name</span>
-                        <input type="text" name="customer_name" placeholder="Your name or team name" value="${escapeHtml(appState.account?.username ?? '')}">
-                    </label>
-                    <label>
-                        <span>Duration in days</span>
-                        <input type="number" name="duration_days" min="1" step="1" placeholder="30">
-                    </label>
-                    <label>
-                        <span>Order ID</span>
-                        <input type="text" name="order_id" placeholder="Optional order reference">
-                    </label>
-                    <div class="button-row">
-                        <button type="submit" class="primary">Create license</button>
-                    </div>
-                </form>
-            </div>
-
-            <div class="data-grid user-grid licenses-grid">${licenseCards}</div>
+            ${skippedCount > 0 ? `<div class="empty-state" style="margin: 12px 0;">${skippedCount} corrupted license row${skippedCount > 1 ? 's were' : ' was'} skipped while loading.</div>` : ''}
+            ${licenseContent}
         `;
+    }
+
+    normalizeLicenseEntry(license) {
+        if (!license || typeof license !== 'object') return null;
+
+        const normalizeKey = (key) => String(key || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const isObject = (value) => value && typeof value === 'object' && !Array.isArray(value);
+        const hasValue = (value) => value !== undefined && value !== null && String(value).trim() !== '';
+
+        const candidates = [license];
+        Object.values(license).forEach((value) => {
+            if (isObject(value)) candidates.push(value);
+        });
+
+        const valueByKey = new Map();
+        candidates.forEach((candidate) => {
+            Object.entries(candidate).forEach(([key, value]) => {
+                if (!hasValue(value)) return;
+                const normalizedKey = normalizeKey(key);
+                if (!valueByKey.has(normalizedKey)) valueByKey.set(normalizedKey, value);
+            });
+        });
+
+        const getFirst = (...aliases) => {
+            for (const alias of aliases) {
+                const direct = valueByKey.get(normalizeKey(alias));
+                if (hasValue(direct)) return direct;
+            }
+            return null;
+        };
+
+        const normalized = {
+            licenseKey: getFirst('licenseKey', 'license_key', 'licensekey', 'license_id', 'licenseid', 'key'),
+            productId: getFirst('productId', 'product_id', 'productid', 'product'),
+            name: getFirst('name', 'customerName', 'customer_name', 'ownerName'),
+            customerEmail: getFirst('customerEmail', 'customer_email', 'email', 'mail'),
+            status: getFirst('status', 'state'),
+            createdAt: getFirst('createdAt', 'created_at', 'issued_at', 'issuedAt', 'created'),
+            expiresAt: getFirst('expiresAt', 'expires_at', 'expires', 'expiryAt', 'expirationAt'),
+        };
+
+        const hasCoreValue = Boolean(normalized.licenseKey || normalized.productId || normalized.name || normalized.customerEmail || normalized.createdAt || normalized.expiresAt || normalized.status);
+        return hasCoreValue ? normalized : null;
     }
 
     renderAdmin() {
@@ -329,26 +397,59 @@ class DashboardApp {
         const numberEl = count.querySelector('#serverCountNumber');
         if (numberEl) numberEl.textContent = String(appState.servers.length);
         else count.textContent = `${appState.servers.length} servers`;
-        list.innerHTML = appState.servers.map((server) => {
+        const rows = appState.servers.map((server) => {
             const title = server.serverName || `${server.serverIP || 'Unknown'}:${server.serverPort || '—'}`;
-            const subtitle = `${server.serverIP || 'Unknown'}:${server.serverPort || '—'} · queue ${server.queuePort ?? '—'}`;
+            const address = `${server.serverIP || 'Unknown'}:${server.serverPort || '—'}`;
+            const lastSeen = formatDate(server.last_seen_at);
+            const motd = formatValue(server.serverMOTD) || '—';
+            const site = formatValue(server.site) || '';
+
+            const siteLink = server.site ? String(server.site).trim() : null;
+            const discordLink = server.discord ? String(server.discord).trim() : null;
+            const actions = [];
+            actions.push(`
+                <button type="button" class="secondary copy-button" data-copy-text="${escapeHtml(address)}" data-copy-label="server address" aria-label="Copy server address" title="Copy">
+                    <i class="fas fa-copy" aria-hidden="true"></i>
+                    <span class="sr-only">Copy server address</span>
+                </button>
+            `);
+            if (siteLink) actions.push(`<a class="nav-link icon-button" href="${escapeHtml(siteLink)}" target="_blank" rel="noreferrer" title="Open site"><i class="fas fa-external-link-alt" aria-hidden="true"></i><span class="sr-only">Open site</span></a>`);
+            if (discordLink) actions.push(`<a class="nav-link icon-button" href="${escapeHtml(discordLink)}" target="_blank" rel="noreferrer" title="Open Discord"><i class="fab fa-discord" aria-hidden="true"></i><span class="sr-only">Open Discord</span></a>`);
+
             return `
-                <article class="data-card">
-                    <div class="data-card-top">
-                        <div>
-                            <h3>${escapeHtml(title)}</h3>
-                            <p>${escapeHtml(subtitle)}</p>
+                <tr class="server-table-row">
+                    <td>
+                        <div class="license-cell-main">
+                            <strong>${escapeHtml(title)}</strong>
+                            <span class="license-cell-subtitle">${escapeHtml(address)}</span>
                         </div>
-                        <span class="status-pill neutral">${formatDate(server.last_seen_at)}</span>
-                    </div>
-                    <div class="data-grid compact-grid">
-                        <div><span>MOTD</span><strong>${formatValue(server.serverMOTD)}</strong></div>
-                        <div><span>Site</span><strong>${formatValue(server.site)}</strong></div>
-                        <div><span>Discord</span><strong>${formatValue(server.discord)}</strong></div>
-                    </div>
-                </article>
+                    </td>
+                    <td>${escapeHtml(lastSeen)}</td>
+                    <td>${escapeHtml(motd)}</td>
+                    <td class="license-actions-cell">
+                        <div class="button-row compact license-actions">
+                            ${actions.join('\n')}
+                        </div>
+                    </td>
+                </tr>
             `;
         }).join('');
+
+        list.innerHTML = `
+            <div class="table-wrap license-table-wrap">
+                <table class="license-table server-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Last seen</th>
+                            <th>MOTD</th>
+                            <th class="license-actions-header">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+        `;
     }
 
     renderConfig() {
@@ -356,7 +457,12 @@ class DashboardApp {
         if (!mount) return;
 
         if (!appState.config) {
-            mount.innerHTML = '<div class="empty-state">Sign in to load the editable config.</div>';
+            if (!appState.token && !appState.account?.administrator) {
+                mount.innerHTML = '<div class="empty-state">Sign in to load the editable config.</div>';
+                return;
+            }
+
+            mount.innerHTML = '<div class="empty-state">Loading config...</div>';
             return;
         }
 
@@ -424,7 +530,7 @@ class DashboardApp {
     }
 
     async loadAdminData() {
-        if (!appState.token) {
+        if (!appState.token && !appState.account?.administrator) {
             appState.account = null;
             appState.config = null;
             appState.tables = [];
@@ -464,7 +570,7 @@ class DashboardApp {
     }
 
     async loadActiveTable() {
-        if (!appState.token || !appState.activeTable) return;
+        if ((!appState.token && !appState.account?.administrator) || !appState.activeTable) return;
 
         const limit = Number(el('tableLimit')?.value || 100);
         const data = await api(`/api/admin/tables/${encodeURIComponent(appState.activeTable)}?limit=${encodeURIComponent(limit)}`);
@@ -656,10 +762,16 @@ class DashboardApp {
         if (!appState.userToken) throw new Error('Sign in first');
         if (!appState.account?.subscriber) throw new Error('Active subscription required');
 
-        const formData = new FormData(event.currentTarget);
+        const form = event.currentTarget instanceof HTMLFormElement
+            ? event.currentTarget
+            : event.target instanceof HTMLFormElement
+                ? event.target
+                : null;
+        if (!form) throw new Error('License form is not available');
+
+        const formData = new FormData(form);
         const payload = {
-            customer_name: String(formData.get('customer_name') || '').trim(),
-            order_id: String(formData.get('order_id') || '').trim(),
+            name: String(formData.get('name') || '').trim(),
         };
 
         const durationDays = String(formData.get('duration_days') || '').trim();
@@ -671,7 +783,7 @@ class DashboardApp {
         });
 
         appState.licenses = [license, ...(appState.licenses || [])];
-        event.currentTarget.reset();
+        form.reset();
         this.renderLicenses();
         notify('License created', 'success');
     }
@@ -696,7 +808,7 @@ class DashboardApp {
     }
 
     async saveConfig(formElement = null) {
-        if (!appState.token) throw new Error('Sign in first');
+        if (!appState.token && !appState.account?.administrator) throw new Error('Sign in first');
 
         const payload = {};
         const root = formElement ?? el('configForm');
@@ -719,7 +831,7 @@ class DashboardApp {
     }
 
     async restartApp() {
-        if (!appState.token) throw new Error('Sign in first');
+        if (!appState.token && !appState.account?.administrator) throw new Error('Sign in first');
         if (!window.confirm('Restart Photon now?')) return;
 
         await api('/api/admin/restart', { method: 'POST' });
@@ -728,7 +840,7 @@ class DashboardApp {
 
     async uploadVersion(event) {
         event.preventDefault();
-        if (!appState.token) throw new Error('Sign in first');
+        if (!appState.token && !appState.account?.administrator) throw new Error('Sign in first');
 
         const form = event.currentTarget;
         if (!(form instanceof HTMLFormElement)) throw new Error('Invalid upload form');
@@ -785,7 +897,7 @@ export function bootstrapDashboard() {
 
     app.loadPublicData().catch((error) => notify(error.message, 'error'));
 
-    if (appState.token) {
+    if (appState.token || appState.account?.administrator) {
         app.loadAdminData().catch((error) => notify(error.message, 'error'));
     }
 

@@ -14,8 +14,8 @@ class ObjectLicenseTest {
 
     @Test
     void isExpiredReturnsTrueOnlyForPastDates() {
-        final ObjectLicense expired = new ObjectLicense("key", "product", "Alice", "alice@example.com", "order-1", "ACTIVE", new Date(System.currentTimeMillis() - 1_000L));
-        final ObjectLicense active = new ObjectLicense("key", "product", "Alice", "alice@example.com", "order-1", "ACTIVE", new Date(System.currentTimeMillis() + 86_400_000L));
+        final ObjectLicense expired = new ObjectLicense("key", "product", "Alice", "alice@example.com", null, "ACTIVE", new Date(System.currentTimeMillis() - 1_000L));
+        final ObjectLicense active = new ObjectLicense("key", "product", "Alice", "alice@example.com", null, "ACTIVE", new Date(System.currentTimeMillis() + 86_400_000L));
 
         assertTrue(expired.isExpired());
         assertFalse(active.isExpired());
@@ -24,16 +24,15 @@ class ObjectLicenseTest {
     @Test
     void accessorsExposeConstructorValuesAndDefaults() throws Exception {
         final Date expiresAt = new Date(System.currentTimeMillis() + 86_400_000L);
-        final ObjectLicense license = new ObjectLicense("license-1", "product-1", "Alice", "alice@example.com", "order-1", "ACTIVE", expiresAt);
+        final ObjectLicense license = new ObjectLicense("license-1", "product-1", "Alice", "alice@example.com", null, "ACTIVE", expiresAt);
 
         setField(license, "hwid", "hardware-1");
         setField(license, "activatedAt", new Date(123_456L));
 
         assertEquals("license-1", license.licenseKey());
         assertEquals("product-1", license.productId());
-        assertEquals("Alice", license.customerName());
+        assertEquals("Alice", license.name());
         assertEquals("alice@example.com", license.customerEmail());
-        assertEquals("order-1", license.orderId());
         assertEquals("hardware-1", license.hwid());
         assertEquals("ACTIVE", license.status());
         assertNotNull(license.createdAt());

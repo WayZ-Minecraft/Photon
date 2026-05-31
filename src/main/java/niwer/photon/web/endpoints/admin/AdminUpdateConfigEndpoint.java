@@ -14,6 +14,7 @@ public class AdminUpdateConfigEndpoint implements IEndpoint {
     @Override
     public void handle(Context handler) {
         if (AdminSessionManager.requireAdministrator(handler) == null) return;
+        if (!AdminSessionManager.validateCsrf(handler)) { handler.status(403).result("Invalid CSRF token"); return; }
 
         final ConfigUpdateRequest request;
         try {

@@ -24,6 +24,7 @@ public class AdminUploadUpdateEndpoint implements IEndpoint {
     @Override
     public void handle(Context handler) {
         if (AdminSessionManager.requireAdministrator(handler) == null) return;
+        if (!AdminSessionManager.validateCsrf(handler)) { handler.status(403).result("Invalid CSRF token"); return; }
 
         final UploadedFile uploadedFile = handler.uploadedFile("file");
         if (uploadedFile == null) {

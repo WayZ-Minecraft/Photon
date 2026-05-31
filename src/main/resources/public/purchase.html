@@ -265,12 +265,11 @@
                         }
 
                         const headers = { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' };
-                        const adminResponse = await fetch('/api/admin/login', { method: 'POST', headers, body });
+                        const adminResponse = await fetch('/api/admin/login', { method: 'POST', headers, body, credentials: 'same-origin' });
 
                         if (adminResponse.ok) {
                             const adminPayload = await adminResponse.json();
-                            localStorage.setItem('photon-admin-token', adminPayload.token || '');
-                            localStorage.removeItem('photon-user-token');
+                            // Using cookie-based admin session: do not store token in localStorage
                             localStorage.setItem('photon-account', JSON.stringify(adminPayload.account || {}));
                             window.location.href = './';
                             return;

@@ -591,15 +591,15 @@ class DashboardApp {
             method: 'POST',
             headers,
             body,
+            credentials: 'same-origin',
         });
 
         if (adminResponse.ok) {
             const adminPayload = await adminResponse.json();
-            appState.token = adminPayload.token;
+            // Using cookie-based admin session: do not store token in localStorage
+            appState.token = '';
             appState.userToken = '';
-            appState.account = adminPayload.account;
-            localStorage.setItem('photon-admin-token', appState.token);
-            localStorage.removeItem('photon-user-token');
+            appState.account = adminPayload.account || adminPayload;
             localStorage.setItem('photon-account', JSON.stringify(appState.account));
             notify('Signed in as administrator', 'success');
             this.header.refresh();

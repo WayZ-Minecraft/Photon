@@ -10,7 +10,7 @@ if (storedAccount) {
 }
 
 export const appState = {
-    token: localStorage.getItem('photon-admin-token') || '',
+    token: '',
     userToken: localStorage.getItem('photon-user-token') || '',
     account,
     purchaseToken: new URLSearchParams(window.location.search).get('token') || '',

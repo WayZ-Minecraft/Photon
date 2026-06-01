@@ -53,7 +53,7 @@ class ObjectPlayerAccountTest {
         assertTrue(account.isAdministrator());
         assertTrue(account.isServerCreator());
 
-        assertTrue(account.toString().contains("username=alice"));
+        assertTrue(account.toString().contains("username='alice'"));
     }
 
     @Test

@@ -32,7 +32,7 @@ public final class AdminSessionManager {
 
     private record AccountSnapshot(String username, String email, String uuid, String discordID, String discordAuthCode, boolean administrator, boolean serverCreator) {}
     
-    private record Session(AccountSnapshot account, long createdAt) {}
+    private record Session(AccountSnapshot account, long createdAt, String csrf) {}
 
     public static synchronized void load() {
         SESSIONS.clear();
@@ -62,9 +62,17 @@ public final class AdminSessionManager {
         if (account == null || account.password() == null || !account.password().equals(password) || !account.isAdministrator()) return null;
 
         final String token = UUID.randomUUID().toString().replace("-", "");
-        SESSIONS.put(token, new Session(snapshot(account), System.currentTimeMillis()));
+        final String csrf = UUID.randomUUID().toString().replace("-", "");
+        SESSIONS.put(token, new Session(snapshot(account), System.currentTimeMillis(), csrf));
         save();
         return new AuthSession(token, account);
+    }
+
+    public static String getCsrfForToken(String token) {
+        if (token == null || token.isBlank()) return null;
+        final Session session = SESSIONS.get(token);
+        if (session == null) return null;
+        return session.csrf();
     }
 
     public static ObjectPlayerAccount requireAdministrator(Context handler) {
@@ -84,23 +92,34 @@ public final class AdminSessionManager {
 
     public static ObjectPlayerAccount accountFromRequest(Context handler) {
         final String token = extractToken(handler);
-        if (token == null || token.isBlank()) return null;
+        if (token == null || token.isBlank()) {
+            final ObjectPlayerAccount userAccount = UserSessionManager.accountFromRequest(handler);
+            return userAccount != null && userAccount.isAdministrator() ? userAccount : null;
+        }
 
         final Session session = SESSIONS.get(token);
-        if (session == null) return null;
+        if (session == null) {
+            final ObjectPlayerAccount userAccount = UserSessionManager.accountFromRequest(handler);
+            return userAccount != null && userAccount.isAdministrator() ? userAccount : null;
+        }
 
         final AccountSnapshot snapshot = session.account();
-        if (snapshot == null) return null;
+        if (snapshot == null || snapshot.uuid() == null || snapshot.uuid().isBlank()) return null;
 
-        return ObjectPlayerAccount.fromSnapshot(
-            snapshot.username(),
-            snapshot.email(),
-            snapshot.uuid(),
-            snapshot.discordID(),
-            snapshot.discordAuthCode(),
-            snapshot.administrator(),
-            snapshot.serverCreator()
-        );
+        final ObjectPlayerAccount account = PlayerAccountTable.getAccountByUUID(snapshot.uuid());
+        if (account == null) {
+            return ObjectPlayerAccount.fromSnapshot(
+                snapshot.username(),
+                snapshot.email(),
+                snapshot.uuid(),
+                snapshot.discordID(),
+                snapshot.discordAuthCode(),
+                snapshot.administrator(),
+                snapshot.serverCreator()
+            );
+        }
+
+        return account;
     }
 
     public static void logout(String token) {
@@ -111,21 +130,39 @@ public final class AdminSessionManager {
     }
 
     private static String extractToken(Context handler) {
+        // Prefer cookie-based sessions (HttpOnly) to avoid exposing tokens to JS/localStorage
+        try {
+            final String cookieToken = handler.cookie("photon_admin");
+            if (cookieToken != null && !cookieToken.isBlank()) return cookieToken.trim();
+        } catch (Exception ignored) {}
+
+        // Fallback to bearer Authorization header only. Do NOT accept tokens from query/form parameters.
         final String authorization = handler.header("Authorization");
         if (authorization != null && authorization.startsWith("Bearer ")) {
             return authorization.substring("Bearer ".length()).trim();
         }
 
-        final String headerToken = handler.header("X-Photon-Token");
-        if (headerToken != null && !headerToken.isBlank()) return headerToken.trim();
-
-        final String queryToken = handler.queryParam("token");
-        if (queryToken != null && !queryToken.isBlank()) return queryToken.trim();
-
-        final String formToken = handler.formParam("token");
-        if (formToken != null && !formToken.isBlank()) return formToken.trim();
-
         return null;
+    }
+
+    public static boolean validateCsrf(Context handler) {
+        try {
+            final String token = extractToken(handler);
+            if (token == null || token.isBlank()) return false;
+
+            final Session session = SESSIONS.get(token);
+            if (session == null) return false;
+
+            final String expected = session.csrf();
+            if (expected == null || expected.isBlank()) return false;
+
+            final String header = handler.header("X-CSRF-Token");
+            if (header != null && header.equals(expected)) return true;
+
+            return false;
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     private static AccountSnapshot snapshot(ObjectPlayerAccount account) {

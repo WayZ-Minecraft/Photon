@@ -69,9 +69,7 @@ export class NavigationBar {
         const authActions = appState.account
             ? `
                 <button type="button" class="nav-link icon-button ${appState.page === 'user' ? 'active' : ''}" data-nav-link="user" data-go-page="user" aria-label="User page" title="User page">
-                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path fill="currentColor" d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5Zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5Z"/>
-                    </svg>
+                    <i class="fas fa-user" aria-hidden="true"></i>
                     <span class="sr-only">User</span>
                 </button>
             `
@@ -109,7 +107,9 @@ export class FooterBar {
         const accountLabel = appState.account ? `Signed in as ${appState.account.username || appState.account.email}` : 'Public access';
         return `
             <footer class="app-footer panel">
-                <p>Photon web panel</p>
+                <a href="https://niwer.dev/store" target="_blank" rel="noreferrer">
+                    <i class="fas fa-store" aria-hidden="true"></i>
+                </a>
             </footer>
         `;
     }
@@ -149,10 +149,13 @@ export class ModalManager {
                 ? 'Edit profile'
                 : this.active.kind === 'config'
                     ? 'Edit config'
-                    : 'Create account';
+                    : this.active.kind === 'createLicense'
+                        ? 'Create license'
+                        : 'Create account';
 
         const body = this.active.kind === 'profile' ? this.renderProfileForm()
             : this.active.kind === 'config' ? this.renderConfigForm()
+            : this.active.kind === 'createLicense' ? this.renderLicenseForm()
             : this.renderAuthOrAccountForm();
 
         this.root.innerHTML = `
@@ -174,8 +177,31 @@ export class ModalManager {
         this.bind();
     }
 
+    renderLicenseForm() {
+        return `
+            <div class="modal-body">
+                <form id="licenseForm" onsubmit="event.preventDefault()" class="modal-panel active stacked-form">
+                    <label>
+                        <span>Name</span>
+                        <input type="text" name="name" placeholder="A name to identify this license key (e.g. 'John's license')" required>
+                    </label>
+                    <label>
+                        <span>Duration in days</span>
+                        <input type="number" name="duration_days" min="1" step="1" placeholder="30">
+                    </label>
+                    
+                    <div class="button-row">
+                        <button type="button" class="secondary" data-modal-close>Cancel</button>
+                        <button type="submit" class="primary">Create license</button>
+                    </div>
+                </form>
+            </div>
+        `;
+    }
+
     renderAuthOrAccountForm() {
         const initialTab = this.active.kind === 'createAccount' ? 'create' : 'signIn';
+        const purchaseToken = this.active.payload?.purchaseToken || appState.purchaseToken || '';
         return `
             <div class="modal-tabs" data-auth-tabs>
                 <button type="button" class="tab-button ${initialTab === 'signIn' ? 'active' : ''}" data-auth-tab="signIn">Sign in</button>
@@ -185,19 +211,15 @@ export class ModalManager {
                 <form id="signInForm" onsubmit="event.preventDefault()" class="modal-panel ${initialTab === 'signIn' ? 'active' : ''}" data-auth-panel="signIn">
                     <label>
                         <span>Email</span>
-                        <input type="email" name="email" autocomplete="email" placeholder="author@project.com" required>
+                        <input type="email" name="email" autocomplete="email" placeholder="joe@gmail.com" required>
                     </label>
                     <label class="password-field">
                         <span>Password</span>
                         <div class="password-field-row">
                             <input type="password" name="password" autocomplete="current-password" placeholder="Your password" required>
                             <button type="button" class="secondary password-toggle" data-password-toggle data-target="password" aria-label="Show password" aria-pressed="false">
-                                <svg class="password-toggle-icon password-toggle-icon-show" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Zm10 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" fill="currentColor"></path>
-                                </svg>
-                                <svg class="password-toggle-icon password-toggle-icon-hide" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                    <path d="M3.5 4.5 19.5 20.5l1.4-1.4-2.7-2.7C21 15 22 12 22 12s-3.5-7-10-7c-1.5 0-2.9.3-4.1.8L4.9 3.1 3.5 4.5ZM9 10l1.6 1.6A2 2 0 0 1 12 10a2 2 0 0 1 2 2c0 .4-.1.7-.3 1l1.6 1.6A4 4 0 0 0 9 10Zm3 8c6.5 0 10-7 10-7s-1-2-3.2-4.1l-2.1 2.1c.8.9 1.3 1.8 1.6 2.4-1.1 2-3.6 5-6.3 5-.7 0-1.4-.1-2-.3l-1.8 1.8c1.2.4 2.5.6 3.8.6Zm-8.2-2.9 2.1-2.1C4.8 12.1 4 12 4 12s3.5-7 10-7c.9 0 1.8.1 2.6.3l1.8-1.8C16.9 3.6 14.6 3 12 3 5.5 3 2 12 2 12s1 2 3.2 4.1Z" fill="currentColor"></path>
-                                </svg>
+                                <i class="password-toggle-icon password-toggle-icon-show fas fa-eye" aria-hidden="true"></i>
+                                <i class="password-toggle-icon password-toggle-icon-hide fas fa-eye-slash" aria-hidden="true"></i>
                             </button>
                         </div>
                     </label>
@@ -205,25 +227,23 @@ export class ModalManager {
                 </form>
 
                 <form id="createAccountForm" onsubmit="event.preventDefault()" class="modal-panel ${initialTab === 'create' ? 'active' : ''}" data-auth-panel="create">
+                    ${purchaseToken ? '<input type="hidden" name="token" value="' + escapeHtml(purchaseToken) + '">' : ''}
+                    ${purchaseToken ? '<p class="hint">Purchase token detected. Your subscription will be linked automatically after account creation.</p>' : ''}
                     <label>
                         <span>Username</span>
-                        <input type="text" name="username" autocomplete="username" placeholder="Your username" required>
+                        <input type="text" name="username" autocomplete="username" placeholder="JoeDalton_" required>
                     </label>
                     <label>
                         <span>Email</span>
-                        <input type="email" name="email" autocomplete="email" placeholder="author@project.com" required>
+                        <input type="email" name="email" autocomplete="email" placeholder="joe@gmail.com" required>
                     </label>
                     <label class="password-field">
                         <span>Password</span>
                         <div class="password-field-row">
-                            <input type="password" name="password" autocomplete="new-password" placeholder="Create a password" required>
+                            <input type="password" name="password" autocomplete="new-password" placeholder="$aZf*&my1HJd3" required>
                             <button type="button" class="secondary password-toggle" data-password-toggle data-target="password" aria-label="Show password" aria-pressed="false">
-                                <svg class="password-toggle-icon password-toggle-icon-show" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Zm10 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" fill="currentColor"></path>
-                                </svg>
-                                <svg class="password-toggle-icon password-toggle-icon-hide" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                    <path d="M3.5 4.5 19.5 20.5l1.4-1.4-2.7-2.7C21 15 22 12 22 12s-3.5-7-10-7c-1.5 0-2.9.3-4.1.8L4.9 3.1 3.5 4.5ZM9 10l1.6 1.6A2 2 0 0 1 12 10a2 2 0 0 1 2 2c0 .4-.1.7-.3 1l1.6 1.6A4 4 0 0 0 9 10Zm3 8c6.5 0 10-7 10-7s-1-2-3.2-4.1l-2.1 2.1c.8.9 1.3 1.8 1.6 2.4-1.1 2-3.6 5-6.3 5-.7 0-1.4-.1-2-.3l-1.8 1.8c1.2.4 2.5.6 3.8.6Zm-8.2-2.9 2.1-2.1C4.8 12.1 4 12 4 12s3.5-7 10-7c.9 0 1.8.1 2.6.3l1.8-1.8C16.9 3.6 14.6 3 12 3 5.5 3 2 12 2 12s1 2 3.2 4.1Z" fill="currentColor"></path>
-                                </svg>
+                                <i class="password-toggle-icon password-toggle-icon-show fas fa-eye" aria-hidden="true"></i>
+                                <i class="password-toggle-icon password-toggle-icon-hide fas fa-eye-slash" aria-hidden="true"></i>
                             </button>
                         </div>
                     </label>
@@ -233,12 +253,8 @@ export class ModalManager {
                         <div class="password-field-row">
                             <input type="password" name="confirmPassword" autocomplete="new-password" placeholder="Repeat your password" required>
                             <button type="button" class="secondary password-toggle" data-password-toggle data-target="confirmPassword" aria-label="Show password" aria-pressed="false">
-                                <svg class="password-toggle-icon password-toggle-icon-show" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Zm10 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" fill="currentColor"></path>
-                                </svg>
-                                <svg class="password-toggle-icon password-toggle-icon-hide" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                    <path d="M3.5 4.5 19.5 20.5l1.4-1.4-2.7-2.7C21 15 22 12 22 12s-3.5-7-10-7c-1.5 0-2.9.3-4.1.8L4.9 3.1 3.5 4.5ZM9 10l1.6 1.6A2 2 0 0 1 12 10a2 2 0 0 1 2 2c0 .4-.1.7-.3 1l1.6 1.6A4 4 0 0 0 9 10Zm3 8c6.5 0 10-7 10-7s-1-2-3.2-4.1l-2.1 2.1c.8.9 1.3 1.8 1.6 2.4-1.1 2-3.6 5-6.3 5-.7 0-1.4-.1-2-.3l-1.8 1.8c1.2.4 2.5.6 3.8.6Zm-8.2-2.9 2.1-2.1C4.8 12.1 4 12 4 12s3.5-7 10-7c.9 0 1.8.1 2.6.3l1.8-1.8C16.9 3.6 14.6 3 12 3 5.5 3 2 12 2 12s1 2 3.2 4.1Z" fill="currentColor"></path>
-                                </svg>
+                                <i class="password-toggle-icon password-toggle-icon-show fas fa-eye" aria-hidden="true"></i>
+                                <i class="password-toggle-icon password-toggle-icon-hide fas fa-eye-slash" aria-hidden="true"></i>
                             </button>
                         </div>
                     </label>
@@ -253,10 +269,6 @@ export class ModalManager {
         const account = this.active.payload?.account ?? appState.account ?? {};
         return `
             <form id="profileForm" onsubmit="event.preventDefault()" class="modal-panel active stacked-form">
-                <div>
-                    <p class="eyebrow">Account</p>
-                    <h3>Edit your profile</h3>
-                </div>
                 <label>
                     <span>Username</span>
                     <input type="text" name="username" autocomplete="username" value="${escapeHtml(account.username ?? '')}" required>
@@ -466,6 +478,13 @@ export class ModalManager {
 
             createAccountForm.addEventListener('submit', (event) => {
                 this.app.handleCreateAccount(event).then(() => this.close()).catch((error) => notify(error.message, 'error'));
+            });
+        }
+
+        const licenseForm = this.root.querySelector('#licenseForm');
+        if (licenseForm) {
+            licenseForm.addEventListener('submit', (event) => {
+                this.app.handleCreateLicense(event).then(() => this.close()).catch((error) => notify(error.message, 'error'));
             });
         }
 

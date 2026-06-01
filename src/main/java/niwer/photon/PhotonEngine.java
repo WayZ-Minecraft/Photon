@@ -19,11 +19,13 @@ import niwer.photon.sql.DiscordLogTable;
 import niwer.photon.sql.DiscordProfileTable;
 import niwer.photon.sql.HWIDTable;
 import niwer.photon.sql.LicenseTable;
+import niwer.photon.sql.PurchaseTokenTable;
 import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.sql.ServerTable;
 import niwer.photon.util.PhotonLogTypes;
 import niwer.photon.web.WebServerEngine;
+import niwer.photon.web.endpoints.stripe.StripeStartupSync;
 
 import niwer.lumen.Console;
 import niwer.lumen.LumenEngine;
@@ -107,6 +109,7 @@ public class PhotonEngine {
             /* Security */
             .registerTable(HWIDTable.class)
             .registerTable(LicenseTable.class)
+            .registerTable(PurchaseTokenTable.class)
             .registerTable(SubscriptionTable.class)
             .registerTable(AnticheatTable.class)
             .registerTable(CrashReportTable.class)
@@ -117,6 +120,9 @@ public class PhotonEngine {
             .registerTable(DiscordProfileTable.class)
             .registerTable(ServerTable.class)
         ;
+
+        /* Repopulate Stripe subscriptions on startup */
+        StripeStartupSync.run(Directories.getConfig().stripe_api_key);
         
         /* Starting the discord bot if token available */
         if(Directories.getConfig().discord_bot_token !=null && !Directories.getConfig().discord_bot_token.isEmpty()) {

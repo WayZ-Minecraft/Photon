@@ -43,7 +43,7 @@ public class ChangePasswordEndpoint implements IEndpoint {
             return;
         }
 
-        if (account.password() == null || !account.password().equals(request.currentPassword)) {
+        if (!PlayerAccountTable.passwordMatches(account.password(), request.currentPassword)) {
             handler.status(401).result("Incorrect password");
             return;
         }

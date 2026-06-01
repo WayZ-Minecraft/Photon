@@ -33,9 +33,10 @@ public class SubscriptionTable extends Table {
 
         this.addColumns(
             createColumn(db, "customer_email", EnumColumnTypes.TEXT).primaryKey(),
+            createColumn(db, "account_uuid", EnumColumnTypes.TEXT).unique(),
             createColumn(db, "customer_name", EnumColumnTypes.TEXT),
-            createColumn(db, "tebex_customer_id", EnumColumnTypes.TEXT),
-            createColumn(db, "tebex_subscription_id", EnumColumnTypes.TEXT).unique(),
+            createColumn(db, "customer_id", EnumColumnTypes.TEXT),
+            createColumn(db, "subscription_id", EnumColumnTypes.TEXT).unique(),
             createColumn(db, "status", EnumColumnTypes.TEXT).notNull().defaultValue(SubscriptionStatus.ACTIVE.name()),
             createColumn(db, "expires_at", EnumColumnTypes.DATE_TIME),
             createColumn(db, "updated_at", EnumColumnTypes.DATE_TIME).defaultValue("CURRENT_TIMESTAMP")
@@ -56,30 +57,55 @@ public class SubscriptionTable extends Table {
             .executeSerializable(ObjectSubscription.class);
     }
 
+    public static ObjectSubscription getByAccountUuid(String accountUuid) {
+        if (accountUuid == null || accountUuid.isBlank()) return null;
+        return SelectionManager.select(PhotonEngine.DATA_BASE, SubscriptionTable.class)
+            .where(Expression.of("account_uuid").isEqualTo(accountUuid))
+            .limit(1)
+            .executeSerializable(ObjectSubscription.class);
+    }
+
+    public static ObjectSubscription getBySubscriptionId(String subscriptionId) {
+        if (subscriptionId == null || subscriptionId.isBlank()) return null;
+        return SelectionManager.select(PhotonEngine.DATA_BASE, SubscriptionTable.class)
+            .where(Expression.of("subscription_id").isEqualTo(subscriptionId))
+            .limit(1)
+            .executeSerializable(ObjectSubscription.class);
+    }
+
     public static List<ObjectSubscription> getAllActive() {
         return SelectionManager.select(PhotonEngine.DATA_BASE, SubscriptionTable.class)
             .where(Expression.of("status").isEqualTo(SubscriptionStatus.ACTIVE.name()))
             .executeList(ObjectSubscription.class);
     }
 
-    public static ObjectSubscription upsertSubscription(String email, String customerName, String tebexCustomerId, String tebexSubscriptionId, SubscriptionStatus status, Date expiresAt) {
+    public static ObjectSubscription upsertSubscription(String email, String customerName, String customerId, String subscriptionId, SubscriptionStatus status, Date expiresAt) {
+        return upsertSubscription(email, customerName, customerId, subscriptionId, status, expiresAt, null);
+    }
+
+    public static ObjectSubscription upsertSubscription(String email, String customerName, String customerId, String subscriptionId, SubscriptionStatus status, Date expiresAt, String accountUuid) {
         final String normalizedEmail = normalizeEmail(email);
         final Date updatedAt = new Date();
         final ObjectSubscription current = getByEmail(normalizedEmail);
+        final ObjectSubscription currentByAccountUuid = current == null ? getByAccountUuid(accountUuid) : null;
+        final ObjectSubscription existing = current != null ? current : currentByAccountUuid;
+        final String nextAccountUuid = accountUuid != null && !accountUuid.isBlank() ? accountUuid : (existing == null ? null : existing.accountUuid());
 
-        if (current == null) {
-            InsertionManager.insert(PhotonEngine.DATA_BASE, SubscriptionTable.class, "customer_email", "customer_name", "tebex_customer_id", "tebex_subscription_id", "status", "expires_at", "updated_at")
-                .row(normalizedEmail, customerName, tebexCustomerId, tebexSubscriptionId, status.name(), expiresAt, updatedAt)
+        if (existing == null) {
+            InsertionManager.insert(PhotonEngine.DATA_BASE, SubscriptionTable.class, "customer_email", "account_uuid", "customer_name", "customer_id", "subscription_id", "status", "expires_at", "updated_at")
+                .row(normalizedEmail, nextAccountUuid, customerName, customerId, subscriptionId, status.name(), expiresAt, updatedAt)
                 .execute();
         } else {
             UpdateManager.update(PhotonEngine.DATA_BASE, SubscriptionTable.class)
+                .set("customer_email", normalizedEmail)
+                .set("account_uuid", nextAccountUuid)
                 .set("customer_name", customerName)
-                .set("tebex_customer_id", tebexCustomerId)
-                .set("tebex_subscription_id", tebexSubscriptionId)
+                .set("customer_id", customerId)
+                .set("subscription_id", subscriptionId)
                 .set("status", status.name())
                 .set("expires_at", expiresAt)
                 .set("updated_at", updatedAt)
-                .where(Expression.of("customer_email").isEqualTo(normalizedEmail))
+                .where(Expression.of(existing.accountUuid() != null && !existing.accountUuid().isBlank() ? "account_uuid" : "customer_email").isEqualTo(existing.accountUuid() != null && !existing.accountUuid().isBlank() ? existing.accountUuid() : normalizedEmail))
                 .execute();
         }
 
@@ -87,16 +113,25 @@ public class SubscriptionTable extends Table {
     }
 
     public static boolean isActive(String email) {
-        final ObjectSubscription subscription = getByEmail(email);
+        return isActive(email, null);
+    }
+
+    public static boolean isActive(String email, String accountUuid) {
+        final ObjectSubscription subscription = accountUuid != null && !accountUuid.isBlank() ? getByAccountUuid(accountUuid) : getByEmail(email);
         return subscription != null && subscription.isActive();
     }
 
     public static Map<String, Object> subscriptionDetails(String email) {
+        return subscriptionDetails(email, null);
+    }
+
+    public static Map<String, Object> subscriptionDetails(String email, String accountUuid) {
         final Map<String, Object> response = new LinkedHashMap<>();
-        final ObjectSubscription subscription = getByEmail(email);
+        final ObjectSubscription subscription = accountUuid != null && !accountUuid.isBlank() ? getByAccountUuid(accountUuid) : getByEmail(email);
         response.put("subscriber", subscription != null && subscription.isActive());
         response.put("subscriptionStatus", subscription == null ? SubscriptionStatus.EXPIRED.name() : subscription.status());
         response.put("subscriptionExpiresAt", subscription == null || subscription.expiresAt() == null ? null : subscription.expiresAt().getTime());
+        response.put("subscriptionAccountUuid", subscription == null ? null : subscription.accountUuid());
         return response;
     }
 }

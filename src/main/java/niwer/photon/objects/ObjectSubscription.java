@@ -10,14 +10,17 @@ public class ObjectSubscription extends SQLSerializable<ObjectSubscription> {
     @IColumnField(name = "customer_email", primaryKey = true, notNull = true)
     private String customerEmail;
 
+    @IColumnField(name = "account_uuid")
+    private String accountUuid;
+
     @IColumnField(name = "customer_name")
     private String customerName;
 
-    @IColumnField(name = "tebex_customer_id")
-    private String tebexCustomerId;
+    @IColumnField(name = "customer_id")
+    private String customerId;
 
-    @IColumnField(name = "tebex_subscription_id", unique = true)
-    private String tebexSubscriptionId;
+    @IColumnField(name = "subscription_id", unique = true)
+    private String subscriptionId;
 
     @IColumnField(name = "status", notNull = true)
     private String status = "ACTIVE";
@@ -30,11 +33,12 @@ public class ObjectSubscription extends SQLSerializable<ObjectSubscription> {
 
     public ObjectSubscription() {}
 
-    public ObjectSubscription(String customerEmail, String customerName, String tebexCustomerId, String tebexSubscriptionId, String status, Date expiresAt, Date updatedAt) {
+    public ObjectSubscription(String customerEmail, String accountUuid, String customerName, String customerId, String subscriptionId, String status, Date expiresAt, Date updatedAt) {
         this.customerEmail = customerEmail;
+        this.accountUuid = accountUuid;
         this.customerName = customerName;
-        this.tebexCustomerId = tebexCustomerId;
-        this.tebexSubscriptionId = tebexSubscriptionId;
+        this.customerId = customerId;
+        this.subscriptionId = subscriptionId;
         this.status = status;
         this.expiresAt = expiresAt;
         this.updatedAt = updatedAt;
@@ -45,9 +49,10 @@ public class ObjectSubscription extends SQLSerializable<ObjectSubscription> {
     }
 
     public String customerEmail() { return customerEmail; }
+    public String accountUuid() { return accountUuid; }
     public String customerName() { return customerName; }
-    public String tebexCustomerId() { return tebexCustomerId; }
-    public String tebexSubscriptionId() { return tebexSubscriptionId; }
+    public String customerId() { return customerId; }
+    public String subscriptionId() { return subscriptionId; }
     public String status() { return status; }
     public Date expiresAt() { return expiresAt; }
     public Date updatedAt() { return updatedAt; }

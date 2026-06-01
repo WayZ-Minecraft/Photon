@@ -1,1 +1,0 @@
-public class Inspector { public static void main(String[] args) { try { Class<?> clazz = Class.forName("io.javalin.http.Context"); System.out.println("Is Interface: " + clazz.isInterface()); } catch (Exception e) { e.printStackTrace(); } } }

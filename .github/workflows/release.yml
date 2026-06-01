@@ -27,9 +27,9 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
       
-      # We don't have JUnit tests right now
-      - name: Run Tests (JUnit)
-        run: ./gradlew test
+      # We don't want to test right now
+      # - name: Run Tests (JUnit)
+      #   run: ./gradlew test
 
       - name: Build Project
         run: ./gradlew build

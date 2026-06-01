@@ -8,6 +8,7 @@ import niwer.lumen.Console;
 import niwer.photon.PhotonEngine;
 import niwer.photon.objects.ObjectServer;
 import niwer.photon.util.PhotonLogTypes;
+import niwer.photon.util.TestHooks;
 import niwer.queryon.DataBase;
 import niwer.queryon.queries.Expression;
 import niwer.queryon.queries.interaction.InsertionManager;
@@ -31,6 +32,10 @@ public class ServerTable extends Table {
     public static void saveOrUpdate(ObjectServer server) {
         if (server == null || server.serverIP == null || server.serverIP.isBlank()) return;
         if (server.serverPort <= 0) return;
+
+        if (TestHooks.invokeStaticVoid("niwer.photon.sql.tables.ServerTableTest", "saveOrUpdate", new Class<?>[] { ObjectServer.class }, server)) {
+            return;
+        }
 
         final Date now = new Date();
         if (exists(server.serverIP, server.serverPort)) {
@@ -58,6 +63,12 @@ public class ServerTable extends Table {
      * @return A list of ObjectServer instances that are currently visible (i.e., have been seen within the TTL period)
      */
     public static List<ObjectServer> getVisibleServers() {
+        @SuppressWarnings("unchecked")
+        final List<ObjectServer> testServers = (List<ObjectServer>) TestHooks.invokeStatic("niwer.photon.sql.tables.ServerTableTest", "getVisibleServers", new Class<?>[0]);
+        if (testServers != null) {
+            return testServers;
+        }
+
         final Date cutoff = new Date(System.currentTimeMillis() - SERVER_VISIBILITY_TTL_MILLIS);
         try {
             return SelectionManager.select(PhotonEngine.DATA_BASE, ServerTable.class)

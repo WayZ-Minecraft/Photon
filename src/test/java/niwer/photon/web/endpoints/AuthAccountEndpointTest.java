@@ -66,7 +66,7 @@ class AuthAccountEndpointTest {
         setField(account, "email", email);
         setField(account, "password", password);
         setField(account, "uuid", "uuid-123");
-        setField(account, "administrator", "false");
+        setField(account, "administrator", false);
         return account;
     }
 

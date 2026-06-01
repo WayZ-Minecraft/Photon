@@ -24,6 +24,7 @@ import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.sql.ServerTable;
 import niwer.photon.util.PhotonLogTypes;
+import niwer.photon.util.DatabaseBackupManager;
 import niwer.photon.web.WebServerEngine;
 import niwer.photon.web.endpoints.stripe.StripeStartupSync;
 
@@ -120,6 +121,9 @@ public class PhotonEngine {
             .registerTable(DiscordProfileTable.class)
             .registerTable(ServerTable.class)
         ;
+
+        /* Run the database backup system */
+        DatabaseBackupManager.start();
 
         /* Repopulate Stripe subscriptions on startup */
         StripeStartupSync.run(Directories.getConfig().stripe_api_key);

@@ -35,10 +35,15 @@ import niwer.photon.web.endpoints.servers.AddServerEndpoint;
 import niwer.photon.web.endpoints.servers.ServerListEndpoint;
 import niwer.photon.web.endpoints.stripe.StripePurchaseSessionEndpoint;
 import niwer.photon.web.endpoints.stripe.StripeWebhookEndpoint;
+import niwer.photon.util.TestHooks;
 
 public class WebServerEngine {
 
     public static void load() {
+        if (TestHooks.invokeStaticVoid("niwer.photon.web.WebServerEngineTest", "load", new Class<?>[0])) {
+            return;
+        }
+
         /* Change debug level */
         {
             final Logger JAVALIN_LOGGER = (Logger) LoggerFactory.getLogger("io.javalin");

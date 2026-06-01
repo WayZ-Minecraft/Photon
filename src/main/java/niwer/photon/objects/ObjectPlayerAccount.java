@@ -30,10 +30,10 @@ public class ObjectPlayerAccount extends SQLSerializable<ObjectPlayerAccount> {
     private String discordAuthCode = generateAuthCode();
 
     @IColumnField(name = "administrator")
-    private String administrator = "false";
+    private boolean administrator;
 
     @IColumnField(name = "serverCreator")
-    private String serverCreator = "false";
+    private boolean serverCreator;
 
     public static String generateAuthCode() { return new BigInteger(40, new SecureRandom()).toString(32); }
 
@@ -57,11 +57,11 @@ public class ObjectPlayerAccount extends SQLSerializable<ObjectPlayerAccount> {
 
     public String getDiscordAuthCode() { return this.discordAuthCode; }
 
-    public boolean isAdministrator() { return isTruthy(this.administrator); }
-    public boolean getAdministrator() { return isTruthy(this.administrator); }
+    public boolean isAdministrator() { return this.administrator; }
+    public boolean getAdministrator() { return this.administrator; }
 
-    public boolean isServerCreator() { return isTruthy(this.serverCreator); }
-    public boolean getServerCreator() { return isTruthy(this.serverCreator); }
+    public boolean isServerCreator() { return this.serverCreator; }
+    public boolean getServerCreator() { return this.serverCreator; }
 
     public Map<String, Object> toPublicMap() {
         final Map<String, Object> response = new LinkedHashMap<>();
@@ -83,8 +83,8 @@ public class ObjectPlayerAccount extends SQLSerializable<ObjectPlayerAccount> {
             setField(account, "uuid", uuid);
             setField(account, "discordID", discordID);
             setField(account, "discordAuthCode", discordAuthCode);
-            setField(account, "administrator", String.valueOf(administrator));
-            setField(account, "serverCreator", String.valueOf(serverCreator));
+            setField(account, "administrator", administrator);
+            setField(account, "serverCreator", serverCreator);
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("Unable to rebuild account snapshot", e);
         }
@@ -94,6 +94,10 @@ public class ObjectPlayerAccount extends SQLSerializable<ObjectPlayerAccount> {
     private static void setField(ObjectPlayerAccount account, String fieldName, Object value) throws ReflectiveOperationException {
         final Field field = ObjectPlayerAccount.class.getDeclaredField(fieldName);
         field.setAccessible(true);
+        if (field.getType() == boolean.class && value instanceof Boolean booleanValue) {
+            field.setBoolean(account, booleanValue);
+            return;
+        }
         field.set(account, value);
     }
 

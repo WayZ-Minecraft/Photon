@@ -23,6 +23,17 @@ The main entry point is `niwer.photon.PhotonEngine`.
 
 Application code lives under `src/main/java/niwer/photon`.
 
+## Configuration
+
+Photon is configured via a JSON file : `network/config.json`, which contains settings for the network, database, Stripe integration and more.
+
+- **Database backups**
+	- `database_backup_enabled` controls whether the backup system runs at all.
+	- `database_backup_on_startup` controls whether a backup is created during startup.
+	- `database_backup_interval_minutes` controls how often recurring backups run.
+	- `database_backup_directory` controls where backup files are written.
+	- `database_backup_file_prefix` controls the generated backup filename prefix.
+
 ## Endpoints
 
 This project exposes several HTTP endpoints for accounts, admin operations, servers and Stripe integration. Below is a concise reference — use the webpanel to inspect or call them.
@@ -33,6 +44,14 @@ This project exposes several HTTP endpoints for accounts, admin operations, serv
 	- `POST /stripe/webhook` — Stripe webhook endpoint
 		- Receives events (e.g. `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`).
 		- Also consumes `checkout.session.completed` to complete the purchase-token flow.
+
+- **Database backups**
+	- `database_backup_enabled` controls whether the backup system runs at all.
+	- `database_backup_on_startup` controls whether a backup is created during startup.
+	- `database_backup_interval_minutes` controls how often recurring backups run.
+	- `database_backup_directory` controls where backup files are written.
+	- `database_backup_file_prefix` controls the generated backup filename prefix.
+
 - **Accounts (user-facing)**
 	- `POST /accounts/create_account` — Create account (requires active subscription, or a valid purchase token in the `token` form field).
 	- `POST /accounts/auth_account` — Login, returns `{ token, account }`.

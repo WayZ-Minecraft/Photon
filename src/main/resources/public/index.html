@@ -2,21 +2,134 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>Photon </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" href="./assets/photon_logo.png">
+        <title>Niwer's Engine - Control Panel</title>
         <link rel="stylesheet" href="./main.css">
-        <script src="./main.js" defer></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+        <script type="module" src="./js/main.js"></script>
     </head>
     <body>
-        <h1>Welcome to the Photon Web Server</h1>
-        <p>This is the default landing page served by the Photon web server.</p>
-        <button type="button" id="statusButton">Check Server Status</button>
-        <div id="statusResult"></div>
+        <div id="appShell"></div>
 
-        <form method="POST">
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="email" name="email" placeholder="Email" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Create Account</button>
-        </form>
+        <template id="appTemplate">
+            <div class="page-shell">
+                <div id="appChrome"></div>
+
+                <main class="layout">
+                    <section class="panel page page-active" data-page="overview">
+                        <div class="overview-section" id="purchasePanel"></div>
+                        <div class="overview-section" id="serverPanel">
+                            <div class="panel-header">
+                                <div>
+                                    <p class="eyebrow">Public status</p>
+                                </div>
+                                <span class="status-pill neutral" id="serverCount">
+                                    <span id="serverCountNumber">0</span>
+                                    <i class="fas fa-server servers-icon" aria-hidden="true"></i>
+                                </span>
+                            </div>
+                            <div id="serverList" class="cards grid-list"></div>
+                        </div>
+                    </section>
+
+                    <section class="panel page" data-page="user">
+                        <div id="userPage"></div>
+                    </section>
+
+                    <section class="panel page" data-page="licenses">
+                        <div id="licensesPage"></div>
+                    </section>
+
+                    
+
+                    <section class="panel page" data-page="config">
+                        <div class="panel-header">
+                            <div>
+                                <p class="eyebrow">Network config</p>
+                                <h2>Edit runtime settings</h2>
+                            </div>
+                            <div class="button-row">
+                                <button type="button" class="secondary" data-open-modal="config">Edit config</button>
+                            </div>
+                        </div>
+                        <form id="configForm" class="config-grid"></form>
+                    </section>
+
+                    <section class="panel page" data-page="tables">
+                        <div class="panel-header">
+                            <div>
+                                <p class="eyebrow">Tables</p>
+                                <h2>Browse managed data</h2>
+                            </div>
+                            <div class="button-row compact">
+                                <button type="button" class="secondary" id="refreshTableButton">Refresh</button>
+                            </div>
+                        </div>
+                        <div class="table-toolbar">
+                            <select id="tableSelect"></select>
+                            <input type="number" id="tableLimit" min="1" max="500" value="100">
+                        </div>
+                        <div id="tableMeta" class="hint"></div>
+                        <div class="table-wrap">
+                            <table id="dataTable"></table>
+                        </div>
+                    </section>
+
+                    <section class="panel page" data-page="operations">
+                        <div class="stacked-form">
+                            <div class="panel-header">
+                                <div>
+                                    <p class="eyebrow">Operations</p>
+                                    <h2>Restart the application</h2>
+                                </div>
+                                <button type="button" class="danger" id="restartButton">Restart</button>
+                            </div>
+
+                            <div class="data-card">
+                                <div class="panel-header">
+                                    <div>
+                                        <p class="eyebrow">Updates</p>
+                                        <h2>Upload new version</h2>
+                                    </div>
+                                </div>
+                                <form id="updateUploadForm" class="stacked-form" enctype="multipart/form-data">
+                                    <label>
+                                        <span>Build file (.jar)</span>
+                                        <input type="file" name="file" accept=".jar,application/java-archive" required>
+                                    </label>
+                                    <label>
+                                        <span>File type</span>
+                                        <select name="file_type" required>
+                                            <option value="MOD">MOD</option>
+                                            <option value="LAUNCHER">LAUNCHER</option>
+                                            <option value="API">API</option>
+                                            <option value="NETWORK">NETWORK</option>
+                                        </select>
+                                    </label>
+                                    <label>
+                                        <span>Channel</span>
+                                        <select name="channel">
+                                            <option value="STABLE">STABLE</option>
+                                            <option value="ALPHA">ALPHA</option>
+                                            <option value="BETA">BETA</option>
+                                            <option value="DEV">DEV</option>
+                                            <option value="TEST">TEST</option>
+                                        </select>
+                                    </label>
+                                    <div class="button-row">
+                                        <button type="submit" class="primary">Upload update</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </section>
+                </main>
+
+                <footer id="appFooter"></footer>
+            </div>
+        </template>
+
+        <div id="modalRoot"></div>
     </body>
 </html>

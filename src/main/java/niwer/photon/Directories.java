@@ -15,11 +15,11 @@ import javax.imageio.ImageIO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
+
+import niwer.lumen.Console;
 import niwer.photon.util.PhotonLogTypes;
 import niwer.photon.util.updater.UpdateChannel;
 import niwer.photon.util.updater.UpdateFileType;
-
-import niwer.lumen.Console;
 
 public class Directories
 {
@@ -28,6 +28,7 @@ public class Directories
 
 	public static final File BASE_DIR = new File("./network/");
 	public static final File LOGS_DIR = new File(BASE_DIR + "/logs/");
+	public static final File BACKUPS_DIR = new File(BASE_DIR + "/backups/");
 	public static final File LOGO_FILE = new File(BASE_DIR + "/project_logo.png");
 	public static final File DATA_BASE_FILE = new File(BASE_DIR, "network.db");
 
@@ -51,6 +52,7 @@ public class Directories
 			final BufferedReader reader = new BufferedReader(new FileReader(configFile));
 			config = PRETTY_GSON.fromJson(reader, NetworkConfig.class);
 			reader.close();
+			if (config == null) config = new NetworkConfig();
 		} catch (IOException e) {}
 	}
 
@@ -65,6 +67,7 @@ public class Directories
 	 */
 	public static void save() {
 		try (var WRITER = new FileWriter(configFile)) {
+			getConfig();
 			WRITER.write(PRETTY_GSON.toJson(config));
 		} catch (IOException e) {}
 	}
@@ -93,9 +96,9 @@ public class Directories
 	
 	public static class NetworkConfig {
 		private static final NetworkConfig DEFAULT = new NetworkConfig();
-		private static final String SERVICES_UPDATE_DIR = BASE_DIR.getPath() + "/services_update/";
-
+		
 		private static Map<UpdateChannel, String> updatePaths(String fileName) {
+			final String SERVICES_UPDATE_DIR = BASE_DIR.getPath() + "/services_update/";
 			return Map.of(
 				UpdateChannel.STABLE, SERVICES_UPDATE_DIR + fileName + ".jar",
 				UpdateChannel.DEV, SERVICES_UPDATE_DIR + fileName + "-dev.jar",
@@ -122,10 +125,20 @@ public class Directories
 		/* Web Server */
 		@SerializedName("webserver_port") public int webserver_port = 7070;
 
+		/* Database backups */
+		@SerializedName("database_backup_enabled") private Boolean database_backup_enabled = Boolean.TRUE;
+		@SerializedName("database_backup_on_startup") private Boolean database_backup_on_startup = Boolean.TRUE;
+		@SerializedName("database_backup_interval_minutes") private Long database_backup_interval_minutes = 1440L; // 1440 minutes (24 hours) default interval between automatic database backups
+		@SerializedName("database_backup_file_prefix") private String database_backup_file_prefix = "db_backup";
+		@SerializedName("database_backup_retention_days") private Long database_backup_retention_days = 15L; // Keep backups for 15 days by default
+
 		/* Licensing */
 		@SerializedName("license_product_id") public String license_product_id = "niwer-engine";
-		@SerializedName("tebex_webhook_secret") public String tebex_webhook_secret = "";
 		@SerializedName("license_default_duration_days") public long license_default_duration_days = 30L; // 30 days (1 month) default duration for licenses issued without an explicit expiration date
+
+		/* Stripe */
+		@SerializedName("stripe_api_key") public String stripe_api_key = "";
+		@SerializedName("stripe_webhook_secret") public String stripe_webhook_signature = "";
 
 		/* Versions infos */
 		@SerializedName("api_version") public String api_version = "1.0.0";
@@ -136,6 +149,16 @@ public class Directories
 		@SerializedName("twitch_url") public String twitch_url = "https://twitch.tv/";
 		@SerializedName("youtube_url") public String youtube_url = "https://youtube.com/";
 		@SerializedName("discord_url") public String discord_url = "https://discord.gg/";
-		@SerializedName("website_url") public String website_url = "https://example.com";
+		@SerializedName("website_url") public String website_url = "https://google.com";
+		
+		public boolean dbBackupEnabled() { return database_backup_enabled != null && database_backup_enabled; }
+
+		public boolean dbBackupOnStartup() { return database_backup_on_startup != null && database_backup_on_startup; }
+
+		public long dbBackupIntervalMinutes() { return database_backup_interval_minutes != null && database_backup_interval_minutes > 0L ? database_backup_interval_minutes : 1440L; }
+
+		public String dbBackupFilePrefix() { return database_backup_file_prefix != null && !database_backup_file_prefix.isBlank() ? database_backup_file_prefix : "db_backup"; }
+
+		public long dbBackupRetentionDays() { return database_backup_retention_days != null && database_backup_retention_days > 0L ? database_backup_retention_days : 15L; }
 	}
 }

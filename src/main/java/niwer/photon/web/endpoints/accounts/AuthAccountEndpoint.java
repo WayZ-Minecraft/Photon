@@ -3,6 +3,8 @@ package niwer.photon.web.endpoints.accounts;
 import io.javalin.http.Context;
 import niwer.photon.objects.ObjectPlayerAccount;
 import niwer.photon.sql.PlayerAccountTable;
+import niwer.photon.sql.SubscriptionTable;
+import niwer.photon.web.UserSessionManager;
 import niwer.photon.web.endpoints.IEndpoint;
 
 /**
@@ -18,33 +20,58 @@ public class AuthAccountEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
-        final String username = handler.formParam("username");
         final String email = handler.formParam("email");
         final String password = handler.formParam("password");
 
         /* Ensure all parameters are provided */
-        if(username == null || email == null || password == null) {
+        if(email == null || password == null) {
             handler.status(400).result("Missing parameters");
             return;
         }
 
         /* Ensure no parameters are blank */
-        if(username.isBlank() || email.isBlank() || password.isBlank()) {
+        if(email.isBlank() || password.isBlank()) {
             handler.status(400).result("Parameters cannot be blank");
             return;
         }
 
         /* Authenticate the user */
-        final ObjectPlayerAccount ACCOUNT = PlayerAccountTable.getAccountByEmail(email);
+        final ObjectPlayerAccount ACCOUNT = lookupAccountByEmail(email);
         if(ACCOUNT == null) {
             handler.status(401).result("No account found with the provided email");
             return;
         }
-        if(!ACCOUNT.password().equals(password)) {
+        if(!PlayerAccountTable.passwordMatches(ACCOUNT.password(), password)) {
             handler.status(401).result("Incorrect password");
             return;
         }
 
-        handler.json(ACCOUNT); // Send the authenticated account's details as a JSON response
+        if (!PlayerAccountTable.isArgon2Password(ACCOUNT.password())) {
+            PlayerAccountTable.setPassword(ACCOUNT.getUuid(), password);
+        }
+
+        final UserSessionManager.AuthSession session = createSession(email, password);
+        if (session == null) {
+            handler.status(401).result("Invalid credentials or access denied");
+            return;
+        }
+
+        handler.json(new LoginResponse(session.token(), accountResponse(ACCOUNT)));
     }
+
+    protected ObjectPlayerAccount lookupAccountByEmail(String email) {
+        return PlayerAccountTable.getAccountByEmail(email);
+    }
+
+    protected UserSessionManager.AuthSession createSession(String email, String password) {
+        return UserSessionManager.login(email, password);
+    }
+
+    protected java.util.Map<String, Object> accountResponse(ObjectPlayerAccount account) {
+        final var response = account.toPublicMap();
+        response.putAll(SubscriptionTable.subscriptionDetails(account.getEmail(), account.getUuid()));
+        return response;
+    }
+
+    private record LoginResponse(String token, Object account) {}
 }

@@ -1,11 +1,11 @@
+# Other
+bin/
 /network/
-bin
-.classpath
-.project
+
+# Gradle
 build/
 .gradle/
+
+# IDE
 .vscode/
 .settings/
-.sync/
-out.map
-*.launch

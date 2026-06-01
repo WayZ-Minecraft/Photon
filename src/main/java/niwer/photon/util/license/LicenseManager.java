@@ -11,9 +11,11 @@ import java.util.Date;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.google.gson.JsonSyntaxException;
+
 import niwer.photon.Directories;
 import niwer.photon.objects.ObjectLicense;
 import niwer.photon.sql.LicenseTable;
+import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.os.OperatingSystem;
 
 /**
@@ -37,8 +39,12 @@ public final class LicenseManager {
      * @return a LicenseValidationResult containing the validation result and claims if valid, or failure reason if invalid
      */
 	public static LicenseValidationResult validate(final String licenseKey, final String publicKeyValue, final String expectedProductId) {
+		return validate(licenseKey, publicKeyValue, expectedProductId, null);
+	}
+
+	public static LicenseValidationResult validate(final String licenseKey, final String publicKeyValue, final String expectedProductId, final String hardwareId) {
 		if (licenseKey == null || licenseKey.isBlank()) return LicenseValidationResult.invalid(LicenseFailureReason.MISSING_LICENSE_KEY, "Missing license key in network/config.json");
-		if (!licenseKey.contains(".")) return validateDatabaseLicense(licenseKey, expectedProductId);
+		if (!licenseKey.contains(".")) return validateDatabaseLicense(licenseKey, expectedProductId, hardwareId);
 		if (publicKeyValue == null || publicKeyValue.isBlank()) return LicenseValidationResult.invalid(LicenseFailureReason.MISSING_PUBLIC_KEY, "Missing license public key in network/config.json");
 
 		final String[] PARTS = licenseKey.trim().split("\\.");
@@ -52,9 +58,9 @@ public final class LicenseManager {
 			if (CLAIMS == null) return LicenseValidationResult.invalid(LicenseFailureReason.INVALID_PAYLOAD, "License payload could not be parsed");
 			if (CLAIMS.product_id() == null || !CLAIMS.product_id().equals(expectedProductId)) return LicenseValidationResult.invalid(LicenseFailureReason.PRODUCT_MISMATCH, "License is not valid for product '" + expectedProductId + "'");
 			if (CLAIMS.expires_at() != null && CLAIMS.expires_at() > 0L && Instant.ofEpochMilli(CLAIMS.expires_at()).isBefore(Instant.now())) return LicenseValidationResult.invalid(LicenseFailureReason.EXPIRED, "License key has expired");
+			final String effectiveHardwareId = (hardwareId != null && !hardwareId.isBlank()) ? hardwareId : OperatingSystem.getHWID();
 			if (CLAIMS.hardware_id() != null && !CLAIMS.hardware_id().isBlank()) {
-				final String CURRENT_HARDWAIRE_ID = OperatingSystem.getHWID();
-				if (!CLAIMS.hardware_id().equalsIgnoreCase(CURRENT_HARDWAIRE_ID)) return LicenseValidationResult.invalid(LicenseFailureReason.HARDWARE_MISMATCH, "License key is bound to another machine");
+				if (effectiveHardwareId == null || effectiveHardwareId.isBlank() || !CLAIMS.hardware_id().equalsIgnoreCase(effectiveHardwareId)) return LicenseValidationResult.invalid(LicenseFailureReason.HARDWARE_MISMATCH, "License key is bound to another machine");
 			}
 
             /* Verify the signature */
@@ -91,18 +97,18 @@ public final class LicenseManager {
      * @param productId The product id this license is valid for
      * @param customerName The name of the customer this license is issued to (optional)
      * @param customerEmail The email of the customer this license is issued to (optional)
-     * @param tebexOrderId The associated Tebex order id for this license, if it was purchased through the official Tebex store (optional, but must be unique if provided)
+     * @param orderId The associated order id for this license, if it was purchased through the official store (optional, but must be unique if provided)
      * @param expiresAtMillis The expiration date of the license in milliseconds since epoch, or null/0 for no expiration
      * @return the issued ObjectLicense containing all the license information, including the generated license key
      */
-	public static ObjectLicense issueLicense(final String productId, final String customerName, final String customerEmail, final String tebexOrderId, final Long expiresAtMillis) {
+	public static ObjectLicense issueLicense(final String productId, final String name, final String customerEmail, final String creatorUuid, final Long expiresAtMillis) {
 		final Date expiresAt = expiresAtMillis == null || expiresAtMillis <= 0L ? null : new Date(expiresAtMillis);
 		String licenseKey = generateLicenseKey();
 		while (LicenseTable.exists(licenseKey)) licenseKey = generateLicenseKey();
-		return LicenseTable.issueLicense(licenseKey, productId, customerName, customerEmail, tebexOrderId, expiresAt);
+		return LicenseTable.issueLicense(licenseKey, productId, name, customerEmail, creatorUuid, expiresAt);
 	}
 
-	private static LicenseValidationResult validateDatabaseLicense(final String licenseKey, final String expectedProductId) {
+	private static LicenseValidationResult validateDatabaseLicense(final String licenseKey, final String expectedProductId, final String hardwareId) {
 		final String normalizedKey = LicenseTable.normalizeKey(licenseKey);
 		final ObjectLicense license = LicenseTable.getByKey(normalizedKey);
 		if (license == null) return LicenseValidationResult.invalid(LicenseFailureReason.MISSING_LICENSE_KEY, "License key was not found in the Photon license database");
@@ -111,7 +117,13 @@ public final class LicenseManager {
 		if (LicenseTable.LicenseStatus.fromString(license.status()) == LicenseTable.LicenseStatus.REVOKED) return LicenseValidationResult.invalid(LicenseFailureReason.UNEXPECTED_ERROR, "License key has been revoked");
 		if (license.isExpired()) return LicenseValidationResult.invalid(LicenseFailureReason.EXPIRED, "License key has expired");
 
-		final String currentHardwareId = OperatingSystem.getHWID();
+		// Ensure creator's subscription is active; license becomes usable again if subscription restarts
+		final boolean subscriptionActive = license.creatorUuid() != null && !license.creatorUuid().isBlank()
+			? SubscriptionTable.isActive(license.customerEmail(), license.creatorUuid())
+			: SubscriptionTable.isActive(license.customerEmail());
+		if (!subscriptionActive) return LicenseValidationResult.invalid(LicenseFailureReason.SUBSCRIPTION_INACTIVE, "License creator subscription is not active");
+
+		final String currentHardwareId = (hardwareId != null && !hardwareId.isBlank()) ? hardwareId : OperatingSystem.getHWID();
 		if (license.hwid() != null && !license.hwid().isBlank()) {
 			if (!license.hwid().equalsIgnoreCase(currentHardwareId)) return LicenseValidationResult.invalid(LicenseFailureReason.HARDWARE_MISMATCH, "License key is bound to another machine");
 		} else if (currentHardwareId != null && !currentHardwareId.isBlank()) LicenseTable.activate(normalizedKey, currentHardwareId);
@@ -119,12 +131,11 @@ public final class LicenseManager {
 		return LicenseValidationResult.valid(new LicenseClaims(
 			normalizedKey,
 			license.productId(),
-			license.customerName(),
+			license.name(),
 			license.customerEmail(),
 			currentHardwareId,
 			license.createdAt() == null ? null : license.createdAt().getTime(),
-			license.expiresAt() == null ? null : license.expiresAt().getTime(),
-			license.tebexOrderId()
+			license.expiresAt() == null ? null : license.expiresAt().getTime()
 		));
 	}
 

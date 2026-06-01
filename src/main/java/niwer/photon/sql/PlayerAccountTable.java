@@ -3,11 +3,11 @@ package niwer.photon.sql;
 import java.util.List;
 import java.util.UUID;
 
+import niwer.lumen.Console;
 import niwer.photon.PhotonEngine;
 import niwer.photon.objects.ObjectPlayerAccount;
+import niwer.photon.util.PasswordHasher;
 import niwer.photon.util.PhotonLogTypes;
-
-import niwer.lumen.Console;
 import niwer.queryon.DataBase;
 import niwer.queryon.queries.Expression;
 import niwer.queryon.queries.interaction.DeletionManager;
@@ -33,13 +33,10 @@ public class PlayerAccountTable extends Table {
             createColumn(db, "username", EnumColumnTypes.TEXT).unique().notNull(),
             createColumn(db, "email", EnumColumnTypes.TEXT).unique().notNull(),
             createColumn(db, "password", EnumColumnTypes.TEXT).notNull(),
-            createColumn(db, "twoAuthFactor", EnumColumnTypes.BOOLEAN).defaultValue(false),
             createColumn(db, "discordID", 1024),
             createColumn(db, "discordAuthCode", 255).notNull(),
-            createColumn(db, "projectAuthor", EnumColumnTypes.BOOLEAN).defaultValue(false),
-            createColumn(db, "serverCreator", EnumColumnTypes.BOOLEAN).defaultValue(false),
-            createColumn(db, "shopCoins", EnumColumnTypes.INT).defaultValue(0, Expression.of("shopCoins").isGreaterThanOrEqualTo(0)), // Default to 0 and non-negative constraint
-            createColumn(db, "friends", EnumColumnTypes.TEXT)
+            createColumn(db, "administrator", EnumColumnTypes.BOOLEAN).defaultValue(false),
+            createColumn(db, "serverCreator", EnumColumnTypes.BOOLEAN).defaultValue(false)
         ).execute();
     }
 
@@ -76,8 +73,14 @@ public class PlayerAccountTable extends Table {
         }
 
         final String UniqueUserID = UUID.randomUUID().toString();
-        InsertionManager.insert(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "uuid", "username", "email", "password", "discordAuthCode", "friends")
-            .row(UniqueUserID, username.trim(), email.trim().toLowerCase(), password, ObjectPlayerAccount.generateAuthCode(), "[]")
+            final String hashedPassword = hashPassword(password);
+            if (hashedPassword == null) {
+                Console.log("Cannot hash password for account creation").type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
+                return null;
+            }
+
+            InsertionManager.insert(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "uuid", "username", "email", "password", "discordAuthCode")
+                .row(UniqueUserID, username.trim(), email.trim().toLowerCase(), hashedPassword, ObjectPlayerAccount.generateAuthCode())
             .execute();
 
         return getAccountByUUID(UniqueUserID);
@@ -177,9 +180,10 @@ public class PlayerAccountTable extends Table {
             return false;
         }
         final String NORMALIZED_EMAIL = email.trim().toLowerCase();
-        return SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "COUNT(*) as count")
+        final Integer count = SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "COUNT(*) as count")
             .where(Expression.of("LOWER(email)").isEqualTo(NORMALIZED_EMAIL))
-            .executeHasResult();
+            .executePrimitive(Integer.class);
+        return count != null && count > 0;
     }
 
     /**
@@ -195,9 +199,10 @@ public class PlayerAccountTable extends Table {
             return false;
         }
         final String NORMALIZED_USERNAME = username.trim().toLowerCase();
-        return SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "COUNT(*) as count")
+        final Integer count = SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "COUNT(*) as count")
             .where(Expression.of("LOWER(username)").isEqualTo(NORMALIZED_USERNAME))
-            .executeHasResult();
+            .executePrimitive(Integer.class);
+        return count != null && count > 0;
     }
 
     /**
@@ -248,7 +253,91 @@ public class PlayerAccountTable extends Table {
             .execute();
     }
 
-        /**
+    public static void setAdministrator(String uuid, boolean isAdministrator) {
+        if (uuid == null || uuid.trim().isEmpty()) {
+            Console.log("Cannot update administrator with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
+            return;
+        }
+        UpdateManager.update(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
+            .set("administrator", isAdministrator)
+            .where(Expression.of("uuid").isEqualTo(uuid))
+            .execute();
+    }
+
+    public static void setUsername(String uuid, String username) {
+        if (uuid == null || uuid.trim().isEmpty()) {
+            Console.log("Cannot update username with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
+            return;
+        }
+        if (username == null || username.isBlank()) {
+            Console.log("Cannot update username with null/empty value").error().container(PhotonEngine.LOGGER).send();
+            return;
+        }
+        UpdateManager.update(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
+            .set("username", username.trim())
+            .where(Expression.of("uuid").isEqualTo(uuid))
+            .execute();
+    }
+
+    public static void setEmail(String uuid, String email) {
+        if (uuid == null || uuid.trim().isEmpty()) {
+            Console.log("Cannot update email with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
+            return;
+        }
+        if (email == null || email.isBlank()) {
+            Console.log("Cannot update email with null/empty value").error().container(PhotonEngine.LOGGER).send();
+            return;
+        }
+        UpdateManager.update(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
+            .set("email", email.trim().toLowerCase())
+            .where(Expression.of("uuid").isEqualTo(uuid))
+            .execute();
+    }
+
+    public static void setPassword(String uuid, String password) {
+        if (uuid == null || uuid.trim().isEmpty()) {
+            Console.log("Cannot update password with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
+            return;
+        }
+        if (password == null || password.isBlank()) {
+            Console.log("Cannot update password with null/empty value").error().container(PhotonEngine.LOGGER).send();
+            return;
+        }
+            final String hashedPassword = hashPassword(password);
+            if (hashedPassword == null) {
+                Console.log("Cannot hash password for update").type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
+                return;
+            }
+
+            UpdateManager.update(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
+                .set("password", hashedPassword)
+            .where(Expression.of("uuid").isEqualTo(uuid))
+            .execute();
+    }
+
+        public static boolean passwordMatches(String storedPassword, String rawPassword) {
+            return PasswordHasher.matches(storedPassword, rawPassword);
+        }
+
+        public static boolean isArgon2Password(String password) {
+            return PasswordHasher.isArgon2Hash(password);
+        }
+
+        public static String hashPassword(String password) {
+            return PasswordHasher.hash(password);
+        }
+
+    public static boolean isAdministrator(String uuid) {
+        if (uuid == null || uuid.trim().isEmpty()) {
+            Console.log("Cannot read administrator flag with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
+            return false;
+        }
+
+        final ObjectPlayerAccount account = getAccountByUUID(uuid);
+        return account != null && account.isAdministrator();
+    }
+
+    /**
      * Delete an account by UUID.
      * 
      * @param uuid The account UUID to delete

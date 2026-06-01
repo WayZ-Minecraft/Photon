@@ -27,7 +27,7 @@ class LicenseManagerTest {
 
     @Test
     void validationFactoriesPreserveReasonAndClaims() {
-        final LicenseClaims claims = new LicenseClaims("license-1", "product-1", "Alice", "alice@example.com", "hardware-1", 10L, 20L, "order-1");
+        final LicenseClaims claims = new LicenseClaims("license-1", "product-1", "Alice", "alice@example.com", "hardware-1", 10L, 20L);
 
         final LicenseValidationResult valid = LicenseValidationResult.valid(claims);
         final LicenseValidationResult bypassed = LicenseValidationResult.bypassed("bypass");
@@ -58,7 +58,7 @@ class LicenseManagerTest {
 
     @Test
     void claimsRecordExposesItsValues() {
-        final LicenseClaims claims = new LicenseClaims("license-1", "product-1", "Alice", "alice@example.com", "hardware-1", 10L, 20L, "order-1");
+        final LicenseClaims claims = new LicenseClaims("license-1", "product-1", "Alice", "alice@example.com", "hardware-1", 10L, 20L);
 
         assertEquals("license-1", claims.license_id());
         assertEquals("product-1", claims.product_id());
@@ -67,7 +67,6 @@ class LicenseManagerTest {
         assertEquals("hardware-1", claims.hardware_id());
         assertEquals(10L, claims.issued_at());
         assertEquals(20L, claims.expires_at());
-        assertEquals("order-1", claims.tebex_order_id());
     }
 
     @Test
@@ -89,8 +88,7 @@ class LicenseManagerTest {
             "alice@example.com",
             OperatingSystem.getHWID(),
             System.currentTimeMillis(),
-            System.currentTimeMillis() + 86_400_000L,
-            "order-1"
+            System.currentTimeMillis() + 86_400_000L
         );
 
         final String payload = Directories.GSON.toJson(claims);
@@ -118,7 +116,7 @@ class LicenseManagerTest {
 
     @Test
     void validateRejectsProductMismatchBeforeSignatureVerification() {
-        final LicenseClaims claims = new LicenseClaims("license-1", "other-product", null, null, null, null, null, null);
+        final LicenseClaims claims = new LicenseClaims("license-1", "other-product", null, null, null, null, null);
         final String payload = Base64.getUrlEncoder().withoutPadding().encodeToString(Directories.GSON.toJson(claims).getBytes(StandardCharsets.UTF_8));
 
         assertEquals(LicenseFailureReason.PRODUCT_MISMATCH, LicenseManager.validate(payload + ".AA", "public-key", "product-1").reason());
@@ -126,7 +124,7 @@ class LicenseManagerTest {
 
     @Test
     void validateRejectsExpiredLicensesBeforeSignatureVerification() {
-        final LicenseClaims claims = new LicenseClaims("license-1", "product-1", null, null, null, null, System.currentTimeMillis() - 1_000L, null);
+        final LicenseClaims claims = new LicenseClaims("license-1", "product-1", null, null, null, null, System.currentTimeMillis() - 1_000L);
         final String payload = Base64.getUrlEncoder().withoutPadding().encodeToString(Directories.GSON.toJson(claims).getBytes(StandardCharsets.UTF_8));
 
         assertEquals(LicenseFailureReason.EXPIRED, LicenseManager.validate(payload + ".AA", "public-key", "product-1").reason());
@@ -134,7 +132,7 @@ class LicenseManagerTest {
 
     @Test
     void validateRejectsHardwareMismatchBeforeSignatureVerification() {
-        final LicenseClaims claims = new LicenseClaims("license-1", "product-1", null, null, "different-hwid", null, null, null);
+        final LicenseClaims claims = new LicenseClaims("license-1", "product-1", null, null, "different-hwid", null, null);
         final String payload = Base64.getUrlEncoder().withoutPadding().encodeToString(Directories.GSON.toJson(claims).getBytes(StandardCharsets.UTF_8));
 
         assertEquals(LicenseFailureReason.HARDWARE_MISMATCH, LicenseManager.validate(payload + ".AA", "public-key", "product-1").reason());

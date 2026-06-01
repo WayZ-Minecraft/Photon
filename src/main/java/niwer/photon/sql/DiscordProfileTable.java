@@ -45,11 +45,13 @@ public class DiscordProfileTable extends Table {
      * @return List of Languages or null if user has no preferences
      */
     public static Language getLanguage(String discordUserID) {
-        final String USER_LANG = SelectionManager.select(PhotonEngine.DATA_BASE, DiscordProfileTable.class, "language")
-            .where(Expression.of("discord_user_id").isEqualTo(discordUserID))
-            .executePrimitive(String.class);
+        final var QUERY = SelectionManager.select(PhotonEngine.DATA_BASE, DiscordProfileTable.class, "language")
+            .where(Expression.of("discord_user_id").isEqualTo(discordUserID));
+        
+        if(!QUERY.executeHasResult()) return null; // No preferences found for the user
 
-        return Language.fromNameString(USER_LANG);
+        final String USERR_LANG = QUERY.executePrimitive(String.class);
+        return Language.fromNameString(USERR_LANG);
     }
 
     /**

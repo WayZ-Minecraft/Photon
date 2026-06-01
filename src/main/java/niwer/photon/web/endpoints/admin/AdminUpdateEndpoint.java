@@ -1,17 +1,17 @@
-package niwer.photon.web.endpoints;
+package niwer.photon.web.endpoints.admin;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
+import io.javalin.http.Context;
 import niwer.photon.Directories;
 import niwer.photon.util.os.OperatingSystem;
 import niwer.photon.util.updater.UpdateChannel;
 import niwer.photon.util.updater.UpdateFileType;
+import niwer.photon.web.endpoints.IEndpoint;
 
-import io.javalin.http.Context;
-
-public class UpdateEndpoint implements IEndpoint {
+public class AdminUpdateEndpoint implements IEndpoint {
 
     @Override public String path() { return "/api/update"; }
 

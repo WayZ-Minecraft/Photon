@@ -66,6 +66,9 @@ class DirectoriesTest {
         assertNotNull(config);
         assertEquals(7070, config.webserver_port);
         assertEquals("niwer-engine", config.license_product_id);
+        assertEquals(Boolean.TRUE, config.dbBackupEnabled());
+        assertEquals(Boolean.TRUE, config.dbBackupOnStartup());
+        assertEquals(1440L, config.dbBackupIntervalMinutes());
     }
 
     @Test
@@ -90,6 +93,27 @@ class DirectoriesTest {
         assertNotNull(Directories.config);
         assertEquals(7070, Directories.config.webserver_port);
         assertEquals("niwer-engine", Directories.config.license_product_id);
+        assertEquals(Boolean.TRUE, Directories.config.dbBackupEnabled());
+        assertEquals(Boolean.TRUE, Directories.config.dbBackupOnStartup());
+        assertEquals(1440L, Directories.config.dbBackupIntervalMinutes());
+    }
+
+    @Test
+    void loadBackfillsBackupDefaultsFromOlderPartialConfigs() throws IOException {
+        final Path configPath = Files.createTempFile("photon-config-partial", ".json");
+        Files.writeString(configPath, "{\"discord_bot_token\":\"token-123\"}");
+        Directories.configFile = configPath.toFile();
+        Directories.config = null;
+
+        Directories.load();
+
+        assertNotNull(Directories.config);
+        assertEquals("token-123", Directories.config.discord_bot_token);
+        assertEquals(Boolean.TRUE, Directories.config.dbBackupEnabled());
+        assertEquals(Boolean.TRUE, Directories.config.dbBackupOnStartup());
+        assertEquals(1440L, Directories.config.dbBackupIntervalMinutes());
+
+        Files.deleteIfExists(configPath);
     }
 
     @Test

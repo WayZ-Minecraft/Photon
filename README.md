@@ -1,0 +1,72 @@
+# Photon
+
+Photon is a Java 21 project built with Gradle. It is a network application for Niwer's Engine.
+Photon provide the official discord bot, database for anti-cheat reports, crash-reports, accounts & much more
+
+## Build
+
+```bash
+./gradlew build
+```
+
+On Windows, use:
+
+```powershell
+.\gradlew.bat build
+```
+
+## Run
+
+The main entry point is `niwer.photon.PhotonEngine`.
+
+## Source
+
+Application code lives under `src/main/java/niwer/photon`.
+
+## Configuration
+
+Photon is configured via a JSON file : `network/config.json`, which contains settings for the network, database, Stripe integration and more.
+
+- **Database backups**
+	- `database_backup_enabled` controls whether the backup system runs at all.
+	- `database_backup_on_startup` controls whether a backup is created during startup.
+	- `database_backup_interval_minutes` controls how often recurring backups run.
+	- `database_backup_directory` controls where backup files are written.
+	- `database_backup_file_prefix` controls the generated backup filename prefix.
+
+## Endpoints
+
+This project exposes several HTTP endpoints for accounts, admin operations, servers and Stripe integration. Below is a concise reference — use the webpanel to inspect or call them.
+
+- **Stripe (Checkout & webhooks)**
+	- In `network/config.json` set `stripe_webhook_signature` to the private signature key from your Stripe dashboard (not the public API key). This is used to verify incoming webhook events from Stripe.
+	- Set `stripe_api_key` in `network/config.json` to enable Stripe checkout session creation.
+	- `POST /stripe/webhook` — Stripe webhook endpoint
+		- Receives events (e.g. `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`).
+		- Also consumes `checkout.session.completed` to complete the purchase-token flow.
+
+- **Database backups**
+	- `database_backup_enabled` controls whether the backup system runs at all.
+	- `database_backup_on_startup` controls whether a backup is created during startup.
+	- `database_backup_interval_minutes` controls how often recurring backups run.
+	- `database_backup_directory` controls where backup files are written.
+	- `database_backup_file_prefix` controls the generated backup filename prefix.
+
+- **Accounts (user-facing)**
+	- `POST /accounts/create_account` — Create account (requires active subscription, or a valid purchase token in the `token` form field).
+	- `POST /accounts/auth_account` — Login, returns `{ token, account }`.
+	- `GET /accounts/me` — Get current user (auth: `X-Photon-User-Token` or `Authorization: Bearer <token>`).
+	- `POST /accounts/change_password` — Change password.
+	- `POST /accounts/update_profile` — Update profile.
+	- `GET /accounts/licenses` — List user licenses.
+	- `POST /accounts/licenses` — Create license (user-initiated).
+	- `POST /accounts/licenses/revoke` — Revoke license.
+
+- **Admin endpoints** (require admin token)
+	- `POST /api/admin/login`, `GET /api/admin/me`, `GET /api/admin/tables`, `GET /api/admin/tables/{table}`,
+		`GET /api/admin/config`, `PUT /api/admin/config`, `POST /api/admin/restart`, `POST /api/admin/updates/upload`.
+
+- **Servers / Reporting**
+	- `POST /api/add-server` — Register/update server (IP must match request remote IP).
+	- `GET /api/server-list` — List servers.
+	- `POST /add-crash-report`, `POST /add-anticheat-report`, `POST /add-hwid` — reporting endpoints.

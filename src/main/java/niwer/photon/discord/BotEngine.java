@@ -15,6 +15,7 @@ import niwer.photon.sql.DiscordLogTable;
 import niwer.photon.sql.DiscordLogTable.ModerationType;
 import niwer.photon.util.PhotonLogTypes;
 import niwer.photon.util.TranslationManager;
+import niwer.photon.util.TestHooks;
 
 import ch.qos.logback.classic.Logger;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -58,6 +59,10 @@ public class BotEngine extends ListenerAdapter {
      * @throws InterruptedException
      */
     public static void load(boolean shouldRestart) throws LoginException, InterruptedException {
+        if (TestHooks.invokeStaticVoid("niwer.photon.discord.BotEngineTest", "load", new Class<?>[] { boolean.class }, shouldRestart)) {
+            return;
+        }
+
         final Logger JDA_LOGGER = (Logger) LoggerFactory.getLogger("net.dv8tion.jda");
         JDA_LOGGER.setLevel(ch.qos.logback.classic.Level.WARN);
         

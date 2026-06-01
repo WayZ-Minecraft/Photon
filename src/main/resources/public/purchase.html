@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" href="./assets/photon_logo.png">
+        <title>Complete your purchase</title>
+        <link rel="stylesheet" href="./main.css">
+    </head>
+    <body>
+        <div id="purchaseLanding" class="panel page-shell" style="max-width:900px;margin:36px auto;padding:24px;">
+            <div style="display:flex;gap:18px;align-items:center;">
+                <img src="./assets/photon_logo.png" alt="Logo" style="width:64px;height:64px;object-fit:contain">
+                <div>
+                    <h1 style="margin:0 0 6px 0">Purchase complete</h1>
+                    <p style="margin:0;color:#555">Thanks — your payment was successful. Create an account to link this subscription to your profile.</p>
+                </div>
+            </div>
+
+            <div style="margin-top:18px;padding:16px;border-radius:8px;background:#fbfbfb;border:1px solid #eee">
+                <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap">
+                    <div style="flex:1;min-width:320px">
+                        <label class="password-field">
+                            <span>Checkout session ID</span>
+                            <div class="password-field-row">
+                                <input id="purchaseTokenVal" type="password" readonly autocomplete="off" spellcheck="false" style="font-family:monospace;">
+                                <button type="button" id="toggleToken" class="secondary password-toggle" aria-label="Show session ID" aria-pressed="false" data-visible="false">
+                                        <i id="toggleTokenShowIcon" class="password-toggle-icon password-toggle-icon-show fas fa-eye" aria-hidden="true"></i>
+                                        <i id="toggleTokenHideIcon" class="password-toggle-icon password-toggle-icon-hide fas fa-eye-slash" aria-hidden="true"></i>
+                                </button>
+                                <button type="button" id="copyToken" class="secondary copy-button" aria-label="Copy session ID" title="Copy session ID">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                        <path fill="currentColor" d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1Zm3 4H10a2 2 0 0 0-2 2v14h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 16H10V7h9v14Z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </label>
+                    </div>
+                    <div style="text-align:right;min-width:180px">
+                        <div id="purchaseEmail" style="color:#444"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:24px;padding:16px;border-radius:12px;background:#fbfbfb;border:1px solid #eee">
+                <div class="modal-tabs" data-purchase-auth-tabs>
+                    <button type="button" class="tab-button active" data-purchase-auth-tab="create">Create account</button>
+                    <button type="button" class="tab-button" data-purchase-auth-tab="login">Login instead</button>
+                </div>
+
+                <form id="createAccountForm" class="stacked-form modal-panel active" data-purchase-auth-panel="create">
+                    <input type="hidden" name="checkoutSessionId" id="purchaseTokenInput" value="">
+                    <div>
+                        <p class="eyebrow">Create account</p>
+                        <h2 style="margin-top:4px">Link this subscription</h2>
+                        <p class="hint">Use the same email or a different one to link it to a new account.</p>
+                    </div>
+                    <label>
+                        <span>Username</span>
+                        <input type="text" name="username" autocomplete="username" placeholder="JoeDalton_" required>
+                    </label>
+                    <label>
+                        <span>Email</span>
+                        <input type="email" name="email" autocomplete="email" placeholder="joe@gmail.com" required>
+                    </label>
+                    <label class="password-field">
+                        <span>Password</span>
+                        <div class="password-field-row">
+                            <input type="password" name="password" autocomplete="new-password" placeholder="$aZf*&my1HJd3" required>
+                            <button type="button" class="secondary password-toggle" data-password-toggle data-target="password" aria-label="Show password" aria-pressed="false" data-visible="false">
+                                <i class="password-toggle-icon password-toggle-icon-show fas fa-eye" aria-hidden="true"></i>
+                                <i class="password-toggle-icon password-toggle-icon-hide fas fa-eye-slash" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </label>
+                    <p id="createAccountPasswordMeter" class="hint form-feedback password-strength" aria-live="polite">Password strength: empty</p>
+                    <label class="password-field">
+                        <span>Confirm password</span>
+                        <div class="password-field-row">
+                            <input type="password" name="confirmPassword" autocomplete="new-password" placeholder="Repeat your password" required>
+                            <button type="button" class="secondary password-toggle" data-password-toggle data-target="confirmPassword" aria-label="Show password" aria-pressed="false" data-visible="false">
+                                <i class="password-toggle-icon password-toggle-icon-show fas fa-eye" aria-hidden="true"></i>
+                                <i class="password-toggle-icon password-toggle-icon-hide fas fa-eye-slash" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </label>
+                    <p id="createAccountFeedback" class="hint form-feedback" aria-live="polite"></p>
+                    <div class="button-row">
+                        <button type="submit" class="primary">Create account</button>
+                    </div>
+                </form>
+
+                <form id="loginForm" class="stacked-form modal-panel" data-purchase-auth-panel="login">
+                    <div>
+                        <p class="eyebrow">Login</p>
+                        <h2 style="margin-top:4px">Sign in to your account</h2>
+                        <p class="hint">Use this if you already have an account and want to link it to this purchase.</p>
+                    </div>
+                    <label>
+                        <span>Email</span>
+                        <input type="email" name="email" autocomplete="email" placeholder="joe@gmail.com" required>
+                    </label>
+                    <label class="password-field">
+                        <span>Password</span>
+                        <div class="password-field-row">
+                            <input type="password" name="password" autocomplete="current-password" placeholder="Your password" required>
+                            <button type="button" class="secondary password-toggle" data-password-toggle data-target="password" aria-label="Show password" aria-pressed="false" data-visible="false">
+                                <svg class="password-toggle-icon password-toggle-icon-show" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Zm10 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" fill="currentColor"></path>
+                                </svg>
+                                <svg class="password-toggle-icon password-toggle-icon-hide" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path d="M3.5 4.5 19.5 20.5l1.4-1.4-2.7-2.7C21 15 22 12 22 12s-3.5-7-10-7c-1.5 0-2.9.3-4.1.8L4.9 3.1 3.5 4.5ZM9 10l1.6 1.6A2 2 0 0 1 12 10a2 2 0 0 1 2 2c0 .4-.1.7-.3 1l1.6 1.6A4 4 0 0 0 9 10Zm3 8c6.5 0 10-7 10-7s-1-2-3.2-4.1l-2.1 2.1c.8.9 1.3 1.8 1.6 2.4-1.1 2-3.6 5-6.3 5-.7 0-1.4-.1-2-.3l-1.8 1.8c1.2.4 2.5.6 3.8.6Zm-8.2-2.9 2.1-2.1C4.8 12.1 4 12 4 12s3.5-7 10-7c.9 0 1.8.1 2.6.3l1.8-1.8C16.9 3.6 14.6 3 12 3 5.5 3 2 12 2 12s1 2 3.2 4.1Z" fill="currentColor"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </label>
+                    <p id="loginFeedback" class="hint form-feedback" aria-live="polite"></p>
+                    <div class="button-row">
+                        <button type="submit" class="primary">Login</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            (function(){
+                const params = new URLSearchParams(window.location.search);
+                const checkoutSessionId = params.get('token') || params.get('checkout_session_id') || '';
+                const email = params.get('email') || '';
+                const tokenEl = document.getElementById('purchaseTokenVal');
+                const tokenInput = document.getElementById('purchaseTokenInput');
+                const emailEl = document.getElementById('purchaseEmail');
+                const copyBtn = document.getElementById('copyToken');
+                const createForm = document.getElementById('createAccountForm');
+                const loginForm = document.getElementById('loginForm');
+                const createFeedback = document.getElementById('createAccountFeedback');
+                const loginFeedback = document.getElementById('loginFeedback');
+                const createPasswordMeter = document.getElementById('createAccountPasswordMeter');
+                const toggleBtn = document.getElementById('toggleToken');
+                const toggleShowIcon = document.getElementById('toggleTokenShowIcon');
+                const toggleHideIcon = document.getElementById('toggleTokenHideIcon');
+                const authTabs = Array.from(document.querySelectorAll('[data-purchase-auth-tab]'));
+                const authPanels = Array.from(document.querySelectorAll('[data-purchase-auth-panel]'));
+
+                if (tokenEl) tokenEl.value = checkoutSessionId || '';
+                if (tokenInput) tokenInput.value = checkoutSessionId || '';
+                if (emailEl) emailEl.textContent = email ? ('Email: ' + email) : '';
+
+                const syncPurchaseSession = checkoutSessionId ? fetch('/stripe/purchase_session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                    body: new URLSearchParams({ checkoutSessionId }),
+                }).catch(() => null) : Promise.resolve(null);
+
+                const setActiveAuthPanel = (panelName) => {
+                    authTabs.forEach((tab) => tab.classList.toggle('active', tab.dataset.purchaseAuthTab === panelName));
+                    authPanels.forEach((panel) => panel.classList.toggle('active', panel.dataset.purchaseAuthPanel === panelName));
+                };
+
+                authTabs.forEach((tab) => {
+                    tab.addEventListener('click', () => setActiveAuthPanel(tab.dataset.purchaseAuthTab || 'create'));
+                });
+
+                setActiveAuthPanel('create');
+
+                const updatePasswordMeter = () => {
+                    if (!createForm || !createPasswordMeter) return;
+                    const password = createForm.querySelector('[name="password"]')?.value || '';
+                    const strength = password.length === 0 ? 0 : password.length < 6 ? 1 : password.length < 10 ? 2 : password.length < 14 ? 3 : password.length < 18 ? 4 : 5;
+                    const strengthLabel = ['empty', 'weak', 'fair', 'good', 'strong', 'excellent'][strength];
+                    createPasswordMeter.dataset.strength = String(strength);
+                    createPasswordMeter.textContent = 'Password strength: ' + strengthLabel;
+                };
+
+                const updateFeedback = () => {
+                    if (!createForm || !createFeedback) return true;
+                    const password = createForm.querySelector('[name="password"]')?.value || '';
+                    const confirmPassword = createForm.querySelector('[name="confirmPassword"]')?.value || '';
+                    const hasMismatch = password.length > 0 && confirmPassword.length > 0 && password !== confirmPassword;
+                    createFeedback.textContent = hasMismatch ? 'Passwords do not match.' : '';
+                    createFeedback.dataset.state = hasMismatch ? 'error' : 'idle';
+                    return !hasMismatch;
+                };
+
+                createForm?.querySelectorAll('[name="password"], [name="confirmPassword"]').forEach((input) => {
+                    input.addEventListener('input', () => {
+                        updatePasswordMeter();
+                        updateFeedback();
+                    });
+                });
+
+                updatePasswordMeter();
+                updateFeedback();
+
+                createForm?.querySelectorAll('[data-password-toggle]').forEach((button) => {
+                    button.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const targetName = button.dataset.target;
+                        const input = createForm.querySelector('[name="' + targetName + '"]');
+                        if (!(input instanceof HTMLInputElement)) return;
+                        const isVisible = input.type === 'text';
+                        input.type = isVisible ? 'password' : 'text';
+                        button.dataset.visible = isVisible ? 'false' : 'true';
+                        button.setAttribute('aria-pressed', String(!isVisible));
+                        button.setAttribute('aria-label', isVisible ? 'Show password' : 'Hide password');
+                    });
+                });
+
+                createForm?.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    if (!updateFeedback()) return;
+
+                    try {
+                        await syncPurchaseSession;
+                        const formData = new FormData(createForm);
+                        const body = new URLSearchParams();
+                        body.set('username', String(formData.get('username') || '').trim());
+                        body.set('email', String(formData.get('email') || '').trim());
+                        body.set('password', String(formData.get('password') || ''));
+
+                        const purchaseSessionId = String(formData.get('checkoutSessionId') || checkoutSessionId || '').trim();
+                        if (purchaseSessionId) {
+                            body.set('checkoutSessionId', purchaseSessionId);
+                            body.set('token', purchaseSessionId);
+                        }
+
+                        if (createFeedback) {
+                            createFeedback.textContent = '';
+                            createFeedback.dataset.state = 'idle';
+                        }
+
+                        const response = await fetch('/accounts/create_account', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                            body,
+                        });
+
+                        const contentType = response.headers.get('content-type') || '';
+                        const payload = contentType.includes('application/json') ? await response.json() : await response.text();
+                        if (!response.ok) throw new Error(typeof payload === 'string' ? payload : 'Account creation failed');
+
+                        localStorage.setItem('photon-user-token', payload.token || '');
+                        localStorage.setItem('photon-account', JSON.stringify(payload.account || payload));
+                        window.location.href = './#user';
+                    } catch (error) {
+                        if (createFeedback) {
+                            createFeedback.textContent = error.message || 'Account creation failed';
+                            createFeedback.dataset.state = 'error';
+                        }
+                    }
+                });
+
+                loginForm?.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+
+                    try {
+                        const formData = new FormData(loginForm);
+                        const body = new URLSearchParams();
+                        body.set('email', String(formData.get('email') || '').trim());
+                        body.set('password', String(formData.get('password') || ''));
+
+                        if (loginFeedback) {
+                            loginFeedback.textContent = '';
+                            loginFeedback.dataset.state = 'idle';
+                        }
+
+                        const headers = { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' };
+                        const adminResponse = await fetch('/api/admin/login', { method: 'POST', headers, body, credentials: 'same-origin' });
+
+                        if (adminResponse.ok) {
+                            const adminPayload = await adminResponse.json();
+                            // Using cookie-based admin session: do not store token in localStorage
+                            localStorage.setItem('photon-account', JSON.stringify(adminPayload.account || {}));
+                            window.location.href = './';
+                            return;
+                        }
+
+                        const publicResponse = await fetch('/accounts/auth_account', { method: 'POST', headers, body });
+                        const contentType = publicResponse.headers.get('content-type') || '';
+                        const payload = contentType.includes('application/json') ? await publicResponse.json() : await publicResponse.text();
+                        if (!publicResponse.ok) throw new Error(typeof payload === 'string' ? payload : 'Login failed');
+
+                        localStorage.removeItem('photon-admin-token');
+                        localStorage.setItem('photon-user-token', payload.token || '');
+                        localStorage.setItem('photon-account', JSON.stringify(payload.account || payload));
+                        window.location.href = './#user';
+                    } catch (error) {
+                        if (loginFeedback) {
+                            loginFeedback.textContent = error.message || 'Login failed';
+                            loginFeedback.dataset.state = 'error';
+                        }
+                    }
+                });
+
+                if (copyBtn) {
+                    copyBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        if (!checkoutSessionId) return;
+                        navigator.clipboard?.writeText(checkoutSessionId).then(() => {
+                            const previousLabel = copyBtn.getAttribute('aria-label') || 'Copy session ID';
+                            copyBtn.setAttribute('aria-label', 'Copied');
+                            setTimeout(() => copyBtn.setAttribute('aria-label', previousLabel), 2000);
+                        }).catch(() => {
+                            alert('Copy failed — session ID: ' + checkoutSessionId);
+                        });
+                    });
+                }
+
+                if (toggleBtn && tokenEl) {
+                    toggleBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const shouldShow = tokenEl.type === 'password';
+                        tokenEl.type = shouldShow ? 'text' : 'password';
+                        toggleBtn.dataset.visible = shouldShow ? 'true' : 'false';
+                        toggleBtn.setAttribute('aria-pressed', String(shouldShow));
+                        toggleBtn.setAttribute('aria-label', shouldShow ? 'Hide token' : 'Show token');
+                        if (toggleShowIcon) toggleShowIcon.style.display = shouldShow ? 'none' : '';
+                        if (toggleHideIcon) toggleHideIcon.style.display = shouldShow ? '' : 'none';
+                    });
+                }
+            })();
+        </script>
+    </body>
+</html>

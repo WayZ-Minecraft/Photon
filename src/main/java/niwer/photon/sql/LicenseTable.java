@@ -1,6 +1,7 @@
 package niwer.photon.sql;
 
 import java.util.Date;
+import java.util.List;
 
 import niwer.photon.PhotonEngine;
 import niwer.photon.objects.ObjectLicense;
@@ -35,10 +36,10 @@ public class LicenseTable extends Table {
 		this.addColumns(
 			createColumn(db, "license_key", EnumColumnTypes.TEXT).primaryKey(),
 			createColumn(db, "product_id", EnumColumnTypes.TEXT).notNull(),
-			createColumn(db, "customer_name", EnumColumnTypes.TEXT),
+			createColumn(db, "name", EnumColumnTypes.TEXT),
 			createColumn(db, "customer_email", EnumColumnTypes.TEXT),
-			createColumn(db, "tebex_order_id", EnumColumnTypes.TEXT).unique(),
 			createColumn(db, "hwid", EnumColumnTypes.TEXT),
+			createColumn(db, "creator_uuid", EnumColumnTypes.TEXT),
 			createColumn(db, "status", EnumColumnTypes.TEXT).notNull().defaultValue(LicenseStatus.ISSUED.name()),
 			createColumn(db, "created_at", EnumColumnTypes.DATE_TIME).defaultValue("CURRENT_TIMESTAMP"),
 			createColumn(db, "activated_at", EnumColumnTypes.DATE_TIME),
@@ -50,9 +51,10 @@ public class LicenseTable extends Table {
 
 	public static String normalizeKey(String licenseKey) { return licenseKey == null ? null : licenseKey.trim().toUpperCase(); }
 
-	public static ObjectLicense issueLicense(String licenseKey, String productId, String customerName, String customerEmail, String tebexOrderId, Date expiresAt) {
-		InsertionManager.insert(PhotonEngine.DATA_BASE, LicenseTable.class, "license_key", "product_id", "customer_name", "customer_email", "tebex_order_id", "status", "expires_at")
-			.row(normalizeKey(licenseKey), productId, customerName, customerEmail, tebexOrderId, LicenseStatus.ISSUED.name(), expiresAt)
+	public static ObjectLicense issueLicense(String licenseKey, String productId, String name, String customerEmail, String creatorUuid, Date expiresAt) {
+		final Date createdAt = new Date();
+		InsertionManager.insert(PhotonEngine.DATA_BASE, LicenseTable.class, "license_key", "product_id", "name", "customer_email", "creator_uuid", "status", "created_at", "expires_at")
+			.row(normalizeKey(licenseKey), productId, name, customerEmail, creatorUuid, LicenseStatus.ISSUED.name(), createdAt, expiresAt)
 			.execute();
 
 		return getByKey(licenseKey);
@@ -60,18 +62,30 @@ public class LicenseTable extends Table {
 
 	public static ObjectLicense getByKey(String licenseKey) {
 		if (licenseKey == null || licenseKey.isBlank()) return null;
+		normalizeLegacyTimestampRows();
 		return SelectionManager.select(PhotonEngine.DATA_BASE, LicenseTable.class)
 			.where(Expression.of("license_key").isEqualTo(normalizeKey(licenseKey)))
 			.limit(1)
 			.executeSerializable(ObjectLicense.class);
 	}
 
-	public static ObjectLicense getByTebexOrderId(String tebexOrderId) {
-		if (tebexOrderId == null || tebexOrderId.isBlank()) return null;
+    
+
+	public static List<ObjectLicense> getByCustomerEmail(String customerEmail) {
+		if (customerEmail == null || customerEmail.isBlank()) return List.of();
+		normalizeLegacyTimestampRows();
+		final String normalizedEmail = customerEmail.trim().toLowerCase();
 		return SelectionManager.select(PhotonEngine.DATA_BASE, LicenseTable.class)
-			.where(Expression.of("tebex_order_id").isEqualTo(tebexOrderId))
-			.limit(1)
-			.executeSerializable(ObjectLicense.class);
+			.where(Expression.of("LOWER(customer_email)").isEqualTo(normalizedEmail))
+			.executeList(ObjectLicense.class);
+	}
+
+	public static List<ObjectLicense> getByCreatorUuid(String creatorUuid) {
+		if (creatorUuid == null || creatorUuid.isBlank()) return List.of();
+		normalizeLegacyTimestampRows();
+		return SelectionManager.select(PhotonEngine.DATA_BASE, LicenseTable.class)
+			.where(Expression.of("creator_uuid").isEqualTo(creatorUuid))
+			.executeList(ObjectLicense.class);
 	}
 
 	public static boolean exists(String licenseKey) { return getByKey(licenseKey) != null; }
@@ -104,5 +118,25 @@ public class LicenseTable extends Table {
             Console.log("Failed to revoke license key '" + licenseKey + "': " + e.getMessage()).type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
             return false;
         }
+	}
+
+	private static void normalizeLegacyTimestampRows() {
+		try {
+			final Date now = new Date();
+			UpdateManager.update(PhotonEngine.DATA_BASE, LicenseTable.class)
+				.set("created_at", now)
+				.where(Expression.of("created_at").isEqualTo("CURRENT_TIMESTAMP"))
+				.execute();
+			UpdateManager.update(PhotonEngine.DATA_BASE, LicenseTable.class)
+				.set("activated_at", now)
+				.where(Expression.of("activated_at").isEqualTo("CURRENT_TIMESTAMP"))
+				.execute();
+			UpdateManager.update(PhotonEngine.DATA_BASE, LicenseTable.class)
+				.set("expires_at", now)
+				.where(Expression.of("expires_at").isEqualTo("CURRENT_TIMESTAMP"))
+				.execute();
+		} catch (QueryonException e) {
+			Console.log("Failed to normalize legacy license timestamps: " + e.getMessage()).type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
+		}
 	}
 }

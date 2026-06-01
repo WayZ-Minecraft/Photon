@@ -10,6 +10,8 @@ import niwer.photon.web.endpoints.AddCrashReportEndpoint;
 import niwer.photon.web.endpoints.AddHWIDEndpoint;
 import niwer.photon.web.endpoints.HomeEndpoint;
 import niwer.photon.web.endpoints.IEndpoint;
+import niwer.photon.web.endpoints.LicenseValidateGetEndpoint;
+import niwer.photon.web.endpoints.LicenseValidateEndpoint;
 import niwer.photon.web.endpoints.NetworkConfigEndpoint;
 import niwer.photon.web.endpoints.StatusServersEndpoint;
 import niwer.photon.web.endpoints.accounts.AccountLicenseCreateEndpoint;
@@ -62,6 +64,8 @@ public class WebServerEngine {
             IEndpoint.register(cfg, AddCrashReportEndpoint.class);
             IEndpoint.register(cfg, AddAntiCheatReportEndpoint.class);
             IEndpoint.register(cfg, AddHWIDEndpoint.class);
+            IEndpoint.register(cfg, LicenseValidateGetEndpoint.class);
+            IEndpoint.register(cfg, LicenseValidateEndpoint.class);
             IEndpoint.register(cfg, AdminUpdateEndpoint.class);
             {
                 /* Admin panel */

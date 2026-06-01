@@ -69,7 +69,6 @@ jar {
 shadowJar {
 	minimize()
    	configurations = [project.configurations.shadow]
-	archiveFileName = "network.jar"
 	archiveClassifier.set('')
 }
 tasks.build.dependsOn shadowJar

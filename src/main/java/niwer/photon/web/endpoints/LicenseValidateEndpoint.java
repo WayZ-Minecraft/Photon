@@ -13,7 +13,7 @@ import niwer.photon.util.license.LicenseValidationResult;
 
 public class LicenseValidateEndpoint implements IEndpoint {
 
-    @Override public String path() { return "/api/licenses/validate"; }
+    @Override public String path() { return "/licenses/validate"; }
 
     @Override public HttpMethod method() { return HttpMethod.POST; }
 
@@ -37,20 +37,21 @@ public class LicenseValidateEndpoint implements IEndpoint {
         }
 
         final String hardwareId = getString(handler, body, "hardware_id", "hardwareId", "hwid");
-        final String publicKey = getString(handler, body, "public_key", "publicKey");
+        if (hardwareId == null || hardwareId.isBlank()) {
+            handler.status(400).result("Missing hwid");
+            return;
+        }
 
-        final LicenseValidationResult result = LicenseManager.validate(licenseKey, publicKey, expectedProductId, hardwareId);
-
+        final LicenseValidationResult result = LicenseManager.validateLicense(licenseKey, expectedProductId, hardwareId);
         final Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("valid", result.valid());
-        payload.put("canLaunch", result.valid());
         payload.put("reason", result.reason() == null ? null : result.reason().name());
         payload.put("message", result.message());
         payload.put("claims", toClaimsPayload(result.claims()));
 
         handler.status(200).json(payload);
     }
-
+    
     private static Map<String, Object> parseBody(String rawBody) {
         try {
             if (rawBody == null || rawBody.isBlank()) return Map.of();

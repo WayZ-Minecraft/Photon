@@ -12,7 +12,7 @@ import io.javalin.http.Context;
  */
 public class AddServerEndpoint implements IEndpoint {
 
-    @Override public String path() { return "/api/add-server"; }
+    @Override public String path() { return "/servers/add-server"; }
 
     @Override public HttpMethod method() { return HttpMethod.POST; }
 
@@ -31,11 +31,11 @@ public class AddServerEndpoint implements IEndpoint {
             return;
         }
 
-        final String remoteIp = handler.ip();
-        if (server.serverIP == null || server.serverIP.isBlank() || !server.serverIP.equals(remoteIp)) {
-            handler.status(403).result("Server IP mismatch");
-            return;
-        }
+        // final String remoteIp = handler.ip();
+        // if (server.serverIP == null || server.serverIP.isBlank() || !server.serverIP.equals(remoteIp)) {
+        //     handler.status(403).result(String.format("Server IP mismatch (Sender: %s isn't equal to server: %s)", handler.ip(), server.serverIP));
+        //     return;
+        // }
 
         if (server.serverPort <= 0 || server.serverPort > 65535) {
             handler.status(400).result("Invalid server port");

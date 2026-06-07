@@ -23,7 +23,7 @@ public class ServerTable extends Table {
     public ServerTable(DataBase db) {
         super(db);
 
-       this.addColumnsFromClass(ObjectServer.class)
+        this.addColumnsFromClass(ObjectServer.class)
             .execute();
     }
 
@@ -32,10 +32,6 @@ public class ServerTable extends Table {
     public static void saveOrUpdate(ObjectServer server) {
         if (server == null || server.serverIP == null || server.serverIP.isBlank()) return;
         if (server.serverPort <= 0) return;
-
-        if (TestHooks.invokeStaticVoid("niwer.photon.sql.tables.ServerTableTest", "saveOrUpdate", new Class<?>[] { ObjectServer.class }, server)) {
-            return;
-        }
 
         final Date now = new Date();
         if (exists(server.serverIP, server.serverPort)) {
@@ -51,7 +47,7 @@ public class ServerTable extends Table {
                 .execute();
         } else {
             InsertionManager.insert(PhotonEngine.DATA_BASE, ServerTable.class, 
-                "serverName", "serverMOTD", "serverIP", "serverPort", "queuePort", "last_seen_at", "site_url", "discord")
+                "server_name", "server_motd", "server_ip", "server_port", "queue_port", "last_seen_at", "site_url", "discord")
                 .row(server.serverName, server.serverMOTD, server.serverIP, server.serverPort, server.queuePort, now, server.site, server.discord)
                 .execute();
         }
@@ -115,8 +111,12 @@ public class ServerTable extends Table {
     private static boolean exists(String serverIP, int serverPort) {
         try {
             return SelectionManager.select(PhotonEngine.DATA_BASE, ServerTable.class, "COUNT(*) as count")
-                .where(Expression.of("server_ip").isEqualTo(serverIP))
-                .where(Expression.of("server_port").isEqualTo(serverPort))
+                .where(
+                    Expression.of("server_ip").isEqualTo(serverIP)
+                    .and(
+                        Expression.of("server_port").isEqualTo(serverPort)
+                    )
+                )
                 .executeHasResult();
         } catch (Exception e) {
             return false;

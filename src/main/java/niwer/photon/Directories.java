@@ -4,9 +4,11 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Base64;
 import java.util.Map;
 
@@ -18,6 +20,7 @@ import com.google.gson.annotations.SerializedName;
 
 import niwer.lumen.Console;
 import niwer.photon.util.PhotonLogTypes;
+import niwer.photon.util.os.OperatingSystem;
 import niwer.photon.util.updater.UpdateChannel;
 import niwer.photon.util.updater.UpdateFileType;
 
@@ -74,6 +77,13 @@ public class Directories
 	
 	public static String getOfficialLogoBase64() {
 		try {
+			if(!LOGO_FILE.exists()) { // If there is no logo, then try to "download" the official one from the jar
+				try(final InputStream STREAM = OperatingSystem.loadFile("photon_logo.png"); final FileOutputStream FOS = new FileOutputStream(LOGO_FILE)) {
+					final BufferedImage IMAGE = ImageIO.read(STREAM); // Read from stream
+					ImageIO.write(IMAGE, "png", FOS); // Write to file
+				}
+			}
+
 			/* Try to read the official logo file */
 			final BufferedImage IMAGE = ImageIO.read(LOGO_FILE);
 			if (IMAGE == null) {

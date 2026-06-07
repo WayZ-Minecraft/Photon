@@ -5,15 +5,10 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 import io.javalin.Javalin;
 import niwer.photon.Directories;
-import niwer.photon.web.endpoints.AddAntiCheatReportEndpoint;
-import niwer.photon.web.endpoints.AddCrashReportEndpoint;
-import niwer.photon.web.endpoints.AddHWIDEndpoint;
+import niwer.photon.util.TestHooks;
 import niwer.photon.web.endpoints.HomeEndpoint;
 import niwer.photon.web.endpoints.IEndpoint;
-import niwer.photon.web.endpoints.LicenseValidateGetEndpoint;
 import niwer.photon.web.endpoints.LicenseValidateEndpoint;
-import niwer.photon.web.endpoints.NetworkConfigEndpoint;
-import niwer.photon.web.endpoints.StatusServersEndpoint;
 import niwer.photon.web.endpoints.accounts.AccountLicenseCreateEndpoint;
 import niwer.photon.web.endpoints.accounts.AccountLicenseListEndpoint;
 import niwer.photon.web.endpoints.accounts.AccountLicenseRevokeEndpoint;
@@ -31,11 +26,15 @@ import niwer.photon.web.endpoints.admin.AdminTablesEndpoint;
 import niwer.photon.web.endpoints.admin.AdminUpdateConfigEndpoint;
 import niwer.photon.web.endpoints.admin.AdminUpdateEndpoint;
 import niwer.photon.web.endpoints.admin.AdminUploadUpdateEndpoint;
+import niwer.photon.web.endpoints.game.AddAntiCheatReportEndpoint;
+import niwer.photon.web.endpoints.game.AddCrashReportEndpoint;
+import niwer.photon.web.endpoints.game.AddHWIDEndpoint;
+import niwer.photon.web.endpoints.game.NetworkConfigEndpoint;
 import niwer.photon.web.endpoints.servers.AddServerEndpoint;
 import niwer.photon.web.endpoints.servers.ServerListEndpoint;
+import niwer.photon.web.endpoints.servers.StatusServersEndpoint;
 import niwer.photon.web.endpoints.stripe.StripePurchaseSessionEndpoint;
 import niwer.photon.web.endpoints.stripe.StripeWebhookEndpoint;
-import niwer.photon.util.TestHooks;
 
 public class WebServerEngine {
 
@@ -69,7 +68,6 @@ public class WebServerEngine {
             IEndpoint.register(cfg, AddCrashReportEndpoint.class);
             IEndpoint.register(cfg, AddAntiCheatReportEndpoint.class);
             IEndpoint.register(cfg, AddHWIDEndpoint.class);
-            IEndpoint.register(cfg, LicenseValidateGetEndpoint.class);
             IEndpoint.register(cfg, LicenseValidateEndpoint.class);
             IEndpoint.register(cfg, AdminUpdateEndpoint.class);
             {

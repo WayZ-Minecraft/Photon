@@ -6,6 +6,7 @@ import java.util.Map;
 import com.google.gson.JsonObject;
 
 import io.javalin.http.Context;
+import niwer.lumen.Console;
 import niwer.photon.Directories;
 import niwer.photon.objects.ObjectLicense;
 import niwer.photon.sql.SubscriptionTable;
@@ -35,6 +36,7 @@ public class AccountLicenseCreateEndpoint implements IEndpoint {
         final Long expiresAt = getLong(body, "expires_at", "expiresAt", null);
 
         final Long computedExpiresAt = expiresAt != null ? expiresAt : (durationDays == null || durationDays <= 0L ? null : System.currentTimeMillis() + (durationDays * 86400000L));
+        Console.log("hey " + computedExpiresAt).send();
         final ObjectLicense license = LicenseManager.issueLicense(productId, name, account.getEmail(), account.getUuid(), computedExpiresAt);
         handler.status(200).json(toPayload(license));
     }

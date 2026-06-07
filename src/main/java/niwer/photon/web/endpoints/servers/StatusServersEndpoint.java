@@ -1,7 +1,8 @@
-package niwer.photon.web.endpoints;
+package niwer.photon.web.endpoints.servers;
 
 import io.javalin.http.Context;
 import niwer.photon.sql.ServerTable;
+import niwer.photon.web.endpoints.IEndpoint;
 
 public class StatusServersEndpoint implements IEndpoint {
 

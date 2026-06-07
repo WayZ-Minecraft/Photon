@@ -1,18 +1,8 @@
 package niwer.photon.util.license;
 
-import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
-import java.security.PublicKey;
-import java.security.Signature;
-import java.security.spec.X509EncodedKeySpec;
-import java.time.Instant;
-import java.util.Base64;
 import java.util.Date;
 import java.util.concurrent.ThreadLocalRandom;
 
-import com.google.gson.JsonSyntaxException;
-
-import niwer.photon.Directories;
 import niwer.photon.objects.ObjectLicense;
 import niwer.photon.sql.LicenseTable;
 import niwer.photon.sql.SubscriptionTable;
@@ -25,57 +15,9 @@ import niwer.photon.util.os.OperatingSystem;
  */
 public final class LicenseManager {
 
-	private static final String LICENSE_SIGNATURE_ALGORITHM = "SHA256withRSA";
 	private static final char[] LICENSE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".toCharArray();
 
 	private LicenseManager() {}
-    
-    /**
-     * Check if the given license key is valid for the expected product id, using the provided public key for signature verification.
-     * 
-     * @param licenseKey
-     * @param publicKeyValue
-     * @param expectedProductId
-     * @return a LicenseValidationResult containing the validation result and claims if valid, or failure reason if invalid
-     */
-	public static LicenseValidationResult validate(final String licenseKey, final String publicKeyValue, final String expectedProductId) {
-		return validate(licenseKey, publicKeyValue, expectedProductId, null);
-	}
-
-	public static LicenseValidationResult validate(final String licenseKey, final String publicKeyValue, final String expectedProductId, final String hardwareId) {
-		if (licenseKey == null || licenseKey.isBlank()) return LicenseValidationResult.invalid(LicenseFailureReason.MISSING_LICENSE_KEY, "Missing license key in network/config.json");
-		if (!licenseKey.contains(".")) return validateDatabaseLicense(licenseKey, expectedProductId, hardwareId);
-		if (publicKeyValue == null || publicKeyValue.isBlank()) return LicenseValidationResult.invalid(LicenseFailureReason.MISSING_PUBLIC_KEY, "Missing license public key in network/config.json");
-
-		final String[] PARTS = licenseKey.trim().split("\\.");
-		if (PARTS.length != 2) return LicenseValidationResult.invalid(LicenseFailureReason.INVALID_TOKEN_FORMAT, "License key must use the format payload.signature");
-		try {
-			final byte[] PAYLOAD_BYTES = Base64.getUrlDecoder().decode(PARTS[0]);
-			final byte[] SIGNATURE_BYTES = Base64.getUrlDecoder().decode(PARTS[1]);
-			final LicenseClaims CLAIMS = Directories.GSON.fromJson(new String(PAYLOAD_BYTES, StandardCharsets.UTF_8), LicenseClaims.class);
-
-            /* Ensure the license claims are valid */
-			if (CLAIMS == null) return LicenseValidationResult.invalid(LicenseFailureReason.INVALID_PAYLOAD, "License payload could not be parsed");
-			if (CLAIMS.product_id() == null || !CLAIMS.product_id().equals(expectedProductId)) return LicenseValidationResult.invalid(LicenseFailureReason.PRODUCT_MISMATCH, "License is not valid for product '" + expectedProductId + "'");
-			if (CLAIMS.expires_at() != null && CLAIMS.expires_at() > 0L && Instant.ofEpochMilli(CLAIMS.expires_at()).isBefore(Instant.now())) return LicenseValidationResult.invalid(LicenseFailureReason.EXPIRED, "License key has expired");
-			final String effectiveHardwareId = (hardwareId != null && !hardwareId.isBlank()) ? hardwareId : OperatingSystem.getHWID();
-			if (CLAIMS.hardware_id() != null && !CLAIMS.hardware_id().isBlank()) {
-				if (effectiveHardwareId == null || effectiveHardwareId.isBlank() || !CLAIMS.hardware_id().equalsIgnoreCase(effectiveHardwareId)) return LicenseValidationResult.invalid(LicenseFailureReason.HARDWARE_MISMATCH, "License key is bound to another machine");
-			}
-
-            /* Verify the signature */
-			final Signature VERIFIER = Signature.getInstance(LICENSE_SIGNATURE_ALGORITHM);
-			VERIFIER.initVerify(loadPublicKey(publicKeyValue));
-			VERIFIER.update(PAYLOAD_BYTES);
-			if (!VERIFIER.verify(SIGNATURE_BYTES)) return LicenseValidationResult.invalid(LicenseFailureReason.INVALID_SIGNATURE, "License signature is invalid");
-
-			return LicenseValidationResult.valid(CLAIMS);
-		} catch (JsonSyntaxException e) {
-			return LicenseValidationResult.invalid(LicenseFailureReason.INVALID_PAYLOAD, "License payload JSON is invalid");
-		} catch (Exception e) {
-			return LicenseValidationResult.invalid(LicenseFailureReason.UNEXPECTED_ERROR, "License validation failed: " + e.getMessage());
-		}
-	}
 
     /**
      * Generate a new random license key using the format "XXXXX-XXXXX-XXXXX-XXXXX" where X is an uppercase letter or digit, excluding confusing characters.
@@ -108,7 +50,15 @@ public final class LicenseManager {
 		return LicenseTable.issueLicense(licenseKey, productId, name, customerEmail, creatorUuid, expiresAt);
 	}
 
-	private static LicenseValidationResult validateDatabaseLicense(final String licenseKey, final String expectedProductId, final String hardwareId) {
+	/**
+     * Check if the given license key is valid for the expected product id, using the provided public key for signature verification.
+     * 
+     * @param licenseKey
+     * @param publicKeyValue
+     * @param expectedProductId
+     * @return a LicenseValidationResult containing the validation result and claims if valid, or failure reason if invalid
+     */
+	public static LicenseValidationResult validateLicense(final String licenseKey, final String expectedProductId, final String hardwareId) {
 		final String normalizedKey = LicenseTable.normalizeKey(licenseKey);
 		final ObjectLicense license = LicenseTable.getByKey(normalizedKey);
 		if (license == null) return LicenseValidationResult.invalid(LicenseFailureReason.MISSING_LICENSE_KEY, "License key was not found in the Photon license database");
@@ -138,14 +88,4 @@ public final class LicenseManager {
 			license.expiresAt() == null ? null : license.expiresAt().getTime()
 		));
 	}
-
-	private static PublicKey loadPublicKey(final String publicKeyValue) throws Exception {
-		final String normalized = publicKeyValue
-			.replace("-----BEGIN PUBLIC KEY-----", "")
-			.replace("-----END PUBLIC KEY-----", "")
-			.replaceAll("\\s", "");
-
-		final byte[] encoded = Base64.getDecoder().decode(normalized);
-		return KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(encoded));
-    }
 }

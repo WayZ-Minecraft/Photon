@@ -7,7 +7,7 @@ import io.javalin.http.Context;
 
 public class ServerListEndpoint implements IEndpoint {
 
-    @Override public String path() { return "/api/server-list"; }
+    @Override public String path() { return "/servers/server-list"; }
 
     @Override public HttpMethod method() { return HttpMethod.GET; }
 

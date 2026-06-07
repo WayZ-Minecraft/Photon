@@ -1,14 +1,14 @@
-package niwer.photon.web.endpoints;
-
-import niwer.photon.Directories;
-import niwer.photon.PhotonEngine;
-import niwer.photon.Directories.NetworkConfig;
+package niwer.photon.web.endpoints.game;
 
 import io.javalin.http.Context;
+import niwer.photon.Directories;
+import niwer.photon.Directories.NetworkConfig;
+import niwer.photon.PhotonEngine;
+import niwer.photon.web.endpoints.IEndpoint;
 
 public class NetworkConfigEndpoint implements IEndpoint {
 
-    @Override public String path() { return "/api/network-config"; }
+    @Override public String path() { return "/game/config"; }
 
     @Override public HttpMethod method() { return HttpMethod.GET; }
 

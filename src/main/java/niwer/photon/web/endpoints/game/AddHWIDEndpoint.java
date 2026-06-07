@@ -1,15 +1,15 @@
-package niwer.photon.web.endpoints;
-
-import niwer.photon.PhotonEngine;
-import niwer.photon.sql.HWIDTable;
-import niwer.photon.util.PhotonLogTypes;
+package niwer.photon.web.endpoints.game;
 
 import io.javalin.http.Context;
 import niwer.lumen.Console;
+import niwer.photon.PhotonEngine;
+import niwer.photon.sql.HWIDTable;
+import niwer.photon.util.PhotonLogTypes;
+import niwer.photon.web.endpoints.IEndpoint;
 
 public class AddHWIDEndpoint implements IEndpoint {
 
-    @Override public String path() { return "/add-hwid"; }
+    @Override public String path() { return "/game/add-hwid"; }
 
     @Override public HttpMethod method() { return HttpMethod.POST; }
 

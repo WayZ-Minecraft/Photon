@@ -100,8 +100,4 @@ public class ObjectPlayerAccount extends SQLSerializable<ObjectPlayerAccount> {
         }
         field.set(account, value);
     }
-
-    private static boolean isTruthy(String value) {
-        return value != null && (value.equalsIgnoreCase("true") || value.equals("1") || value.equalsIgnoreCase("yes"));
-    }
 }

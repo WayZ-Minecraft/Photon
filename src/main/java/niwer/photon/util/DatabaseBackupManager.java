@@ -29,6 +29,9 @@ public final class DatabaseBackupManager {
 	private DatabaseBackupManager() {}
 
 	public static synchronized void start() {
+		if(!Directories.BACKUPS_DIR.exists()) Directories.BACKUPS_DIR.mkdirs(); // Create the backups directory if it doesn't exist yet
+
+		/* Stop and try to delete old backups */
 		stop();
 		deletedOldBackups();
 
@@ -86,6 +89,9 @@ public final class DatabaseBackupManager {
 	}
 
 	private static void deletedOldBackups() {
+		if(Directories.getConfig() == null || Directories.getConfig().dbBackupRetentionDays() <= 0) return;
+		if(Directories.BACKUPS_DIR == null || !Directories.BACKUPS_DIR.exists() || !Directories.BACKUPS_DIR.isDirectory()) throw new IllegalStateException("Backups directory is not properly configured or accessible");
+
 		final var STREAM = Stream.of(Directories.BACKUPS_DIR.listFiles()).parallel().filter(file -> {
 			try {
 				if (file == null || !file.isFile()) return false; // Skip folders and nulls

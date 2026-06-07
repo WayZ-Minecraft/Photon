@@ -30,23 +30,7 @@ dependencies {
 	api "com.github.Niwer1525:Lumen:${project.lumen_version}"
 	implementation "de.mkammerer:argon2-jvm:${project.argon2_version}"
 	implementation "de.mkammerer:argon2-jvm-nolibs:${project.argon2_version}"
-
-    /* SHADOWING */
-    shadow "io.javalin:javalin:${project.javalin_version}"
-	shadow "com.github.Niwer1525:Queryon:${project.queryon_version}"
-	
-    shadow "com.google.code.findbugs:jsr305:${project.jrs_version}" // Javax Annotations for JDA
-	shadow "net.dv8tion:JDA:${project.JDA_version}"
-
-	shadow "com.google.code.gson:gson:${project.gson_version}"
-    shadow "ch.qos.logback:logback-classic:${project.logback_version}" // JDA & Javalin are using this
-	shadow "com.github.Niwer1525:Lumen:${project.lumen_version}"
-	shadow "de.mkammerer:argon2-jvm:${project.argon2_version}"
-	shadow "de.mkammerer:argon2-jvm-nolibs:${project.argon2_version}"
-
-	// Stripe SDK
-	implementation "com.stripe:stripe-java:20.0.0"
-	shadow "com.stripe:stripe-java:20.0.0"
+	implementation "com.stripe:stripe-java:${project.stripe_version}"
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -67,8 +51,10 @@ jar {
 
 /* Add all dependcies to the jar */
 shadowJar {
-	minimize()
-   	configurations = [project.configurations.shadow]
+	mergeServiceFiles()
+	minimize {
+        exclude(dependency('org.xerial:sqlite-jdbc:.*'))
+    }
 	archiveClassifier.set('')
 }
 tasks.build.dependsOn shadowJar

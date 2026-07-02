@@ -35,9 +35,9 @@ import niwer.lumen.container.Container;
 import niwer.queryon.DataBase;
 
 public class PhotonEngine {
-    
+
     private static volatile String currentIP = null;
-    
+
     public static final DataBase DATA_BASE = new DataBase(Directories.DATA_BASE_FILE);
     public static final Container LOGGER = LumenEngine.registerContainer("PhotonEngine").addProcessor((data, time, formattedMessage) -> {
         if(BotEngine.isBotInitialized()) BotEngine.log(data); // Print the log to the discord channel if the bot is initialized
@@ -49,7 +49,7 @@ public class PhotonEngine {
 	 */
     public static synchronized String getCurrentIP() {
         if (currentIP != null) return currentIP;
-        
+
         try {
             final URL whatismyip = new URI("http://checkip.amazonaws.com").toURL();
             final BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
@@ -59,18 +59,18 @@ public class PhotonEngine {
         } catch (IOException | URISyntaxException e) {}
         return "UNKNOWN";
     }
-    
+
 	/**
 	 * Check if the current IP is equals to the given IP
-     * 
+     *
 	 * @param ip the IP to check
 	 * @return true if the current IP is equals to the given IP
 	 */
     public static boolean isIPEquals(String ip) { return ip.equalsIgnoreCase(getCurrentIP()); }
-    
+
 	/**
 	 * Check if the given IP is online (ping)
-     * 
+     *
 	 * @param op the IP to check
 	 * @return true if the given IP is online
 	 * @throws UnknownHostException : if the IP is not valid
@@ -80,16 +80,16 @@ public class PhotonEngine {
 
     /**
      * Get the current date in the official format
-     * 
+     *
      * @param showTime if true, the time will be added to the date
      * @param date the date to format, if null, the current date will be used
      * @return The formatted current date as a String
      */
     public static String getDate(boolean showTime) { return getDate(showTime, new Date()); }
-    
+
     /**
      * Get the date in the official format
-     * 
+     *
      * @param showTime if true, the time will be added to the date
      * @param date the date to format, if null, the current date will be used
      * @return The formatted date as a String
@@ -127,7 +127,7 @@ public class PhotonEngine {
 
         /* Repopulate Stripe subscriptions on startup */
         StripeStartupSync.run(Directories.getConfig().stripe_api_key);
-        
+
         /* Starting the discord bot if token available */
         if(Directories.getConfig().discord_bot_token !=null && !Directories.getConfig().discord_bot_token.isEmpty()) {
             try {

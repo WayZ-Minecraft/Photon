@@ -47,6 +47,12 @@ export const configFields = [
     { key: 'youtube_url', label: 'YouTube URL', type: 'url' },
     { key: 'discord_url', label: 'Discord URL', type: 'url' },
     { key: 'website_url', label: 'Website URL', type: 'url' },
+    
+    // App URLs (fallback to defaults if not configured)
+    { key: 'store_url', label: 'Store URL', type: 'url', default: 'https://google.com' },
+    { key: 'terms_of_service_url', label: "Terms of Service", type: 'url', default: 'https://google.com/legal.html#terms_of_service' },
+    { key: 'terms_of_sale_url', label: "Terms of Sale", type: 'url', default: 'https://google.com/legal.html#terms_of_sale' },
+    { key: 'privacy_policy_url', label: 'Privacy Policy', type: 'url', default: 'https://google.com/legal.html#privacy_policy' },
 ];
 
 export const pageDefinitions = [

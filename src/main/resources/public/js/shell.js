@@ -105,11 +105,23 @@ export class NavigationBar {
 export class FooterBar {
     render() {
         const accountLabel = appState.account ? `Signed in as ${appState.account.username || appState.account.email}` : 'Public access';
+
+        /* Use config URLs with fallbacks */
+        const storeUrl = (appState.config?.store_url || 'https://google.com').trim();
+        const tosUrl = (appState.config?.terms_of_service_url || 'https://google.com').trim();
+        const tosSaleUrl = (appState.config?.terms_of_sale_url || 'https://google.com').trim();
+        const privacyPolicyUrl = (appState.config?.privacy_policy_url || 'https://google.com').trim();;
+
         return `
             <footer class="app-footer panel">
-                <a href="https://niwer.dev/store" target="_blank" rel="noreferrer">
+                <a href="${escapeHtml(storeUrl)}" target="_blank" rel="noreferrer">
                     <i class="fas fa-store" aria-hidden="true"></i>
                 </a>
+                <ul>
+                    <li><a href="${escapeHtml(tosUrl)}" target="_blank">Terms of Service</a></li>
+                    <li><a href="${escapeHtml(tosSaleUrl)}" target="_blank">Terms of Sale</a></li>
+                    <li><a href="${escapeHtml(privacyPolicyUrl)}" target="_blank">Privacy Policy</a></li>
+                </ul>
             </footer>
         `;
     }

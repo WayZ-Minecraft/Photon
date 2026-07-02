@@ -4,7 +4,10 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
 import io.javalin.Javalin;
+import niwer.lumen.Console;
 import niwer.photon.Directories;
+import niwer.photon.PhotonEngine;
+import niwer.photon.util.PhotonLogTypes;
 import niwer.photon.util.TestHooks;
 import niwer.photon.web.endpoints.HomeEndpoint;
 import niwer.photon.web.endpoints.IEndpoint;
@@ -106,5 +109,58 @@ public class WebServerEngine {
 
         /* Start the web server */
         WEB_SERVER.start(Directories.getConfig().webserver_port);
+
+        Console.log(getServingBox(Directories.getConfig().webserver_port))
+            .container(PhotonEngine.LOGGER)
+            .type(PhotonLogTypes.WEB_SERVER)
+            .send();
+    }
+
+    /**
+     * Get a printable serving box, so we can easily find where the web server is hosted
+     * 
+     * @param port The port of the web server
+     * @return The printable box as String
+     */
+    private static String getServingBox(int port) {
+        final StringBuilder BUILDER = new StringBuilder();
+
+        /* Prepare the box content */
+        final String PADDING = "    ";
+        final String LINE_1 = PADDING + "Serving!";
+        final String LINE_2 = PADDING + String.format("- Local:    http://localhost:%d", port);
+        final String LINE_3 = PADDING + String.format("- Network:  %s:%d", "http://192.168.x.x", port);
+
+        /* Find the longest line to determine the box width */
+        /* '3' is a little extra to the right side */
+        int maxWidth = getLineMaxWidth(LINE_1, LINE_2, LINE_3) + 3;
+
+        /* Print the box */
+        BUILDER.append("\n"); // Default go to next line because Lumen will add text like [Class:233] [00:00:00] [WEB]
+        BUILDER.append("┌" + "─".repeat(maxWidth) + "┐\n");
+        BUILDER.append(addBordersToLine(LINE_1, maxWidth)).append("\n");
+        BUILDER.append(addBordersToLine(LINE_2, maxWidth)).append("\n");
+        BUILDER.append(addBordersToLine(LINE_3, maxWidth)).append("\n");
+        BUILDER.append("└" + "─".repeat(maxWidth) + "┘");
+        return BUILDER.toString();
+    }
+
+    /**
+     * Pads the right side of the string with spaces up to the required width
+     */
+    private static String addBordersToLine(String line, int width) {
+        return "│" + String.format("%-" + width + "s", line) + "│";
+    }
+
+    private static int getLineMaxWidth(String... lines) {
+        int width = 1;
+        
+        /* Check for each line if it's longer or not, if longer then update 'width' */
+        for (final String LINE : lines) {
+            final int LENGTH = LINE.length();
+            if (LENGTH > width) width = LENGTH;
+        }
+
+        return width;
     }
 }

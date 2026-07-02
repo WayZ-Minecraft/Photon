@@ -162,7 +162,7 @@ class DashboardApp {
                             <p class="eyebrow">Purchase</p>
                         </div>
                     </div>
-                    <div class="empty-state">You haven't completed a purchase yet. To complete a purchase, go to <a href="https://niwer.dev/store">the store</a>.</div>
+                    <div class="empty-state">You haven't completed a purchase yet. To complete a purchase, go to <a href="${escapeHtml(appState.config?.store_url || 'https://google.com').trim()}">the store</a>.</div>.
                 `;
             }
         }

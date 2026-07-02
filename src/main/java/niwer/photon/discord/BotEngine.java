@@ -8,15 +8,6 @@ import javax.security.auth.login.LoginException;
 
 import org.slf4j.LoggerFactory;
 
-import niwer.photon.Directories;
-import niwer.photon.PhotonEngine;
-import niwer.photon.discord.commands.CommandsManager;
-import niwer.photon.sql.DiscordLogTable;
-import niwer.photon.sql.DiscordLogTable.ModerationType;
-import niwer.photon.util.PhotonLogTypes;
-import niwer.photon.util.TranslationManager;
-import niwer.photon.util.TestHooks;
-
 import ch.qos.logback.classic.Logger;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDABuilder;
@@ -40,6 +31,14 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import niwer.lumen.Console;
+import niwer.photon.Directories;
+import niwer.photon.PhotonEngine;
+import niwer.photon.discord.commands.CommandsManager;
+import niwer.photon.sql.DiscordLogTable;
+import niwer.photon.sql.DiscordLogTable.ModerationType;
+import niwer.photon.util.PhotonLogTypes;
+import niwer.photon.util.TestHooks;
+import niwer.photon.util.TranslationManager;
 
 /**
  * Main class of the bot, load the bot and register important slash commands
@@ -237,12 +236,6 @@ public class BotEngine extends ListenerAdapter {
         if(isConsoleChannel(eventChannel)) {
             message.delete().queue(); // Delete the edited message
             return;
-        }
-
-        final boolean IS_LINK = DiscordSecurity.checkLink(message.getContentRaw());
-        if (IS_LINK) {
-            message.delete().queue(); // Delete the message containing the link
-            AUTHOR.openPrivateChannel().queue(pm -> pm.sendMessage(TranslationManager.format(AUTHOR.getId(),"discord.securityMessage.updateMessage")).queue());
         }
     }
 

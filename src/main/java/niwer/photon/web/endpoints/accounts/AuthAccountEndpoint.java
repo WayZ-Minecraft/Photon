@@ -9,7 +9,7 @@ import niwer.photon.web.endpoints.IEndpoint;
 
 /**
  * Endpoint to handle account authentication. This is a placeholder implementation and should be properly implemented with necessary validations, password hashing, and database storage.
- * 
+ *
  * @author Niwer
  */
 public class AuthAccountEndpoint implements IEndpoint {

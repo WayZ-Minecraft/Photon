@@ -47,32 +47,40 @@ public class AdminUpdateConfigEndpoint implements IEndpoint {
         if (request.twitter_url != null) config.twitter_url = request.twitter_url;
         if (request.twitch_url != null) config.twitch_url = request.twitch_url;
         if (request.youtube_url != null) config.youtube_url = request.youtube_url;
-        if (request.discord_url != null) config.discord_url = request.discord_url;
-        if (request.website_url != null) config.website_url = request.website_url;
+        		if (request.discord_url != null) config.discord_url = request.discord_url;
+        		if (request.website_url != null) config.website_url = request.website_url;
+        		if (request.store_url != null) config.store_url = request.store_url;
+        		if (request.terms_of_service_url != null) config.terms_of_service_url = request.terms_of_service_url;
+        		if (request.terms_of_sale_url != null) config.terms_of_sale_url = request.terms_of_sale_url;
+        		if (request.privacy_policy_url != null) config.privacy_policy_url = request.privacy_policy_url;
 
         Directories.save();
         handler.json(Directories.getConfig());
     }
 
-    private record ConfigUpdateRequest(
-        String bot_activity,
-        String discord_bot_token,
-        String discord_bot_id,
-        String official_discord_server_id,
-        String network_console_channel_id,
-        String server_creator_role_id,
-        Integer webserver_port,
-        String license_product_id,
-        String stripe_api_key,
-        String stripe_webhook_secret,
-        Long license_default_duration_days,
-        String api_version,
-        String mod_version,
-        String launcher_version,
-        String twitter_url,
-        String twitch_url,
-        String youtube_url,
-        String discord_url,
-        String website_url
-    ) {}
+    	public record ConfigUpdateRequest(
+            String bot_activity,
+            String discord_bot_token,
+            String discord_bot_id,
+            String official_discord_server_id,
+            String network_console_channel_id,
+            String server_creator_role_id,
+            Integer webserver_port,
+            String license_product_id,
+            String stripe_api_key,
+            String stripe_webhook_secret,
+            Long license_default_duration_days,
+            String api_version,
+            String mod_version,
+            String launcher_version,
+            String twitter_url,
+            String twitch_url,
+            String youtube_url,
+            String discord_url,
+            String website_url,
+            String store_url,
+            String terms_of_service_url,
+            String terms_of_sale_url,
+            String privacy_policy_url
+        ) {}
 }

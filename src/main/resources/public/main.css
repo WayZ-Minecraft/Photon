@@ -178,6 +178,29 @@ label span {
 	align-items: center;
 	padding: 14px 16px;
 }
+.app-footer ul {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 2.5rem;
+	list-style: none;
+}
+.app-footer ul li:not(:last-child)::after { /* If not the last element we add | */
+    content: "|";
+    margin-left: 1rem;
+}
+.app-footer a {
+	text-decoration: none;
+	color: var(--text);
+	transition: 0.25s;
+	scale: 1;
+}
+.app-footer a:hover {
+	color: var(--accent);
+	transition: 0.25s;
+	scale: 1.2;
+}
 
 .brand-block {
 	display: flex;

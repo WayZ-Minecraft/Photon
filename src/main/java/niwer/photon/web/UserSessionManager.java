@@ -26,11 +26,65 @@ public final class UserSessionManager {
 
     private UserSessionManager() {}
 
-    public record AuthSession(String token, ObjectPlayerAccount account) {}
+    public static class AuthSession {
+        String token;
+        ObjectPlayerAccount account;
 
-    private record AccountSnapshot(String username, String email, String uuid, String discordID, String discordAuthCode, boolean administrator, boolean serverCreator) {}
+        public AuthSession(String token, ObjectPlayerAccount account) {
+            this.token = token;
+            this.account = account;
+        }
 
-    private record Session(AccountSnapshot account, long createdAt) {}
+        public String token() { return this.token; }
+    }
+
+    private static class AccountSnapshot {
+        String username;
+        String email;
+        String uuid;
+        String discordID;
+        String discordAuthCode;
+        boolean administrator;
+        boolean serverCreator;
+
+        public AccountSnapshot(String username, String email, String uuid, String discordID, String discordAuthCode, boolean administrator, boolean serverCreator) {
+            this.username = username;
+            this.email = email;
+            this.uuid = uuid;
+            this.discordID = discordID;
+            this.discordAuthCode = discordAuthCode;
+            this.administrator = administrator;
+            this.serverCreator = serverCreator;
+        }
+
+        public String username() { return this.username; }
+
+        public String email() { return this.email; }
+
+        public String uuid() { return this.uuid; }
+
+        public String discordID() { return this.discordID; }
+
+        public String discordAuthCode() { return this.discordAuthCode; }
+
+        public boolean administrator() { return this.administrator; }
+
+        public boolean serverCreator() { return this.serverCreator; }
+    }
+
+    private static class Session {
+        AccountSnapshot account;
+        long createdAt;
+
+        public Session(AccountSnapshot account, long createdAt) {
+            this.account = account;
+            this.createdAt = createdAt;
+        }
+
+        public AccountSnapshot account() { return this.account; }
+
+        public long createdAt() { return this.createdAt; }
+    }
 
     public static void load() {
         SESSIONS.clear();

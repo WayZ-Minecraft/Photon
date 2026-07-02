@@ -160,7 +160,12 @@ public class Directories
 		@SerializedName("youtube_url") public String youtube_url = "https://youtube.com/";
 		@SerializedName("discord_url") public String discord_url = "https://discord.gg/";
 		@SerializedName("website_url") public String website_url = "https://google.com";
-		
+
+		@SerializedName("store_url") public String store_url = "";
+		@SerializedName("terms_of_service_url") public String terms_of_service_url = "";
+		@SerializedName("terms_of_sale_url") public String terms_of_sale_url = "";
+		@SerializedName("privacy_policy_url") public String privacy_policy_url = "";
+
 		public boolean dbBackupEnabled() { return database_backup_enabled != null && database_backup_enabled; }
 
 		public boolean dbBackupOnStartup() { return database_backup_on_startup != null && database_backup_on_startup; }

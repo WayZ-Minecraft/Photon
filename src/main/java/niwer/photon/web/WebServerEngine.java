@@ -32,6 +32,7 @@ import niwer.photon.web.endpoints.admin.AdminUploadUpdateEndpoint;
 import niwer.photon.web.endpoints.game.AddAntiCheatReportEndpoint;
 import niwer.photon.web.endpoints.game.AddCrashReportEndpoint;
 import niwer.photon.web.endpoints.game.AddHWIDEndpoint;
+import niwer.photon.web.endpoints.game.ModDownloadEndpoint;
 import niwer.photon.web.endpoints.game.NetworkConfigEndpoint;
 import niwer.photon.web.endpoints.servers.AddServerEndpoint;
 import niwer.photon.web.endpoints.servers.ServerListEndpoint;
@@ -73,6 +74,7 @@ public class WebServerEngine {
             IEndpoint.register(cfg, AddHWIDEndpoint.class);
             IEndpoint.register(cfg, LicenseValidateEndpoint.class);
             IEndpoint.register(cfg, AdminUpdateEndpoint.class);
+            IEndpoint.register(cfg, ModDownloadEndpoint.class);
             {
                 /* Admin panel */
                 IEndpoint.register(cfg, AdminLoginEndpoint.class);

@@ -7,6 +7,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
+import niwer.lumen.Console;
 import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
 import niwer.photon.discord.commands.AbstractSlashCommand;
@@ -44,7 +45,7 @@ public class PostUpdateCommand extends AbstractSlashCommand {
         if (!isOfficialGuild(event)) return; // Check if we're on the official guild
 
         final Attachment FILE = event.getOption("file").getAsAttachment(); // Should always be present
-        if(!FILE.getFileExtension().contains(".jar")) {
+        if(!FILE.getFileExtension().contains("jar")) {
             event.reply("You've submitted an invalid file type. Please submit a JAR file.").setEphemeral(true).queue();
             return; // If the update isn't a JAR file, then skip it (for security reasons)
         }

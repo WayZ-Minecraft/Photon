@@ -9,4 +9,14 @@ public enum UpdateChannel {
         }
         throw new IllegalArgumentException("No enum constant for value: " + value);
     }
+
+    public static boolean isVariant(String channel) {
+        channel = channel.toUpperCase(); // Ensure we're in uppercase to prevent case sensitivity bugs
+
+        try {
+            return fromString(channel) != null;
+        } catch(Exception e) {
+            return false;
+        }
+    }
 }

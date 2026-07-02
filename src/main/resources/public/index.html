@@ -8,6 +8,14 @@
         <link rel="stylesheet" href="./main.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
         <script type="module" src="./js/main.js"></script>
+        <script>
+            /** Trigger download with selected channel value **/ 
+            function triggerDownload() {
+                const selected = document.querySelector('#modDownloadPanel select'); 
+                if(!selected?.value) return; // Skip if no channel
+                window.location.href="/download/mod?channel="+encodeURIComponent(selected.value);
+            }
+        </script>
     </head>
     <body>
         <div id="appShell"></div>
@@ -31,6 +39,17 @@
                             </div>
                             <div id="serverList" class="cards grid-list"></div>
                         </div>
+                        <div class="overview-section" id="modDownloadPanel">
+                            <div class="panel-header">
+                                <div>
+                                    <p class="eyebrow">Download mod version</p>
+                                </div>
+                            </div>
+                            <select>
+                                <option>STABLE</option>
+                            </select>
+                            <button onclick="triggerDownload()">Download</button>
+                        </div>
                     </section>
 
                     <section class="panel page" data-page="user">
@@ -40,8 +59,6 @@
                     <section class="panel page" data-page="licenses">
                         <div id="licensesPage"></div>
                     </section>
-
-                    
 
                     <section class="panel page" data-page="config">
                         <div class="panel-header">

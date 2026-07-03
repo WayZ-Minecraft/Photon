@@ -7,7 +7,12 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
-import niwer.lumen.Console;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message.Attachment;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
 import niwer.photon.discord.commands.AbstractSlashCommand;
@@ -15,13 +20,6 @@ import niwer.photon.util.TranslationManager;
 import niwer.photon.util.os.ApplicationUtils;
 import niwer.photon.util.updater.UpdateChannel;
 import niwer.photon.util.updater.UpdateFileType;
-
-import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Message.Attachment;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
 
 @SuppressWarnings("null") // The compiler in Photon is not good at handling JDA's @Nonnull annotations, so we suppress null warnings in this class
 public class PostUpdateCommand extends AbstractSlashCommand {

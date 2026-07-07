@@ -6,7 +6,7 @@ export async function api(path, options = {}) {
     if (appState.userToken) headers.set('X-Photon-User-Token', appState.userToken);
     // Attach CSRF token for mutating admin requests (cookie set on login)
     const method = (options.method || 'GET').toUpperCase();
-    if (path.startsWith('/api/admin') && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+    if ((path.startsWith('/api/admin') || path.startsWith('/api/content-packs')) && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
         try {
             const cookie = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('photon_csrf='));
             if (cookie) {

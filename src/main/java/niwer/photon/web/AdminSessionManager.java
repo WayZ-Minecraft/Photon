@@ -8,9 +8,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.javalin.http.Context;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
+import io.javalin.http.Context;
 import niwer.photon.Directories;
 import niwer.photon.objects.ObjectPlayerAccount;
 import niwer.photon.sql.PlayerAccountTable;

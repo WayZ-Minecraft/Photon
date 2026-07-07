@@ -145,6 +145,7 @@ public class Directories
 		/* Licensing */
 		@SerializedName("license_product_id") public String license_product_id = "niwer-engine";
 		@SerializedName("license_default_duration_days") public long license_default_duration_days = 30L; // 30 days (1 month) default duration for licenses issued without an explicit expiration date
+		@SerializedName("subscription_price_id") public String subscription_price_id = "";
 
 		/* Stripe */
 		@SerializedName("stripe_api_key") public String stripe_api_key = "";

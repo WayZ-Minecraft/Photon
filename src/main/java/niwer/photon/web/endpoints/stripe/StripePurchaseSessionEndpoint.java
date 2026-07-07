@@ -7,7 +7,9 @@ import com.google.gson.JsonObject;
 
 import io.javalin.http.Context;
 import niwer.photon.Directories;
+import niwer.photon.objects.ObjectPackProduct;
 import niwer.photon.objects.ObjectPurchaseToken;
+import niwer.photon.sql.PackProductTable;
 import niwer.photon.sql.PurchaseTokenTable;
 import niwer.photon.web.endpoints.IEndpoint;
 
@@ -53,8 +55,14 @@ public class StripePurchaseSessionEndpoint implements IEndpoint {
 
 		final String priceId = firstNonBlank(StripeSupport.getString(checkoutSession, "price_id"), StripeSupport.getString(checkoutSession, "price"));
 		final String customerName = StripeSupport.firstNonBlank(customerPayload.name(), StripeSupport.getString(StripeSupport.getObject(checkoutSession, "customer_details"), "name"));
+		final String contentType = StripeSupport.firstNonBlank(
+			StripeSupport.getString(StripeSupport.getObject(checkoutSession, "metadata"), "type"),
+			StripeSupport.getString(StripeSupport.getObject(checkoutSession, "metadata"), "content_type"),
+			StripeSupport.getString(checkoutSession, "mode")
+		);
+		final ObjectPackProduct pack = priceId == null ? null : PackProductTable.getByStripePriceId(priceId);
 
-		final ObjectPurchaseToken purchase = ensurePurchaseRecord(purchaseReference, checkoutSessionId, priceId, customerPayload.email(), customerName);
+		final ObjectPurchaseToken purchase = ensurePurchaseRecord(purchaseReference, checkoutSessionId, priceId, customerPayload.email(), customerName, contentType, pack);
 		if (purchase == null) {
 			handler.status(500).result("Failed to seed purchase session");
 			return;
@@ -66,6 +74,7 @@ public class StripePurchaseSessionEndpoint implements IEndpoint {
 		response.put("status", purchase.status());
 		response.put("customerEmail", purchase.customerEmail());
 		response.put("customerName", purchase.customerName());
+		response.put("contentType", contentType);
 		handler.json(response);
 	}
 
@@ -77,7 +86,10 @@ public class StripePurchaseSessionEndpoint implements IEndpoint {
 		return Directories.getConfig().stripe_api_key;
 	}
 
-	protected ObjectPurchaseToken ensurePurchaseRecord(String purchaseReference, String checkoutSessionId, String priceId, String customerEmail, String customerName) {
+	protected ObjectPurchaseToken ensurePurchaseRecord(String purchaseReference, String checkoutSessionId, String priceId, String customerEmail, String customerName, String contentType, ObjectPackProduct pack) {
+		if (pack != null || "one-time-pack".equalsIgnoreCase(contentType)) {
+			return PurchaseTokenTable.ensurePendingPurchase(purchaseReference, checkoutSessionId, priceId, customerEmail, customerName);
+		}
 		return PurchaseTokenTable.ensurePendingPurchase(purchaseReference, checkoutSessionId, priceId, customerEmail, customerName);
 	}
 

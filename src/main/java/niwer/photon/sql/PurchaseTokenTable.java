@@ -115,6 +115,42 @@ public class PurchaseTokenTable extends Table {
 		return updated;
 	}
 
+	public static ObjectPurchaseToken completePurchase(String purchaseToken, String checkoutSessionId, String stripeCustomerId, String stripeSubscriptionId, String customerEmail, String customerName, String status, Date expiresAt, String priceId) {
+		ObjectPurchaseToken current = getByPurchaseReference(purchaseToken);
+		if (current == null) {
+			current = ensurePendingPurchase(purchaseToken, checkoutSessionId, priceId, customerEmail, customerName);
+		}
+		if (current == null) return null;
+
+		UpdateManager.update(PhotonEngine.DATA_BASE, PurchaseTokenTable.class)
+			.set("checkout_session_id", checkoutSessionId)
+			.set("stripe_customer_id", stripeCustomerId)
+			.set("stripe_subscription_id", stripeSubscriptionId)
+			.set("price_id", priceId != null && !priceId.isBlank() ? priceId : current.priceId())
+			.set("customer_email", normalizeEmail(customerEmail != null && !customerEmail.isBlank() ? customerEmail : current.customerEmail()))
+			.set("customer_name", customerName != null && !customerName.isBlank() ? customerName : current.customerName())
+			.set("status", status == null || status.isBlank() ? current.status() : status)
+			.set("expires_at", expiresAt)
+			.set("updated_at", new Date())
+			.where(Expression.of("purchase_token").isEqualTo(normalizeToken(purchaseToken)))
+			.execute();
+
+		final ObjectPurchaseToken updated = getByToken(normalizeToken(purchaseToken));
+		if (updated != null && updated.linkedAccountUuid() != null && !updated.linkedAccountUuid().isBlank() && updated.stripeSubscriptionId() != null && !updated.stripeSubscriptionId().isBlank()) {
+			SubscriptionTable.upsertSubscription(
+				updated.customerEmail(),
+				updated.customerName(),
+				updated.stripeCustomerId(),
+				updated.stripeSubscriptionId(),
+				SubscriptionStatus.fromString(updated.status()),
+				updated.expiresAt(),
+				updated.linkedAccountUuid()
+			);
+		}
+
+		return updated;
+	}
+
 	public static ObjectPurchaseToken getByToken(String purchaseToken) {
 		if (purchaseToken == null || purchaseToken.isBlank()) return null;
 		return SelectionManager.select(PhotonEngine.DATA_BASE, PurchaseTokenTable.class)

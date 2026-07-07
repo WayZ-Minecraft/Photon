@@ -16,40 +16,40 @@ import com.google.gson.JsonParser;
 
 import niwer.photon.sql.SubscriptionTable.SubscriptionStatus;
 
-final class StripeSupport {
+public final class StripeSupport {
 
     private static final HttpClient HTTP = HttpClient.newHttpClient();
 
     private StripeSupport() {}
 
-    protected static JsonObject resolveSubscription(String apiKey, String payload) {
+    public static JsonObject resolveSubscription(String apiKey, String payload) {
         final String subscriptionId = extractDataObjectId(payload);
         return subscriptionId == null || subscriptionId.isBlank() ? null : resolveSubscriptionById(apiKey, subscriptionId);
     }
 
-    protected static JsonObject resolveInvoice(String apiKey, String payload) {
+    public static JsonObject resolveInvoice(String apiKey, String payload) {
         final String invoiceId = extractDataObjectId(payload);
         return invoiceId == null || invoiceId.isBlank() ? null : resolveInvoiceById(apiKey, invoiceId);
     }
 
-	protected static JsonObject resolveCheckoutSession(String apiKey, String payload) {
+    public static JsonObject resolveCheckoutSession(String apiKey, String payload) {
 		final String checkoutSessionId = extractDataObjectId(payload);
 		return checkoutSessionId == null || checkoutSessionId.isBlank() ? null : resolveCheckoutSessionById(apiKey, checkoutSessionId);
 	}
 
-    protected static JsonObject resolveSubscriptionById(String apiKey, String subscriptionId) {
+    public static JsonObject resolveSubscriptionById(String apiKey, String subscriptionId) {
         return subscriptionId == null || subscriptionId.isBlank() ? null : getStripeObject(apiKey, "/v1/subscriptions/" + urlEncode(subscriptionId));
     }
 
-    protected static JsonObject resolveInvoiceById(String apiKey, String invoiceId) {
+    public static JsonObject resolveInvoiceById(String apiKey, String invoiceId) {
         return invoiceId == null || invoiceId.isBlank() ? null : getStripeObject(apiKey, "/v1/invoices/" + urlEncode(invoiceId));
     }
 
-    protected static JsonObject resolveCheckoutSessionById(String apiKey, String checkoutSessionId) {
+    public static JsonObject resolveCheckoutSessionById(String apiKey, String checkoutSessionId) {
         return checkoutSessionId == null || checkoutSessionId.isBlank() ? null : getStripeObject(apiKey, "/v1/checkout/sessions/" + urlEncode(checkoutSessionId));
     }
 
-    protected static JsonObject createCheckoutSession(String apiKey, Map<String, String> parameters) {
+    public static JsonObject createCheckoutSession(String apiKey, Map<String, String> parameters) {
         if (apiKey == null || apiKey.isBlank() || parameters == null || parameters.isEmpty()) return null;
 
         try {
@@ -74,7 +74,7 @@ final class StripeSupport {
         }
     }
 
-    protected static JsonObject listSubscriptionsPage(String apiKey, String startingAfter, int limit) {
+    public static JsonObject listSubscriptionsPage(String apiKey, String startingAfter, int limit) {
         final StringBuilder path = new StringBuilder("/v1/subscriptions?status=all&limit=").append(Math.max(1, Math.min(limit, 100)));
         if (startingAfter != null && !startingAfter.isBlank()) {
             path.append("&starting_after=").append(urlEncode(startingAfter));
@@ -82,7 +82,7 @@ final class StripeSupport {
         return getStripeObject(apiKey, path.toString());
     }
 
-    protected static CustomerPayload resolveCustomerFromSubscription(String apiKey, JsonObject subscription) {
+    public static CustomerPayload resolveCustomerFromSubscription(String apiKey, JsonObject subscription) {
         final CustomerPayload customerPayload = resolveCustomer(
             apiKey,
             getString(subscription, "customer"),
@@ -108,7 +108,7 @@ final class StripeSupport {
         return customerPayload;
     }
 
-    protected static CustomerPayload resolveCustomer(String apiKey, String customerId, JsonObject metadata, String directEmail) {
+    public static CustomerPayload resolveCustomer(String apiKey, String customerId, JsonObject metadata, String directEmail) {
         final String emailFromMetadata = extractEmail(metadata);
         final String email = firstNonBlank(directEmail, emailFromMetadata);
         if (customerId == null || customerId.isBlank()) return new CustomerPayload(email, null, null);
@@ -123,7 +123,7 @@ final class StripeSupport {
         );
     }
 
-    protected static String extractEmail(JsonObject metadata) {
+    public static String extractEmail(JsonObject metadata) {
         if (metadata == null || metadata.size() == 0) return null;
         return firstNonBlank(getString(metadata, "customer_email"), getString(metadata, "email"), getString(metadata, "customerEmail"));
     }
@@ -171,7 +171,7 @@ final class StripeSupport {
         }
     }
 
-    protected static JsonObject getObject(JsonObject object, String key) {
+    public static JsonObject getObject(JsonObject object, String key) {
         if (object == null || key == null || !object.has(key) || object.get(key).isJsonNull()) return null;
         try {
             return object.getAsJsonObject(key);
@@ -180,7 +180,7 @@ final class StripeSupport {
         }
     }
 
-    protected static String getString(JsonObject object, String key) {
+    public static String getString(JsonObject object, String key) {
         if (object == null || key == null || !object.has(key) || object.get(key).isJsonNull()) return null;
         try {
             return object.get(key).getAsString();
@@ -189,7 +189,7 @@ final class StripeSupport {
         }
     }
 
-    protected static long getLong(JsonObject object, String key) {
+    public static long getLong(JsonObject object, String key) {
         if (object == null || key == null || !object.has(key) || object.get(key).isJsonNull()) return 0L;
         try {
             return object.get(key).getAsLong();
@@ -198,11 +198,11 @@ final class StripeSupport {
         }
     }
 
-    protected static JsonObject getObject(JsonObject object, String key, boolean allowNull) {
+    public static JsonObject getObject(JsonObject object, String key, boolean allowNull) {
         return getObject(object, key);
     }
 
-    protected static SubscriptionStatus stripeStatusToLocal(String stripeStatus) {
+    public static SubscriptionStatus stripeStatusToLocal(String stripeStatus) {
         if (stripeStatus == null || stripeStatus.isBlank()) return SubscriptionStatus.EXPIRED;
 
         final String normalized = stripeStatus.toLowerCase();
@@ -215,7 +215,7 @@ final class StripeSupport {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
-    protected static int getInt(JsonObject object, String key) {
+    public static int getInt(JsonObject object, String key) {
         if (object == null || key == null || !object.has(key) || object.get(key).isJsonNull()) return 0;
         try {
             return object.get(key).getAsInt();
@@ -224,7 +224,7 @@ final class StripeSupport {
         }
     }
 
-    protected static boolean getBoolean(JsonObject object, String key) {
+    public static boolean getBoolean(JsonObject object, String key) {
         if (object == null || key == null || !object.has(key) || object.get(key).isJsonNull()) return false;
         try {
             return object.get(key).getAsBoolean();
@@ -233,5 +233,5 @@ final class StripeSupport {
         }
     }
 
-    protected static record CustomerPayload(String email, String name, String customerId) {}
+    public static record CustomerPayload(String email, String name, String customerId) {}
 }

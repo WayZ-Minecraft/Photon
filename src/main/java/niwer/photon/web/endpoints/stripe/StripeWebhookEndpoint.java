@@ -12,7 +12,11 @@ import io.javalin.http.Context;
 import niwer.lumen.Console;
 import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
+import niwer.photon.objects.ObjectPackProduct;
+import niwer.photon.objects.ObjectPurchaseToken;
 import niwer.photon.objects.ObjectSubscription;
+import niwer.photon.sql.PackOwnershipTable;
+import niwer.photon.sql.PackProductTable;
 import niwer.photon.sql.PurchaseTokenTable;
 import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.sql.SubscriptionTable.SubscriptionStatus;
@@ -134,6 +138,18 @@ public class StripeWebhookEndpoint implements IEndpoint {
 
         final JsonObject customerDetails = StripeSupport.getObject(checkoutSession, "customer_details");
         final JsonObject subscription = StripeSupport.resolveSubscriptionById(apiKey, StripeSupport.getString(checkoutSession, "subscription"));
+        final String productType = StripeSupport.firstNonBlank(
+            StripeSupport.getString(metadata, "type"),
+            StripeSupport.getString(metadata, "content_type"),
+            StripeSupport.getString(checkoutSession, "mode")
+        );
+        final String packId = StripeSupport.firstNonBlank(
+            StripeSupport.getString(metadata, "content_pack_metadata_id"),
+            StripeSupport.getString(metadata, "pack_id"),
+            StripeSupport.getString(metadata, "contentPackMetadataId")
+        );
+        final String priceId = StripeSupport.firstNonBlank(StripeSupport.getString(checkoutSession, "price_id"), StripeSupport.getString(checkoutSession, "price"));
+        final ObjectPackProduct pack = packId == null || packId.isBlank() ? (priceId == null || priceId.isBlank() ? null : PackProductTable.getByStripePriceId(priceId)) : PackProductTable.getById(packId);
         final StripeSupport.CustomerPayload customerPayload = StripeSupport.resolveCustomer(
             apiKey,
             StripeSupport.getString(checkoutSession, "customer"),
@@ -143,6 +159,29 @@ public class StripeWebhookEndpoint implements IEndpoint {
         final String subscriptionId = StripeSupport.getString(subscription, "id");
         final long periodEnd = subscription == null ? 0L : StripeSupport.getLong(subscription, "current_period_end") * 1000L;
         final SubscriptionStatus status = StripeSupport.stripeStatusToLocal(subscription == null ? StripeSupport.getString(checkoutSession, "status") : StripeSupport.getString(subscription, "status"));
+
+        if (pack != null || "one-time-pack".equalsIgnoreCase(productType)) {
+            final ObjectPurchaseToken purchase = PurchaseTokenTable.completePurchase(
+                purchaseToken,
+                StripeSupport.getString(checkoutSession, "id"),
+                StripeSupport.getString(checkoutSession, "customer"),
+                null,
+                customerPayload.email(),
+                customerPayload.name(),
+                "ACTIVE",
+                null,
+                priceId
+            );
+            if (purchase == null) {
+                ignore(handler, "missing pending pack purchase for token " + purchaseToken, false);
+                return;
+            }
+
+            final String resolvedPackId = pack != null ? pack.id() : packId;
+            PackOwnershipTable.upsertOwnership(purchase.customerEmail(), purchase.linkedAccountUuid(), resolvedPackId, true);
+            handler.status(200).json(purchase);
+            return;
+        }
 
         final var purchase = PurchaseTokenTable.completePurchase(
             purchaseToken,

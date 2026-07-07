@@ -18,6 +18,9 @@ export const appState = {
     activeTable: null,
     servers: [],
     licenses: [],
+    contentPacks: [],
+    adminContentPacks: [],
+    ownedContentPacks: [],
     config: null,
     page: window.location.hash.replace('#', '') || 'overview',
 };
@@ -34,6 +37,8 @@ export const configFields = [
 
     { key: 'license_product_id', label: 'License product ID', type: 'text' },
     { key: 'license_default_duration_days', label: 'Default license duration (days)', type: 'number' },
+
+    { key: 'subscription_price_id', label: 'Subscription price ID', type: 'text' },
     
     { key: 'stripe_api_key', label: 'Stripe API key', type: 'password' },
     { key: 'stripe_webhook_secret', label: 'Stripe webhook secret (signing secret)', type: 'password' },
@@ -61,5 +66,6 @@ export const pageDefinitions = [
     { key: 'licenses', label: 'Licenses', requiresSubscription: true },
     { key: 'config', label: 'Config', requiresAuth: true },
     { key: 'tables', label: 'Tables', requiresAuth: true },
+    { key: 'content-packs', label: 'Content Packs Management', requiresAuth: true },
     { key: 'operations', label: 'Operations', requiresAuth: true },
 ];

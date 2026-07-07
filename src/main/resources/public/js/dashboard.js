@@ -50,6 +50,15 @@ class DashboardApp {
                 return;
             }
 
+            const checkoutButton = event.target.closest('[data-checkout-type]');
+            if (checkoutButton) {
+                this.startCheckout(checkoutButton.dataset.checkoutType, {
+                    priceId: checkoutButton.dataset.priceId || '',
+                    packId: checkoutButton.dataset.packId || '',
+                }).catch((error) => notify(error.message, 'error'));
+                return;
+            }
+
             const openModalButton = event.target.closest('[data-open-modal]');
             if (openModalButton) {
                 this.modalManager.open(openModalButton.dataset.openModal, { account: appState.account, purchaseToken: appState.purchaseToken });
@@ -72,6 +81,18 @@ class DashboardApp {
             const revokeButton = event.target.closest('[data-action="revoke-license"]');
             if (revokeButton) {
                 this.revokeLicense(revokeButton.dataset.licenseKey || '').catch((error) => notify(error.message, 'error'));
+                return;
+            }
+
+            const deletePackButton = event.target.closest('[data-action="delete-content-pack"]');
+            if (deletePackButton) {
+                this.removeContentPack(deletePackButton.dataset.packId || '').catch((error) => notify(error.message, 'error'));
+                return;
+            }
+
+            const downloadPackButton = event.target.closest('[data-action="download-content-pack"]');
+            if (downloadPackButton) {
+                this.downloadContentPack(downloadPackButton.dataset.packId || '', downloadPackButton.dataset.packName || 'content pack').catch((error) => notify(error.message, 'error'));
                 return;
             }
 
@@ -103,6 +124,10 @@ class DashboardApp {
 
         el('updateUploadForm')?.addEventListener('submit', (event) => {
             this.uploadVersion(event).catch((error) => notify(error.message, 'error'));
+        });
+
+        el('contentPackUploadForm')?.addEventListener('submit', (event) => {
+            this.uploadContentPack(event).catch((error) => notify(error.message, 'error'));
         });
 
     }
@@ -142,29 +167,218 @@ class DashboardApp {
         notify(`${label} copied`, 'success');
     }
 
+    async startCheckout(contentType, payload) {
+        if (!appState.account) throw new Error('Sign in first');
+        if (!payload?.priceId) throw new Error('Missing price ID');
+
+        const body = new URLSearchParams();
+        body.set('priceId', payload.priceId);
+        if (payload.packId) body.set('packId', payload.packId);
+
+        const response = await api(`/checkout/create-session/${encodeURIComponent(contentType)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+            body,
+        });
+
+        if (response?.url) {
+            window.location.href = response.url;
+            return;
+        }
+
+        if (response?.checkoutSessionId) {
+            window.location.href = `./purchase.html?token=${encodeURIComponent(response.checkoutSessionId)}`;
+            return;
+        }
+
+        throw new Error('Unable to start checkout');
+    }
+
+    renderOwnedContentPacks() {
+        const packs = Array.isArray(appState.ownedContentPacks) ? appState.ownedContentPacks : [];
+        if (!packs.length) return '<div class="empty-state">No downloadable packs were found for this account.</div>';
+
+        return `
+            <div class="grid-list" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+                ${packs.map((pack) => `
+                    <article class="data-card">
+                        <div class="panel-header">
+                            <div>
+                                <p class="eyebrow">${escapeHtml(pack.category || 'Pack')}</p>
+                                <h3>${escapeHtml(pack.name || pack.packId || 'Pack')}</h3>
+                            </div>
+                            <span class="status-pill ${pack.claimedSuccessfully ? 'positive' : 'neutral'}">${pack.claimedSuccessfully ? 'Claimed' : 'Owned'}</span>
+                        </div>
+                        <p class="hint">${escapeHtml(pack.description || 'No description provided.')}</p>
+                        <div class="button-row">
+                            <button type="button" class="primary" data-action="download-content-pack" data-pack-id="${escapeHtml(pack.packId || '')}" data-pack-name="${escapeHtml(pack.name || pack.packId || 'content pack')}">Download</button>
+                            <span class="status-pill neutral">${escapeHtml(pack.versionNumber || '1.0')}</span>
+                        </div>
+                    </article>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    renderContentPackAdmin() {
+        const listMount = el('contentPackList');
+        if (!listMount) return;
+
+        const packs = Array.isArray(appState.adminContentPacks) ? appState.adminContentPacks : [];
+        if (!packs.length) {
+            listMount.innerHTML = '<div class="empty-state">No content packs have been uploaded yet.</div>';
+            return;
+        }
+
+        listMount.innerHTML = `
+            <div class="grid-list" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+                ${packs.map((pack) => `
+                    <article class="data-card">
+                        <div class="panel-header">
+                            <div>
+                                <p class="eyebrow">${escapeHtml(pack.category || 'Pack')}</p>
+                                <h3>${escapeHtml(pack.name || pack.id || 'Pack')}</h3>
+                            </div>
+                            <span class="status-pill ${pack.status === 'ACTIVE' ? 'positive' : 'neutral'}">${escapeHtml(pack.status || 'ACTIVE')}</span>
+                        </div>
+                        <p class="hint">${escapeHtml(pack.description || 'No description provided.')}</p>
+                        <div class="button-row">
+                            <span class="status-pill neutral">${escapeHtml(pack.versionNumber || '1.0')}</span>
+                            <button type="button" class="danger" data-action="delete-content-pack" data-pack-id="${escapeHtml(pack.id || '')}">Delete</button>
+                        </div>
+                    </article>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    async uploadContentPack(event) {
+        event.preventDefault();
+        if (!appState.token && !appState.account?.administrator) throw new Error('Sign in first');
+
+        const form = event.currentTarget;
+        if (!(form instanceof HTMLFormElement)) throw new Error('Invalid upload form');
+
+        const formData = new FormData(form);
+        const file = formData.get('file');
+        const packId = String(formData.get('pack_id') || formData.get('id') || '').trim();
+        const name = String(formData.get('name') || '').trim();
+        const stripePriceId = String(formData.get('stripe_price_id') || formData.get('price_id') || '').trim();
+
+        if (!(file instanceof File) || file.size === 0) throw new Error('Please select a .zip file');
+        if (!file.name.toLowerCase().endsWith('.zip')) throw new Error('Only .zip files are allowed');
+        if (!packId || !name || !stripePriceId) throw new Error('Pack ID, name, and price ID are required');
+
+        formData.set('pack_id', packId);
+        formData.set('name', name);
+        formData.set('stripe_price_id', stripePriceId);
+
+        await api('/api/content-packs/upload', {
+            method: 'POST',
+            body: formData,
+        });
+
+        form.reset();
+        await this.loadPublicData();
+        await this.loadAdminData();
+        notify('Content pack uploaded', 'success');
+    }
+
+    async removeContentPack(packId) {
+        if (!packId) throw new Error('Missing pack ID');
+        if (!window.confirm('Delete this content pack?')) return;
+
+        await api(`/api/content-packs/remove/${encodeURIComponent(packId)}`, {
+            method: 'DELETE',
+        });
+
+        appState.contentPacks = (appState.contentPacks || []).filter((pack) => pack.id !== packId);
+        appState.adminContentPacks = (appState.adminContentPacks || []).filter((pack) => pack.id !== packId);
+        this.renderPublic();
+        this.renderAdmin();
+        notify('Content pack deleted', 'success');
+    }
+
+    async downloadContentPack(packId, packName) {
+        if (!packId) throw new Error('Missing pack ID');
+        if (!appState.userToken && !appState.token && !appState.account) throw new Error('Sign in first');
+
+        const headers = new Headers();
+        if (appState.userToken) headers.set('X-Photon-User-Token', appState.userToken);
+        if (appState.token) headers.set('Authorization', `Bearer ${appState.token}`);
+
+        const response = await fetch(`/api/downloads/${encodeURIComponent(packId)}`, {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers,
+        });
+
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Download failed');
+        }
+
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = objectUrl;
+        anchor.download = `${packId}.zip`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 2000);
+        notify(`${packName} download started`, 'success');
+    }
+
     renderPublic() {
         const purchaseMount = el('purchasePanel');
         if (purchaseMount) {
-            if (appState.account?.subscriber) {
-                purchaseMount.innerHTML = `
+            const subscriptionPriceId = String(appState.config?.subscription_price_id || '').trim();
+            const packCards = Array.isArray(appState.contentPacks) && appState.contentPacks.length ? appState.contentPacks.map((pack) => `
+                <article class="data-card">
+                    <div class="panel-header">
+                        <div>
+                            <p class="eyebrow">${escapeHtml(pack.category || 'Content pack')}</p>
+                            <h3>${escapeHtml(pack.name || pack.id || 'Pack')}</h3>
+                        </div>
+                        <span class="status-pill ${pack.owned ? 'positive' : 'neutral'}">${pack.owned ? 'Owned' : 'Available'}</span>
+                    </div>
+                    <p class="hint">${escapeHtml(pack.description || 'No description provided.')}</p>
+                    <div class="button-row">
+                        <span class="status-pill neutral">${escapeHtml(pack.versionNumber || '1.0')}</span>
+                        <button type="button" class="primary" data-checkout-type="pack" data-pack-id="${escapeHtml(pack.id || '')}" data-price-id="${escapeHtml(pack.stripePriceId || '')}" ${pack.owned ? 'disabled' : ''}>${pack.owned ? 'Owned' : 'Buy pack'}</button>
+                    </div>
+                </article>
+            `).join('') : '<div class="empty-state">No content packs are available yet.</div>';
+
+            const subscriptionCard = subscriptionPriceId ? `
+                <article class="data-card">
                     <div class="panel-header">
                         <div>
                             <p class="eyebrow">Subscription</p>
+                            <h3>Ongoing plan</h3>
                         </div>
-                        <span class="status-pill positive">Active</span>
+                        <span class="status-pill ${appState.account?.subscriber ? 'positive' : 'neutral'}">${appState.account?.subscriber ? 'Active' : 'Available'}</span>
                     </div>
-                    <div class="empty-state">You already have an active subscription.</div>
-                `;
-            } else {
-                purchaseMount.innerHTML = `
-                    <div class="panel-header">
-                        <div>
-                            <p class="eyebrow">Purchase</p>
-                        </div>
+                    <p class="hint">Subscribe to unlock server management features tied to your account.</p>
+                    <div class="button-row">
+                        <button type="button" class="primary" data-checkout-type="subscription" data-price-id="${escapeHtml(subscriptionPriceId)}" ${appState.account?.subscriber ? 'disabled' : ''}>${appState.account?.subscriber ? 'Active' : 'Start subscription'}</button>
                     </div>
-                    <div class="empty-state">You haven't completed a purchase yet. To complete a purchase, go to <a href="${escapeHtml(appState.config?.store_url || 'https://google.com').trim()}">the store</a>.</div>.
-                `;
-            }
+                </article>
+            ` : '<div class="empty-state">No subscription price is configured yet.</div>';
+
+            purchaseMount.innerHTML = `
+                <div class="panel-header">
+                    <div>
+                        <p class="eyebrow">Store</p>
+                        <h2>Subscriptions and content packs</h2>
+                    </div>
+                </div>
+                <div class="grid-list" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+                    ${subscriptionCard}
+                    ${packCards}
+                </div>
+            `;
         }
 
         this.renderServers();
@@ -218,6 +432,15 @@ class DashboardApp {
                 </div>
             </div>
             <div class="data-grid user-grid">${accountEntries}</div>
+            <div style="margin-top:20px">
+                <div class="panel-header">
+                    <div>
+                        <p class="eyebrow">Downloads</p>
+                        <h3>Your content packs</h3>
+                    </div>
+                </div>
+                ${this.renderOwnedContentPacks()}
+            </div>
         `;
 
         mount.querySelectorAll('[data-copy-text]').forEach((button) => {
@@ -379,6 +602,7 @@ class DashboardApp {
     renderAdmin() {
         this.renderConfig();
         this.renderTables();
+        this.renderContentPackAdmin();
     }
 
     renderServers() {
@@ -526,6 +750,7 @@ class DashboardApp {
 
     async loadPublicData() {
         appState.servers = await api('/api/status/servers');
+        appState.contentPacks = await api('/api/content-packs/catalog');
         this.renderPublic();
     }
 
@@ -544,6 +769,7 @@ class DashboardApp {
         appState.account = await api('/api/admin/me');
         appState.config = await api('/api/admin/config');
         appState.tables = await api('/api/admin/tables');
+        appState.adminContentPacks = await api('/admin/content-packs/list');
         this.renderUser();
         this.renderAdmin();
         this.header.refresh();
@@ -563,6 +789,7 @@ class DashboardApp {
 
         appState.account = await api('/accounts/me');
         appState.licenses = appState.account?.subscriber ? await api('/accounts/licenses') : [];
+        appState.ownedContentPacks = await api('/api/content-packs/owned').catch(() => []);
         this.renderUser();
         this.renderLicenses();
         this.header.refresh();

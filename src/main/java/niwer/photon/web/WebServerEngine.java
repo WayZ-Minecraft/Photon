@@ -29,6 +29,14 @@ import niwer.photon.web.endpoints.admin.AdminTablesEndpoint;
 import niwer.photon.web.endpoints.admin.AdminUpdateConfigEndpoint;
 import niwer.photon.web.endpoints.admin.AdminUpdateEndpoint;
 import niwer.photon.web.endpoints.admin.AdminUploadUpdateEndpoint;
+import niwer.photon.web.endpoints.contentpacks.ContentPackAdminListEndpoint;
+import niwer.photon.web.endpoints.contentpacks.ApiContentPackDownloadEndpoint;
+import niwer.photon.web.endpoints.contentpacks.ContentPackCheckoutEndpoint;
+import niwer.photon.web.endpoints.contentpacks.ContentPackCatalogEndpoint;
+import niwer.photon.web.endpoints.contentpacks.ContentPackDeleteEndpoint;
+import niwer.photon.web.endpoints.contentpacks.ContentPackDownloadEndpoint;
+import niwer.photon.web.endpoints.contentpacks.ContentPackOwnedEndpoint;
+import niwer.photon.web.endpoints.contentpacks.ContentPackUploadEndpoint;
 import niwer.photon.web.endpoints.game.AddAntiCheatReportEndpoint;
 import niwer.photon.web.endpoints.game.AddCrashReportEndpoint;
 import niwer.photon.web.endpoints.game.AddHWIDEndpoint;
@@ -90,6 +98,17 @@ public class WebServerEngine {
                 /* Stripe */
                 IEndpoint.register(cfg, StripePurchaseSessionEndpoint.class);
                 IEndpoint.register(cfg, StripeWebhookEndpoint.class);
+            }
+            {
+                /* Content packs */
+                IEndpoint.register(cfg, ContentPackCatalogEndpoint.class);
+                IEndpoint.register(cfg, ContentPackOwnedEndpoint.class);
+                IEndpoint.register(cfg, ContentPackCheckoutEndpoint.class);
+                IEndpoint.register(cfg, ContentPackUploadEndpoint.class);
+                IEndpoint.register(cfg, ContentPackAdminListEndpoint.class);
+                IEndpoint.register(cfg, ContentPackDeleteEndpoint.class);
+                IEndpoint.register(cfg, ContentPackDownloadEndpoint.class);
+                IEndpoint.register(cfg, ApiContentPackDownloadEndpoint.class);
             }
             {
                 /* Accounts */

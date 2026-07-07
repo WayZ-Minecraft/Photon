@@ -48,6 +48,7 @@ public class ContentPackUploadEndpoint implements IEndpoint {
 		final String versionNumber = firstNonBlank(handler.formParam("version_number"), handler.formParam("version"));
 		final String category = handler.formParam("category");
 		final String description = handler.formParam("description");
+		final String stripePaymentLink = handler.formParam("stripe_payment_link");
 		final String status = firstNonBlank(handler.formParam("status"), "ACTIVE");
 
 		final String fileName = uploadedFile.filename();
@@ -82,6 +83,7 @@ public class ContentPackUploadEndpoint implements IEndpoint {
 				description,
 				category,
 				stripePriceId,
+				stripePaymentLink,
 				"/downloads/" + PackProductTable.normalizeId(packId) + ".zip",
 				versionNumber,
 				status

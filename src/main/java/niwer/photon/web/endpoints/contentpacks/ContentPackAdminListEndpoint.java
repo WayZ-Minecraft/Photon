@@ -32,6 +32,7 @@ public class ContentPackAdminListEndpoint implements IEndpoint {
 			row.put("status", pack.status());
 			row.put("description", pack.description());
 			row.put("stripePriceId", pack.stripePriceId());
+			row.put("stripePaymentLink", pack.stripePaymentLink());
 			response.add(row);
 		}
 		handler.json(response);

@@ -1,5 +1,8 @@
 package niwer.photon.sql;
 
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -8,7 +11,6 @@ import niwer.photon.objects.ObjectPackOwnership;
 import niwer.queryon.DataBase;
 import niwer.queryon.queries.Expression;
 import niwer.queryon.queries.interaction.InsertionManager;
-import niwer.queryon.queries.interaction.SelectionManager;
 import niwer.queryon.queries.interaction.UpdateManager;
 import niwer.queryon.tables.EnumColumnTypes;
 import niwer.queryon.tables.Table;
@@ -38,17 +40,12 @@ public class PackOwnershipTable extends Table {
 
 	public static ObjectPackOwnership getByEmailAndPackId(String email, String packId) {
 		if (email == null || email.isBlank() || packId == null || packId.isBlank()) return null;
-		return SelectionManager.select(PhotonEngine.DATA_BASE, PackOwnershipTable.class)
-			.where(Expression.of("user_email").isEqualTo(normalizeEmail(email)).and(Expression.of("pack_id").isEqualTo(packId.trim())))
-			.limit(1)
-			.executeSerializable(ObjectPackOwnership.class);
+		return querySingle(normalizeEmail(email), packId.trim());
 	}
 
 	public static List<ObjectPackOwnership> getByEmail(String email) {
 		if (email == null || email.isBlank()) return List.of();
-		return SelectionManager.select(PhotonEngine.DATA_BASE, PackOwnershipTable.class)
-			.where(Expression.of("user_email").isEqualTo(normalizeEmail(email)))
-			.executeList(ObjectPackOwnership.class);
+		return queryList(normalizeEmail(email));
 	}
 
 	public static ObjectPackOwnership upsertOwnership(String email, String accountUuid, String packId, boolean active) {
@@ -90,9 +87,7 @@ public class PackOwnershipTable extends Table {
 		final ObjectPackOwnership byEmail = getByEmailAndPackId(email, packId);
 		if (byEmail != null && Boolean.TRUE.equals(byEmail.isActive())) return true;
 		if (accountUuid == null || accountUuid.isBlank()) return false;
-		return SelectionManager.select(PhotonEngine.DATA_BASE, PackOwnershipTable.class)
-			.where(Expression.of("account_uuid").isEqualTo(accountUuid.trim()).and(Expression.of("pack_id").isEqualTo(packId.trim())).and(Expression.of("is_active").isEqualTo(true)))
-			.executeHasResult();
+		return querySingleByAccount(accountUuid.trim(), packId.trim()) != null;
 	}
 
 	public static boolean deleteByPackId(String packId) {
@@ -106,5 +101,49 @@ public class PackOwnershipTable extends Table {
 		} catch (Exception ignored) {
 			return false;
 		}
+	}
+
+	private static List<ObjectPackOwnership> queryList(String email) {
+		final List<ObjectPackOwnership> ownerships = new ArrayList<>();
+		try {
+			PhotonEngine.DATA_BASE.connect();
+			try (Statement statement = PhotonEngine.DATA_BASE.sqlConnection().createStatement(); ResultSet result = statement.executeQuery("SELECT * FROM \"PackOwnership\" WHERE user_email = '" + email.replace("'", "''") + "'")) {
+				while (result.next()) ownerships.add(fromResultSet(result));
+			}
+		} catch (Exception ignored) {}
+		return ownerships;
+	}
+
+	private static ObjectPackOwnership querySingle(String email, String packId) {
+		try {
+			PhotonEngine.DATA_BASE.connect();
+			try (Statement statement = PhotonEngine.DATA_BASE.sqlConnection().createStatement(); ResultSet result = statement.executeQuery("SELECT * FROM \"PackOwnership\" WHERE user_email = '" + email.replace("'", "''") + "' AND pack_id = '" + packId.replace("'", "''") + "' LIMIT 1")) {
+				if (result.next()) return fromResultSet(result);
+			}
+		} catch (Exception ignored) {}
+		return null;
+	}
+
+	private static ObjectPackOwnership querySingleByAccount(String accountUuid, String packId) {
+		try {
+			PhotonEngine.DATA_BASE.connect();
+			try (Statement statement = PhotonEngine.DATA_BASE.sqlConnection().createStatement(); ResultSet result = statement.executeQuery("SELECT * FROM \"PackOwnership\" WHERE account_uuid = '" + accountUuid.replace("'", "''") + "' AND pack_id = '" + packId.replace("'", "''") + "' AND is_active = 1 LIMIT 1")) {
+				if (result.next()) return fromResultSet(result);
+			}
+		} catch (Exception ignored) {}
+		return null;
+	}
+
+	private static ObjectPackOwnership fromResultSet(ResultSet result) throws Exception {
+		return new ObjectPackOwnership(
+			result.getString("user_email"),
+			result.getString("account_uuid"),
+			result.getString("pack_id"),
+			result.getTimestamp("purchased_at"),
+			result.getTimestamp("first_download_at"),
+			result.getBoolean("is_active"),
+			result.getBoolean("claimed_successfully"),
+			result.getTimestamp("updated_at")
+		);
 	}
 }

@@ -22,6 +22,9 @@ public class ObjectPackProduct extends SQLSerializable<ObjectPackProduct> {
 	@IColumnField(name = "stripe_price_id", notNull = true)
 	private String stripePriceId;
 
+	@IColumnField(name = "stripe_payment_link")
+	private String stripePaymentLink;
+
 	@IColumnField(name = "file_path")
 	private String filePath;
 
@@ -39,12 +42,13 @@ public class ObjectPackProduct extends SQLSerializable<ObjectPackProduct> {
 
 	public ObjectPackProduct() {}
 
-	public ObjectPackProduct(String id, String name, String description, String category, String stripePriceId, String filePath, String versionNumber, String status, Date createdAt, Date updatedAt) {
+	public ObjectPackProduct(String id, String name, String description, String category, String stripePriceId, String stripePaymentLink, String filePath, String versionNumber, String status, Date createdAt, Date updatedAt) {
 		this.id = id;
 		this.name = name;
 		this.description = description;
 		this.category = category;
 		this.stripePriceId = stripePriceId;
+		this.stripePaymentLink = stripePaymentLink;
 		this.filePath = filePath;
 		this.versionNumber = versionNumber;
 		this.status = status;
@@ -71,6 +75,10 @@ public class ObjectPackProduct extends SQLSerializable<ObjectPackProduct> {
 	public String stripePriceId() { return stripePriceId; }
 
     public String getStripePriceId() { return stripePriceId; }
+
+	public String stripePaymentLink() { return stripePaymentLink; }
+
+    public String getStripePaymentLink() { return stripePaymentLink; }
 
 	public String filePath() { return filePath; }
 

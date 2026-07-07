@@ -161,12 +161,15 @@ export class ModalManager {
                 ? 'Edit profile'
                 : this.active.kind === 'config'
                     ? 'Edit config'
+                    : this.active.kind === 'contentPackUpload'
+                        ? 'Add content pack'
                     : this.active.kind === 'createLicense'
                         ? 'Create license'
                         : 'Create account';
 
         const body = this.active.kind === 'profile' ? this.renderProfileForm()
             : this.active.kind === 'config' ? this.renderConfigForm()
+            : this.active.kind === 'contentPackUpload' ? this.renderContentPackUploadForm()
             : this.active.kind === 'createLicense' ? this.renderLicenseForm()
             : this.renderAuthOrAccountForm();
 
@@ -368,6 +371,53 @@ export class ModalManager {
         `;
     }
 
+    renderContentPackUploadForm() {
+        return `
+            <form id="contentPackUploadForm" onsubmit="event.preventDefault()" class="modal-panel active stacked-form" enctype="multipart/form-data">
+                <div>
+                    <p class="eyebrow">Content packs</p>
+                    <h3>Add or update a pack</h3>
+                </div>
+                <label>
+                    <span>Pack ID</span>
+                    <input type="text" name="pack_id" placeholder="worlds-v2" required>
+                </label>
+                <label>
+                    <span>Name</span>
+                    <input type="text" name="name" placeholder="Worlds v2" required>
+                </label>
+                <label>
+                    <span>Version</span>
+                    <input type="text" name="version_number" placeholder="worlds-v2">
+                </label>
+                <label>
+                    <span>Category</span>
+                    <input type="text" name="category" placeholder="maps">
+                </label>
+                <label>
+                    <span>Description</span>
+                    <textarea name="description" rows="4" placeholder="Short description of the pack"></textarea>
+                </label>
+                <label>
+                    <span>Stripe price ID</span>
+                    <input type="text" name="stripe_price_id" placeholder="price_123" required>
+                </label>
+                <label>
+                    <span>Stripe payment link</span>
+                    <input type="url" name="stripe_payment_link" placeholder="https://buy.stripe.com/...">
+                </label>
+                <label>
+                    <span>ZIP file</span>
+                    <input type="file" name="file" accept=".zip,application/zip" required>
+                </label>
+                <div class="button-row">
+                    <button type="button" class="secondary" data-modal-close>Cancel</button>
+                    <button type="submit" class="primary">Save pack</button>
+                </div>
+            </form>
+        `;
+    }
+
 
     bind() {
         this.root.querySelectorAll('[data-modal-close]').forEach((button) => {
@@ -497,6 +547,13 @@ export class ModalManager {
         if (licenseForm) {
             licenseForm.addEventListener('submit', (event) => {
                 this.app.handleCreateLicense(event).then(() => this.close()).catch((error) => notify(error.message, 'error'));
+            });
+        }
+
+        const contentPackUploadForm = this.root.querySelector('#contentPackUploadForm');
+        if (contentPackUploadForm) {
+            contentPackUploadForm.addEventListener('submit', (event) => {
+                this.app.uploadContentPack(event).then(() => this.close()).catch((error) => notify(error.message, 'error'));
             });
         }
 

@@ -32,6 +32,7 @@ public class ContentPackCatalogEndpoint implements IEndpoint {
 			row.put("category", pack.category());
 			row.put("versionNumber", pack.versionNumber());
 			row.put("stripePriceId", pack.stripePriceId());
+			row.put("stripePaymentLink", pack.stripePaymentLink());
 			row.put("filePath", pack.filePath());
 			row.put("status", pack.status());
 			row.put("owned", account != null && PackOwnershipTable.owns(account.getEmail(), account.getUuid(), pack.id()));

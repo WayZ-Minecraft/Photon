@@ -242,6 +242,7 @@ class DashboardApp {
                             <span class="status-pill ${pack.status === 'ACTIVE' ? 'positive' : 'neutral'}">${escapeHtml(pack.status || 'ACTIVE')}</span>
                         </div>
                         <p class="hint">${escapeHtml(pack.description || 'No description provided.')}</p>
+                        ${pack.stripePaymentLink ? `<p class="hint"><a href="${escapeHtml(pack.stripePaymentLink)}" target="_blank" rel="noreferrer">Public payment link</a></p>` : ''}
                         <div class="button-row">
                             <span class="status-pill neutral">${escapeHtml(pack.versionNumber || '1.0')}</span>
                             <button type="button" class="danger" data-action="delete-content-pack" data-pack-id="${escapeHtml(pack.id || '')}">Delete</button>
@@ -346,7 +347,7 @@ class DashboardApp {
                     <p class="hint">${escapeHtml(pack.description || 'No description provided.')}</p>
                     <div class="button-row">
                         <span class="status-pill neutral">${escapeHtml(pack.versionNumber || '1.0')}</span>
-                        <button type="button" class="primary" data-checkout-type="pack" data-pack-id="${escapeHtml(pack.id || '')}" data-price-id="${escapeHtml(pack.stripePriceId || '')}" ${pack.owned ? 'disabled' : ''}>${pack.owned ? 'Owned' : 'Buy pack'}</button>
+                        ${pack.stripePaymentLink ? `<a class="primary" href="${escapeHtml(pack.stripePaymentLink)}" target="_blank" rel="noreferrer">Buy pack</a>` : `<button type="button" class="primary" data-checkout-type="pack" data-pack-id="${escapeHtml(pack.id || '')}" data-price-id="${escapeHtml(pack.stripePriceId || '')}" ${pack.owned ? 'disabled' : ''}>${pack.owned ? 'Owned' : 'Buy pack'}</button>`}
                     </div>
                 </article>
             `).join('') : '<div class="empty-state">No content packs are available yet.</div>';

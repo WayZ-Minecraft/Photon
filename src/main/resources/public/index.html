@@ -148,45 +148,15 @@
                                 <p class="eyebrow">Content packs</p>
                                 <h2>Manage downloadable products</h2>
                             </div>
+                            <div class="button-row">
+                                <button type="button" class="secondary icon-button" data-open-modal="contentPackUpload" aria-label="Add content pack" title="Add content pack">
+                                    <span aria-hidden="true">+</span>
+                                    <span class="sr-only">Add content pack</span>
+                                </button>
+                            </div>
                         </div>
 
-                        <div class="stacked-form">
-                            <form id="contentPackUploadForm" class="stacked-form" enctype="multipart/form-data">
-                                <label>
-                                    <span>Pack ID</span>
-                                    <input type="text" name="pack_id" placeholder="worlds-v2" required>
-                                </label>
-                                <label>
-                                    <span>Name</span>
-                                    <input type="text" name="name" placeholder="Worlds v2" required>
-                                </label>
-                                <label>
-                                    <span>Version</span>
-                                    <input type="text" name="version_number" placeholder="worlds-v2">
-                                </label>
-                                <label>
-                                    <span>Category</span>
-                                    <input type="text" name="category" placeholder="maps">
-                                </label>
-                                <label>
-                                    <span>Description</span>
-                                    <textarea name="description" rows="4" placeholder="Short description of the pack"></textarea>
-                                </label>
-                                <label>
-                                    <span>Stripe price ID</span>
-                                    <input type="text" name="stripe_price_id" placeholder="price_123" required>
-                                </label>
-                                <label>
-                                    <span>ZIP file</span>
-                                    <input type="file" name="file" accept=".zip,application/zip" required>
-                                </label>
-                                <div class="button-row">
-                                    <button type="submit" class="primary">Upload pack</button>
-                                </div>
-                            </form>
-
-                            <div id="contentPackList" class="stacked-form"></div>
-                        </div>
+                        <div id="contentPackList" class="stacked-form"></div>
                     </section>
                 </main>
 

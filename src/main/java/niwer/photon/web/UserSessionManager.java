@@ -168,12 +168,6 @@ public final class UserSessionManager {
             return authorization.substring("Bearer ".length()).trim();
         }
 
-        final String queryToken = handler.queryParam("token");
-        if (queryToken != null && !queryToken.isBlank()) return queryToken.trim();
-
-        final String formToken = handler.formParam("token");
-        if (formToken != null && !formToken.isBlank()) return formToken.trim();
-
         return null;
     }
 

@@ -4,6 +4,7 @@ import java.util.regex.Pattern;
 
 import io.javalin.http.Context;
 import niwer.photon.objects.ObjectPlayerAccount;
+import niwer.photon.objects.ObjectSubscription;
 import niwer.photon.sql.PurchaseTokenTable;
 import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.sql.SubscriptionTable;
@@ -65,11 +66,15 @@ public class CreateAccountEndpoint implements IEndpoint {
         }
 
         final boolean hasPurchaseReference = checkoutSessionId != null && !checkoutSessionId.isBlank();
+        final ObjectSubscription subscription = SubscriptionTable.getByEmail(email);
         if (hasPurchaseReference) {
             if (!canRedeemPurchaseReference(checkoutSessionId)) {
                 handler.status(403).result("Invalid or expired purchase token");
                 return;
             }
+        } else if (subscription == null || !subscription.isActive()) {
+            handler.status(403).result("Active subscription required");
+            return;
         }
 
         /* Create the account */
@@ -83,6 +88,16 @@ public class CreateAccountEndpoint implements IEndpoint {
             PlayerAccountTable.deleteAccount(ACCOUNT.getUuid());
             handler.status(500).result("Failed to link purchase token");
             return;
+        } else if (subscription != null && subscription.isActive()) {
+            SubscriptionTable.upsertSubscription(
+                subscription.customerEmail(),
+                subscription.customerName(),
+                subscription.customerId(),
+                subscription.subscriptionId(),
+                SubscriptionTable.SubscriptionStatus.fromString(subscription.status()),
+                subscription.expiresAt(),
+                ACCOUNT.getUuid()
+            );
         }
 
         final UserSessionManager.AuthSession session = createSession(email, password);

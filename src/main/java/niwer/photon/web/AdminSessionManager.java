@@ -59,7 +59,12 @@ public final class AdminSessionManager {
         if (email == null || password == null) return null;
 
         final ObjectPlayerAccount account = PlayerAccountTable.getAccountByEmail(email);
-        if (account == null || account.password() == null || !account.password().equals(password) || !account.isAdministrator()) return null;
+        if (account == null || account.password() == null || !account.isAdministrator()) return null;
+        if (!PlayerAccountTable.passwordMatches(account.password(), password)) return null;
+
+        if (!PlayerAccountTable.isArgon2Password(account.password())) {
+            PlayerAccountTable.setPassword(account.getUuid(), password);
+        }
 
         final String token = UUID.randomUUID().toString().replace("-", "");
         final String csrf = UUID.randomUUID().toString().replace("-", "");

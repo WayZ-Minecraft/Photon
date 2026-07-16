@@ -1,6 +1,13 @@
 # Other
 bin/
 /network/
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.jks
+*.keystore
 
 # Gradle
 build/

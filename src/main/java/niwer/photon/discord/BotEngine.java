@@ -6,9 +6,6 @@ import java.time.OffsetDateTime;
 import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;
 
-import org.slf4j.LoggerFactory;
-
-import ch.qos.logback.classic.Logger;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
@@ -62,8 +59,8 @@ public class BotEngine extends ListenerAdapter {
             return;
         }
 
-        final Logger JDA_LOGGER = (Logger) LoggerFactory.getLogger("net.dv8tion.jda");
-        JDA_LOGGER.setLevel(ch.qos.logback.classic.Level.WARN);
+        /* Try to silence JDA logs */
+        PhotonLogTypes.silenceLogsFor("net.dv8tion.jda");
         
         botBuilder = JDABuilder.createDefault(Directories.getConfig().discord_bot_token);
         botBuilder.setActivity(Activity.playing(Directories.getConfig().bot_activity));

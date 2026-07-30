@@ -1,8 +1,5 @@
 package niwer.photon.web;
 
-import org.slf4j.LoggerFactory;
-
-import ch.qos.logback.classic.Logger;
 import io.javalin.Javalin;
 import niwer.lumen.Console;
 import niwer.photon.Directories;
@@ -49,11 +46,8 @@ public class WebServerEngine {
 
         /* Change debug level */
         {
-            final Logger JAVALIN_LOGGER = (Logger) LoggerFactory.getLogger("io.javalin");
-            JAVALIN_LOGGER.setLevel(ch.qos.logback.classic.Level.WARN);
-    
-            final Logger JETTY_LOGGER = (Logger) LoggerFactory.getLogger("org.eclipse.jetty");
-            JETTY_LOGGER.setLevel(ch.qos.logback.classic.Level.WARN);
+            PhotonLogTypes.silenceLogsFor("io.javalin");
+            PhotonLogTypes.silenceLogsFor("org.eclipse.jetty");
         }
 
         /* Load admin sessions */

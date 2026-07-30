@@ -5,7 +5,19 @@ It also provide the official discord bot, database for anti-cheat reports, crash
 
 ## Run
 
-The main entry point is `niwer.photon.PhotonEngine`.
+The main entry point is `niwer.photon.PhotonEngine`. You can execute the jar itself.
+But we recommand to use docker-compose with the suggested config down below :
+```yml
+services:
+  photon:
+    image: ghcr.io/<organization_name>/photon:latest
+    container_name: photon-app
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:7070:7070"
+    volumes:
+      - ./app_data:/photon_server/network/
+```
 
 ## Configuration
 

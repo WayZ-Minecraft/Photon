@@ -1,8 +1,6 @@
 package niwer.photon.sql;
 
 import niwer.photon.PhotonEngine;
-import niwer.photon.util.TestHooks;
-
 import niwer.queryon.DataBase;
 import niwer.queryon.queries.Expression;
 import niwer.queryon.queries.interaction.DeletionManager;
@@ -34,10 +32,6 @@ public class HWIDTable extends Table {
      * @param operatingSystem The operating system
      */
     public static void save(String userUUID, String userHWID, String operatingSystem) {
-        if (TestHooks.invokeStaticVoid("niwer.photon.sql.tables.HWIDTableTest", "save", new Class<?>[] { String.class, String.class, String.class }, userUUID, userHWID, operatingSystem)) {
-            return;
-        }
-
         InsertionManager.insert(PhotonEngine.DATA_BASE, HWIDTable.class, "userUUID", "userHWID", "operatingSystem")
             .row(userUUID, userHWID, operatingSystem)
             .execute();

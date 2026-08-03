@@ -34,7 +34,6 @@ import niwer.photon.discord.commands.CommandsManager;
 import niwer.photon.sql.DiscordLogTable;
 import niwer.photon.sql.DiscordLogTable.ModerationType;
 import niwer.photon.util.PhotonLogTypes;
-import niwer.photon.util.TestHooks;
 import niwer.photon.util.TranslationManager;
 
 /**
@@ -55,10 +54,6 @@ public class BotEngine extends ListenerAdapter {
      * @throws InterruptedException
      */
     public static void load(boolean shouldRestart) throws LoginException, InterruptedException {
-        if (TestHooks.invokeStaticVoid("niwer.photon.discord.BotEngineTest", "load", new Class<?>[] { boolean.class }, shouldRestart)) {
-            return;
-        }
-
         /* Try to silence JDA logs */
         PhotonLogTypes.silenceLogsFor("net.dv8tion.jda");
         

@@ -5,7 +5,6 @@ import niwer.lumen.Console;
 import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
 import niwer.photon.util.PhotonLogTypes;
-import niwer.photon.util.TestHooks;
 import niwer.photon.web.endpoints.HomeEndpoint;
 import niwer.photon.web.endpoints.IEndpoint;
 import niwer.photon.web.endpoints.LicenseValidateEndpoint;
@@ -40,10 +39,6 @@ import niwer.photon.web.endpoints.stripe.StripeWebhookEndpoint;
 public class WebServerEngine {
 
     public static void load() {
-        if (TestHooks.invokeStaticVoid("niwer.photon.web.WebServerEngineTest", "load", new Class<?>[0])) {
-            return;
-        }
-
         /* Change debug level */
         {
             PhotonLogTypes.silenceLogsFor("io.javalin");

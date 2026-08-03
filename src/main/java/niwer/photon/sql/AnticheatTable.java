@@ -1,7 +1,6 @@
 package niwer.photon.sql;
 
 import niwer.photon.PhotonEngine;
-import niwer.photon.util.TestHooks;
 import niwer.queryon.DataBase;
 import niwer.queryon.queries.interaction.InsertionManager;
 import niwer.queryon.tables.EnumColumnTypes;
@@ -30,10 +29,6 @@ public class AnticheatTable extends Table {
      * @param operatingSystem The operating system
      */
     public static void save(String userUUID, String fileName, String fileMessage, String operatingSystem) {
-        if (TestHooks.invokeStaticVoid("niwer.photon.sql.tables.AnticheatTableTest", "save", new Class<?>[] { String.class, String.class, String.class, String.class }, userUUID, fileName, fileMessage, operatingSystem)) {
-            return;
-        }
-
         InsertionManager.insert(PhotonEngine.DATA_BASE, AnticheatTable.class, "userUUID", "fileName", "fileMessage", "operatingSystem")
             .row(userUUID, fileName, fileMessage, operatingSystem)
             .execute();

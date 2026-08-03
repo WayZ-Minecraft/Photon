@@ -72,9 +72,6 @@ public class CreateAccountEndpoint implements IEndpoint {
                 handler.status(403).result("Invalid or expired purchase token");
                 return;
             }
-        } else if (subscription == null || !subscription.isActive()) {
-            handler.status(403).result("Active subscription required");
-            return;
         }
 
         /* Create the account */

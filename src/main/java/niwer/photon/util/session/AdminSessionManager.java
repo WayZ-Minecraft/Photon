@@ -1,4 +1,4 @@
-package niwer.photon.web;
+package niwer.photon.util.session;
 
 import java.io.File;
 import java.io.FileReader;
@@ -8,9 +8,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.javalin.http.Context;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
+import io.javalin.http.Context;
 import niwer.photon.Directories;
 import niwer.photon.objects.ObjectPlayerAccount;
 import niwer.photon.sql.PlayerAccountTable;
@@ -19,28 +20,22 @@ public final class AdminSessionManager {
 
     private static final File SESSION_FILE = new File(Directories.BASE_DIR, "admin_sessions.json");
     private static final Gson GSON = Directories.GSON;
-    private static final Type SESSION_MAP_TYPE = new TypeToken<Map<String, Session>>() {}.getType();
-    private static final Map<String, Session> SESSIONS = new ConcurrentHashMap<>();
+    private static final Type SESSION_MAP_TYPE = new TypeToken<Map<String, SessionSnapshot>>() {}.getType();
+    private static final Map<String, SessionSnapshot> SESSIONS = new ConcurrentHashMap<>();
 
     private AdminSessionManager() {}
 
     static {
         load();
     }
-
-    public record AuthSession(String token, ObjectPlayerAccount account) {}
-
-    private record AccountSnapshot(String username, String email, String uuid, String discordID, String discordAuthCode, boolean administrator, boolean serverCreator) {}
     
-    private record Session(AccountSnapshot account, long createdAt, String csrf) {}
-
     public static synchronized void load() {
         SESSIONS.clear();
 
         if (!SESSION_FILE.exists()) return;
 
         try (FileReader reader = new FileReader(SESSION_FILE)) {
-            final Map<String, Session> loadedSessions = GSON.fromJson(reader, SESSION_MAP_TYPE);
+            final Map<String, SessionSnapshot> loadedSessions = GSON.fromJson(reader, SESSION_MAP_TYPE);
             if (loadedSessions != null) {
                 SESSIONS.putAll(loadedSessions);
             }
@@ -68,14 +63,14 @@ public final class AdminSessionManager {
 
         final String token = UUID.randomUUID().toString().replace("-", "");
         final String csrf = UUID.randomUUID().toString().replace("-", "");
-        SESSIONS.put(token, new Session(snapshot(account), System.currentTimeMillis(), csrf));
+        SESSIONS.put(token, new SessionSnapshot(snapshot(account), System.currentTimeMillis(), csrf));
         save();
         return new AuthSession(token, account);
     }
 
     public static String getCsrfForToken(String token) {
         if (token == null || token.isBlank()) return null;
-        final Session session = SESSIONS.get(token);
+        final SessionSnapshot session = SESSIONS.get(token);
         if (session == null) return null;
         return session.csrf();
     }
@@ -102,7 +97,7 @@ public final class AdminSessionManager {
             return userAccount != null && userAccount.isAdministrator() ? userAccount : null;
         }
 
-        final Session session = SESSIONS.get(token);
+        final SessionSnapshot session = SESSIONS.get(token);
         if (session == null) {
             final ObjectPlayerAccount userAccount = UserSessionManager.accountFromRequest(handler);
             return userAccount != null && userAccount.isAdministrator() ? userAccount : null;
@@ -155,7 +150,7 @@ public final class AdminSessionManager {
             final String token = extractToken(handler);
             if (token == null || token.isBlank()) return false;
 
-            final Session session = SESSIONS.get(token);
+            final SessionSnapshot session = SESSIONS.get(token);
             if (session == null) return false;
 
             final String expected = session.csrf();

@@ -8,7 +8,7 @@ import io.javalin.http.Context;
 import niwer.photon.objects.ObjectLicense;
 import niwer.photon.sql.LicenseTable;
 import niwer.photon.sql.SubscriptionTable;
-import niwer.photon.web.UserSessionManager;
+import niwer.photon.util.session.UserSessionManager;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AccountLicenseListEndpoint implements IEndpoint {

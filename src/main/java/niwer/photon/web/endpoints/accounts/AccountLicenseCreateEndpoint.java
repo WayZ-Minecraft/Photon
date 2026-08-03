@@ -11,7 +11,7 @@ import niwer.photon.Directories;
 import niwer.photon.objects.ObjectLicense;
 import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.license.LicenseManager;
-import niwer.photon.web.UserSessionManager;
+import niwer.photon.util.session.UserSessionManager;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AccountLicenseCreateEndpoint implements IEndpoint {

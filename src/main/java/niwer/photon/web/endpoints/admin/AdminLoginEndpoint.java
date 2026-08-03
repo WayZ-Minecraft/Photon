@@ -2,7 +2,8 @@ package niwer.photon.web.endpoints.admin;
 
 import io.javalin.http.Context;
 import niwer.photon.Directories;
-import niwer.photon.web.AdminSessionManager;
+import niwer.photon.util.session.AdminSessionManager;
+import niwer.photon.util.session.AuthSession;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AdminLoginEndpoint implements IEndpoint {
@@ -19,7 +20,7 @@ public class AdminLoginEndpoint implements IEndpoint {
             return;
         }
         
-        final AdminSessionManager.AuthSession session = AdminSessionManager.login(credentials.email, credentials.password);
+        final AuthSession session = AdminSessionManager.login(credentials.email, credentials.password);
         if (session == null) {
             handler.status(401).result("Invalid credentials or access denied");
             return;

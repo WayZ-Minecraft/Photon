@@ -1,4 +1,4 @@
-package niwer.photon.web;
+package niwer.photon.util.session;
 
 import java.io.File;
 import java.io.FileReader;
@@ -21,77 +21,17 @@ public final class UserSessionManager {
 
     private static final File SESSION_FILE = new File(Directories.BASE_DIR, "user_sessions.json");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final Type SESSION_MAP_TYPE = new TypeToken<Map<String, Session>>() {}.getType();
-    private static final Map<String, Session> SESSIONS = new ConcurrentHashMap<>();
+    private static final Type SESSION_MAP_TYPE = new TypeToken<Map<String, SessionSnapshot>>() {}.getType();
+    private static final Map<String, SessionSnapshot> SESSIONS = new ConcurrentHashMap<>();
 
     private UserSessionManager() {}
-
-    public static class AuthSession {
-        String token;
-        ObjectPlayerAccount account;
-
-        public AuthSession(String token, ObjectPlayerAccount account) {
-            this.token = token;
-            this.account = account;
-        }
-
-        public String token() { return this.token; }
-    }
-
-    private static class AccountSnapshot {
-        String username;
-        String email;
-        String uuid;
-        String discordID;
-        String discordAuthCode;
-        boolean administrator;
-        boolean serverCreator;
-
-        public AccountSnapshot(String username, String email, String uuid, String discordID, String discordAuthCode, boolean administrator, boolean serverCreator) {
-            this.username = username;
-            this.email = email;
-            this.uuid = uuid;
-            this.discordID = discordID;
-            this.discordAuthCode = discordAuthCode;
-            this.administrator = administrator;
-            this.serverCreator = serverCreator;
-        }
-
-        public String username() { return this.username; }
-
-        public String email() { return this.email; }
-
-        public String uuid() { return this.uuid; }
-
-        public String discordID() { return this.discordID; }
-
-        public String discordAuthCode() { return this.discordAuthCode; }
-
-        public boolean administrator() { return this.administrator; }
-
-        public boolean serverCreator() { return this.serverCreator; }
-    }
-
-    private static class Session {
-        AccountSnapshot account;
-        long createdAt;
-
-        public Session(AccountSnapshot account, long createdAt) {
-            this.account = account;
-            this.createdAt = createdAt;
-        }
-
-        public AccountSnapshot account() { return this.account; }
-
-        public long createdAt() { return this.createdAt; }
-    }
 
     public static void load() {
         SESSIONS.clear();
         if (!SESSION_FILE.exists()) return;
 
         try (FileReader reader = new FileReader(SESSION_FILE)) {
-            final Map<String, Session> loadedSessions = GSON.fromJson(reader, SESSION_MAP_TYPE);
+            final Map<String, SessionSnapshot> loadedSessions = GSON.fromJson(reader, SESSION_MAP_TYPE);
             if (loadedSessions != null) {
                 SESSIONS.putAll(loadedSessions);
             }
@@ -113,7 +53,7 @@ public final class UserSessionManager {
 		}
 
         final String token = UUID.randomUUID().toString().replace("-", "");
-        SESSIONS.put(token, new Session(snapshot(account), System.currentTimeMillis()));
+        SESSIONS.put(token, new SessionSnapshot(snapshot(account), System.currentTimeMillis()));
         save();
         return new AuthSession(token, account);
     }
@@ -121,7 +61,7 @@ public final class UserSessionManager {
     public static AuthSession createSessionForAccount(ObjectPlayerAccount account) {
         if (account == null) return null;
         final String token = UUID.randomUUID().toString().replace("-", "");
-        SESSIONS.put(token, new Session(snapshot(account), System.currentTimeMillis()));
+        SESSIONS.put(token, new SessionSnapshot(snapshot(account), System.currentTimeMillis()));
         save();
         return new AuthSession(token, account);
     }
@@ -138,7 +78,7 @@ public final class UserSessionManager {
         final String token = extractToken(handler);
         if (token == null || token.isBlank()) return null;
 
-        final Session session = SESSIONS.get(token);
+        final SessionSnapshot session = SESSIONS.get(token);
         if (session == null) return null;
 
         final AccountSnapshot snapshot = session.account();

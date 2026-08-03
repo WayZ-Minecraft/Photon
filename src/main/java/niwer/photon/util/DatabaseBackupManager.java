@@ -1,6 +1,5 @@
 package niwer.photon.util;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -104,7 +103,9 @@ public final class DatabaseBackupManager {
 				return false;
 			}
 		});
-		STREAM.forEach(File::delete);
+		STREAM.forEach(file -> {
+			if (file != null) file.delete();
+		});
 	}
  
 	private static String escapeSqlLiteral(String value) {

@@ -65,16 +65,28 @@ public class ObjectPurchaseToken extends SQLSerializable<ObjectPurchaseToken> {
 	}
 
 	public String purchaseToken() { return purchaseToken; }
+
 	public String checkoutSessionId() { return checkoutSessionId; }
+
 	public String priceId() { return priceId; }
+
 	public String customerEmail() { return customerEmail; }
+
 	public String customerName() { return customerName; }
+
 	public String stripeCustomerId() { return stripeCustomerId; }
+
 	public String stripeSubscriptionId() { return stripeSubscriptionId; }
+
 	public String status() { return status; }
+
 	public String linkedAccountUuid() { return linkedAccountUuid; }
+
 	public Date createdAt() { return createdAt; }
+	
 	public Date updatedAt() { return updatedAt; }
+
 	public Date redeemedAt() { return redeemedAt; }
+	
 	public Date expiresAt() { return expiresAt; }
 }

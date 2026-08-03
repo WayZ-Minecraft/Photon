@@ -30,8 +30,6 @@ public enum OperatingSystem {
 
 	public boolean isSupported() { return this != OperatingSystem.UNKNOWN; }
 
-	public boolean isUnsupported() { return this == UNKNOWN; }
-
 	public static String javaPath() {
 		if (System.getProperty("os.name").toLowerCase().contains("win")) return "\"" + System.getProperty("java.home") + "\\bin\\java" + "\"";
 		return System.getProperty("java.home") + "/bin/java";

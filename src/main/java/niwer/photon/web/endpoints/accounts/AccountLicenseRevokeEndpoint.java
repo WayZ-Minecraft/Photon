@@ -10,7 +10,7 @@ import niwer.photon.Directories;
 import niwer.photon.objects.ObjectLicense;
 import niwer.photon.sql.LicenseTable;
 import niwer.photon.sql.SubscriptionTable;
-import niwer.photon.web.UserSessionManager;
+import niwer.photon.util.session.UserSessionManager;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AccountLicenseRevokeEndpoint implements IEndpoint {

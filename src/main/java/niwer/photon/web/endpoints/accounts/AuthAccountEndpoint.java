@@ -4,7 +4,8 @@ import io.javalin.http.Context;
 import niwer.photon.objects.ObjectPlayerAccount;
 import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.sql.SubscriptionTable;
-import niwer.photon.web.UserSessionManager;
+import niwer.photon.util.session.AuthSession;
+import niwer.photon.util.session.UserSessionManager;
 import niwer.photon.web.endpoints.IEndpoint;
 
 /**
@@ -50,7 +51,7 @@ public class AuthAccountEndpoint implements IEndpoint {
             PlayerAccountTable.setPassword(ACCOUNT.getUuid(), password);
         }
 
-        final UserSessionManager.AuthSession session = createSession(email, password);
+        final AuthSession session = createSession(email, password);
         if (session == null) {
             handler.status(401).result("Invalid credentials or access denied");
             return;
@@ -63,7 +64,7 @@ public class AuthAccountEndpoint implements IEndpoint {
         return PlayerAccountTable.getAccountByEmail(email);
     }
 
-    protected UserSessionManager.AuthSession createSession(String email, String password) {
+    protected AuthSession createSession(String email, String password) {
         return UserSessionManager.login(email, password);
     }
 

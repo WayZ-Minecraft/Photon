@@ -5,6 +5,8 @@ import niwer.lumen.Console;
 import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
 import niwer.photon.util.PhotonLogTypes;
+import niwer.photon.util.session.AdminSessionManager;
+import niwer.photon.util.session.UserSessionManager;
 import niwer.photon.web.endpoints.HomeEndpoint;
 import niwer.photon.web.endpoints.IEndpoint;
 import niwer.photon.web.endpoints.LicenseValidateEndpoint;

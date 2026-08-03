@@ -49,11 +49,18 @@ public class ObjectSubscription extends SQLSerializable<ObjectSubscription> {
     }
 
     public String customerEmail() { return customerEmail; }
+
     public String accountUuid() { return accountUuid; }
+
     public String customerName() { return customerName; }
+
     public String customerId() { return customerId; }
+
     public String subscriptionId() { return subscriptionId; }
+
     public String status() { return status; }
+
     public Date expiresAt() { return expiresAt; }
+    
     public Date updatedAt() { return updatedAt; }
 }

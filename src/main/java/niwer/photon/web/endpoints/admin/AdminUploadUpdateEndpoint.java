@@ -10,9 +10,9 @@ import io.javalin.http.UploadedFile;
 import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
 import niwer.photon.util.os.ApplicationUtils;
+import niwer.photon.util.session.AdminSessionManager;
 import niwer.photon.util.updater.UpdateChannel;
 import niwer.photon.util.updater.UpdateFileType;
-import niwer.photon.web.AdminSessionManager;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AdminUploadUpdateEndpoint implements IEndpoint {

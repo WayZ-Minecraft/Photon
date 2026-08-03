@@ -5,10 +5,11 @@ import java.util.regex.Pattern;
 import io.javalin.http.Context;
 import niwer.photon.objects.ObjectPlayerAccount;
 import niwer.photon.objects.ObjectSubscription;
-import niwer.photon.sql.PurchaseTokenTable;
 import niwer.photon.sql.PlayerAccountTable;
+import niwer.photon.sql.PurchaseTokenTable;
 import niwer.photon.sql.SubscriptionTable;
-import niwer.photon.web.UserSessionManager;
+import niwer.photon.util.session.AuthSession;
+import niwer.photon.util.session.UserSessionManager;
 import niwer.photon.web.endpoints.IEndpoint;
 
 /**
@@ -97,7 +98,7 @@ public class CreateAccountEndpoint implements IEndpoint {
             );
         }
 
-        final UserSessionManager.AuthSession session = createSession(email, password);
+        final AuthSession session = createSession(email, password);
         if (session == null) {
             handler.status(500).result("Failed to create session");
             return;
@@ -143,7 +144,7 @@ public class CreateAccountEndpoint implements IEndpoint {
         return SubscriptionTable.isActive(email, accountUuid);
     }
 
-    protected UserSessionManager.AuthSession createSession(String email, String password) {
+    protected AuthSession createSession(String email, String password) {
         return UserSessionManager.login(email, password);
     }
 

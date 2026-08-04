@@ -16,9 +16,9 @@ public class PhotonLogTypes {
     public static final ILogType STRIPE = new BasicLogType("STRIPE", EnumLogColor.BLUE);
 
     public static final void silenceLogsFor(String loggerName) {
-        final var logger = LoggerFactory.getLogger("net.dv8tion.jda");
+        final var logger = LoggerFactory.getLogger(loggerName);
 
-        if (logger instanceof ch.qos.logback.classic.Logger logbackLogger) logbackLogger.setLevel(ch.qos.logback.classic.Level.WARN);
+        if (logger instanceof ch.qos.logback.classic.Logger logbackLogger) logbackLogger.setLevel(ch.qos.logback.classic.Level.OFF);
         else Console.log("Logback not bound to SLF4J; unable to set '%s' log level dynamically.", loggerName).error().container(PhotonEngine.LOGGER).send();
     } 
 }

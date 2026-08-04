@@ -29,13 +29,13 @@ public class AdminLoginEndpoint implements IEndpoint {
         // Set HttpOnly cookie with admin session token and a non-HttpOnly CSRF cookie
         try {
             final String adminCookie = "photon_admin=" + session.token() + "; HttpOnly; Path=/; Max-Age=3600; SameSite=Strict";
-            handler.header("Set-Cookie", adminCookie);
+            handler.res().addHeader("Set-Cookie", adminCookie);
             // Retrieve csrf token from session map (session stored in AdminSessionManager)
             final String csrf = AdminSessionManager.getCsrfForToken(session.token());
             if (csrf != null && !csrf.isBlank()) {
                 final String csrfCookie = "photon_csrf=" + csrf + "; Path=/; Max-Age=3600; SameSite=Strict";
                 // csrf cookie is intentionally NOT HttpOnly so client JS can read it for the X-CSRF-Token header
-                handler.header("Set-Cookie", csrfCookie);
+                handler.res().addHeader("Set-Cookie", csrfCookie);
             }
         } catch (Exception ignored) {}
 

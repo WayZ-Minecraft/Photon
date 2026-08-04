@@ -117,7 +117,7 @@ public class SubscriptionTable extends Table {
     }
 
     public static boolean isActive(String email, String accountUuid) {
-        final ObjectSubscription subscription = accountUuid != null && !accountUuid.isBlank() ? getByAccountUuid(accountUuid) : getByEmail(email);
+        final ObjectSubscription subscription = resolveSubscription(email, accountUuid);
         return subscription != null && subscription.isActive();
     }
 
@@ -127,11 +127,17 @@ public class SubscriptionTable extends Table {
 
     public static Map<String, Object> subscriptionDetails(String email, String accountUuid) {
         final Map<String, Object> response = new LinkedHashMap<>();
-        final ObjectSubscription subscription = accountUuid != null && !accountUuid.isBlank() ? getByAccountUuid(accountUuid) : getByEmail(email);
+        final ObjectSubscription subscription = resolveSubscription(email, accountUuid);
         response.put("subscriber", subscription != null && subscription.isActive());
         response.put("subscriptionStatus", subscription == null ? SubscriptionStatus.EXPIRED.name() : subscription.status());
         response.put("subscriptionExpiresAt", subscription == null || subscription.expiresAt() == null ? null : subscription.expiresAt().getTime());
         response.put("subscriptionAccountUuid", subscription == null ? null : subscription.accountUuid());
         return response;
+    }
+
+    private static ObjectSubscription resolveSubscription(String email, String accountUuid) {
+        final ObjectSubscription subscriptionByUuid = accountUuid != null && !accountUuid.isBlank() ? getByAccountUuid(accountUuid) : null;
+        if (subscriptionByUuid != null) return subscriptionByUuid;
+        return getByEmail(email);
     }
 }

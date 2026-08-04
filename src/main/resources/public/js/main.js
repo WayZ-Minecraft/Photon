@@ -103,6 +103,16 @@ const UI = {
             this.switchAuthTab('register');
         }
 
+        if (State.userToken && !State.token) {
+            Api('/accounts/me')
+                .then((account) => {
+                    State.account = account;
+                    localStorage.setItem('photon-account', JSON.stringify(account));
+                    this.updateAuthVisbility();
+                })
+                .catch(() => {});
+        }
+
         this.updateAuthVisbility();
     },
 
@@ -154,7 +164,7 @@ const UI = {
     updateAuthVisbility() {
         const isAdmin = !!State.token || State.account?.administrator;
         const isUser = !!State.userToken || !!State.account;
-        const isSub = isUser && State.account?.subscriber;
+        const isSub = isUser && (State.account?.subscriber || State.account?.subscriptionStatus === 'ACTIVE');
 
         document.querySelectorAll('.guest-only').forEach(el => el.classList.toggle('hidden', isUser));
         document.querySelectorAll('.auth-required').forEach(el => el.classList.toggle('hidden', !isUser));
@@ -206,6 +216,24 @@ const UI = {
                         <a href="${this.escapeHTML(storeUrl)}" target="_blank" class="btn primary"><i class="fa-solid fa-cart-shopping"></i> Go to Store</a>
                     `;
                 }
+            }
+
+            const profileSubCard = document.getElementById('profileSubscriptionCard');
+            if (profileSubCard) {
+                const status = State.account.subscriptionStatus || (isSub ? 'ACTIVE' : 'EXPIRED');
+                const expiresAt = State.account.subscriptionExpiresAt ? formatDate(State.account.subscriptionExpiresAt) : 'No expiry date';
+                profileSubCard.innerHTML = `
+                    <div class="card-header">
+                        <span style="text-transform: capitalize;"><i class="fa-solid fa-credit-card text-accent" style="margin-right: 6px;"></i>Subscription</span>
+                    </div>
+                    <div class="card-body">
+                        <strong style="color: var(--text-primary); font-size: 0.95rem;">${this.escapeHTML(status)}</strong>
+                        <p class="text-secondary text-sm" style="margin: 0.5rem 0 0;">Expires: ${this.escapeHTML(expiresAt)}</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="badge ${isSub ? 'active' : 'inactive'}">${isSub ? 'Active' : 'Inactive'}</span>
+                    </div>
+                `;
             }
 
             document.getElementById('purchaseAlert').classList.add('hidden');

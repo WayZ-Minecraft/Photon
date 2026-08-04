@@ -33,7 +33,7 @@ public class SubscriptionTable extends Table {
 
         this.addColumns(
             createColumn(db, "customer_email", EnumColumnTypes.TEXT).primaryKey(),
-            createColumn(db, "account_uuid", EnumColumnTypes.TEXT).unique(),
+            createColumn(db, "account_uuid", EnumColumnTypes.TEXT),
             createColumn(db, "customer_name", EnumColumnTypes.TEXT),
             createColumn(db, "customer_id", EnumColumnTypes.TEXT),
             createColumn(db, "subscription_id", EnumColumnTypes.TEXT).unique(),

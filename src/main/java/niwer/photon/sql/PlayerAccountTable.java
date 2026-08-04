@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import niwer.lumen.Console;
 import niwer.photon.PhotonEngine;
-import niwer.photon.objects.ObjectPlayerAccount;
+import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.util.PasswordHasher;
 import niwer.photon.util.PhotonLogTypes;
 import niwer.queryon.DataBase;
@@ -51,7 +51,7 @@ public class PlayerAccountTable extends Table {
      * @param password The password (already hashed)
      * @return ObjectPlayerAccount if successful, null otherwise
      */
-    public static ObjectPlayerAccount createAccount(String username, String email, String password) {
+    public static ObjectUserAccount createAccount(String username, String email, String password) {
         if (username == null || email == null || password == null) {
             Console.log("Cannot create account with null parameters").type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
             return null;
@@ -80,7 +80,7 @@ public class PlayerAccountTable extends Table {
             }
 
             InsertionManager.insert(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "uuid", "username", "email", "password", "discordAuthCode")
-                .row(UniqueUserID, username.trim(), email.trim().toLowerCase(), hashedPassword, ObjectPlayerAccount.generateAuthCode())
+                .row(UniqueUserID, username.trim(), email.trim().toLowerCase(), hashedPassword, ObjectUserAccount.generateAuthCode())
             .execute();
 
         return getAccountByUUID(UniqueUserID);
@@ -105,14 +105,14 @@ public class PlayerAccountTable extends Table {
      * @param uuid The unique identifier
      * @return ObjectPlayerAccount if found, null otherwise
      */
-    public static ObjectPlayerAccount getAccountByUUID(String uuid) {
+    public static ObjectUserAccount getAccountByUUID(String uuid) {
         if (uuid == null || uuid.trim().isEmpty()) {
             Console.log("Cannot get account with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
             return null;
         }
         return SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
             .where(Expression.of("uuid").isEqualTo(uuid))
-            .executeSerializable(ObjectPlayerAccount.class);
+            .executeSerializable(ObjectUserAccount.class);
     }
 
     /**
@@ -122,7 +122,7 @@ public class PlayerAccountTable extends Table {
      * @param email The email address
      * @return ObjectPlayerAccount if found, null otherwise
      */
-    public static ObjectPlayerAccount getAccountByEmail(String email) {
+    public static ObjectUserAccount getAccountByEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             Console.log("Cannot get account with null/empty email").error().container(PhotonEngine.LOGGER).send();
             return null;
@@ -130,7 +130,7 @@ public class PlayerAccountTable extends Table {
         final String NORMALIZED_EMAIL = email.trim().toLowerCase();
         return SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
             .where(Expression.of("LOWER(email)").isEqualTo(NORMALIZED_EMAIL))
-            .executeSerializable(ObjectPlayerAccount.class);
+            .executeSerializable(ObjectUserAccount.class);
     }
 
     /**
@@ -140,7 +140,7 @@ public class PlayerAccountTable extends Table {
      * @param username The username
      * @return ObjectPlayerAccount if found, null otherwise
      */
-    public static ObjectPlayerAccount getAccountByUsername(String username) {
+    public static ObjectUserAccount getAccountByUsername(String username) {
         if (username == null || username.trim().isEmpty()) {
             Console.log("Cannot get account with null/empty username").error().container(PhotonEngine.LOGGER).send();
             return null;
@@ -148,7 +148,7 @@ public class PlayerAccountTable extends Table {
         final String NORMALIZED_USERNAME = username.trim().toLowerCase();
         return SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
             .where(Expression.of("LOWER(username)").isEqualTo(NORMALIZED_USERNAME))
-            .executeSerializable(ObjectPlayerAccount.class);
+            .executeSerializable(ObjectUserAccount.class);
     }
 
     /**
@@ -157,14 +157,14 @@ public class PlayerAccountTable extends Table {
      * @param discordID The Discord user ID
      * @return ObjectPlayerAccount if found, null otherwise
      */
-    public static ObjectPlayerAccount getAccountByDiscordID(String discordID) {
+    public static ObjectUserAccount getAccountByDiscordID(String discordID) {
         if (discordID == null || discordID.trim().isEmpty()) {
             Console.log("Cannot get account with null/empty Discord ID").error().container(PhotonEngine.LOGGER).send();
             return null;
         }
         return SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
             .where(Expression.of("discordID").isEqualTo(discordID))
-            .executeSerializable(ObjectPlayerAccount.class);
+            .executeSerializable(ObjectUserAccount.class);
     }
 
     /**
@@ -333,7 +333,7 @@ public class PlayerAccountTable extends Table {
             return false;
         }
 
-        final ObjectPlayerAccount account = getAccountByUUID(uuid);
+        final ObjectUserAccount account = getAccountByUUID(uuid);
         return account != null && account.isAdministrator();
     }
 
@@ -357,7 +357,7 @@ public class PlayerAccountTable extends Table {
      * 
      * @return ArrayList of all accounts
      */
-    public static List<ObjectPlayerAccount> getAllAccounts() {
-        return SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class).executeList(ObjectPlayerAccount.class);
+    public static List<ObjectUserAccount> getAllAccounts() {
+        return SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class).executeList(ObjectUserAccount.class);
     }
 }

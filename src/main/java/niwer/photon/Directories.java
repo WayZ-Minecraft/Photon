@@ -14,11 +14,10 @@ import java.util.Map;
 
 import javax.imageio.ImageIO;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 
 import niwer.lumen.Console;
+import niwer.photon.util.GsonUtils;
 import niwer.photon.util.PhotonLogTypes;
 import niwer.photon.util.os.OperatingSystem;
 import niwer.photon.util.updater.UpdateChannel;
@@ -26,9 +25,6 @@ import niwer.photon.util.updater.UpdateFileType;
 
 public class Directories
 {
-	public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();	
-	private static final Gson PRETTY_GSON = new GsonBuilder().setPrettyPrinting().create();	
-
 	public static final File BASE_DIR = new File("./network/");
 	public static final File LOGS_DIR = new File(BASE_DIR + "/logs/");
 	public static final File BACKUPS_DIR = new File(BASE_DIR + "/backups/");
@@ -50,10 +46,10 @@ public class Directories
 		try {
 			if (!configFile.exists()) {
 				configFile.createNewFile();
-				try (var WRITER = new FileWriter(configFile)) { WRITER.write(PRETTY_GSON.toJson(NetworkConfig.DEFAULT)); }
+				try (var WRITER = new FileWriter(configFile)) { WRITER.write(GsonUtils.PRETTY_GSON.toJson(NetworkConfig.DEFAULT)); }
 			}
 			final BufferedReader reader = new BufferedReader(new FileReader(configFile));
-			config = PRETTY_GSON.fromJson(reader, NetworkConfig.class);
+			config = GsonUtils.PRETTY_GSON.fromJson(reader, NetworkConfig.class);
 			reader.close();
 			if (config == null) config = new NetworkConfig();
 		} catch (IOException e) {}
@@ -71,7 +67,7 @@ public class Directories
 	public static void save() {
 		try (var WRITER = new FileWriter(configFile)) {
 			getConfig();
-			WRITER.write(PRETTY_GSON.toJson(config));
+			WRITER.write(GsonUtils.PRETTY_GSON.toJson(config));
 		} catch (IOException e) {}
 	}
 	

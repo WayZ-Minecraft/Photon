@@ -7,7 +7,10 @@ import niwer.queryon.tables.api.IColumnField;
 
 public class ObjectSubscription extends SQLSerializable<ObjectSubscription> {
 
-    @IColumnField(name = "customer_email", primaryKey = true, notNull = true)
+    @IColumnField(name = "id", primaryKey = true, autoIncrement = true)
+    private int id;
+
+    @IColumnField(name = "customer_email", notNull = true)
     private String customerEmail;
 
     @IColumnField(name = "account_uuid")
@@ -33,20 +36,7 @@ public class ObjectSubscription extends SQLSerializable<ObjectSubscription> {
 
     public ObjectSubscription() {}
 
-    public ObjectSubscription(String customerEmail, String accountUuid, String customerName, String customerId, String subscriptionId, String status, Date expiresAt, Date updatedAt) {
-        this.customerEmail = customerEmail;
-        this.accountUuid = accountUuid;
-        this.customerName = customerName;
-        this.customerId = customerId;
-        this.subscriptionId = subscriptionId;
-        this.status = status;
-        this.expiresAt = expiresAt;
-        this.updatedAt = updatedAt;
-    }
-
-    public boolean isActive() {
-        return status != null && status.equalsIgnoreCase("ACTIVE") && (expiresAt == null || expiresAt.after(new Date()));
-    }
+    public boolean isActive() { return status != null && status.equalsIgnoreCase("ACTIVE") && (expiresAt == null || expiresAt.after(new Date())); }
 
     public String customerEmail() { return customerEmail; }
 

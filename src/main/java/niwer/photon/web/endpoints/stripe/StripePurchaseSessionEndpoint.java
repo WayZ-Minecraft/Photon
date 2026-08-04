@@ -7,8 +7,10 @@ import com.google.gson.JsonObject;
 
 import io.javalin.http.Context;
 import niwer.photon.Directories;
-import niwer.photon.objects.ObjectPurchaseToken;
-import niwer.photon.sql.PurchaseTokenTable;
+import niwer.photon.objects.ObjectPurchase;
+import niwer.photon.sql.PurchaseTable;
+import niwer.photon.util.GsonUtils;
+import niwer.photon.web.endpoints.EndpointUtils;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class StripePurchaseSessionEndpoint implements IEndpoint {
@@ -19,42 +21,46 @@ public class StripePurchaseSessionEndpoint implements IEndpoint {
 
 	@Override
 	public void handle(Context handler) {
-		final String checkoutSessionId = firstNonBlank(handler.formParam("checkoutSessionId"), handler.formParam("token"), handler.queryParam("checkoutSessionId"), handler.queryParam("token"));
+		final String checkoutSessionId = EndpointUtils.firstNonBlank(handler.formParam("checkoutSessionId"), handler.formParam("token"), handler.queryParam("checkoutSessionId"), handler.queryParam("token"));
 		if (checkoutSessionId == null || checkoutSessionId.isBlank()) {
 			handler.status(400).result("Missing checkout session id");
 			return;
 		}
 
-		final String apiKey = stripeApiKey();
+		/* Retrieve the Stripe API key from the configuration */
+		final String apiKey = Directories.getConfig().stripe_api_key;
 		if (apiKey == null || apiKey.isBlank()) {
 			handler.status(500).result("stripe_api_key is not configured");
 			return;
 		}
 
-		final JsonObject checkoutSession = resolveCheckoutSession(apiKey, checkoutSessionId);
+		/* Resolve the checkout session by its ID */
+		final JsonObject checkoutSession = StripeSupport.resolveCheckoutSessionById(apiKey, checkoutSessionId);
 		if (checkoutSession == null) {
 			handler.status(502).result("Unable to resolve checkout session");
 			return;
 		}
 
-		final String purchaseReference = StripeSupport.firstNonBlank(
-			StripeSupport.getString(checkoutSession, "client_reference_id"),
-			StripeSupport.getString(StripeSupport.getObject(checkoutSession, "metadata"), "purchase_token"),
-			StripeSupport.getString(StripeSupport.getObject(checkoutSession, "metadata"), "purchaseToken"),
-			StripeSupport.getString(checkoutSession, "id")
+		/* Determine the purchase reference */
+		final String purchaseReference = EndpointUtils.firstNonBlank(
+			GsonUtils.getString(checkoutSession, "client_reference_id"),
+			GsonUtils.getString(GsonUtils.getObject(checkoutSession, "metadata"), "purchase_token"),
+			GsonUtils.getString(GsonUtils.getObject(checkoutSession, "metadata"), "purchaseToken"),
+			GsonUtils.getString(checkoutSession, "id")
 		);
 
+		/* Resolve the customer information */
 		final StripeSupport.CustomerPayload customerPayload = StripeSupport.resolveCustomer(
 			apiKey,
-			StripeSupport.getString(checkoutSession, "customer"),
-			StripeSupport.getObject(checkoutSession, "metadata"),
-			StripeSupport.firstNonBlank(StripeSupport.getString(StripeSupport.getObject(checkoutSession, "customer_details"), "email"), StripeSupport.getString(checkoutSession, "customer_email"))
+			GsonUtils.getString(checkoutSession, "customer"),
+			GsonUtils.getObject(checkoutSession, "metadata"),
+			EndpointUtils.firstNonBlank(GsonUtils.getString(GsonUtils.getObject(checkoutSession, "customer_details"), "email"), GsonUtils.getString(checkoutSession, "customer_email"))
 		);
 
-		final String priceId = firstNonBlank(StripeSupport.getString(checkoutSession, "price_id"), StripeSupport.getString(checkoutSession, "price"));
-		final String customerName = StripeSupport.firstNonBlank(customerPayload.name(), StripeSupport.getString(StripeSupport.getObject(checkoutSession, "customer_details"), "name"));
+		final String customerName = EndpointUtils.firstNonBlank(customerPayload.name(), GsonUtils.getString(GsonUtils.getObject(checkoutSession, "customer_details"), "name"));
 
-		final ObjectPurchaseToken purchase = ensurePurchaseRecord(purchaseReference, checkoutSessionId, priceId, customerPayload.email(), customerName);
+		/* Ensure the purchase record exists */
+		final ObjectPurchase purchase = PurchaseTable.createOrRetrievePendingPurchase(purchaseReference, checkoutSessionId, customerPayload.email(), customerName);
 		if (purchase == null) {
 			handler.status(500).result("Failed to seed purchase session");
 			return;
@@ -67,31 +73,5 @@ public class StripePurchaseSessionEndpoint implements IEndpoint {
 		response.put("customerEmail", purchase.customerEmail());
 		response.put("customerName", purchase.customerName());
 		handler.json(response);
-	}
-
-	protected JsonObject resolveCheckoutSession(String apiKey, String checkoutSessionId) {
-		return StripeSupport.resolveCheckoutSessionById(apiKey, checkoutSessionId);
-	}
-
-	protected String stripeApiKey() {
-		return Directories.getConfig().stripe_api_key;
-	}
-
-	protected ObjectPurchaseToken ensurePurchaseRecord(String purchaseReference, String checkoutSessionId, String priceId, String customerEmail, String customerName) {
-		return PurchaseTokenTable.ensurePendingPurchase(purchaseReference, checkoutSessionId, priceId, customerEmail, customerName);
-	}
-
-	private static String firstNonBlank(String first, String second, String third, String fourth) {
-		if (first != null && !first.isBlank()) return first;
-		if (second != null && !second.isBlank()) return second;
-		if (third != null && !third.isBlank()) return third;
-		if (fourth != null && !fourth.isBlank()) return fourth;
-		return null;
-	}
-
-	private static String firstNonBlank(String first, String second) {
-		if (first != null && !first.isBlank()) return first;
-		if (second != null && !second.isBlank()) return second;
-		return null;
 	}
 }

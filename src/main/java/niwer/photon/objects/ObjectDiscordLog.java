@@ -7,8 +7,8 @@ import niwer.queryon.tables.api.IColumnField;
 
 public class ObjectDiscordLog extends SQLSerializable<ObjectDiscordLog> {
 
-    @IColumnField(name = "discord_user_id", primaryKey = true, autoIncrement = true)
-    private int id;
+    @IColumnField(name = "id", primaryKey = true, autoIncrement = true)
+    private int userId;
 
     @IColumnField(name = "guild_id", notNull = true)
     private String guildID;

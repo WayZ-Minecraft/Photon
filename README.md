@@ -75,8 +75,6 @@ The routes below are the ones typically called by the game client, launcher, Str
 	- `GET /api/status/servers` — Status-oriented server listing used by the web UI.
 
 - **Stripe**
-	- `POST /stripe/purchase_session` — Resolve a Stripe checkout session into a purchase token.
-		- Required field: `checkoutSessionId` or `token`.
 	- `POST /stripe/webhook` — Stripe webhook endpoint.
 		- Receives subscription events such as `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`.
 		- Also handles `checkout.session.completed` for the purchase-token flow.

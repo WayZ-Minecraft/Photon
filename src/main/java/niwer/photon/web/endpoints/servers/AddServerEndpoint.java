@@ -1,11 +1,10 @@
 package niwer.photon.web.endpoints.servers;
 
-import niwer.photon.Directories;
+import io.javalin.http.Context;
 import niwer.photon.objects.ObjectServer;
 import niwer.photon.sql.ServerTable;
+import niwer.photon.util.GsonUtils;
 import niwer.photon.web.endpoints.IEndpoint;
-
-import io.javalin.http.Context;
 
 /**
  * Endpoint for adding or updating a server in the database. The server must provide its IP, port, name, and optionally a MOTD. The IP must match the request's remote IP for security reasons.
@@ -20,7 +19,7 @@ public class AddServerEndpoint implements IEndpoint {
     public void handle(Context handler) {
         final ObjectServer server;
         try {
-            server = Directories.GSON.fromJson(handler.body(), ObjectServer.class);
+            server = GsonUtils.GSON.fromJson(handler.body(), ObjectServer.class);
         } catch (Exception e) {
             handler.status(400).result("Invalid server payload");
             return;

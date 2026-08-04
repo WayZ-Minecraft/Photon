@@ -5,16 +5,13 @@ import java.util.Date;
 import niwer.queryon.SQLSerializable;
 import niwer.queryon.tables.api.IColumnField;
 
-public class ObjectPurchaseToken extends SQLSerializable<ObjectPurchaseToken> {
+public class ObjectPurchase extends SQLSerializable<ObjectPurchase> {
 
 	@IColumnField(name = "purchase_token", primaryKey = true, notNull = true)
 	private String purchaseToken;
 
 	@IColumnField(name = "checkout_session_id", unique = true)
 	private String checkoutSessionId;
-
-	@IColumnField(name = "price_id")
-	private String priceId;
 
 	@IColumnField(name = "customer_email")
 	private String customerEmail;
@@ -46,29 +43,11 @@ public class ObjectPurchaseToken extends SQLSerializable<ObjectPurchaseToken> {
 	@IColumnField(name = "expires_at")
 	private Date expiresAt;
 
-	public ObjectPurchaseToken() {}
-
-	public ObjectPurchaseToken(String purchaseToken, String checkoutSessionId, String priceId, String customerEmail, String customerName, String stripeCustomerId, String stripeSubscriptionId, String status, String linkedAccountUuid, Date createdAt, Date updatedAt, Date redeemedAt, Date expiresAt) {
-		this.purchaseToken = purchaseToken;
-		this.checkoutSessionId = checkoutSessionId;
-		this.priceId = priceId;
-		this.customerEmail = customerEmail;
-		this.customerName = customerName;
-		this.stripeCustomerId = stripeCustomerId;
-		this.stripeSubscriptionId = stripeSubscriptionId;
-		this.status = status;
-		this.linkedAccountUuid = linkedAccountUuid;
-		this.createdAt = createdAt;
-		this.updatedAt = updatedAt;
-		this.redeemedAt = redeemedAt;
-		this.expiresAt = expiresAt;
-	}
-
+	public ObjectPurchase() {}
+	
 	public String purchaseToken() { return purchaseToken; }
 
 	public String checkoutSessionId() { return checkoutSessionId; }
-
-	public String priceId() { return priceId; }
 
 	public String customerEmail() { return customerEmail; }
 

@@ -1,7 +1,7 @@
 
 package niwer.photon.discord.commands;
 
-import niwer.photon.objects.ObjectPlayerAccount;
+import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.util.TranslationManager;
 
@@ -33,7 +33,7 @@ public class LinkAccountCommand extends AbstractSlashCommand {
         }
 
         /* Check if there's an account with this UUID */
-        final ObjectPlayerAccount profile = PlayerAccountTable.getAccountByUUID(UUID);
+        final ObjectUserAccount profile = PlayerAccountTable.getAccountByUUID(UUID);
         if (profile == null) {
             event.reply(TranslationManager.format(event.getUser().getId(), "command.link_account.failure.no_uuid")).setEphemeral(true).queue();
             return;

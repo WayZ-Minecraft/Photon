@@ -2,7 +2,7 @@
 package niwer.photon.discord.commands.network.accounts;
 
 import niwer.photon.discord.commands.AbstractSlashCommand;
-import niwer.photon.objects.ObjectPlayerAccount;
+import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.util.TranslationManager;
 
@@ -26,7 +26,7 @@ public class DeleteAllAccountCommand extends AbstractSlashCommand {
         if (!isOfficialGuild(event)) return; // Check if we're on the official guild
         if (!isConsoleChannel(event)) return; // Check if we're in the console channel
 
-        for (ObjectPlayerAccount account : PlayerAccountTable.getAllAccounts()) PlayerAccountTable.deleteAccount(account.getUuid());
+        for (ObjectUserAccount account : PlayerAccountTable.getAllAccounts()) PlayerAccountTable.deleteAccount(account.getUuid());
         event.reply(TranslationManager.format(event.getUser().getId(), "command.reply.all_account.success")).queue();
     }
 }

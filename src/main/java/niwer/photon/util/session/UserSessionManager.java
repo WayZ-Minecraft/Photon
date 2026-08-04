@@ -14,7 +14,7 @@ import com.google.gson.reflect.TypeToken;
 
 import io.javalin.http.Context;
 import niwer.photon.Directories;
-import niwer.photon.objects.ObjectPlayerAccount;
+import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
 
 public final class UserSessionManager {
@@ -45,7 +45,7 @@ public final class UserSessionManager {
     }
 
     public static AuthSession login(String email, String password) {
-        final ObjectPlayerAccount account = PlayerAccountTable.getAccountByEmail(email);
+        final ObjectUserAccount account = PlayerAccountTable.getAccountByEmail(email);
                 if (account == null || password == null || !PlayerAccountTable.passwordMatches(account.password(), password)) return null;
 
 		if (!PlayerAccountTable.isArgon2Password(account.password())) {
@@ -58,7 +58,7 @@ public final class UserSessionManager {
         return new AuthSession(token, account);
     }
 
-    public static AuthSession createSessionForAccount(ObjectPlayerAccount account) {
+    public static AuthSession createSessionForAccount(ObjectUserAccount account) {
         if (account == null) return null;
         final String token = UUID.randomUUID().toString().replace("-", "");
         SESSIONS.put(token, new SessionSnapshot(snapshot(account), System.currentTimeMillis()));
@@ -66,15 +66,15 @@ public final class UserSessionManager {
         return new AuthSession(token, account);
     }
 
-    public static ObjectPlayerAccount requireAccount(Context handler) {
-        final ObjectPlayerAccount account = accountFromRequest(handler);
+    public static ObjectUserAccount requireAccount(Context handler) {
+        final ObjectUserAccount account = accountFromRequest(handler);
         if (account == null) {
             handler.status(401).result("Unauthorized");
         }
         return account;
     }
 
-    public static ObjectPlayerAccount accountFromRequest(Context handler) {
+    public static ObjectUserAccount accountFromRequest(Context handler) {
         final String token = extractToken(handler);
         if (token == null || token.isBlank()) return null;
 
@@ -84,9 +84,9 @@ public final class UserSessionManager {
         final AccountSnapshot snapshot = session.account();
         if (snapshot == null || snapshot.uuid() == null || snapshot.uuid().isBlank()) return null;
 
-        final ObjectPlayerAccount account = PlayerAccountTable.getAccountByUUID(snapshot.uuid());
+        final ObjectUserAccount account = PlayerAccountTable.getAccountByUUID(snapshot.uuid());
         if (account == null) {
-            return ObjectPlayerAccount.fromSnapshot(snapshot.username(), snapshot.email(), snapshot.uuid(), snapshot.discordID(), snapshot.discordAuthCode(), snapshot.administrator(), snapshot.serverCreator());
+            return ObjectUserAccount.fromSnapshot(snapshot.username(), snapshot.email(), snapshot.uuid(), snapshot.discordID(), snapshot.discordAuthCode(), snapshot.administrator(), snapshot.serverCreator());
         }
 
         return account;
@@ -111,7 +111,7 @@ public final class UserSessionManager {
         return null;
     }
 
-    private static AccountSnapshot snapshot(ObjectPlayerAccount account) {
+    private static AccountSnapshot snapshot(ObjectUserAccount account) {
         return new AccountSnapshot(
             account.getUsername(),
             account.getEmail(),

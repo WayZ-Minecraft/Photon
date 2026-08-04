@@ -13,12 +13,25 @@ import niwer.lumen.Console;
 import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
 import niwer.photon.objects.ObjectSubscription;
-import niwer.photon.sql.PurchaseTokenTable;
+import niwer.photon.sql.PurchaseTable;
 import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.sql.SubscriptionTable.SubscriptionStatus;
+import niwer.photon.util.GsonUtils;
 import niwer.photon.util.PhotonLogTypes;
+import niwer.photon.web.endpoints.EndpointUtils;
 import niwer.photon.web.endpoints.IEndpoint;
 
+/**
+ * Handle Stripe webhook events :
+ * - checkout.session.completed
+ * - customer.subscription.created
+ * - customer.subscription.deleted
+ * - customer.subscription.paused
+ * - customer.subscription.resumed
+ * - customer.subscription.updated
+ * - invoice.paid
+ * - invoice.payment_failed
+ */
 public class StripeWebhookEndpoint implements IEndpoint {
 
     @Override public String path() { return "/stripe/webhook"; }
@@ -32,8 +45,12 @@ public class StripeWebhookEndpoint implements IEndpoint {
         final String endpointSecret = Directories.getConfig().stripe_webhook_signature;
         final String apiKey = Directories.getConfig().stripe_api_key;
 
+        /* Print a small message so we know we've received the event */
+        Console.log("Received Stripe webhook event").type(PhotonLogTypes.STRIPE).container(PhotonEngine.LOGGER).send();
+
         /* Stripe API */
         if (apiKey == null || apiKey.isBlank()) {
+            Console.log("stripe_api_key is not configured").type(PhotonLogTypes.STRIPE).error().container(PhotonEngine.LOGGER).send();
             handler.status(500).result("stripe_api_key is not configured");
             return;
         }
@@ -41,16 +58,14 @@ public class StripeWebhookEndpoint implements IEndpoint {
 
         Event event;
         try {
-            if (endpointSecret != null && !endpointSecret.isBlank()) {
-                event = Webhook.constructEvent(payload, sigHeader, endpointSecret);
-            } else {
-                // No signing secret configured — parse without verification
-                event = Event.GSON.fromJson(payload, Event.class);
-            }
+            if (endpointSecret != null && !endpointSecret.isBlank()) event = Webhook.constructEvent(payload, sigHeader, endpointSecret);
+            else event = Event.GSON.fromJson(payload, Event.class); // No signing secret configured — parse without verification
         } catch (SignatureVerificationException e) {
+            Console.log("Invalid Stripe webhook signature: " + e.getMessage()).type(PhotonLogTypes.STRIPE).error().container(PhotonEngine.LOGGER).send();
             handler.status(400).result("Invalid signature");
             return;
         } catch (Exception e) {
+            Console.log("Invalid Stripe webhook payload: " + e.getMessage()).type(PhotonLogTypes.STRIPE).error().container(PhotonEngine.LOGGER).send();
             handler.status(400).result("Invalid payload");
             return;
         }
@@ -94,19 +109,19 @@ public class StripeWebhookEndpoint implements IEndpoint {
         }
 
         final StripeSupport.CustomerPayload customerPayload = StripeSupport.resolveCustomerFromSubscription(apiKey, subscription);
-        final String subscriptionId = StripeSupport.getString(subscription, "id");
+        final String subscriptionId = GsonUtils.getString(subscription, "id");
         if (customerPayload.email() == null || customerPayload.email().isBlank()) {
             ignore(handler, "missing customer email for subscription " + subscriptionId, false);
             return;
         }
 
-        final long periodEnd = StripeSupport.getLong(subscription, "current_period_end") * 1000L;
+        final long periodEnd = GsonUtils.getLong(subscription, "current_period_end") * 1000L;
         final ObjectSubscription subscriptionRecord = SubscriptionTable.upsertSubscription(
             customerPayload.email(),
             customerPayload.name(),
             customerPayload.customerId(),
             subscriptionId,
-            StripeSupport.stripeStatusToLocal(StripeSupport.getString(subscription, "status")),
+            StripeSupport.stripeStatusToLocal(GsonUtils.getString(subscription, "status")),
             periodEnd == 0L ? null : new Date(periodEnd)
         );
 
@@ -120,34 +135,34 @@ public class StripeWebhookEndpoint implements IEndpoint {
             return;
         }
 
-        final JsonObject metadata = StripeSupport.getObject(checkoutSession, "metadata");
-        final String purchaseToken = StripeSupport.firstNonBlank(
-            StripeSupport.getString(checkoutSession, "client_reference_id"),
-            StripeSupport.getString(metadata, "purchase_token"),
-            StripeSupport.getString(metadata, "purchaseToken"),
-            StripeSupport.getString(checkoutSession, "id")
+        final JsonObject metadata = GsonUtils.getObject(checkoutSession, "metadata");
+        final String purchaseToken = EndpointUtils.firstNonBlank(
+            GsonUtils.getString(checkoutSession, "client_reference_id"),
+            GsonUtils.getString(metadata, "purchase_token"),
+            GsonUtils.getString(metadata, "purchaseToken"),
+            GsonUtils.getString(checkoutSession, "id")
         );
         if (purchaseToken == null || purchaseToken.isBlank()) {
-            ignore(handler, "missing purchase token for checkout session " + StripeSupport.getString(checkoutSession, "id"), false);
+            ignore(handler, "missing purchase token for checkout session " + GsonUtils.getString(checkoutSession, "id"), false);
             return;
         }
 
-        final JsonObject customerDetails = StripeSupport.getObject(checkoutSession, "customer_details");
-        final JsonObject subscription = StripeSupport.resolveSubscriptionById(apiKey, StripeSupport.getString(checkoutSession, "subscription"));
+        final JsonObject customerDetails = GsonUtils.getObject(checkoutSession, "customer_details");
+        final JsonObject subscription = StripeSupport.resolveSubscriptionById(apiKey, GsonUtils.getString(checkoutSession, "subscription"));
         final StripeSupport.CustomerPayload customerPayload = StripeSupport.resolveCustomer(
             apiKey,
-            StripeSupport.getString(checkoutSession, "customer"),
+            GsonUtils.getString(checkoutSession, "customer"),
             metadata,
-            StripeSupport.firstNonBlank(StripeSupport.getString(customerDetails, "email"), StripeSupport.getString(checkoutSession, "customer_email"))
+            EndpointUtils.firstNonBlank(GsonUtils.getString(customerDetails, "email"), GsonUtils.getString(checkoutSession, "customer_email"))
         );
-        final String subscriptionId = StripeSupport.getString(subscription, "id");
-        final long periodEnd = subscription == null ? 0L : StripeSupport.getLong(subscription, "current_period_end") * 1000L;
-        final SubscriptionStatus status = StripeSupport.stripeStatusToLocal(subscription == null ? StripeSupport.getString(checkoutSession, "status") : StripeSupport.getString(subscription, "status"));
+        final String subscriptionId = GsonUtils.getString(subscription, "id");
+        final long periodEnd = subscription == null ? 0L : GsonUtils.getLong(subscription, "current_period_end") * 1000L;
+        final SubscriptionStatus status = StripeSupport.stripeStatusToLocal(subscription == null ? GsonUtils.getString(checkoutSession, "status") : GsonUtils.getString(subscription, "status"));
 
-        final var purchase = PurchaseTokenTable.completePurchase(
+        final var purchase = PurchaseTable.completePurchase(
             purchaseToken,
-            StripeSupport.getString(checkoutSession, "id"),
-            StripeSupport.getString(checkoutSession, "customer"),
+            GsonUtils.getString(checkoutSession, "id"),
+            GsonUtils.getString(checkoutSession, "customer"),
             subscriptionId,
             customerPayload.email(),
             customerPayload.name(),
@@ -181,17 +196,17 @@ public class StripeWebhookEndpoint implements IEndpoint {
 
         final StripeSupport.CustomerPayload customerPayload = StripeSupport.resolveCustomer(
             apiKey,
-            StripeSupport.getString(invoice, "customer"),
-            StripeSupport.getObject(invoice, "metadata"),
-            StripeSupport.getString(invoice, "customer_email")
+            GsonUtils.getString(invoice, "customer"),
+            GsonUtils.getObject(invoice, "metadata"),
+            GsonUtils.getString(invoice, "customer_email")
         );
-        final String subscriptionId = StripeSupport.getString(invoice, "subscription");
+        final String subscriptionId = GsonUtils.getString(invoice, "subscription");
         if (customerPayload.email() == null || customerPayload.email().isBlank()) {
             ignore(handler, "missing customer email for invoice event " + type, false);
             return;
         }
 
-        final long periodEnd = StripeSupport.getLong(invoice, "period_end") * 1000L;
+        final long periodEnd = GsonUtils.getLong(invoice, "period_end") * 1000L;
         final SubscriptionStatus status = "invoice.payment_failed".equals(type) ? SubscriptionStatus.EXPIRED : SubscriptionStatus.ACTIVE;
         final ObjectSubscription subscriptionRecord = SubscriptionTable.upsertSubscription(
             customerPayload.email(),

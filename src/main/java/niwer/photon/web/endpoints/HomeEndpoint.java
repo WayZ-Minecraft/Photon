@@ -8,8 +8,5 @@ public class HomeEndpoint implements IEndpoint {
 
     @Override public HttpMethod method() { return HttpMethod.GET; }
 
-    @Override
-    public void handle(Context handler) {
-        handler.redirect("/index.html");
-    }
+    @Override public void handle(Context handler) { handler.redirect("/index.html"); }
 }

@@ -5,11 +5,13 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import niwer.queryon.SQLSerializable;
 import niwer.queryon.tables.api.IColumnField;
 
-public class ObjectLicense extends SQLSerializable<ObjectLicense> {
+public class ObjectLicense extends SQLSerializable<ObjectLicense> implements IPayloadProvider {
 	@IColumnField(name = "license_key", primaryKey = true, notNull = true)
 	private String licenseKey;
 
@@ -41,16 +43,6 @@ public class ObjectLicense extends SQLSerializable<ObjectLicense> {
 	private Date expiresAt;
 
 	public ObjectLicense() {}
-
-	public ObjectLicense(String licenseKey, String productId, String name, String customerEmail, String creatorUuid, String status, Date expiresAt) {
-		this.licenseKey = licenseKey;
-		this.productId = productId;
-		this.name = name;
-		this.customerEmail = customerEmail;
-		this.creatorUuid = creatorUuid;
-		this.status = status;
-		this.expiresAt = expiresAt;
-	}
 
 	public boolean isExpired() { return this.expiresAt != null && this.expiresAt.before(new Date()); }
 
@@ -93,4 +85,31 @@ public class ObjectLicense extends SQLSerializable<ObjectLicense> {
 
 		return null;
 	}
+
+	@Override
+	public Map<String, Object> payload() { //TODO maybe use the common method
+        final Map<String, Object> payload = new LinkedHashMap<>();
+        final Long createdAt = this.createdAt() == null ? null : this.createdAt().getTime();
+        final Long activatedAt = this.activatedAt() == null ? null : this.activatedAt().getTime();
+        final Long expiresAt = this.expiresAt() == null ? null : this.expiresAt().getTime();
+
+        payload.put("licenseKey", this.licenseKey());
+        payload.put("license_key", this.licenseKey());
+        payload.put("productId", this.productId());
+        payload.put("product_id", this.productId());
+        payload.put("name", this.name());
+        payload.put("customerEmail", this.customerEmail());
+        payload.put("customer_email", this.customerEmail());
+        payload.put("creatorUuid", this.creatorUuid());
+        payload.put("creator_uuid", this.creatorUuid());
+        payload.put("hwid", this.hwid());
+        payload.put("status", this.status());
+        payload.put("createdAt", createdAt);
+        payload.put("created_at", createdAt);
+        payload.put("activatedAt", activatedAt);
+        payload.put("activated_at", activatedAt);
+        payload.put("expiresAt", expiresAt);
+        payload.put("expires_at", expiresAt);
+        return payload;
+    }
 }

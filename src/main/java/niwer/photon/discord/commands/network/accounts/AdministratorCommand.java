@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import niwer.photon.discord.commands.AbstractSlashCommand;
-import niwer.photon.objects.ObjectPlayerAccount;
+import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
 
 /**
@@ -53,7 +53,7 @@ public class AdministratorCommand extends AbstractSlashCommand {
         }
 
         /* Try to get the player account */
-        final ObjectPlayerAccount PLAYER_ACCOUNT = DISCORD_USER_OPTION != null ? PlayerAccountTable.getAccountByDiscordID(DISCORD_USER_OPTION.getAsUser().getId()) : PlayerAccountTable.getAccountByUsername(USERNAME_OPTION.getAsString());
+        final ObjectUserAccount PLAYER_ACCOUNT = DISCORD_USER_OPTION != null ? PlayerAccountTable.getAccountByDiscordID(DISCORD_USER_OPTION.getAsUser().getId()) : PlayerAccountTable.getAccountByUsername(USERNAME_OPTION.getAsString());
         if (PLAYER_ACCOUNT == null) {
             event.reply("No account found for the provided account.").setEphemeral(true).queue();
             return;

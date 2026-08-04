@@ -12,6 +12,7 @@ import niwer.lumen.Console;
 import niwer.photon.PhotonEngine;
 import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.sql.SubscriptionTable.SubscriptionStatus;
+import niwer.photon.util.GsonUtils;
 import niwer.photon.util.PhotonLogTypes;
 
 public final class StripeStartupSync {
@@ -22,10 +23,7 @@ public final class StripeStartupSync {
 
     public static void run(String apiKey) {
         if (apiKey == null || apiKey.isBlank()) {
-            Console.log("Stripe startup sync skipped: stripe_api_key is not configured")
-                .type(PhotonLogTypes.STRIPE)
-                .container(PhotonEngine.LOGGER)
-                .send();
+            Console.log("Stripe startup sync skipped: stripe_api_key is not configured").type(PhotonLogTypes.STRIPE).container(PhotonEngine.LOGGER).send();
             return;
         }
 
@@ -66,7 +64,7 @@ public final class StripeStartupSync {
                 }
 
                 if (!StripeSupport.getBoolean(page, "has_more")) break;
-                startingAfter = StripeSupport.getString(data.get(data.size() - 1).getAsJsonObject(), "id");
+                startingAfter = GsonUtils.getString(data.get(data.size() - 1).getAsJsonObject(), "id");
                 if (startingAfter == null || startingAfter.isBlank()) break;
             }
 
@@ -74,15 +72,15 @@ public final class StripeStartupSync {
                 try {
                     final StripeSupport.CustomerPayload customer = StripeSupport.resolveCustomerFromSubscription(apiKey, subscription);
                     final String email = SubscriptionTable.normalizeEmail(customer.email());
-                    final String subscriptionId = StripeSupport.getString(subscription, "id");
+                    final String subscriptionId = GsonUtils.getString(subscription, "id");
 
                     if (email == null || email.isBlank() || subscriptionId == null || subscriptionId.isBlank()) {
                         skippedNoEmail++;
                         continue;
                     }
 
-                    final long periodEnd = StripeSupport.getLong(subscription, "current_period_end") * 1000L;
-                    final SubscriptionStatus status = StripeSupport.stripeStatusToLocal(StripeSupport.getString(subscription, "status"));
+                    final long periodEnd = GsonUtils.getLong(subscription, "current_period_end") * 1000L;
+                    final SubscriptionStatus status = StripeSupport.stripeStatusToLocal(GsonUtils.getString(subscription, "status"));
 
                     SubscriptionTable.upsertSubscription(
                         email,
@@ -98,16 +96,9 @@ public final class StripeStartupSync {
                 }
             }
 
-            Console.log("Stripe startup sync finished: subscriptions=" + seenSubscriptions + ", upserted=" + upserted + ", skippedNoEmail=" + skippedNoEmail + ", errors=" + errors)
-                .type(PhotonLogTypes.STRIPE)
-                .container(PhotonEngine.LOGGER)
-                .send();
+            Console.log("Stripe startup sync finished: subscriptions=" + seenSubscriptions + ", upserted=" + upserted + ", skippedNoEmail=" + skippedNoEmail + ", errors=" + errors).type(PhotonLogTypes.STRIPE).container(PhotonEngine.LOGGER).send();
         } catch (Exception e) {
-            Console.log("Stripe startup sync failed: " + e.getMessage())
-                .type(PhotonLogTypes.STRIPE)
-                .error()
-                .container(PhotonEngine.LOGGER)
-                .send();
+            Console.log("Stripe startup sync failed: " + e.getMessage()).type(PhotonLogTypes.STRIPE).error().container(PhotonEngine.LOGGER).send();
         }
     }
 

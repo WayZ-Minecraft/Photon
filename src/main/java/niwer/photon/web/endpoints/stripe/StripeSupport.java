@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -15,8 +15,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import niwer.photon.sql.SubscriptionTable.SubscriptionStatus;
+import niwer.photon.util.GsonUtils;
+import niwer.photon.web.endpoints.EndpointUtils;
 
-final class StripeSupport {
+public final class StripeSupport {
 
     private static final HttpClient HTTP = HttpClient.newHttpClient();
 
@@ -85,21 +87,21 @@ final class StripeSupport {
     protected static CustomerPayload resolveCustomerFromSubscription(String apiKey, JsonObject subscription) {
         final CustomerPayload customerPayload = resolveCustomer(
             apiKey,
-            getString(subscription, "customer"),
-            getObject(subscription, "metadata"),
+            GsonUtils.getString(subscription, "customer"),
+            GsonUtils.getObject(subscription, "metadata"),
             null
         );
         if (customerPayload.email() != null && !customerPayload.email().isBlank()) return customerPayload;
 
-        final String latestInvoiceId = getString(subscription, "latest_invoice");
+        final String latestInvoiceId = GsonUtils.getString(subscription, "latest_invoice");
         if (latestInvoiceId != null && !latestInvoiceId.isBlank()) {
             final JsonObject latestInvoice = resolveInvoiceById(apiKey, latestInvoiceId);
             if (latestInvoice != null) {
                 final CustomerPayload invoicePayload = resolveCustomer(
                     apiKey,
-                    getString(latestInvoice, "customer"),
-                    getObject(latestInvoice, "metadata"),
-                    getString(latestInvoice, "customer_email")
+                    GsonUtils.getString(latestInvoice, "customer"),
+                    GsonUtils.getObject(latestInvoice, "metadata"),
+                    GsonUtils.getString(latestInvoice, "customer_email")
                 );
                 if (invoicePayload.email() != null && !invoicePayload.email().isBlank()) return invoicePayload;
             }
@@ -110,30 +112,22 @@ final class StripeSupport {
 
     protected static CustomerPayload resolveCustomer(String apiKey, String customerId, JsonObject metadata, String directEmail) {
         final String emailFromMetadata = extractEmail(metadata);
-        final String email = firstNonBlank(directEmail, emailFromMetadata);
+        final String email = EndpointUtils.firstNonBlank(directEmail, emailFromMetadata);
         if (customerId == null || customerId.isBlank()) return new CustomerPayload(email, null, null);
 
         final JsonObject customer = getStripeObject(apiKey, "/v1/customers/" + urlEncode(customerId));
         if (customer == null) return new CustomerPayload(email, null, customerId);
 
         return new CustomerPayload(
-            firstNonBlank(email, getString(customer, "email"), extractEmail(getObject(customer, "metadata"))),
-            firstNonBlank(getString(customer, "name"), ""),
+            EndpointUtils.firstNonBlank(email, GsonUtils.getString(customer, "email"), extractEmail(GsonUtils.getObject(customer, "metadata"))),
+            EndpointUtils.firstNonBlank(GsonUtils.getString(customer, "name"), ""),
             customerId
         );
     }
 
     protected static String extractEmail(JsonObject metadata) {
         if (metadata == null || metadata.size() == 0) return null;
-        return firstNonBlank(getString(metadata, "customer_email"), getString(metadata, "email"), getString(metadata, "customerEmail"));
-    }
-
-    protected static String firstNonBlank(String... values) {
-        if (values == null) return null;
-        for (String value : values) {
-            if (value != null && !value.isBlank()) return value;
-        }
-        return null;
+        return EndpointUtils.firstNonBlank(GsonUtils.getString(metadata, "customer_email"), GsonUtils.getString(metadata, "email"), GsonUtils.getString(metadata, "customerEmail"));
     }
 
     private static JsonObject getStripeObject(String apiKey, String path) {
@@ -156,50 +150,10 @@ final class StripeSupport {
     }
 
     private static String extractDataObjectId(String payload) {
-        final JsonObject root = parseJsonObject(payload);
-        final JsonObject data = getObject(root, "data");
-        final JsonObject object = getObject(data, "object");
-        return getString(object, "id");
-    }
-
-    private static JsonObject parseJsonObject(String rawJson) {
-        if (rawJson == null || rawJson.isBlank()) return null;
-        try {
-            return JsonParser.parseString(rawJson).getAsJsonObject();
-        } catch (Exception ignored) {
-            return null;
-        }
-    }
-
-    protected static JsonObject getObject(JsonObject object, String key) {
-        if (object == null || key == null || !object.has(key) || object.get(key).isJsonNull()) return null;
-        try {
-            return object.getAsJsonObject(key);
-        } catch (Exception ignored) {
-            return null;
-        }
-    }
-
-    protected static String getString(JsonObject object, String key) {
-        if (object == null || key == null || !object.has(key) || object.get(key).isJsonNull()) return null;
-        try {
-            return object.get(key).getAsString();
-        } catch (Exception ignored) {
-            return null;
-        }
-    }
-
-    protected static long getLong(JsonObject object, String key) {
-        if (object == null || key == null || !object.has(key) || object.get(key).isJsonNull()) return 0L;
-        try {
-            return object.get(key).getAsLong();
-        } catch (Exception ignored) {
-            return 0L;
-        }
-    }
-
-    protected static JsonObject getObject(JsonObject object, String key, boolean allowNull) {
-        return getObject(object, key);
+        final JsonObject root = GsonUtils.parseJsonObject(payload);
+        final JsonObject data = GsonUtils.getObject(root, "data");
+        final JsonObject object = GsonUtils.getObject(data, "object");
+        return GsonUtils.getString(object, "id");
     }
 
     protected static SubscriptionStatus stripeStatusToLocal(String stripeStatus) {
@@ -233,5 +187,5 @@ final class StripeSupport {
         }
     }
 
-    protected static record CustomerPayload(String email, String name, String customerId) {}
+    public static record CustomerPayload(String email, String name, String customerId) {}
 }

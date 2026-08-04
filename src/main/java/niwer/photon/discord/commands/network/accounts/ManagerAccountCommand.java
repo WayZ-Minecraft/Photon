@@ -3,7 +3,7 @@ package niwer.photon.discord.commands.network.accounts;
 import java.nio.charset.StandardCharsets;
 
 import niwer.photon.discord.commands.AbstractSlashCommand;
-import niwer.photon.objects.ObjectPlayerAccount;
+import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
 
 import net.dv8tion.jda.api.Permission;
@@ -29,7 +29,7 @@ public class ManagerAccountCommand extends AbstractSlashCommand {
 
         final FieldType FIELD = FieldType.valueOf(event.getOption("field_type").getAsString().toUpperCase());
         final String VALUE = event.getOption("field_value").getAsString();
-        final ObjectPlayerAccount PROFILE = switch (FIELD) {
+        final ObjectUserAccount PROFILE = switch (FIELD) {
             case DISCORD_ID -> PlayerAccountTable.getAccountByDiscordID(VALUE);
             case UUID -> PlayerAccountTable.getAccountByUUID(VALUE);
             case EMAIL -> PlayerAccountTable.getAccountByEmail(VALUE);
@@ -39,7 +39,7 @@ public class ManagerAccountCommand extends AbstractSlashCommand {
         manageAccount(event, PROFILE, event.getOption("action").getAsString());
     }
 
-    private static void manageAccount(SlashCommandInteractionEvent event, ObjectPlayerAccount profile, String action) {
+    private static void manageAccount(SlashCommandInteractionEvent event, ObjectUserAccount profile, String action) {
         /* If the profile doesn't exist */
         if (profile == null) {
             event.reply("Error, the profile doesn't exist").setEphemeral(true).queue();

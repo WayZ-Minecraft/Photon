@@ -1,7 +1,7 @@
 package niwer.photon.web.endpoints.admin;
 
 import io.javalin.http.Context;
-import niwer.photon.Directories;
+import niwer.photon.util.GsonUtils;
 import niwer.photon.util.session.AdminSessionManager;
 import niwer.photon.util.session.AuthSession;
 import niwer.photon.web.endpoints.IEndpoint;
@@ -49,7 +49,7 @@ public class AdminLoginEndpoint implements IEndpoint {
         if (email != null && password != null) return new Credentials(email, password);
 
         try {
-            final Credentials jsonCredentials = Directories.GSON.fromJson(handler.body(), Credentials.class);
+            final Credentials jsonCredentials = GsonUtils.GSON.fromJson(handler.body(), Credentials.class);
             if (jsonCredentials != null) return jsonCredentials;
         } catch (Exception ignored) {}
 

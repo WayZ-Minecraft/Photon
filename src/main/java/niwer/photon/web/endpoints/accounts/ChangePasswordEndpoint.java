@@ -1,9 +1,9 @@
 package niwer.photon.web.endpoints.accounts;
 
 import io.javalin.http.Context;
-import niwer.photon.Directories;
-import niwer.photon.objects.ObjectPlayerAccount;
+import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
+import niwer.photon.util.GsonUtils;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class ChangePasswordEndpoint implements IEndpoint {
@@ -16,7 +16,7 @@ public class ChangePasswordEndpoint implements IEndpoint {
     public void handle(Context handler) {
         final PasswordChangeRequest request;
         try {
-            request = Directories.GSON.fromJson(handler.body(), PasswordChangeRequest.class);
+            request = GsonUtils.GSON.fromJson(handler.body(), PasswordChangeRequest.class);
         } catch (Exception exception) {
             handler.status(400).result("Invalid password change payload");
             return;
@@ -37,7 +37,7 @@ public class ChangePasswordEndpoint implements IEndpoint {
             return;
         }
 
-        final ObjectPlayerAccount account = PlayerAccountTable.getAccountByEmail(request.email);
+        final ObjectUserAccount account = PlayerAccountTable.getAccountByEmail(request.email);
         if (account == null) {
             handler.status(404).result("Account not found");
             return;

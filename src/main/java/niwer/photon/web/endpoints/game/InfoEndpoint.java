@@ -6,7 +6,7 @@ import niwer.photon.Directories.NetworkConfig;
 import niwer.photon.PhotonEngine;
 import niwer.photon.web.endpoints.IEndpoint;
 
-public class NetworkConfigEndpoint implements IEndpoint {
+public class InfoEndpoint implements IEndpoint {
 
     @Override public String path() { return "/game/config"; }
 

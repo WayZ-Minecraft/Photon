@@ -8,18 +8,17 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import io.javalin.http.Context;
 import niwer.photon.Directories;
-import niwer.photon.objects.ObjectPlayerAccount;
+import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
+import niwer.photon.util.GsonUtils;
 
 public final class AdminSessionManager {
 
     private static final File SESSION_FILE = new File(Directories.BASE_DIR, "admin_sessions.json");
-    private static final Gson GSON = Directories.GSON;
     private static final Type SESSION_MAP_TYPE = new TypeToken<Map<String, SessionSnapshot>>() {}.getType();
     private static final Map<String, SessionSnapshot> SESSIONS = new ConcurrentHashMap<>();
 
@@ -35,7 +34,7 @@ public final class AdminSessionManager {
         if (!SESSION_FILE.exists()) return;
 
         try (FileReader reader = new FileReader(SESSION_FILE)) {
-            final Map<String, SessionSnapshot> loadedSessions = GSON.fromJson(reader, SESSION_MAP_TYPE);
+            final Map<String, SessionSnapshot> loadedSessions = GsonUtils.GSON.fromJson(reader, SESSION_MAP_TYPE);
             if (loadedSessions != null) {
                 SESSIONS.putAll(loadedSessions);
             }
@@ -46,14 +45,14 @@ public final class AdminSessionManager {
         if (!Directories.BASE_DIR.exists()) Directories.BASE_DIR.mkdirs();
 
         try (FileWriter writer = new FileWriter(SESSION_FILE)) {
-            GSON.toJson(SESSIONS, SESSION_MAP_TYPE, writer);
+            GsonUtils.GSON.toJson(SESSIONS, SESSION_MAP_TYPE, writer);
         } catch (Exception ignored) {}
     }
 
     public static AuthSession login(String email, String password) {
         if (email == null || password == null) return null;
 
-        final ObjectPlayerAccount account = PlayerAccountTable.getAccountByEmail(email);
+        final ObjectUserAccount account = PlayerAccountTable.getAccountByEmail(email);
         if (account == null || account.password() == null || !account.isAdministrator()) return null;
         if (!PlayerAccountTable.passwordMatches(account.password(), password)) return null;
 
@@ -75,8 +74,8 @@ public final class AdminSessionManager {
         return session.csrf();
     }
 
-    public static ObjectPlayerAccount requireAdministrator(Context handler) {
-        final ObjectPlayerAccount account = accountFromRequest(handler);
+    public static ObjectUserAccount requireAdministrator(Context handler) {
+        final ObjectUserAccount account = accountFromRequest(handler);
         if (account == null) {
             handler.status(401).result("Unauthorized");
             return null;
@@ -90,25 +89,25 @@ public final class AdminSessionManager {
         return account;
     }
 
-    public static ObjectPlayerAccount accountFromRequest(Context handler) {
+    public static ObjectUserAccount accountFromRequest(Context handler) {
         final String token = extractToken(handler);
         if (token == null || token.isBlank()) {
-            final ObjectPlayerAccount userAccount = UserSessionManager.accountFromRequest(handler);
+            final ObjectUserAccount userAccount = UserSessionManager.accountFromRequest(handler);
             return userAccount != null && userAccount.isAdministrator() ? userAccount : null;
         }
 
         final SessionSnapshot session = SESSIONS.get(token);
         if (session == null) {
-            final ObjectPlayerAccount userAccount = UserSessionManager.accountFromRequest(handler);
+            final ObjectUserAccount userAccount = UserSessionManager.accountFromRequest(handler);
             return userAccount != null && userAccount.isAdministrator() ? userAccount : null;
         }
 
         final AccountSnapshot snapshot = session.account();
         if (snapshot == null || snapshot.uuid() == null || snapshot.uuid().isBlank()) return null;
 
-        final ObjectPlayerAccount account = PlayerAccountTable.getAccountByUUID(snapshot.uuid());
+        final ObjectUserAccount account = PlayerAccountTable.getAccountByUUID(snapshot.uuid());
         if (account == null) {
-            return ObjectPlayerAccount.fromSnapshot(
+            return ObjectUserAccount.fromSnapshot(
                 snapshot.username(),
                 snapshot.email(),
                 snapshot.uuid(),
@@ -165,7 +164,7 @@ public final class AdminSessionManager {
         }
     }
 
-    private static AccountSnapshot snapshot(ObjectPlayerAccount account) {
+    private static AccountSnapshot snapshot(ObjectUserAccount account) {
         return new AccountSnapshot(
             account.getUsername(),
             account.getEmail(),

@@ -2,6 +2,7 @@ package niwer.photon.web.endpoints.admin;
 
 import io.javalin.http.Context;
 import niwer.photon.Directories;
+import niwer.photon.util.GsonUtils;
 import niwer.photon.util.session.AdminSessionManager;
 import niwer.photon.web.endpoints.IEndpoint;
 
@@ -18,7 +19,7 @@ public class AdminUpdateConfigEndpoint implements IEndpoint {
 
         final ConfigUpdateRequest request;
         try {
-            request = Directories.GSON.fromJson(handler.body(), ConfigUpdateRequest.class);
+            request = GsonUtils.GSON.fromJson(handler.body(), ConfigUpdateRequest.class);
         } catch (Exception e) {
             handler.status(400).result("Invalid config payload");
             return;
@@ -47,12 +48,12 @@ public class AdminUpdateConfigEndpoint implements IEndpoint {
         if (request.twitter_url != null) config.twitter_url = request.twitter_url;
         if (request.twitch_url != null) config.twitch_url = request.twitch_url;
         if (request.youtube_url != null) config.youtube_url = request.youtube_url;
-        		if (request.discord_url != null) config.discord_url = request.discord_url;
-        		if (request.website_url != null) config.website_url = request.website_url;
-        		if (request.store_url != null) config.store_url = request.store_url;
-        		if (request.terms_of_service_url != null) config.terms_of_service_url = request.terms_of_service_url;
-        		if (request.terms_of_sale_url != null) config.terms_of_sale_url = request.terms_of_sale_url;
-        		if (request.privacy_policy_url != null) config.privacy_policy_url = request.privacy_policy_url;
+        if (request.discord_url != null) config.discord_url = request.discord_url;
+        if (request.website_url != null) config.website_url = request.website_url;
+        if (request.store_url != null) config.store_url = request.store_url;
+        if (request.terms_of_service_url != null) config.terms_of_service_url = request.terms_of_service_url;
+        if (request.terms_of_sale_url != null) config.terms_of_sale_url = request.terms_of_sale_url;
+        if (request.privacy_policy_url != null) config.privacy_policy_url = request.privacy_policy_url;
 
         Directories.save();
         handler.json(Directories.getConfig());

@@ -9,7 +9,7 @@ import java.util.Map;
 import niwer.queryon.SQLSerializable;
 import niwer.queryon.tables.api.IColumnField;
 
-public class ObjectPlayerAccount extends SQLSerializable<ObjectPlayerAccount> {
+public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
 
     @IColumnField(name = "username", notNull = true)
     private String username;
@@ -41,8 +41,7 @@ public class ObjectPlayerAccount extends SQLSerializable<ObjectPlayerAccount> {
 
     @Override
     public String toString() {
-        return String.format("ObjectPlayerAccount{username='%s', email='%s', uuid='%s', discordID='%s', administrator=%s, serverCreator=%s}", 
-            this.username, this.email, this.uuid, this.discordID, isAdministrator(), isServerCreator());
+        return String.format("User Account{username='%s', email='%s', uuid='%s', discordID='%s', administrator=%s, serverCreator=%s}", this.username, this.email, this.uuid, this.discordID, isAdministrator(), isServerCreator());
     }
 
     public String getUsername() { return this.username; }
@@ -75,8 +74,8 @@ public class ObjectPlayerAccount extends SQLSerializable<ObjectPlayerAccount> {
         return response;
     }
 
-    public static ObjectPlayerAccount fromSnapshot(String username, String email, String uuid, String discordID, String discordAuthCode, boolean administrator, boolean serverCreator) {
-        final ObjectPlayerAccount account = new ObjectPlayerAccount();
+    public static ObjectUserAccount fromSnapshot(String username, String email, String uuid, String discordID, String discordAuthCode, boolean administrator, boolean serverCreator) {
+        final ObjectUserAccount account = new ObjectUserAccount();
         try {
             setField(account, "username", username);
             setField(account, "email", email);
@@ -91,8 +90,8 @@ public class ObjectPlayerAccount extends SQLSerializable<ObjectPlayerAccount> {
         return account;
     }
 
-    private static void setField(ObjectPlayerAccount account, String fieldName, Object value) throws ReflectiveOperationException {
-        final Field field = ObjectPlayerAccount.class.getDeclaredField(fieldName);
+    private static void setField(ObjectUserAccount account, String fieldName, Object value) throws ReflectiveOperationException {
+        final Field field = ObjectUserAccount.class.getDeclaredField(fieldName);
         field.setAccessible(true);
         if (field.getType() == boolean.class && value instanceof Boolean booleanValue) {
             field.setBoolean(account, booleanValue);

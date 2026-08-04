@@ -305,6 +305,13 @@ const App = {
     },
 
     // --- Authentication ---
+    clearPurchaseToken() {
+        if (State.purchaseToken) {
+            State.purchaseToken = '';
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+    },
+
     async login(e) {
         e.preventDefault();
         const btn = e.target.querySelector('button[type="submit"]');
@@ -319,9 +326,21 @@ const App = {
         for (const [key, val] of formData.entries()) {
             body.append(key, val);
         }
+        
+        // Append the purchase token if it exists
+        if (State.purchaseToken) body.set('token', State.purchaseToken);
+
         const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
 
         try {
+            // Pre-emptively notify the stripe session endpoint just like in register
+            if (State.purchaseToken) {
+                await fetch('/stripe/purchase_session', {
+                    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ checkoutSessionId: State.purchaseToken })
+                }).catch(()=>{});
+            }
+
             // Try Admin
             const adminRes = await fetch('/api/admin/login', { method: 'POST', headers, body: body.toString(), credentials: 'same-origin' });
             if (adminRes.ok) {
@@ -329,17 +348,24 @@ const App = {
                 State.token = ''; State.userToken = ''; State.account = payload.account || payload;
                 localStorage.setItem('photon-account', JSON.stringify(State.account));
                 UI.toast('Signed in as admin', 'success');
+                
+                // Clear token from URL after successful auth
+                this.clearPurchaseToken();
+                
                 this.onLoginSuccess();
                 return;
             }
 
-            // Fallback to User - using Api() to properly surface backend errors
+            // Fallback to User
             const payload = await Api('/accounts/auth_account', { method: 'POST', headers, body: body.toString() });
             
             State.userToken = payload.token || ''; State.account = payload.account || payload;
             localStorage.setItem('photon-user-token', State.userToken);
             localStorage.setItem('photon-account', JSON.stringify(State.account));
             
+            // Clear token from URL after successful auth
+            this.clearPurchaseToken();
+
             UI.toast('Signed in', 'success');
             this.onLoginSuccess();
         } catch (err) {

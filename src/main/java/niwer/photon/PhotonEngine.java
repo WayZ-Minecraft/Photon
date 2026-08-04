@@ -12,6 +12,10 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 
+import niwer.lumen.Console;
+import niwer.lumen.LumenEngine;
+import niwer.lumen.container.ConsoleFileManager;
+import niwer.lumen.container.Container;
 import niwer.photon.discord.BotEngine;
 import niwer.photon.sql.AnticheatTable;
 import niwer.photon.sql.CrashReportTable;
@@ -19,19 +23,14 @@ import niwer.photon.sql.DiscordLogTable;
 import niwer.photon.sql.DiscordProfileTable;
 import niwer.photon.sql.HWIDTable;
 import niwer.photon.sql.LicenseTable;
-import niwer.photon.sql.PurchaseTokenTable;
 import niwer.photon.sql.PlayerAccountTable;
-import niwer.photon.sql.SubscriptionTable;
+import niwer.photon.sql.PurchaseTable;
 import niwer.photon.sql.ServerTable;
-import niwer.photon.util.PhotonLogTypes;
+import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.DatabaseBackupManager;
+import niwer.photon.util.PhotonLogTypes;
 import niwer.photon.web.WebServerEngine;
 import niwer.photon.web.endpoints.stripe.StripeStartupSync;
-
-import niwer.lumen.Console;
-import niwer.lumen.LumenEngine;
-import niwer.lumen.container.ConsoleFileManager;
-import niwer.lumen.container.Container;
 import niwer.queryon.DataBase;
 
 public class PhotonEngine {
@@ -110,7 +109,7 @@ public class PhotonEngine {
             /* Security */
             .registerTable(HWIDTable.class)
             .registerTable(LicenseTable.class)
-            .registerTable(PurchaseTokenTable.class)
+            .registerTable(PurchaseTable.class)
             .registerTable(SubscriptionTable.class)
             .registerTable(AnticheatTable.class)
             .registerTable(CrashReportTable.class)

@@ -1,8 +1,10 @@
 package niwer.photon.web.endpoints.accounts;
 
 import io.javalin.http.Context;
-import niwer.photon.objects.ObjectPlayerAccount;
+import niwer.photon.objects.ObjectUserAccount;
+import niwer.photon.objects.ObjectSubscription;
 import niwer.photon.sql.PlayerAccountTable;
+import niwer.photon.sql.PurchaseTable;
 import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.session.AuthSession;
 import niwer.photon.util.session.UserSessionManager;
@@ -23,6 +25,7 @@ public class AuthAccountEndpoint implements IEndpoint {
     public void handle(Context handler) {
         final String email = handler.formParam("email");
         final String password = handler.formParam("password");
+        final String checkoutSessionId = firstNonBlank(handler.formParam("checkoutSessionId"), handler.formParam("token"));
 
         /* Ensure all parameters are provided */
         if(email == null || password == null) {
@@ -37,7 +40,7 @@ public class AuthAccountEndpoint implements IEndpoint {
         }
 
         /* Authenticate the user */
-        final ObjectPlayerAccount ACCOUNT = lookupAccountByEmail(email);
+        final ObjectUserAccount ACCOUNT = lookupAccountByEmail(email);
         if(ACCOUNT == null) {
             handler.status(401).result("No account found with the provided email");
             return;
@@ -47,8 +50,31 @@ public class AuthAccountEndpoint implements IEndpoint {
             return;
         }
 
-        if (!PlayerAccountTable.isArgon2Password(ACCOUNT.password())) {
-            PlayerAccountTable.setPassword(ACCOUNT.getUuid(), password);
+        if (!PlayerAccountTable.isArgon2Password(ACCOUNT.password())) PlayerAccountTable.setPassword(ACCOUNT.getUuid(), password);
+
+        /* Redeem the token if provided and valid */
+        final boolean hasPurchaseReference = checkoutSessionId != null && !checkoutSessionId.isBlank();
+        final ObjectSubscription subscription = SubscriptionTable.getByEmail(email);
+        if (hasPurchaseReference) {
+            if (!PurchaseTable.canRedeem(checkoutSessionId)) {
+                handler.status(403).result("Invalid or expired purchase token");
+                return;
+            }
+        }
+
+        if (hasPurchaseReference && !PurchaseTable.redeem(checkoutSessionId, ACCOUNT)) {
+            handler.status(500).result("Failed to link purchase token");
+            return;
+        } else if (subscription != null && subscription.isActive()) {
+            SubscriptionTable.upsertSubscription(
+                subscription.customerEmail(),
+                subscription.customerName(),
+                subscription.customerId(),
+                subscription.subscriptionId(),
+                SubscriptionTable.SubscriptionStatus.fromString(subscription.status()),
+                subscription.expiresAt(),
+                ACCOUNT.getUuid()
+            );
         }
 
         final AuthSession session = createSession(email, password);
@@ -60,7 +86,7 @@ public class AuthAccountEndpoint implements IEndpoint {
         handler.json(new LoginResponse(session.token(), accountResponse(ACCOUNT)));
     }
 
-    protected ObjectPlayerAccount lookupAccountByEmail(String email) {
+    protected ObjectUserAccount lookupAccountByEmail(String email) {
         return PlayerAccountTable.getAccountByEmail(email);
     }
 
@@ -68,10 +94,16 @@ public class AuthAccountEndpoint implements IEndpoint {
         return UserSessionManager.login(email, password);
     }
 
-    protected java.util.Map<String, Object> accountResponse(ObjectPlayerAccount account) {
+    protected java.util.Map<String, Object> accountResponse(ObjectUserAccount account) {
         final var response = account.toPublicMap();
         response.putAll(SubscriptionTable.subscriptionDetails(account.getEmail(), account.getUuid()));
         return response;
+    }
+
+    private static String firstNonBlank(String first, String second) {
+        if (first != null && !first.isBlank()) return first;
+        if (second != null && !second.isBlank()) return second;
+        return null;
     }
 
     private record LoginResponse(String token, Object account) {}

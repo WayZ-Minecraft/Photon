@@ -3,10 +3,10 @@ package niwer.photon.web.endpoints.accounts;
 import java.util.regex.Pattern;
 
 import io.javalin.http.Context;
-import niwer.photon.objects.ObjectPlayerAccount;
+import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.objects.ObjectSubscription;
 import niwer.photon.sql.PlayerAccountTable;
-import niwer.photon.sql.PurchaseTokenTable;
+import niwer.photon.sql.PurchaseTable;
 import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.session.AuthSession;
 import niwer.photon.util.session.UserSessionManager;
@@ -76,14 +76,13 @@ public class CreateAccountEndpoint implements IEndpoint {
         }
 
         /* Create the account */
-        final ObjectPlayerAccount ACCOUNT = createAccount(username, email, password);
+        final ObjectUserAccount ACCOUNT = createAccount(username, email, password);
         if(ACCOUNT == null) {
             handler.status(500).result("Failed to create account");
             return;
         }
 
         if (hasPurchaseReference && !redeemPurchaseReference(checkoutSessionId, ACCOUNT)) {
-            PlayerAccountTable.deleteAccount(ACCOUNT.getUuid());
             handler.status(500).result("Failed to link purchase token");
             return;
         } else if (subscription != null && subscription.isActive()) {
@@ -117,7 +116,7 @@ public class CreateAccountEndpoint implements IEndpoint {
         return PlayerAccountTable.usernameExists(username);
     }
 
-    protected ObjectPlayerAccount createAccount(String username, String email, String password) {
+    protected ObjectUserAccount createAccount(String username, String email, String password) {
         return PlayerAccountTable.createAccount(username, email, password);
     }
 
@@ -133,11 +132,11 @@ public class CreateAccountEndpoint implements IEndpoint {
     }
 
     protected boolean canRedeemPurchaseReference(String purchaseReference) {
-        return PurchaseTokenTable.canRedeem(purchaseReference);
+        return PurchaseTable.canRedeem(purchaseReference);
     }
 
-    protected boolean redeemPurchaseReference(String purchaseReference, ObjectPlayerAccount account) {
-        return PurchaseTokenTable.redeem(purchaseReference, account);
+    protected boolean redeemPurchaseReference(String purchaseReference, ObjectUserAccount account) {
+        return PurchaseTable.redeem(purchaseReference, account);
     }
 
     protected boolean hasActiveSubscription(String email, String accountUuid) {
@@ -148,5 +147,5 @@ public class CreateAccountEndpoint implements IEndpoint {
         return UserSessionManager.login(email, password);
     }
 
-        private record LoginResponse(String token, Object account) {}
+    private record LoginResponse(String token, Object account) {}
 }

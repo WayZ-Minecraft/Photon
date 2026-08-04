@@ -1,9 +1,9 @@
 package niwer.photon.web.endpoints.accounts;
 
 import io.javalin.http.Context;
-import niwer.photon.Directories;
-import niwer.photon.objects.ObjectPlayerAccount;
+import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
+import niwer.photon.util.GsonUtils;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class UpdateProfileEndpoint implements IEndpoint {
@@ -16,7 +16,7 @@ public class UpdateProfileEndpoint implements IEndpoint {
     public void handle(Context handler) {
         final ProfileUpdateRequest request;
         try {
-            request = Directories.GSON.fromJson(handler.body(), ProfileUpdateRequest.class);
+            request = GsonUtils.GSON.fromJson(handler.body(), ProfileUpdateRequest.class);
         } catch (Exception exception) {
             handler.status(400).result("Invalid profile payload");
             return;
@@ -32,7 +32,7 @@ public class UpdateProfileEndpoint implements IEndpoint {
             return;
         }
 
-        final ObjectPlayerAccount account = PlayerAccountTable.getAccountByUUID(request.uuid);
+        final ObjectUserAccount account = PlayerAccountTable.getAccountByUUID(request.uuid);
         if (account == null) {
             handler.status(404).result("Account not found");
             return;
@@ -53,7 +53,7 @@ public class UpdateProfileEndpoint implements IEndpoint {
         }
 
         if (!nextUsername.equalsIgnoreCase(account.getUsername())) {
-            final ObjectPlayerAccount existingUsername = PlayerAccountTable.getAccountByUsername(nextUsername);
+            final ObjectUserAccount existingUsername = PlayerAccountTable.getAccountByUsername(nextUsername);
             if (existingUsername != null && !existingUsername.getUuid().equals(account.getUuid())) {
                 handler.status(400).result("An account with this username already exists.");
                 return;
@@ -62,7 +62,7 @@ public class UpdateProfileEndpoint implements IEndpoint {
         }
 
         if (!nextEmail.equalsIgnoreCase(account.getEmail())) {
-            final ObjectPlayerAccount existingEmail = PlayerAccountTable.getAccountByEmail(nextEmail);
+            final ObjectUserAccount existingEmail = PlayerAccountTable.getAccountByEmail(nextEmail);
             if (existingEmail != null && !existingEmail.getUuid().equals(account.getUuid())) {
                 handler.status(400).result("An account with this email already exists.");
                 return;
@@ -82,7 +82,7 @@ public class UpdateProfileEndpoint implements IEndpoint {
             PlayerAccountTable.setPassword(account.getUuid(), nextPassword);
         }
 
-        final ObjectPlayerAccount updatedAccount = PlayerAccountTable.getAccountByUUID(account.getUuid());
+        final ObjectUserAccount updatedAccount = PlayerAccountTable.getAccountByUUID(account.getUuid());
         handler.json(updatedAccount == null ? account.toPublicMap() : updatedAccount.toPublicMap());
     }
 

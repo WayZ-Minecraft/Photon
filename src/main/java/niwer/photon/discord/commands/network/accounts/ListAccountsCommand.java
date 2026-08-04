@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.StringJoiner;
 
 import niwer.photon.discord.commands.AbstractSlashCommand;
-import niwer.photon.objects.ObjectPlayerAccount;
+import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.util.TranslationManager;
 
@@ -37,7 +37,7 @@ public class ListAccountsCommand extends AbstractSlashCommand {
         if (!isConsoleChannel(event)) return; // Check if we're in the console channel
 
         /* Get all accounts, and skip if there are no accounts */
-        final List<ObjectPlayerAccount> accounts = PlayerAccountTable.getAllAccounts();
+        final List<ObjectUserAccount> accounts = PlayerAccountTable.getAllAccounts();
         final String USER_ID = event.getUser().getId();
         if (accounts.isEmpty()) {
             event.reply(TranslationManager.format(USER_ID, "command.reply.list_accounts.failure.empty")).setEphemeral(true).queue();
@@ -46,13 +46,13 @@ public class ListAccountsCommand extends AbstractSlashCommand {
 
         /* Create and send the file */
         final StringJoiner joiner = new StringJoiner(System.lineSeparator(), "", System.lineSeparator());
-        for (ObjectPlayerAccount account : accounts) joiner.add(formatAccount(account));
+        for (ObjectUserAccount account : accounts) joiner.add(formatAccount(account));
 
         final FileUpload upload = FileUpload.fromData(joiner.toString().getBytes(StandardCharsets.UTF_8), "account.txt");
         event.reply(TranslationManager.format(USER_ID, "command.reply.list_accounts.success", accounts.size())).addFiles(upload).queue();
     }
     
-    public static String formatAccount(ObjectPlayerAccount account) {
+    public static String formatAccount(ObjectUserAccount account) {
         return "- " + account.getEmail() + " " + account.getUsername() + " " + account.getUuid() + " " + (account.isAdministrator() ? "He's Project Creator" : "He's not a Project Creator");
     }
 }

@@ -51,7 +51,7 @@ public interface IEndpoint {
             throw new RuntimeException("Failed to instantiate endpoint: " + endpointClass.getName(), e);
         }
     }
-
+    
     public static enum HttpMethod {
         GET, POST, PUT, DELETE
     }

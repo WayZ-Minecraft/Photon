@@ -531,6 +531,7 @@ const App = {
             // Update footer links if available
             if (State.config.store_url) document.getElementById('footerStoreLink').href = State.config.store_url;
             if (State.config.terms_of_service_url) document.getElementById('footerTosLink').href = State.config.terms_of_service_url;
+            if (State.config.terms_of_sale_url) document.getElementById('footerTosaleLink').href = State.config.terms_of_sale_url;
             if (State.config.privacy_policy_url) document.getElementById('footerPrivacyLink').href = State.config.privacy_policy_url;
 
             UI.updateAuthVisbility(); // Re-trigger UI update for overview store button if config changed
@@ -620,7 +621,7 @@ const App = {
         } catch (e) { UI.toast('Failed to load table data', 'error'); }
     },
 
-    async restartEngine() {
+    async restartService() {
         if(!confirm('Restart Photon Network now?')) return;
         try {
             await Api('/api/admin/restart', { method: 'POST' });

@@ -37,6 +37,7 @@ public class AdminUpdateConfigEndpoint implements IEndpoint {
         if (request.official_discord_server_id != null) config.official_discord_server_id = request.official_discord_server_id;
         if (request.network_console_channel_id != null) config.network_console_channel_id = request.network_console_channel_id;
         if (request.server_creator_role_id != null) config.server_creator_role_id = request.server_creator_role_id;
+        if (request.webserver_host != null) config.webserver_host = request.webserver_host;
         if (request.webserver_port != null) config.webserver_port = request.webserver_port;
         if (request.license_product_id != null) config.license_product_id = request.license_product_id;
         if (request.stripe_api_key != null) config.stripe_api_key = request.stripe_api_key;
@@ -66,6 +67,7 @@ public class AdminUpdateConfigEndpoint implements IEndpoint {
             String official_discord_server_id,
             String network_console_channel_id,
             String server_creator_role_id,
+            String webserver_host,
             Integer webserver_port,
             String license_product_id,
             String stripe_api_key,

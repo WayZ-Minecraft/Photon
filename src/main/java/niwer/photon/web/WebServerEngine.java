@@ -1,5 +1,7 @@
 package niwer.photon.web;
 
+import org.eclipse.jetty.server.ForwardedRequestCustomizer;
+
 import io.javalin.Javalin;
 import niwer.lumen.Console;
 import niwer.photon.Directories;
@@ -30,8 +32,8 @@ import niwer.photon.web.endpoints.admin.AdminUploadUpdateEndpoint;
 import niwer.photon.web.endpoints.game.AddAntiCheatReportEndpoint;
 import niwer.photon.web.endpoints.game.AddCrashReportEndpoint;
 import niwer.photon.web.endpoints.game.AddHWIDEndpoint;
-import niwer.photon.web.endpoints.game.ModDownloadEndpoint;
 import niwer.photon.web.endpoints.game.InfoEndpoint;
+import niwer.photon.web.endpoints.game.ModDownloadEndpoint;
 import niwer.photon.web.endpoints.servers.AddServerEndpoint;
 import niwer.photon.web.endpoints.servers.ServerListEndpoint;
 import niwer.photon.web.endpoints.servers.StatusServersEndpoint;
@@ -55,7 +57,7 @@ public class WebServerEngine {
         final var WEB_SERVER = Javalin.create(cfg -> {
             /* Set the static files directory (index.html, main.css, main.js, etc.) */
             cfg.staticFiles.add("/public");
-            
+
             /* Endpoints */
             IEndpoint.register(cfg, HomeEndpoint.class);
             IEndpoint.register(cfg, StatusServersEndpoint.class);
@@ -98,6 +100,13 @@ public class WebServerEngine {
                 IEndpoint.register(cfg, AddServerEndpoint.class);
                 IEndpoint.register(cfg, ServerListEndpoint.class);
             }
+
+            /* Configure Jetty */
+            cfg.jetty.host = Directories.getConfig().webserver_host;
+            cfg.jetty.port = Directories.getConfig().webserver_port;
+            cfg.jetty.modifyHttpConfiguration(httpConfig -> {
+                httpConfig.addCustomizer(new ForwardedRequestCustomizer());
+            });
         });
 
         /* Start the web server */

@@ -129,6 +129,7 @@ public class Directories
 		@SerializedName("server_creator_role_id") public String server_creator_role_id = ""; // Only working on the official guild.
 		
 		/* Web Server */
+		@SerializedName("webserver_host") public String webserver_host = null; // null = all interfaces,
 		@SerializedName("webserver_port") public int webserver_port = 7070;
 
 		/* Database backups */

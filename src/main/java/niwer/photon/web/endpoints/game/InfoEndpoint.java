@@ -27,6 +27,7 @@ public class InfoEndpoint implements IEndpoint {
         // String launcher_version,
 
         String network_ip,
+        String webserver_host,
         int webserver_port,
 
         String twitter_url,
@@ -45,6 +46,7 @@ public class InfoEndpoint implements IEndpoint {
                 // config.launcher_version,
 
                 PhotonEngine.getCurrentIP(),
+                config.webserver_host,
                 config.webserver_port,
 
                 config.twitter_url,

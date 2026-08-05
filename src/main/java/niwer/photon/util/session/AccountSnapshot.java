@@ -7,16 +7,14 @@ public class AccountSnapshot {
     String discordID;
     String discordAuthCode;
     boolean administrator;
-    boolean serverCreator;
 
-    public AccountSnapshot(String username, String email, String uuid, String discordID, String discordAuthCode, boolean administrator, boolean serverCreator) {
+    public AccountSnapshot(String username, String email, String uuid, String discordID, String discordAuthCode, boolean administrator) {
         this.username = username;
         this.email = email;
         this.uuid = uuid;
         this.discordID = discordID;
         this.discordAuthCode = discordAuthCode;
         this.administrator = administrator;
-        this.serverCreator = serverCreator;
     }
 
     public String username() { return this.username; }
@@ -30,6 +28,4 @@ public class AccountSnapshot {
     public String discordAuthCode() { return this.discordAuthCode; }
 
     public boolean administrator() { return this.administrator; }
-
-    public boolean serverCreator() { return this.serverCreator; }
 }

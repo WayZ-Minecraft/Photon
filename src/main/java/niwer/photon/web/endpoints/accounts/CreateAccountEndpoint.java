@@ -3,8 +3,8 @@ package niwer.photon.web.endpoints.accounts;
 import java.util.regex.Pattern;
 
 import io.javalin.http.Context;
-import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.objects.ObjectSubscription;
+import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.sql.PurchaseTable;
 import niwer.photon.sql.SubscriptionTable;
@@ -91,7 +91,7 @@ public class CreateAccountEndpoint implements IEndpoint {
                 subscription.customerName(),
                 subscription.customerId(),
                 subscription.subscriptionId(),
-                SubscriptionTable.SubscriptionStatus.fromString(subscription.status()),
+                subscription.status(),
                 subscription.expiresAt(),
                 ACCOUNT.getUuid()
             );

@@ -86,7 +86,7 @@ public final class UserSessionManager {
 
         final ObjectUserAccount account = PlayerAccountTable.getAccountByUUID(snapshot.uuid());
         if (account == null) {
-            return ObjectUserAccount.fromSnapshot(snapshot.username(), snapshot.email(), snapshot.uuid(), snapshot.discordID(), snapshot.discordAuthCode(), snapshot.administrator(), snapshot.serverCreator());
+            return ObjectUserAccount.fromSnapshot(snapshot.username(), snapshot.email(), snapshot.uuid(), snapshot.discordID(), snapshot.discordAuthCode(), snapshot.administrator());
         }
 
         return account;
@@ -118,8 +118,7 @@ public final class UserSessionManager {
             account.getUuid(),
             account.getDiscordID(),
             account.getDiscordAuthCode(),
-            account.isAdministrator(),
-            account.isServerCreator()
+            account.isAdministrator()
         );
     }
 }

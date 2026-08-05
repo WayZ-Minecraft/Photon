@@ -70,6 +70,9 @@ const formatDate = (v) => {
  */
 const UI = {
     init() {
+        // Disconnect active user session if a URL token is detected
+        if (State.purchaseToken && (State.userToken || State.account || State.token)) App.logout();
+
         // Routing
         document.querySelectorAll('.nav-link').forEach(el => {
             el.addEventListener('click', (e) => this.navigate(e.target.dataset.target));
@@ -79,8 +82,7 @@ const UI = {
         const btn = document.getElementById('themeToggle');
         const html = document.documentElement;
         const updateThemeIcon = () => {
-            const isDark = html.getAttribute('data-theme') === 'dark' || 
-                            (html.getAttribute('data-theme') === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            const isDark = html.getAttribute('data-theme') === 'dark' || (html.getAttribute('data-theme') === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
             btn.innerHTML = isDark ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
         };
         

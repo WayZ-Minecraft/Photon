@@ -40,7 +40,7 @@ public class PlayerAccountTable extends Table {
         ).execute();
     }
 
-    @Override public String name() { return "PlayerAccount"; }
+    @Override public String name() { return "Account"; }
 
     /**
      * Create a new player account.

@@ -21,7 +21,7 @@ public class AnticheatTable extends Table {
         ).execute();
     }
 
-    @Override public String name() { return "Anticheat"; }
+    @Override public String name() { return "AnticheatReport"; }
 
     /**
      * @param userUUID The user UUID

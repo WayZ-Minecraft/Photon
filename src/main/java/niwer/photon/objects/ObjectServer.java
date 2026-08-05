@@ -7,6 +7,9 @@ import niwer.queryon.tables.api.IColumnField;
 
 public class ObjectServer extends SQLSerializable<ObjectServer> {
 
+    @IColumnField(name = "id", primaryKey = true, autoIncrement = true)
+    public int id;
+
     @IColumnField(name = "server_name", unique = true)
 	public String serverName;
 

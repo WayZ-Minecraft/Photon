@@ -22,12 +22,6 @@ public class LicenseTable extends Table {
 		ISSUED,
 		ACTIVE,
 		REVOKED;
-
-		public static LicenseStatus fromString(String value) {
-			if (value == null || value.isBlank()) return ISSUED;
-			try { return LicenseStatus.valueOf(value.toUpperCase()); }
-			catch (IllegalArgumentException e) { return ISSUED; }
-		}
 	}
 
 	public LicenseTable(DataBase db) {
@@ -40,7 +34,7 @@ public class LicenseTable extends Table {
 			createColumn(db, "customer_email", EnumColumnTypes.TEXT),
 			createColumn(db, "hwid", EnumColumnTypes.TEXT),
 			createColumn(db, "creator_uuid", EnumColumnTypes.TEXT),
-			createColumn(db, "status", EnumColumnTypes.TEXT).notNull().defaultValue(LicenseStatus.ISSUED.name()),
+			createColumn(db, "status", LicenseStatus.class).notNull().defaultValue(LicenseStatus.ISSUED),
 			createColumn(db, "created_at", EnumColumnTypes.DATE_TIME).defaultValue("CURRENT_TIMESTAMP"),
 			createColumn(db, "activated_at", EnumColumnTypes.DATE_TIME),
 			createColumn(db, "expires_at", EnumColumnTypes.DATE_TIME)
@@ -54,7 +48,7 @@ public class LicenseTable extends Table {
 	public static ObjectLicense issueLicense(String licenseKey, String productId, String name, String customerEmail, String creatorUuid, Date expiresAt) {
 		final Date createdAt = new Date();
 		InsertionManager.insert(PhotonEngine.DATA_BASE, LicenseTable.class, "license_key", "product_id", "name", "customer_email", "creator_uuid", "status", "created_at", "expires_at")
-			.row(normalizeKey(licenseKey), productId, name, customerEmail, creatorUuid, LicenseStatus.ISSUED.name(), createdAt, expiresAt)
+			.row(normalizeKey(licenseKey), productId, name, customerEmail, creatorUuid, LicenseStatus.ISSUED, createdAt, expiresAt)
 			.execute();
 
 		return getByKey(licenseKey);
@@ -95,7 +89,7 @@ public class LicenseTable extends Table {
 		try {
             UpdateManager.update(PhotonEngine.DATA_BASE, LicenseTable.class)
                 .set("hwid", hwid)
-                .set("status", LicenseStatus.ACTIVE.name())
+                .set("status", LicenseStatus.ACTIVE)
                 .set("activated_at", new Date())
                 .where(Expression.of("license_key").isEqualTo(normalizeKey(licenseKey)))
                 .execute();
@@ -110,7 +104,7 @@ public class LicenseTable extends Table {
 		if (licenseKey == null || licenseKey.isBlank()) return false;
         try {
             UpdateManager.update(PhotonEngine.DATA_BASE, LicenseTable.class)
-                .set("status", LicenseStatus.REVOKED.name())
+                .set("status", LicenseStatus.REVOKED)
                 .where(Expression.of("license_key").isEqualTo(normalizeKey(licenseKey)))
                 .execute();
             return true;

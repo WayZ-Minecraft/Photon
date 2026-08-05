@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import niwer.photon.sql.LicenseTable.LicenseStatus;
 import niwer.queryon.SQLSerializable;
 import niwer.queryon.tables.api.IColumnField;
 
@@ -31,7 +32,7 @@ public class ObjectLicense extends SQLSerializable<ObjectLicense> implements IPa
 	private String hwid;
 
 	@IColumnField(name = "status", notNull = true)
-	private String status;
+	private LicenseStatus status;
 
 	@IColumnField(name = "created_at")
 	private String createdAt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
@@ -58,7 +59,7 @@ public class ObjectLicense extends SQLSerializable<ObjectLicense> implements IPa
 
 	public String hwid() { return this.hwid; }
 
-	public String status() { return this.status; }
+	public LicenseStatus status() { return this.status; }
 
 	public Date createdAt() {
 		return parseDate(this.createdAt);

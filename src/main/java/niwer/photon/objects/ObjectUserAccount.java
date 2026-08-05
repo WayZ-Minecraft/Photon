@@ -20,7 +20,7 @@ public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
     @IColumnField(name = "password", notNull = true)
     private transient String password;
 
-    @IColumnField(name = "uuid", notNull = true)
+    @IColumnField(name = "uuid", primaryKey = true, notNull = true)
     private String uuid;
 
     @IColumnField(name = "discordID", charLimit = 1024)
@@ -32,16 +32,13 @@ public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
     @IColumnField(name = "administrator")
     private boolean administrator;
 
-    @IColumnField(name = "serverCreator")
-    private boolean serverCreator;
-
     public static String generateAuthCode() { return new BigInteger(40, new SecureRandom()).toString(32); }
 
     public boolean hasDiscordLinked() { return this.discordID != null && !this.discordID.isEmpty(); }
 
     @Override
     public String toString() {
-        return String.format("User Account{username='%s', email='%s', uuid='%s', discordID='%s', administrator=%s, serverCreator=%s}", this.username, this.email, this.uuid, this.discordID, isAdministrator(), isServerCreator());
+        return String.format("User Account{username='%s', email='%s', uuid='%s', discordID='%s', administrator=%s, serverCreator=%s}", this.username, this.email, this.uuid, this.discordID, isAdministrator());
     }
 
     public String getUsername() { return this.username; }
@@ -59,9 +56,6 @@ public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
     public boolean isAdministrator() { return this.administrator; }
     public boolean getAdministrator() { return this.administrator; }
 
-    public boolean isServerCreator() { return this.serverCreator; }
-    public boolean getServerCreator() { return this.serverCreator; }
-
     public Map<String, Object> toPublicMap() {
         final Map<String, Object> response = new LinkedHashMap<>();
         response.put("username", this.username);
@@ -70,11 +64,10 @@ public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
         response.put("discordID", this.discordID);
         response.put("discordAuthCode", this.discordAuthCode);
         response.put("administrator", isAdministrator());
-        response.put("serverCreator", isServerCreator());
         return response;
     }
 
-    public static ObjectUserAccount fromSnapshot(String username, String email, String uuid, String discordID, String discordAuthCode, boolean administrator, boolean serverCreator) {
+    public static ObjectUserAccount fromSnapshot(String username, String email, String uuid, String discordID, String discordAuthCode, boolean administrator) {
         final ObjectUserAccount account = new ObjectUserAccount();
         try {
             setField(account, "username", username);
@@ -83,7 +76,6 @@ public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
             setField(account, "discordID", discordID);
             setField(account, "discordAuthCode", discordAuthCode);
             setField(account, "administrator", administrator);
-            setField(account, "serverCreator", serverCreator);
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("Unable to rebuild account snapshot", e);
         }

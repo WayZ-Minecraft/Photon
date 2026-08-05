@@ -64,7 +64,7 @@ public final class LicenseManager {
 		if (license == null) return LicenseValidationResult.invalid(LicenseFailureReason.MISSING_LICENSE_KEY, "License key was not found in the Photon license database");
 
 		if (license.productId() == null || !license.productId().equalsIgnoreCase(expectedProductId)) return LicenseValidationResult.invalid(LicenseFailureReason.PRODUCT_MISMATCH, "License is not valid for product '" + expectedProductId + "'");
-		if (LicenseTable.LicenseStatus.fromString(license.status()) == LicenseTable.LicenseStatus.REVOKED) return LicenseValidationResult.invalid(LicenseFailureReason.UNEXPECTED_ERROR, "License key has been revoked");
+		if (LicenseTable.LicenseStatus.REVOKED == license.status()) return LicenseValidationResult.invalid(LicenseFailureReason.UNEXPECTED_ERROR, "License key has been revoked");
 		if (license.isExpired()) return LicenseValidationResult.invalid(LicenseFailureReason.EXPIRED, "License key has expired");
 
 		// Ensure creator's subscription is active; license becomes usable again if subscription restarts

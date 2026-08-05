@@ -113,8 +113,7 @@ public final class AdminSessionManager {
                 snapshot.uuid(),
                 snapshot.discordID(),
                 snapshot.discordAuthCode(),
-                snapshot.administrator(),
-                snapshot.serverCreator()
+                snapshot.administrator()
             );
         }
 
@@ -171,8 +170,7 @@ public final class AdminSessionManager {
             account.getUuid(),
             account.getDiscordID(),
             account.getDiscordAuthCode(),
-            account.isAdministrator(),
-            account.isServerCreator()
+            account.isAdministrator()
         );
     }
 }

@@ -29,7 +29,7 @@ public class PurchaseTable extends Table {
 			createColumn(db, "customer_name", EnumColumnTypes.TEXT),
 			createColumn(db, "stripe_customer_id", EnumColumnTypes.TEXT),
 			createColumn(db, "stripe_subscription_id", EnumColumnTypes.TEXT),
-			createColumn(db, "status", EnumColumnTypes.TEXT).notNull().defaultValue("PENDING"),
+			createColumn(db, "status", SubscriptionStatus.class).notNull().defaultValue(SubscriptionStatus.PENDING),
 			createColumn(db, "linked_account_uuid", EnumColumnTypes.TEXT),
 			createColumn(db, "created_at", EnumColumnTypes.DATE_TIME).defaultValue("CURRENT_TIMESTAMP"),
 			createColumn(db, "updated_at", EnumColumnTypes.DATE_TIME).defaultValue("CURRENT_TIMESTAMP"),
@@ -50,7 +50,7 @@ public class PurchaseTable extends Table {
 		final String normalizedCheckoutSessionId = checkoutSessionId == null || checkoutSessionId.isBlank() ? normalizedToken : checkoutSessionId.trim();
 		final Date now = new Date();
 		InsertionManager.insert(PhotonEngine.DATA_BASE, PurchaseTable.class, "purchase_token", "checkout_session_id", "customer_email", "customer_name", "status", "created_at", "updated_at")
-			.row(normalizedToken, normalizedCheckoutSessionId, normalizeEmail(customerEmail), customerName, "PENDING", now, now)
+			.row(normalizedToken, normalizedCheckoutSessionId, normalizeEmail(customerEmail), customerName, SubscriptionStatus.PENDING, now, now)
 			.execute();
 		return getByToken(normalizedToken);
 	}
@@ -70,11 +70,9 @@ public class PurchaseTable extends Table {
 	 * @param expiresAt The date at which the purchase expires.
 	 * @return The updated purchase record, or null if the update failed.
 	 */
-	public static ObjectPurchase completePurchase(String purchaseToken, String checkoutSessionId, String stripeCustomerId, String stripeSubscriptionId, String customerEmail, String customerName, String status, Date expiresAt) {
+	public static ObjectPurchase completePurchase(String purchaseToken, String checkoutSessionId, String stripeCustomerId, String stripeSubscriptionId, String customerEmail, String customerName, SubscriptionStatus status, Date expiresAt) {
 		ObjectPurchase current = getByPurchaseReference(purchaseToken);
-		if (current == null) {
-			current = createOrRetrievePendingPurchase(purchaseToken, checkoutSessionId, customerEmail, customerName);
-		}
+		if (current == null) current = createOrRetrievePendingPurchase(purchaseToken, checkoutSessionId, customerEmail, customerName);
 		if (current == null) return null;
 
 		UpdateManager.update(PhotonEngine.DATA_BASE, PurchaseTable.class)
@@ -83,7 +81,7 @@ public class PurchaseTable extends Table {
 			.set("stripe_subscription_id", stripeSubscriptionId)
 			.set("customer_email", normalizeEmail(customerEmail != null && !customerEmail.isBlank() ? customerEmail : current.customerEmail()))
 			.set("customer_name", customerName != null && !customerName.isBlank() ? customerName : current.customerName())
-			.set("status", status == null || status.isBlank() ? current.status() : status)
+			.set("status", status == null ? current.status() : status)
 			.set("expires_at", expiresAt)
 			.set("updated_at", new Date())
 			.where(Expression.of("purchase_token").isEqualTo(normalizeToken(purchaseToken)))
@@ -96,7 +94,7 @@ public class PurchaseTable extends Table {
 				updated.customerName(),
 				updated.stripeCustomerId(),
 				updated.stripeSubscriptionId(),
-				SubscriptionStatus.fromString(updated.status()),
+				updated.status(),
 				updated.expiresAt(),
 				updated.linkedAccountUuid()
 			);
@@ -165,23 +163,18 @@ public class PurchaseTable extends Table {
 		if (token.linkedAccountUuid() != null && !token.linkedAccountUuid().isBlank() && !token.linkedAccountUuid().equals(account.getUuid())) return false;
 
 		if (token.stripeSubscriptionId() != null && !token.stripeSubscriptionId().isBlank()) {
-			final SubscriptionStatus status = SubscriptionStatus.fromString(token.status());
 			final ObjectSubscription subscription = SubscriptionTable.upsertSubscription(
 				token.customerEmail(),
 				token.customerName(),
 				token.stripeCustomerId(),
 				token.stripeSubscriptionId(),
-				status,
+				token.status(),
 				token.expiresAt(),
 				account.getUuid()
 			);
 
 			if (subscription == null) {
-				Console.log("Failed to link purchase token '" + purchaseToken + "' to subscription '" + token.stripeSubscriptionId() + "'")
-					.type(PhotonLogTypes.SQL)
-					.error()
-					.container(PhotonEngine.LOGGER)
-					.send();
+				Console.log("Failed to link purchase token '" + purchaseToken + "' to subscription '" + token.stripeSubscriptionId() + "'").type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
 				return false;
 			}
 		}
@@ -189,7 +182,7 @@ public class PurchaseTable extends Table {
 		UpdateManager.update(PhotonEngine.DATA_BASE, PurchaseTable.class)
 			.set("linked_account_uuid", account.getUuid())
 			.set("redeemed_at", new Date())
-			.set("status", token.stripeSubscriptionId() == null || token.stripeSubscriptionId().isBlank() ? "LINKING_PENDING" : "LINKED")
+			.set("status", token.stripeSubscriptionId() == null || token.stripeSubscriptionId().isBlank() ? SubscriptionStatus.PENDING: SubscriptionStatus.LINKED)
 			.set("updated_at", new Date())
 			.where(Expression.of("purchase_token").isEqualTo(normalizeToken(purchaseToken)))
 			.execute();

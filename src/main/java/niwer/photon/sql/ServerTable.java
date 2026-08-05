@@ -22,8 +22,7 @@ public class ServerTable extends Table {
     public ServerTable(DataBase db) {
         super(db);
 
-        this.addColumnsFromClass(ObjectServer.class)
-            .execute();
+        this.addColumnsFromClass(ObjectServer.class).execute();
     }
 
     @Override public String name() { return "Server"; }

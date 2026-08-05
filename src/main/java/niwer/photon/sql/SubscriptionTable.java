@@ -17,27 +17,26 @@ import niwer.queryon.tables.Table;
 
 public class SubscriptionTable extends Table {
 
-    public enum SubscriptionStatus {
+    public static enum SubscriptionStatus {
         ACTIVE,
+        PENDING,
+        CANCELED,
+        LINKING_PENDING,
+        LINKED,
         EXPIRED;
-
-        public static SubscriptionStatus fromString(String value) {
-            if (value == null || value.isBlank()) return EXPIRED;
-            try { return SubscriptionStatus.valueOf(value.toUpperCase()); }
-            catch (IllegalArgumentException e) { return EXPIRED; }
-        }
     }
 
     public SubscriptionTable(DataBase db) {
         super(db);
 
         this.addColumns(
-            createColumn(db, "customer_email", EnumColumnTypes.TEXT).primaryKey(),
+            createColumn(db, "id", EnumColumnTypes.INT).autoIncrement().primaryKey(),
+            createColumn(db, "customer_email", EnumColumnTypes.TEXT),
             createColumn(db, "account_uuid", EnumColumnTypes.TEXT),
             createColumn(db, "customer_name", EnumColumnTypes.TEXT),
             createColumn(db, "customer_id", EnumColumnTypes.TEXT),
             createColumn(db, "subscription_id", EnumColumnTypes.TEXT).unique(),
-            createColumn(db, "status", EnumColumnTypes.TEXT).notNull().defaultValue(SubscriptionStatus.ACTIVE.name()),
+            createColumn(db, "status", SubscriptionStatus.class).notNull().defaultValue(SubscriptionStatus.ACTIVE),
             createColumn(db, "expires_at", EnumColumnTypes.DATE_TIME),
             createColumn(db, "updated_at", EnumColumnTypes.DATE_TIME).defaultValue("CURRENT_TIMESTAMP")
         ).execute();
@@ -75,7 +74,7 @@ public class SubscriptionTable extends Table {
 
     public static List<ObjectSubscription> getAllActive() {
         return SelectionManager.select(PhotonEngine.DATA_BASE, SubscriptionTable.class)
-            .where(Expression.of("status").isEqualTo(SubscriptionStatus.ACTIVE.name()))
+            .where(Expression.of("status").isEqualTo(SubscriptionStatus.ACTIVE))
             .executeList(ObjectSubscription.class);
     }
 
@@ -129,7 +128,7 @@ public class SubscriptionTable extends Table {
         final Map<String, Object> response = new LinkedHashMap<>();
         final ObjectSubscription subscription = resolveSubscription(email, accountUuid);
         response.put("subscriber", subscription != null && subscription.isActive());
-        response.put("subscriptionStatus", subscription == null ? SubscriptionStatus.EXPIRED.name() : subscription.status());
+        response.put("subscriptionStatus", subscription == null ? SubscriptionStatus.EXPIRED : subscription.status());
         response.put("subscriptionExpiresAt", subscription == null || subscription.expiresAt() == null ? null : subscription.expiresAt().getTime());
         response.put("subscriptionAccountUuid", subscription == null ? null : subscription.accountUuid());
         return response;

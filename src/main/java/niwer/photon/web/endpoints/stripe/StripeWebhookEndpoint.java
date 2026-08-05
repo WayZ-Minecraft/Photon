@@ -166,7 +166,7 @@ public class StripeWebhookEndpoint implements IEndpoint {
             subscriptionId,
             customerPayload.email(),
             customerPayload.name(),
-            status.name(),
+            status,
             periodEnd == 0L ? null : new java.util.Date(periodEnd)
         );
 

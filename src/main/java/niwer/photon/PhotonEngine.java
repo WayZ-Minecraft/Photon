@@ -11,10 +11,10 @@ import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import niwer.lumen.Console;
 import niwer.lumen.LumenEngine;
-import niwer.lumen.container.ConsoleFileManager;
 import niwer.lumen.container.Container;
 import niwer.photon.discord.BotEngine;
 import niwer.photon.sql.AnticheatTable;
@@ -40,7 +40,7 @@ public class PhotonEngine {
     public static final DataBase DATA_BASE = new DataBase(Directories.DATA_BASE_FILE);
     public static final Container LOGGER = LumenEngine.registerContainer("PhotonEngine").addProcessor((data, time, formattedMessage) -> {
         if(BotEngine.isBotInitialized()) BotEngine.log(data); // Print the log to the discord channel if the bot is initialized
-    });
+    }).setSaveFolder(Directories.LOGS_DIR, "network");
 
     /**
 	 * Get the current IP of the user using the Amazon AWS service
@@ -98,8 +98,8 @@ public class PhotonEngine {
     }
 
     public static void main(final String[] args) {
-        /* Register logger */
-        ConsoleFileManager.registerFileFor(Directories.LOGS_DIR, PhotonEngine.LOGGER, "network");
+        /* Add logs cleaner (We'll clean up logs after 30 days) */
+        LumenEngine.registerLogsCleanerFor(LOGGER, TimeUnit.DAYS, 30);
 
         /* Load features */
         Directories.load();

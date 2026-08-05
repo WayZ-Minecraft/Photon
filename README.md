@@ -18,6 +18,11 @@ services:
     volumes:
       - ./app_data:/photon_server/network/
 ```
+If errors occur, check the logs but it may be due to JNA not being able to load the native library.
+You can try to run the jar with the following flags to disable JNA unpacking and use a temporary directory for the native library:
+```bash	
+java -jar YOUR_JAR_FILE -Djna.nosys=true -Djna.nounpack=true -Djna.tmpdir=/tmp
+```
 
 ## Configuration
 

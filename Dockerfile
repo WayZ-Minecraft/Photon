@@ -1,7 +1,5 @@
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:21-jre
 
-# Install timezone data, SQLite, and C-compatibility libraries needed by JNA
-RUN apk add --no-cache tzdata sqlite-dev libc6-compat gcompat
 ENV TZ=Europe/Brussels
 
 # Creating a new user without any privileges

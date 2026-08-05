@@ -6,7 +6,7 @@ import java.util.UUID;
 import niwer.lumen.Console;
 import niwer.photon.PhotonEngine;
 import niwer.photon.objects.ObjectUserAccount;
-import niwer.photon.util.PasswordHasher;
+import niwer.photon.util.HashUtils;
 import niwer.photon.util.PhotonLogTypes;
 import niwer.queryon.DataBase;
 import niwer.queryon.queries.Expression;
@@ -316,15 +316,15 @@ public class PlayerAccountTable extends Table {
     }
 
         public static boolean passwordMatches(String storedPassword, String rawPassword) {
-            return PasswordHasher.matches(storedPassword, rawPassword);
+            return HashUtils.passwordMatches(storedPassword, rawPassword);
         }
 
         public static boolean isArgon2Password(String password) {
-            return PasswordHasher.isArgon2Hash(password);
+            return HashUtils.isArgon2Hash(password);
         }
 
         public static String hashPassword(String password) {
-            return PasswordHasher.hash(password);
+            return HashUtils.hashPassword(password);
         }
 
     public static boolean isAdministrator(String uuid) {

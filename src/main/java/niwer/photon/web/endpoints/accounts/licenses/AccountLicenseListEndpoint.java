@@ -7,7 +7,7 @@ import io.javalin.http.Context;
 import niwer.photon.objects.ObjectLicense;
 import niwer.photon.sql.LicenseTable;
 import niwer.photon.sql.SubscriptionTable;
-import niwer.photon.util.session.UserSessionManager;
+import niwer.photon.web.WebServerEngine;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AccountLicenseListEndpoint implements IEndpoint {
@@ -18,7 +18,7 @@ public class AccountLicenseListEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
-        final var account = UserSessionManager.requireAccount(handler);
+        final var account = WebServerEngine.USER_SESSION_MANAGER.requireAccount(handler);
         if (account == null) return;
         if (!SubscriptionTable.isActive(account.getEmail(), account.getUuid())) {
             handler.status(403).result("Active subscription required");

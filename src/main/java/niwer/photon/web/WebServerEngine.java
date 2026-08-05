@@ -6,6 +6,7 @@ import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
 import niwer.photon.util.PhotonLogTypes;
 import niwer.photon.util.session.AdminSessionManager;
+import niwer.photon.util.session.ISession;
 import niwer.photon.util.session.UserSessionManager;
 import niwer.photon.web.endpoints.HomeEndpoint;
 import niwer.photon.web.endpoints.IEndpoint;
@@ -30,8 +31,8 @@ import niwer.photon.web.endpoints.admin.AdminUploadUpdateEndpoint;
 import niwer.photon.web.endpoints.game.AddAntiCheatReportEndpoint;
 import niwer.photon.web.endpoints.game.AddCrashReportEndpoint;
 import niwer.photon.web.endpoints.game.AddHWIDEndpoint;
-import niwer.photon.web.endpoints.game.ModDownloadEndpoint;
 import niwer.photon.web.endpoints.game.InfoEndpoint;
+import niwer.photon.web.endpoints.game.ModDownloadEndpoint;
 import niwer.photon.web.endpoints.servers.AddServerEndpoint;
 import niwer.photon.web.endpoints.servers.ServerListEndpoint;
 import niwer.photon.web.endpoints.servers.StatusServersEndpoint;
@@ -40,16 +41,15 @@ import niwer.photon.web.endpoints.stripe.StripeWebhookEndpoint;
 
 public class WebServerEngine {
 
+    public static final ISession ADMIN_SESSION_MANAGER = new AdminSessionManager();
+    public static final ISession USER_SESSION_MANAGER = new UserSessionManager();
+
     public static void load() {
         /* Change debug level */
         {
             PhotonLogTypes.silenceLogsFor("io.javalin");
             PhotonLogTypes.silenceLogsFor("org.eclipse.jetty");
         }
-
-        /* Load admin sessions */
-        AdminSessionManager.load();
-        UserSessionManager.load();
 
         /* Create the web server */
         final var WEB_SERVER = Javalin.create(cfg -> {

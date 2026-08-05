@@ -10,7 +10,7 @@ import java.util.Map;
 
 import io.javalin.http.Context;
 import niwer.photon.PhotonEngine;
-import niwer.photon.util.session.AdminSessionManager;
+import niwer.photon.web.WebServerEngine;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AdminTableDataEndpoint implements IEndpoint {
@@ -21,7 +21,7 @@ public class AdminTableDataEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
-        if (AdminSessionManager.requireAdministrator(handler) == null) return;
+        if (WebServerEngine.ADMIN_SESSION_MANAGER.requireAdministrator(handler) == null) return;
 
         final String tableName = handler.pathParam("table");
         final AdminTablesEndpoint.TableInfo tableInfo = AdminTablesEndpoint.getTables().stream()

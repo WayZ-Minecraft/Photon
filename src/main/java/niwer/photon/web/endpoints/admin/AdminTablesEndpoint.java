@@ -3,7 +3,7 @@ package niwer.photon.web.endpoints.admin;
 import java.util.List;
 
 import io.javalin.http.Context;
-import niwer.photon.util.session.AdminSessionManager;
+import niwer.photon.web.WebServerEngine;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AdminTablesEndpoint implements IEndpoint {
@@ -25,7 +25,7 @@ public class AdminTablesEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
-        if (AdminSessionManager.requireAdministrator(handler) == null) return;
+        if (WebServerEngine.ADMIN_SESSION_MANAGER.requireAdministrator(handler) == null) return;
         handler.json(TABLES);
     }
 

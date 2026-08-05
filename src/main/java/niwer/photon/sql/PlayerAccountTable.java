@@ -35,8 +35,7 @@ public class PlayerAccountTable extends Table {
             createColumn(db, "password", EnumColumnTypes.TEXT).notNull(),
             createColumn(db, "discordID", 1024),
             createColumn(db, "discordAuthCode", 255).notNull(),
-            createColumn(db, "administrator", EnumColumnTypes.BOOLEAN).defaultValue(false),
-            createColumn(db, "serverCreator", EnumColumnTypes.BOOLEAN).defaultValue(false)
+            createColumn(db, "administrator", EnumColumnTypes.BOOLEAN).defaultValue(false)
         ).execute();
     }
 

@@ -1,7 +1,7 @@
 package niwer.photon.web.endpoints.admin;
 
 import io.javalin.http.Context;
-import niwer.photon.util.session.AdminSessionManager;
+import niwer.photon.web.WebServerEngine;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AdminMeEndpoint implements IEndpoint {
@@ -12,7 +12,7 @@ public class AdminMeEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
-        final var account = AdminSessionManager.requireAdministrator(handler);
+        final var account = WebServerEngine.ADMIN_SESSION_MANAGER.requireAdministrator(handler);
         if (account == null) return;
 
         handler.json(account.toPublicMap());

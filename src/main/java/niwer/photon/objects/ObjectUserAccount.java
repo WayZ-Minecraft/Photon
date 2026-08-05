@@ -1,6 +1,5 @@
 package niwer.photon.objects;
 
-import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.LinkedHashMap;
@@ -11,10 +10,10 @@ import niwer.queryon.tables.api.IColumnField;
 
 public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
 
-    @IColumnField(name = "username", notNull = true)
+    @IColumnField(name = "username", notNull = true, unique = true)
     private String username;
 
-    @IColumnField(name = "email", notNull = true)
+    @IColumnField(name = "email", notNull = true, unique = true)
     private String email;
 
     @IColumnField(name = "password", notNull = true)
@@ -26,11 +25,21 @@ public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
     @IColumnField(name = "discordID", charLimit = 1024)
     private String discordID;
 
-    @IColumnField(name = "discordAuthCode", notNull = true)
+    @IColumnField(name = "discordAuthCode", notNull = true, charLimit = 255)
     private String discordAuthCode = generateAuthCode();
 
     @IColumnField(name = "administrator")
     private boolean administrator;
+
+    public ObjectUserAccount() {}
+
+    public ObjectUserAccount(String username, String email, String uuid, String discordID, boolean administrator) {
+        this.username = username;
+        this.email = email;
+        this.uuid = uuid;
+        this.discordID = discordID;
+        this.administrator = administrator;
+    }
 
     public static String generateAuthCode() { return new BigInteger(40, new SecureRandom()).toString(32); }
 
@@ -65,30 +74,5 @@ public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
         response.put("discordAuthCode", this.discordAuthCode);
         response.put("administrator", isAdministrator());
         return response;
-    }
-
-    public static ObjectUserAccount fromSnapshot(String username, String email, String uuid, String discordID, String discordAuthCode, boolean administrator) {
-        final ObjectUserAccount account = new ObjectUserAccount();
-        try {
-            setField(account, "username", username);
-            setField(account, "email", email);
-            setField(account, "uuid", uuid);
-            setField(account, "discordID", discordID);
-            setField(account, "discordAuthCode", discordAuthCode);
-            setField(account, "administrator", administrator);
-        } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException("Unable to rebuild account snapshot", e);
-        }
-        return account;
-    }
-
-    private static void setField(ObjectUserAccount account, String fieldName, Object value) throws ReflectiveOperationException {
-        final Field field = ObjectUserAccount.class.getDeclaredField(fieldName);
-        field.setAccessible(true);
-        if (field.getType() == boolean.class && value instanceof Boolean booleanValue) {
-            field.setBoolean(account, booleanValue);
-            return;
-        }
-        field.set(account, value);
     }
 }

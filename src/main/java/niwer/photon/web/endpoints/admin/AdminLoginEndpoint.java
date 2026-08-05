@@ -2,8 +2,8 @@ package niwer.photon.web.endpoints.admin;
 
 import io.javalin.http.Context;
 import niwer.photon.util.GsonUtils;
-import niwer.photon.util.session.AdminSessionManager;
 import niwer.photon.util.session.AuthSession;
+import niwer.photon.web.WebServerEngine;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AdminLoginEndpoint implements IEndpoint {
@@ -20,7 +20,7 @@ public class AdminLoginEndpoint implements IEndpoint {
             return;
         }
         
-        final AuthSession session = AdminSessionManager.login(credentials.email, credentials.password);
+        final AuthSession session = WebServerEngine.ADMIN_SESSION_MANAGER.login(credentials.email, credentials.password);
         if (session == null) {
             handler.status(401).result("Invalid credentials or access denied");
             return;
@@ -31,7 +31,7 @@ public class AdminLoginEndpoint implements IEndpoint {
             final String adminCookie = "photon_admin=" + session.token() + "; HttpOnly; Path=/; Max-Age=3600; SameSite=Strict";
             handler.res().addHeader("Set-Cookie", adminCookie);
             // Retrieve csrf token from session map (session stored in AdminSessionManager)
-            final String csrf = AdminSessionManager.getCsrfForToken(session.token());
+            final String csrf = WebServerEngine.ADMIN_SESSION_MANAGER.getCsrfForToken(session.token());
             if (csrf != null && !csrf.isBlank()) {
                 final String csrfCookie = "photon_csrf=" + csrf + "; Path=/; Max-Age=3600; SameSite=Strict";
                 // csrf cookie is intentionally NOT HttpOnly so client JS can read it for the X-CSRF-Token header

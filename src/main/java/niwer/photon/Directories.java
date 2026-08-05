@@ -26,6 +26,7 @@ import niwer.photon.util.updater.UpdateFileType;
 public class Directories
 {
 	public static final File BASE_DIR = new File("./network/");
+	public static final File SESSIONS_DIR = new File(BASE_DIR + "/sessions/");
 	public static final File LOGS_DIR = new File(BASE_DIR + "/logs/");
 	public static final File BACKUPS_DIR = new File(BASE_DIR + "/backups/");
 	public static final File LOGO_FILE = new File(BASE_DIR + "/project_logo.png");

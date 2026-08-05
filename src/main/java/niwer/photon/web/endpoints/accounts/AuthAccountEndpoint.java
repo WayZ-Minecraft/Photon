@@ -7,7 +7,7 @@ import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.sql.PurchaseTable;
 import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.session.AuthSession;
-import niwer.photon.util.session.UserSessionManager;
+import niwer.photon.web.WebServerEngine;
 import niwer.photon.web.endpoints.IEndpoint;
 
 /**
@@ -91,7 +91,7 @@ public class AuthAccountEndpoint implements IEndpoint {
     }
 
     protected AuthSession createSession(String email, String password) {
-        return UserSessionManager.login(email, password);
+        return WebServerEngine.USER_SESSION_MANAGER.login(email, password);
     }
 
     protected java.util.Map<String, Object> accountResponse(ObjectUserAccount account) {

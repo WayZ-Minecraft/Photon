@@ -10,9 +10,9 @@ import io.javalin.http.UploadedFile;
 import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
 import niwer.photon.util.os.ApplicationUtils;
-import niwer.photon.util.session.AdminSessionManager;
 import niwer.photon.util.updater.UpdateChannel;
 import niwer.photon.util.updater.UpdateFileType;
+import niwer.photon.web.WebServerEngine;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AdminUploadUpdateEndpoint implements IEndpoint {
@@ -23,8 +23,8 @@ public class AdminUploadUpdateEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
-        if (AdminSessionManager.requireAdministrator(handler) == null) return;
-        if (!AdminSessionManager.validateCsrf(handler)) { handler.status(403).result("Invalid CSRF token"); return; }
+        if (WebServerEngine.ADMIN_SESSION_MANAGER.requireAdministrator(handler) == null) return;
+        if (!WebServerEngine.ADMIN_SESSION_MANAGER.validateCsrf(handler)) { handler.status(403).result("Invalid CSRF token"); return; }
 
         final UploadedFile uploadedFile = handler.uploadedFile("file");
         if (uploadedFile == null) {

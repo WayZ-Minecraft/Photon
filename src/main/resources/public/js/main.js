@@ -45,7 +45,10 @@ const Api = async (path, options = {}) => {
     }
     
     const isFormData = options.body instanceof FormData;
-    if (options.body && !isFormData && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+    const isURLSearch = options.body instanceof URLSearchParams;
+    
+    // Only default to application/json if Content-Type isn't already set and body isn't Form/URLSearch data
+    if (options.body && !isFormData && !isURLSearch && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
 
     const res = await fetch(path, { credentials: 'same-origin', ...options, headers });
     const contentType = res.headers.get('content-type') || '';
@@ -389,27 +392,35 @@ const App = {
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
         }
 
-        const formData = new FormData(e.target);
-        const body = new URLSearchParams();
-        for (const [key, val] of formData.entries()) {
-            body.append(key, val);
-        }
+        // Build standard URL-encoded form parameters
+        const body = new URLSearchParams(new FormData(e.target));
         if (State.purchaseToken) body.set('token', State.purchaseToken);
 
         try {
             if (State.purchaseToken) {
                 await fetch('/stripe/purchase_session', {
-                    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: new URLSearchParams({ checkoutSessionId: State.purchaseToken })
                 }).catch(()=>{});
             }
 
-            const res = await Api('/accounts/create_account', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() });
-            State.userToken = res.token || ''; State.account = res.account || res;
+            // Pass URLSearchParams directly with explicit form header
+            const res = await Api('/accounts/create_account', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body
+            });
+            
+            State.userToken = res.token || ''; 
+            State.account = res.account || res;
             localStorage.setItem('photon-user-token', State.userToken);
             localStorage.setItem('photon-account', JSON.stringify(State.account));
             
-            if (State.purchaseToken) { State.purchaseToken = ''; window.history.replaceState({}, '', window.location.pathname); }
+            if (State.purchaseToken) { 
+                State.purchaseToken = ''; 
+                window.history.replaceState({}, '', window.location.pathname); 
+            }
             
             UI.toast('Account created', 'success');
             this.onLoginSuccess();
@@ -653,28 +664,6 @@ const App = {
             UI.toast('Failed to load table data', 'error');
             document.getElementById('dataTableBody').innerHTML = '<tr><td class="text-danger">Failed to fetch data.</td></tr>';
         }
-    },
-
-    async loadTableData() {
-        const table = document.getElementById('tableSelector').value;
-        const limit = document.getElementById('tableLimit').value;
-        if(!table) return;
-        
-        try {
-            const data = await Api(`/api/admin/tables/${encodeURIComponent(table)}?limit=${limit}`);
-            const head = document.getElementById('dataTableHead');
-            const body = document.getElementById('dataTableBody');
-            
-            if(!data.columns || !data.rows.length) {
-                body.innerHTML = '<tr><td class="text-secondary">No rows found.</td></tr>';
-                return;
-            }
-
-            head.innerHTML = `<tr>${data.columns.map(c => `<th>${UI.escapeHTML(c)}</th>`).join('')}</tr>`;
-            body.innerHTML = data.rows.map(row => 
-                `<tr>${data.columns.map(c => `<td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis;" title="${UI.escapeHTML(row[c])}">${UI.escapeHTML(formatVal(row[c]))}</td>`).join('')}</tr>`
-            ).join('');
-        } catch (e) { UI.toast('Failed to load table data', 'error'); }
     },
 
     async restartService() {

@@ -101,7 +101,7 @@ public class WebServerEngine {
                 IEndpoint.register(cfg, ServerListEndpoint.class);
             }
 
-            /* Configure Jetty */
+            /* Force Configure Jetty */
             cfg.jetty.host = Directories.getConfig().webserver_host;
             cfg.jetty.port = Directories.getConfig().webserver_port;
             cfg.jetty.modifyHttpConfiguration(httpConfig -> {
@@ -110,7 +110,7 @@ public class WebServerEngine {
         });
 
         /* Start the web server */
-        WEB_SERVER.start(Directories.getConfig().webserver_port);
+        WEB_SERVER.start(Directories.getConfig().webserver_host, Directories.getConfig().webserver_port);
 
         Console.log(getServingBox(Directories.getConfig().webserver_port))
             .container(PhotonEngine.LOGGER)

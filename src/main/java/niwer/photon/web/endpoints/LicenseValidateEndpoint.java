@@ -1,6 +1,5 @@
 package niwer.photon.web.endpoints;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import io.javalin.http.Context;
@@ -45,12 +44,6 @@ public class LicenseValidateEndpoint implements IEndpoint {
 
         /* Validate the license */
         final LicenseValidationResult result = LicenseManager.validateLicense(licenseKey, expectedProductId, hardwareId);
-        final Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("valid", result.valid());
-        payload.put("reason", result.reason() == null ? null : result.reason().name());
-        payload.put("message", result.message());
-        payload.put("claims", result.claims() == null ? null : result.claims().payload());
-
-        handler.status(200).json(payload);
+        handler.status(200).json(result.payload());
     }
 }

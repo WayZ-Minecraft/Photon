@@ -1,4 +1,4 @@
-package niwer.photon.web.github;
+package niwer.photon.web.api.github;
 
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -8,6 +8,7 @@ import niwer.lumen.Console;
 import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
 import niwer.photon.util.PhotonLogTypes;
+import niwer.photon.web.api.ApiRequest;
 
 /**
  * This class is used to revoke a user's collaborator access from a GitHub repository,

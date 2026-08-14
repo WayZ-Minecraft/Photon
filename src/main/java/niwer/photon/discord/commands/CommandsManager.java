@@ -14,7 +14,6 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import niwer.photon.discord.commands.network.ExecuteSQLCommand;
 import niwer.photon.discord.commands.network.PostUpdateCommand;
 import niwer.photon.discord.commands.network.RestartNetworkCommand;
-import niwer.photon.discord.commands.network.accounts.DeleteAllAccountCommand;
 import niwer.photon.discord.commands.network.accounts.ListAccountsCommand;
 import niwer.photon.discord.commands.network.accounts.ManagerAccountCommand;
 
@@ -40,7 +39,6 @@ public class CommandsManager extends ListenerAdapter {
             new PostUpdateCommand().register();
 
             new ListAccountsCommand().register();
-            new DeleteAllAccountCommand().register();
             new ManagerAccountCommand().register();
 
             new ExecuteSQLCommand().register();

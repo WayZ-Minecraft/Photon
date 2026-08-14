@@ -133,11 +133,11 @@ public class Directories
 		@SerializedName("webserver_port") public int webserver_port = 7070;
 
 		/* Database backups */
-		@SerializedName("database_backup_enabled") private Boolean database_backup_enabled = Boolean.TRUE;
-		@SerializedName("database_backup_on_startup") private Boolean database_backup_on_startup = Boolean.TRUE;
-		@SerializedName("database_backup_interval_minutes") private Long database_backup_interval_minutes = 1440L; // 1440 minutes (24 hours) default interval between automatic database backups
-		@SerializedName("database_backup_file_prefix") private String database_backup_file_prefix = "db_backup";
-		@SerializedName("database_backup_retention_days") private Long database_backup_retention_days = 15L; // Keep backups for 15 days by default
+		@SerializedName("database_backup_enabled") public boolean database_backup_enabled = Boolean.TRUE;
+		@SerializedName("database_backup_on_startup") public boolean database_backup_on_startup = Boolean.TRUE;
+		@SerializedName("database_backup_interval_minutes") public long database_backup_interval_minutes = 1440L; // 1440 minutes (24 hours) default interval between automatic database backups
+		@SerializedName("database_backup_file_prefix") public String database_backup_file_prefix = "db_backup";
+		@SerializedName("database_backup_retention_days") public long database_backup_retention_days = 15L; // Keep backups for 15 days by default
 
 		/* Licensing */
 		@SerializedName("license_product_id") public String license_product_id = "niwer-engine";
@@ -170,14 +170,6 @@ public class Directories
 		@SerializedName("terms_of_sale_url") public String terms_of_sale_url = "";
 		@SerializedName("privacy_policy_url") public String privacy_policy_url = "";
 
-		public boolean dbBackupEnabled() { return database_backup_enabled != null && database_backup_enabled; }
-
-		public boolean dbBackupOnStartup() { return database_backup_on_startup != null && database_backup_on_startup; }
-
-		public long dbBackupIntervalMinutes() { return database_backup_interval_minutes != null && database_backup_interval_minutes > 0L ? database_backup_interval_minutes : 1440L; }
-
 		public String dbBackupFilePrefix() { return database_backup_file_prefix != null && !database_backup_file_prefix.isBlank() ? database_backup_file_prefix : "db_backup"; }
-
-		public long dbBackupRetentionDays() { return database_backup_retention_days != null && database_backup_retention_days > 0L ? database_backup_retention_days : 15L; }
 	}
 }

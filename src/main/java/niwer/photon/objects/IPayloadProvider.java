@@ -3,6 +3,11 @@ package niwer.photon.objects;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Interface for objects that can provide a payload representation of their data.
+ * 
+ * @author Niwer
+ */
 public interface IPayloadProvider {
 
     /**

@@ -2,17 +2,15 @@ package niwer.photon.sql;
 
 import java.util.List;
 
+import net.dv8tion.jda.api.audit.ActionType;
 import niwer.photon.PhotonEngine;
 import niwer.photon.objects.ObjectDiscordLog;
-
-import net.dv8tion.jda.api.audit.ActionType;
 import niwer.queryon.DataBase;
 import niwer.queryon.queries.Expression;
 import niwer.queryon.queries.interaction.DeletionManager;
 import niwer.queryon.queries.interaction.InsertionManager;
 import niwer.queryon.queries.interaction.SelectionManager;
 import niwer.queryon.queries.interaction.SelectionManager.EnumOrder;
-import niwer.queryon.tables.EnumColumnTypes;
 import niwer.queryon.tables.Table;
 
 public class DiscordLogTable extends Table {
@@ -33,17 +31,7 @@ public class DiscordLogTable extends Table {
 
     public DiscordLogTable(DataBase db) {
         super(db);
-
-        this.addColumns(
-            createColumn(db, "id", EnumColumnTypes.INT).primaryKey().autoIncrement(),
-            createColumn(db, "guild_id", EnumColumnTypes.TEXT).notNull(),
-            createColumn(db, "discord_user_id", EnumColumnTypes.TEXT).notNull(),
-            createColumn(db, "moderation_type", ModerationType.class).notNull(),
-            createColumn(db, "reason", EnumColumnTypes.TEXT), // Nullable
-            createColumn(db, "moderator_discord_id", EnumColumnTypes.TEXT), // Nullable
-            createColumn(db, "duration_seconds", EnumColumnTypes.INT).defaultValue(0), // Only relevant for TIMEOUT
-            createColumn(db, "timestamp", EnumColumnTypes.DATE_TIME).defaultValue("CURRENT_TIMESTAMP")
-        ).execute();
+        this.addColumnsFromClass(ObjectDiscordLog.class).execute();
     }
 
     @Override public String name() { return "DiscordLog"; }

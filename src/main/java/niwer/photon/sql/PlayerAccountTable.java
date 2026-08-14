@@ -14,7 +14,6 @@ import niwer.queryon.queries.interaction.DeletionManager;
 import niwer.queryon.queries.interaction.InsertionManager;
 import niwer.queryon.queries.interaction.SelectionManager;
 import niwer.queryon.queries.interaction.UpdateManager;
-import niwer.queryon.tables.EnumColumnTypes;
 import niwer.queryon.tables.Table;
 
 /**
@@ -27,17 +26,7 @@ public class PlayerAccountTable extends Table {
 
     public PlayerAccountTable(DataBase db) {
         super(db);
-
-        this.addColumns(
-            createColumn(db, "uuid", EnumColumnTypes.TEXT).primaryKey(),
-            createColumn(db, "username", EnumColumnTypes.TEXT).unique().notNull(),
-            createColumn(db, "email", EnumColumnTypes.TEXT).unique().notNull(),
-            createColumn(db, "password", EnumColumnTypes.TEXT).notNull(),
-            createColumn(db, "discordID", 1024),
-            createColumn(db, "discordAuthCode", 255).notNull(),
-            createColumn(db, "administrator", EnumColumnTypes.BOOLEAN).defaultValue(false),
-            createColumn(db, "githubUsername", EnumColumnTypes.TEXT)
-        ).execute();
+        this.addColumnsFromClass(ObjectUserAccount.class).execute();
     }
 
     @Override public String name() { return "Account"; }

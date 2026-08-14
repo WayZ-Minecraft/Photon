@@ -21,7 +21,6 @@ public class ServerTable extends Table {
 
     public ServerTable(DataBase db) {
         super(db);
-
         this.addColumnsFromClass(ObjectServer.class).execute();
     }
 

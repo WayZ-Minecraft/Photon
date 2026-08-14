@@ -1,4 +1,4 @@
-package niwer.photon.web.github;
+package niwer.photon.web.api;
 
 import java.net.URI;
 import java.net.http.HttpRequest;

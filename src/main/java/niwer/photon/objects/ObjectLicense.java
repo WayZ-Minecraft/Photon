@@ -11,6 +11,7 @@ import java.util.Map;
 import niwer.photon.sql.LicenseTable.LicenseStatus;
 import niwer.queryon.SQLSerializable;
 import niwer.queryon.tables.api.IColumnField;
+import niwer.queryon.tables.api.IDefaultValue;
 
 public class ObjectLicense extends SQLSerializable<ObjectLicense> implements IPayloadProvider {
 	@IColumnField(name = "license_key", primaryKey = true, notNull = true)
@@ -31,10 +32,10 @@ public class ObjectLicense extends SQLSerializable<ObjectLicense> implements IPa
 	@IColumnField(name = "hwid")
 	private String hwid;
 
-	@IColumnField(name = "status", notNull = true)
+	@IColumnField(name = "status", notNull = true, defaultValue = @IDefaultValue(value = "ISSUED"))
 	private LicenseStatus status;
 
-	@IColumnField(name = "created_at")
+	@IColumnField(name = "created_at", defaultValue = @IDefaultValue(value = "CURRENT_TIMESTAMP"))
 	private String createdAt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
 
 	@IColumnField(name = "activated_at")

@@ -1,12 +1,11 @@
 
 package niwer.photon.discord.commands;
 
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.util.TranslationManager;
-
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
 
 /**
  * @author Niwer
@@ -54,17 +53,6 @@ public class LinkAccountCommand extends AbstractSlashCommand {
 
         /* Update the Discord ID */
         PlayerAccountTable.updateDiscordID(UUID, DISCORD_USER_ID);
-
-        /* Auto-assign ServerCreator role if applicable */ //TODO
-        // if (profile.serverCreator && BotEngine.guild != null) {
-        //     final Role serverCreatorRole = BotEngine.guild.getRoleById(1474183624134758525L);
-        //     if (serverCreatorRole != null) {
-        //         BotEngine.guild.retrieveMemberById(DISCORD_USER_ID).queue(
-        //             member -> BotEngine.guild.addRoleToMember(member, serverCreatorRole).queue(),
-        //             err -> {}
-        //         );
-        //     }
-        // }
 
         /* Print reply */
         event.reply(TranslationManager.format(event.getUser().getId(), "command.link_account.success", event.getUser().getAsMention())).queue();

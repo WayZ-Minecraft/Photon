@@ -8,6 +8,7 @@ import java.util.Map;
 
 import niwer.queryon.SQLSerializable;
 import niwer.queryon.tables.api.IColumnField;
+import niwer.queryon.tables.api.IDefaultValue;
 
 public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
 
@@ -26,10 +27,10 @@ public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
     @IColumnField(name = "discordID", charLimit = 1024)
     private String discordID;
 
-    @IColumnField(name = "discordAuthCode", notNull = true)
+    @IColumnField(name = "discordAuthCode", notNull = true, charLimit = 255)
     private String discordAuthCode = generateAuthCode();
 
-    @IColumnField(name = "administrator")
+    @IColumnField(name = "administrator", defaultValue = @IDefaultValue(value = "false"))
     private boolean administrator;
 
     @IColumnField(name = "githubUsername")

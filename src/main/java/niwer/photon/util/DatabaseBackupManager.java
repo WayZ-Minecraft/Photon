@@ -39,16 +39,16 @@ public final class DatabaseBackupManager {
         deletedOldBackups();
 
         final var config = Directories.getConfig();
-        if (config == null || !config.dbBackupEnabled()) {
+        if (config == null || !config.database_backup_enabled) {
             Console.log("Database backups are disabled in configuration").type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
             return;
         }
 
-        if (Boolean.TRUE.equals(config.dbBackupOnStartup())) {
+        if (Boolean.TRUE.equals(config.database_backup_on_startup)) {
             createBackup();
         }
 
-        final long intervalMinutes = config.dbBackupIntervalMinutes();
+        final long intervalMinutes = config.database_backup_interval_minutes;
         if (intervalMinutes <= 0L) {
             Console.log("Database backup schedule is disabled because the interval is not positive").type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
             return;
@@ -68,7 +68,7 @@ public final class DatabaseBackupManager {
 
     public static void createBackup() {
         final var config = Directories.getConfig();
-        if (config == null || !config.dbBackupEnabled()) return;
+        if (config == null || !config.database_backup_enabled) return;
 
         final Path databaseFile = Directories.DATA_BASE_FILE.toPath();
         if (!Files.exists(databaseFile)) {
@@ -114,7 +114,7 @@ public final class DatabaseBackupManager {
     }
 
     private static void deletedOldBackups() {
-        if(Directories.getConfig() == null || Directories.getConfig().dbBackupRetentionDays() <= 0) return;
+        if(Directories.getConfig() == null || Directories.getConfig().database_backup_retention_days <= 0) return;
         if(Directories.BACKUPS_DIR == null || !Directories.BACKUPS_DIR.exists() || !Directories.BACKUPS_DIR.isDirectory()) throw new IllegalStateException("Backups directory is not properly configured or accessible");
 
         final var STREAM = Stream.of(Directories.BACKUPS_DIR.listFiles()).parallel().filter(file -> {
@@ -123,7 +123,7 @@ public final class DatabaseBackupManager {
     
                 final String FILME_NAME = file.getName();
                 final FileTime CREATION_TIME = (FileTime) Files.getAttribute(file.toPath(), "creationTime");
-                return FILME_NAME.startsWith(Directories.getConfig().dbBackupFilePrefix()) && CREATION_TIME.toMillis() < System.currentTimeMillis() - TimeUnit.DAYS.toMillis(Directories.getConfig().dbBackupRetentionDays());
+                return FILME_NAME.startsWith(Directories.getConfig().database_backup_file_prefix) && CREATION_TIME.toMillis() < System.currentTimeMillis() - TimeUnit.DAYS.toMillis(Directories.getConfig().database_backup_retention_days);
             } catch (Exception e) {
                 Console.log("Failed to delete old database backups: " + e.getMessage()).error().type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
                 return false;

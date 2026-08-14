@@ -6,19 +6,17 @@ import java.util.Map;
 
 import javax.annotation.Nonnull;
 
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.Command;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import niwer.photon.discord.commands.network.ExecuteSQLCommand;
 import niwer.photon.discord.commands.network.PostUpdateCommand;
 import niwer.photon.discord.commands.network.RestartNetworkCommand;
 import niwer.photon.discord.commands.network.accounts.DeleteAllAccountCommand;
 import niwer.photon.discord.commands.network.accounts.ListAccountsCommand;
 import niwer.photon.discord.commands.network.accounts.ManagerAccountCommand;
-import niwer.photon.discord.commands.network.accounts.ServerCreatorCommand;
-
-import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.commands.Command;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
 @SuppressWarnings("null") // The compiler in Photon is not good at handling JDA's @Nonnull annotations, so we suppress null warnings in this class
 public class CommandsManager extends ListenerAdapter {
@@ -46,7 +44,6 @@ public class CommandsManager extends ListenerAdapter {
             new ManagerAccountCommand().register();
 
             new ExecuteSQLCommand().register();
-            new ServerCreatorCommand().register();
         }
 
         {

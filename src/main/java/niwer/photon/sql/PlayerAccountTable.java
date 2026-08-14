@@ -36,7 +36,7 @@ public class PlayerAccountTable extends Table {
             createColumn(db, "discordID", 1024),
             createColumn(db, "discordAuthCode", 255).notNull(),
             createColumn(db, "administrator", EnumColumnTypes.BOOLEAN).defaultValue(false),
-            createColumn(db, "serverCreator", EnumColumnTypes.BOOLEAN).defaultValue(false)
+            createColumn(db, "githubUsername", EnumColumnTypes.TEXT)
         ).execute();
     }
 
@@ -242,13 +242,13 @@ public class PlayerAccountTable extends Table {
             .executeHasResult();
     }
 
-    public static void setServerCreator(String uuid, boolean isServerCreator) {
+    public static void setGithubUsername(String uuid, String githubUsername) {
         if (uuid == null || uuid.trim().isEmpty()) {
-            Console.log("Cannot update serverCreator with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
+            Console.log("Cannot update githubUsername with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
             return;
         }
         UpdateManager.update(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
-            .set("serverCreator", isServerCreator)
+            .set("githubUsername", githubUsername)
             .where(Expression.of("uuid").isEqualTo(uuid))
             .execute();
     }

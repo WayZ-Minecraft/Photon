@@ -1,0 +1,53 @@
+package niwer.photon.web.github;
+
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+import niwer.lumen.Console;
+import niwer.photon.Directories;
+import niwer.photon.PhotonEngine;
+import niwer.photon.util.PhotonLogTypes;
+
+/**
+ * This class is used to revoke a user's collaborator access from a GitHub repository,
+ * preventing any further read/write/clone access.
+ * 
+ * @author Niwer
+ */
+public class RemoveRepositoryCollaboratorRequest extends ApiRequest {
+
+    private final transient String repositoryName;
+    private final transient String githubUsername;
+
+    public RemoveRepositoryCollaboratorRequest(String githubUsername) {
+        this.githubUsername = githubUsername;
+        this.repositoryName = Directories.getConfig().github_template_repo + "-" + this.sanitizeAndLower(githubUsername);
+    }
+
+    public RemoveRepositoryCollaboratorRequest(String repositoryName, String githubUsername) {
+        this.repositoryName = repositoryName;
+        this.githubUsername = githubUsername;
+    }
+
+    @Override
+    public String url() {
+        return String.format("https://api.github.com/repos/%s/%s/collaborators/%s", Directories.getConfig().github_new_repo_owner, this.repositoryName, this.githubUsername);
+    }
+
+    @Override
+    public void request() {
+        try {
+            final HttpClient CLIENT = HttpClient.newHttpClient();
+            final HttpRequest REQUEST = this.prepareRequest().DELETE().build();
+            final HttpResponse<String> RESPONSE = CLIENT.send(REQUEST, HttpResponse.BodyHandlers.ofString());
+
+            switch (RESPONSE.statusCode()) {
+                case 204 -> Console.log(String.format("User '%s' access revoked from repository '%s'.", this.githubUsername, this.repositoryName)).type(PhotonLogTypes.WEB_SERVER).container(PhotonEngine.LOGGER).send();
+                default  -> Console.log(String.format("Error (%d) : %s", RESPONSE.statusCode(), RESPONSE.body())).type(PhotonLogTypes.WEB_SERVER).container(PhotonEngine.LOGGER).send();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}

@@ -143,6 +143,13 @@ public class Directories
 		@SerializedName("license_product_id") public String license_product_id = "niwer-engine";
 		@SerializedName("license_default_duration_days") public long license_default_duration_days = 30L; // 30 days (1 month) default duration for licenses issued without an explicit expiration date
 
+		/* Github */
+		@SerializedName("github_pat") public String github_pat = ""; // Personal Access Token for GitHub API authentication
+		@SerializedName("github_template_repo") public String github_template_repo = ""; // The template repository to use when creating new repositories for users
+		@SerializedName("github_template_owner") public String github_template_owner = ""; // The owner of the template repository to use when creating new repositories for users
+		@SerializedName("github_new_repo_owner") public String github_new_repo_owner = ""; // The owner of the new repository to create
+		@SerializedName("github_customer_team") public String github_customer_team = "customers"; // The team slug for the "customers" team in the GitHub organization
+
 		/* Stripe */
 		@SerializedName("stripe_api_key") public String stripe_api_key = "";
 		@SerializedName("stripe_webhook_secret") public String stripe_webhook_signature = "";

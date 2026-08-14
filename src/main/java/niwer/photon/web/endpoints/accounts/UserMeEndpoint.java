@@ -5,6 +5,7 @@ import java.util.Map;
 import io.javalin.http.Context;
 import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.session.UserSessionManager;
+import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class UserMeEndpoint implements IEndpoint {

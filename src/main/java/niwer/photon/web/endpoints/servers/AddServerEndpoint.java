@@ -4,6 +4,7 @@ import io.javalin.http.Context;
 import niwer.photon.objects.ObjectServer;
 import niwer.photon.sql.ServerTable;
 import niwer.photon.util.GsonUtils;
+import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
 /**

@@ -1,7 +1,6 @@
 package niwer.photon.web.api.github;
 
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import com.google.gson.annotations.SerializedName;
@@ -10,14 +9,14 @@ import niwer.lumen.Console;
 import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
 import niwer.photon.util.PhotonLogTypes;
-import niwer.photon.web.api.ApiRequest;
+import niwer.photon.web.HttpMethod;
 
 /**
  * This class is used to add or invite a GitHub user to an organization team.
  * 
  * @author Niwer
  */
-public class AddTeamMemberRequest extends ApiRequest {
+public class AddTeamMemberRequest extends GithubApiRequest {
 
     @SerializedName("role")
     private final String role; // "member" or "maintainer"
@@ -40,11 +39,13 @@ public class AddTeamMemberRequest extends ApiRequest {
     }
 
     @Override
+    public HttpMethod method() { return HttpMethod.PUT; }
+
+    @Override
     public void request() {
         try {
             final HttpClient CLIENT = HttpClient.newHttpClient();
-            final HttpRequest REQUEST = this.prepareRequest().PUT(this.prepareBody()).build();
-            final HttpResponse<String> RESPONSE = CLIENT.send(REQUEST, HttpResponse.BodyHandlers.ofString());
+            final HttpResponse<String> RESPONSE = CLIENT.send(this.asRequest(), HttpResponse.BodyHandlers.ofString());
 
             switch(RESPONSE.statusCode()) {
                 case 200 -> Console.log(String.format("User '%s' successfully added/invited to team '%s'.", this.githubUsername, TEAM_SLUG)).type(PhotonLogTypes.WEB_SERVER).container(PhotonEngine.LOGGER).send();

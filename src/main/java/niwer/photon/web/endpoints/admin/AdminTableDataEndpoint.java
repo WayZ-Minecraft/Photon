@@ -11,6 +11,7 @@ import java.util.Map;
 import io.javalin.http.Context;
 import niwer.photon.PhotonEngine;
 import niwer.photon.util.session.AdminSessionManager;
+import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AdminTableDataEndpoint implements IEndpoint {

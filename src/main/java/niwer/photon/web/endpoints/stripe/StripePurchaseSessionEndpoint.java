@@ -10,9 +10,16 @@ import niwer.photon.Directories;
 import niwer.photon.objects.ObjectPurchase;
 import niwer.photon.sql.PurchaseTable;
 import niwer.photon.util.GsonUtils;
+import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.EndpointUtils;
 import niwer.photon.web.endpoints.IEndpoint;
 
+/**
+ * This endpoint is used to retrieve the purchase session information for a given Stripe checkout session ID.
+ * This endpoint is typically called after a successful Stripe checkout when the user register/logs in.
+ * 
+ * @author Niwer
+ */
 public class StripePurchaseSessionEndpoint implements IEndpoint {
 
 	@Override public String path() { return "/stripe/purchase_session"; }

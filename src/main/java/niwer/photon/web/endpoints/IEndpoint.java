@@ -2,6 +2,7 @@ package niwer.photon.web.endpoints;
 
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
+import niwer.photon.web.HttpMethod;
 
 /**
  * Interface representing an API endpoint in the application. Each endpoint must specify its path, HTTP method, and handler function.
@@ -50,9 +51,5 @@ public interface IEndpoint {
         } catch (Exception e) {
             throw new RuntimeException("Failed to instantiate endpoint: " + endpointClass.getName(), e);
         }
-    }
-    
-    public static enum HttpMethod {
-        GET, POST, PUT, DELETE
     }
 }

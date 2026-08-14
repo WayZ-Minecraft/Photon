@@ -9,6 +9,7 @@ import niwer.photon.Directories;
 import niwer.photon.util.os.OperatingSystem;
 import niwer.photon.util.updater.UpdateChannel;
 import niwer.photon.util.updater.UpdateFileType;
+import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AdminUpdateEndpoint implements IEndpoint {

@@ -1,6 +1,7 @@
 package niwer.photon.web.endpoints;
 
 import io.javalin.http.Context;
+import niwer.photon.web.HttpMethod;
 
 public class HomeEndpoint implements IEndpoint {
 

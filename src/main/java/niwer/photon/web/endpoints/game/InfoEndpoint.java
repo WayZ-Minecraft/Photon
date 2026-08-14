@@ -4,6 +4,7 @@ import io.javalin.http.Context;
 import niwer.photon.Directories;
 import niwer.photon.Directories.NetworkConfig;
 import niwer.photon.PhotonEngine;
+import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class InfoEndpoint implements IEndpoint {

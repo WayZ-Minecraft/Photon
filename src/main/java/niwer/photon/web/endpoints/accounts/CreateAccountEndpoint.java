@@ -10,6 +10,7 @@ import niwer.photon.sql.PurchaseTable;
 import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.session.AuthSession;
 import niwer.photon.util.session.UserSessionManager;
+import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
 /**

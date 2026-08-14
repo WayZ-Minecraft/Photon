@@ -10,6 +10,7 @@ import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
 import niwer.photon.util.updater.UpdateChannel;
 import niwer.photon.util.updater.UpdateFileType;
+import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
 /**

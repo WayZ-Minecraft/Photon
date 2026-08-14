@@ -14,28 +14,13 @@ import niwer.queryon.queries.Expression;
 import niwer.queryon.queries.interaction.InsertionManager;
 import niwer.queryon.queries.interaction.SelectionManager;
 import niwer.queryon.queries.interaction.UpdateManager;
-import niwer.queryon.tables.EnumColumnTypes;
 import niwer.queryon.tables.Table;
 
 public class PurchaseTable extends Table {
 
 	public PurchaseTable(DataBase db) {
 		super(db);
-
-		this.addColumns(
-			createColumn(db, "purchase_token", EnumColumnTypes.TEXT).primaryKey(),
-			createColumn(db, "checkout_session_id", EnumColumnTypes.TEXT).unique(),
-			createColumn(db, "customer_email", EnumColumnTypes.TEXT),
-			createColumn(db, "customer_name", EnumColumnTypes.TEXT),
-			createColumn(db, "stripe_customer_id", EnumColumnTypes.TEXT),
-			createColumn(db, "stripe_subscription_id", EnumColumnTypes.TEXT),
-			createColumn(db, "status", SubscriptionStatus.class).notNull().defaultValue(SubscriptionStatus.PENDING),
-			createColumn(db, "linked_account_uuid", EnumColumnTypes.TEXT),
-			createColumn(db, "created_at", EnumColumnTypes.DATE_TIME).defaultValue("CURRENT_TIMESTAMP"),
-			createColumn(db, "updated_at", EnumColumnTypes.DATE_TIME).defaultValue("CURRENT_TIMESTAMP"),
-			createColumn(db, "redeemed_at", EnumColumnTypes.DATE_TIME),
-			createColumn(db, "expires_at", EnumColumnTypes.DATE_TIME)
-		).execute();
+		this.addColumnsFromClass(ObjectPurchase.class).execute();
 	}
 
 	@Override public String name() { return "Purchase"; }
@@ -182,10 +167,36 @@ public class PurchaseTable extends Table {
 		UpdateManager.update(PhotonEngine.DATA_BASE, PurchaseTable.class)
 			.set("linked_account_uuid", account.getUuid())
 			.set("redeemed_at", new Date())
-			.set("status", token.stripeSubscriptionId() == null || token.stripeSubscriptionId().isBlank() ? SubscriptionStatus.PENDING: SubscriptionStatus.LINKED)
+			.set("status", token.stripeSubscriptionId() == null || token.stripeSubscriptionId().isBlank() ? SubscriptionStatus.PENDING : SubscriptionStatus.LINKED)
 			.set("updated_at", new Date())
 			.where(Expression.of("purchase_token").isEqualTo(normalizeToken(purchaseToken)))
 			.execute();
+
+		// Trigger GitHub Automation (Async)
+		final String githubUser = account.getGithubUsername();
+		if (githubUser != null && !githubUser.isBlank()) {
+			Thread.ofVirtual().start(() -> {
+				try {
+					// Generate repo from template
+					new niwer.photon.web.api.github.CreateRepositoryRequest(githubUser).request();
+					
+					// Small sleep to ensure GitHub registers the repository
+					Thread.sleep(2000);
+
+					// Set repository permissions (invite as collaborator)
+					new niwer.photon.web.api.github.SetRepositoryPermissionsRequest(githubUser, "admin").request();
+
+					// Add to organization customer team
+					new niwer.photon.web.api.github.AddTeamMemberRequest(githubUser).request();
+				} catch (Exception e) {
+					Console.log("GitHub provisioning failed for " + githubUser + ": " + e.getMessage())
+						.type(PhotonLogTypes.WEB_SERVER)
+						.error()
+						.container(PhotonEngine.LOGGER)
+						.send();
+				}
+			});
+		}
 
 		return true;
 	}

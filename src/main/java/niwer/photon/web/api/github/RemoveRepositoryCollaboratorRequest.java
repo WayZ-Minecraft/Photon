@@ -1,14 +1,13 @@
 package niwer.photon.web.api.github;
 
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import niwer.lumen.Console;
 import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
 import niwer.photon.util.PhotonLogTypes;
-import niwer.photon.web.api.ApiRequest;
+import niwer.photon.web.HttpMethod;
 
 /**
  * This class is used to revoke a user's collaborator access from a GitHub repository,
@@ -16,7 +15,7 @@ import niwer.photon.web.api.ApiRequest;
  * 
  * @author Niwer
  */
-public class RemoveRepositoryCollaboratorRequest extends ApiRequest {
+public class RemoveRepositoryCollaboratorRequest extends GithubApiRequest {
 
     private final transient String repositoryName;
     private final transient String githubUsername;
@@ -37,11 +36,13 @@ public class RemoveRepositoryCollaboratorRequest extends ApiRequest {
     }
 
     @Override
+    public HttpMethod method() { return HttpMethod.DELETE; }
+
+    @Override
     public void request() {
         try {
             final HttpClient CLIENT = HttpClient.newHttpClient();
-            final HttpRequest REQUEST = this.prepareRequest().DELETE().build();
-            final HttpResponse<String> RESPONSE = CLIENT.send(REQUEST, HttpResponse.BodyHandlers.ofString());
+            final HttpResponse<String> RESPONSE = CLIENT.send(this.asRequest(), HttpResponse.BodyHandlers.ofString());
 
             switch (RESPONSE.statusCode()) {
                 case 204 -> Console.log(String.format("User '%s' access revoked from repository '%s'.", this.githubUsername, this.repositoryName)).type(PhotonLogTypes.WEB_SERVER).container(PhotonEngine.LOGGER).send();

@@ -13,6 +13,7 @@ import niwer.photon.util.os.ApplicationUtils;
 import niwer.photon.util.session.AdminSessionManager;
 import niwer.photon.util.updater.UpdateChannel;
 import niwer.photon.util.updater.UpdateFileType;
+import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AdminUploadUpdateEndpoint implements IEndpoint {

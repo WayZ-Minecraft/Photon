@@ -6,6 +6,7 @@ import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.sql.SubscriptionTable.SubscriptionStatus;
 import niwer.queryon.SQLSerializable;
 import niwer.queryon.tables.api.IColumnField;
+import niwer.queryon.tables.api.IDefaultValue;
 
 public class ObjectSubscription extends SQLSerializable<ObjectSubscription> {
 
@@ -27,13 +28,13 @@ public class ObjectSubscription extends SQLSerializable<ObjectSubscription> {
     @IColumnField(name = "subscription_id", unique = true)
     private String subscriptionId;
 
-    @IColumnField(name = "status", notNull = true)
+    @IColumnField(name = "status", notNull = true, defaultValue = @IDefaultValue(value = "ACTIVE"))
     private SubscriptionStatus status;
 
     @IColumnField(name = "expires_at")
     private Date expiresAt;
 
-    @IColumnField(name = "updated_at")
+    @IColumnField(name = "updated_at", defaultValue = @IDefaultValue(value = "CURRENT_TIMESTAMP"))
     private Date updatedAt;
 
     public ObjectSubscription() {}

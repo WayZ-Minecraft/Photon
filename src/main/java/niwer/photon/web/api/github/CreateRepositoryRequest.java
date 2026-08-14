@@ -1,7 +1,6 @@
 package niwer.photon.web.api.github;
 
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import com.google.gson.annotations.SerializedName;
@@ -10,14 +9,14 @@ import niwer.lumen.Console;
 import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
 import niwer.photon.util.PhotonLogTypes;
-import niwer.photon.web.api.ApiRequest;
+import niwer.photon.web.HttpMethod;
 
 /**
  * This class is used to create a new repository from a template repository on GitHub.
  * 
  * @author Niwer
  */
-public class CreateRepositoryRequest extends ApiRequest {
+public class CreateRepositoryRequest extends GithubApiRequest {
 
     @SerializedName("owner") private final String owner;
     @SerializedName("name") private final String name; // Repository name
@@ -39,11 +38,13 @@ public class CreateRepositoryRequest extends ApiRequest {
     }
 
     @Override
+    public HttpMethod method() { return HttpMethod.POST; }
+
+    @Override
     public void request() {
         try {
             final HttpClient CLIENT = HttpClient.newHttpClient();
-            final HttpRequest REQUEST = this.prepareRequest().POST(this.prepareBody()).build();
-            final HttpResponse<String> RESPONSE = CLIENT.send(REQUEST, HttpResponse.BodyHandlers.ofString());
+            final HttpResponse<String> RESPONSE = CLIENT.send(this.asRequest(), HttpResponse.BodyHandlers.ofString());
 
             switch(RESPONSE.statusCode()) {
                 case 201 -> Console.log("Repository created successfully.").type(PhotonLogTypes.WEB_SERVER).container(PhotonEngine.LOGGER).send();

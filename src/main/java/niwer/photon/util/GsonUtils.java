@@ -100,4 +100,14 @@ public class GsonUtils {
         }
         return defaultValue;
     }
+
+    public static boolean getBoolean(JsonObject object, String key) {
+        if (object == null || key == null || !object.has(key) || object.get(key).isJsonNull()) return false;
+        try {
+            return object.get(key).getAsBoolean();
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
 }

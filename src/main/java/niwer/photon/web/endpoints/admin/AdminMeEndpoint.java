@@ -2,6 +2,7 @@ package niwer.photon.web.endpoints.admin;
 
 import io.javalin.http.Context;
 import niwer.photon.util.session.AdminSessionManager;
+import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AdminMeEndpoint implements IEndpoint {

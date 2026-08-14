@@ -3,9 +3,9 @@ package niwer.photon.web.endpoints;
 import java.util.Map;
 
 import io.javalin.http.Context;
-import niwer.photon.Directories;
 import niwer.photon.util.license.LicenseManager;
 import niwer.photon.util.license.LicenseValidationResult;
+import niwer.photon.web.HttpMethod;
 
 /**
  * Endpoint for validating a license key against a product ID and hardware ID.
@@ -22,14 +22,14 @@ public class LicenseValidateEndpoint implements IEndpoint {
         final Map<String, Object> body = EndpointUtils.parseBody(handler.body());
 
         /* Get the license key */
-        final String licenseKey = EndpointUtils.getString(handler, body, "license_key", "licenseKey", "key");
+        final String licenseKey = EndpointUtils.getString(handler, body, "license_key");
         if (licenseKey == null || licenseKey.isBlank()) {
             handler.status(400).result("Missing license key");
             return;
         }
 
         /* Get the product ID */
-        final String expectedProductId = EndpointUtils.firstNonBlank(EndpointUtils.getString(handler, body, "product_id", "productId"), Directories.getConfig().license_product_id);
+        final String expectedProductId = EndpointUtils.getString(handler, body, "product_id");
         if (expectedProductId == null || expectedProductId.isBlank()) {
             handler.status(400).result("Missing product id");
             return;

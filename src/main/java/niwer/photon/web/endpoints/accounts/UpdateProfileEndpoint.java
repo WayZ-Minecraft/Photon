@@ -4,6 +4,7 @@ import io.javalin.http.Context;
 import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.util.GsonUtils;
+import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class UpdateProfileEndpoint implements IEndpoint {

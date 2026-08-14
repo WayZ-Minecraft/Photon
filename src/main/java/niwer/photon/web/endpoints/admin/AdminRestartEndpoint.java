@@ -4,6 +4,7 @@ import io.javalin.http.Context;
 import niwer.photon.PhotonEngine;
 import niwer.photon.util.os.ApplicationUtils;
 import niwer.photon.util.session.AdminSessionManager;
+import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AdminRestartEndpoint implements IEndpoint {

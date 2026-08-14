@@ -9,6 +9,7 @@ import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.GsonUtils;
 import niwer.photon.util.license.LicenseManager;
 import niwer.photon.util.session.UserSessionManager;
+import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.EndpointUtils;
 import niwer.photon.web.endpoints.IEndpoint;
 

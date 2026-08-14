@@ -4,6 +4,7 @@ import io.javalin.http.Context;
 import niwer.photon.Directories;
 import niwer.photon.util.GsonUtils;
 import niwer.photon.util.session.AdminSessionManager;
+import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AdminUpdateConfigEndpoint implements IEndpoint {

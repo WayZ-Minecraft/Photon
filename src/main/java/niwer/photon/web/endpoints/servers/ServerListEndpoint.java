@@ -1,9 +1,9 @@
 package niwer.photon.web.endpoints.servers;
 
-import niwer.photon.sql.ServerTable;
-import niwer.photon.web.endpoints.IEndpoint;
-
 import io.javalin.http.Context;
+import niwer.photon.sql.ServerTable;
+import niwer.photon.web.HttpMethod;
+import niwer.photon.web.endpoints.IEndpoint;
 
 public class ServerListEndpoint implements IEndpoint {
 

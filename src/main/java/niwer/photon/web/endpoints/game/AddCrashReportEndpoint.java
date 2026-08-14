@@ -6,6 +6,7 @@ import niwer.photon.PhotonEngine;
 import niwer.photon.sql.CrashReportTable;
 import niwer.photon.sql.CrashReportTable.CrashReportSides;
 import niwer.photon.util.PhotonLogTypes;
+import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AddCrashReportEndpoint implements IEndpoint {

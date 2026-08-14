@@ -12,7 +12,6 @@ import niwer.queryon.queries.Expression;
 import niwer.queryon.queries.interaction.InsertionManager;
 import niwer.queryon.queries.interaction.SelectionManager;
 import niwer.queryon.queries.interaction.UpdateManager;
-import niwer.queryon.tables.EnumColumnTypes;
 import niwer.queryon.tables.Table;
 
 public class SubscriptionTable extends Table {
@@ -28,18 +27,7 @@ public class SubscriptionTable extends Table {
 
     public SubscriptionTable(DataBase db) {
         super(db);
-
-        this.addColumns(
-            createColumn(db, "id", EnumColumnTypes.INT).autoIncrement().primaryKey(),
-            createColumn(db, "customer_email", EnumColumnTypes.TEXT),
-            createColumn(db, "account_uuid", EnumColumnTypes.TEXT),
-            createColumn(db, "customer_name", EnumColumnTypes.TEXT),
-            createColumn(db, "customer_id", EnumColumnTypes.TEXT),
-            createColumn(db, "subscription_id", EnumColumnTypes.TEXT).unique(),
-            createColumn(db, "status", SubscriptionStatus.class).notNull().defaultValue(SubscriptionStatus.ACTIVE),
-            createColumn(db, "expires_at", EnumColumnTypes.DATE_TIME),
-            createColumn(db, "updated_at", EnumColumnTypes.DATE_TIME).defaultValue("CURRENT_TIMESTAMP")
-        ).execute();
+        this.addColumnsFromClass(ObjectSubscription.class).execute();
     }
 
     @Override public String name() { return "Subscription"; }

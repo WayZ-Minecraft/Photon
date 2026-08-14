@@ -3,8 +3,8 @@ package niwer.photon.web.api;
 import java.net.URI;
 import java.net.http.HttpRequest;
 
-import niwer.photon.Directories;
 import niwer.photon.util.GsonUtils;
+import niwer.photon.web.HttpMethod;
 
 /**
  * Abstract class representing a GitHub API request. This class provides methods to prepare the request and body, as well as to sanitize input strings.
@@ -25,32 +25,44 @@ public abstract class ApiRequest {
      */
     public abstract String url();
 
+    /**
+     * Get the HTTP method of the request
+     * 
+     * @return The HTTP method of the request
+     */
+    public abstract HttpMethod method();
+
+    /**
+     * Add necessary headers to the HttpRequest.Builder. This method should be implemented by subclasses to add any specific headers required for the request.
+     * 
+     * @param builder The HttpRequest.Builder to which headers should be added
+     */
+    public abstract void addHeaders(HttpRequest.Builder builder);
+    
     private final URI toURI() { return URI.create(url()); }
 
-    private final String body() { return GsonUtils.GSON.toJson(this); }
+    private final HttpRequest.BodyPublisher prepareBody() {
+        return HttpRequest.BodyPublishers.ofString(GsonUtils.GSON.toJson(this));
+    }
 
     /**
      * Prepare the HttpRequest.Builder with the necessary headers and URI
      * 
      * @return The prepared HttpRequest.Builder
      */
-    public final HttpRequest.Builder prepareRequest() {
-        return HttpRequest.newBuilder()
-            .uri(this.toURI())
-            .header("Authorization", "Bearer " + Directories.getConfig().github_pat)
-            .header("Accept", "application/vnd.github+json")
-            .header("X-GitHub-Api-Version", "2026-03-10")
-            .header("Content-Type", "application/json")
-            .header("User-Agent", "Photon-Backend");
-    }
+    public final HttpRequest asRequest() {
+        final HttpRequest.Builder builder = HttpRequest.newBuilder().uri(this.toURI()).header("User-Agent", "Photon-Backend");
+        this.addHeaders(builder); // Add any additional headers defined in the subclass
 
-    /**
-     * Prepare the body of the request as a BodyPublisher
-     * 
-     * @return The prepared BodyPublisher
-     */
-    public final HttpRequest.BodyPublisher prepareBody() {
-        return HttpRequest.BodyPublishers.ofString(this.body());
+        switch (this.method()) {
+            case GET -> builder.GET();
+            case POST -> builder.POST(this.prepareBody());
+            case PUT -> builder.PUT(this.prepareBody());
+            case DELETE -> builder.DELETE();
+            default -> throw new IllegalArgumentException("Unsupported HTTP method: " + this.method());
+        }
+
+        return builder.build();
     }
 
     /**

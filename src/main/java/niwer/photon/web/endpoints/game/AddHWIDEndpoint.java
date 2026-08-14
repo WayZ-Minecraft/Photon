@@ -5,6 +5,7 @@ import niwer.lumen.Console;
 import niwer.photon.PhotonEngine;
 import niwer.photon.sql.HWIDTable;
 import niwer.photon.util.PhotonLogTypes;
+import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AddHWIDEndpoint implements IEndpoint {

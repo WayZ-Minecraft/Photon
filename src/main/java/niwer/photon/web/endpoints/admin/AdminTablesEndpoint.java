@@ -4,6 +4,7 @@ import java.util.List;
 
 import io.javalin.http.Context;
 import niwer.photon.util.session.AdminSessionManager;
+import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AdminTablesEndpoint implements IEndpoint {

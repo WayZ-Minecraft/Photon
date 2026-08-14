@@ -63,7 +63,7 @@ public final class StripeStartupSync {
                     latestByEmail.putIfAbsent(normalizedEmail, subscription);
                 }
 
-                if (!StripeSupport.getBoolean(page, "has_more")) break;
+                if (!GsonUtils.getBoolean(page, "has_more")) break;
                 startingAfter = GsonUtils.getString(data.get(data.size() - 1).getAsJsonObject(), "id");
                 if (startingAfter == null || startingAfter.isBlank()) break;
             }

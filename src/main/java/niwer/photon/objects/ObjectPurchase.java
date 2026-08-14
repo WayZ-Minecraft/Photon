@@ -45,8 +45,8 @@ public class ObjectPurchase extends SQLSerializable<ObjectPurchase> {
 	@IColumnField(name = "expires_at")
 	private Date expiresAt;
 
-	// @IColumnField(name = "github_username")
-	// private String githubUsername;
+	@IColumnField(name = "github_username")
+	private String githubUsername;
 
 	public ObjectPurchase() {}
 

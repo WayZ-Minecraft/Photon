@@ -1,6 +1,5 @@
 package niwer.photon.web.api.github;
 
-import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 
 import com.google.gson.annotations.SerializedName;
@@ -16,7 +15,7 @@ import niwer.photon.web.HttpMethod;
  * 
  * @author Niwer
  */
-public class SetRepositoryPermissionsRequest extends GithubApiRequest {
+public class SetRepositoryPermissionsRequest extends GithubApiRequest<Void> {
 
     @SerializedName("permission")
     private final String permission; // "admin", "maintain", "write", "triage", or "read"
@@ -41,11 +40,9 @@ public class SetRepositoryPermissionsRequest extends GithubApiRequest {
     public HttpMethod method() { return HttpMethod.PUT; }
 
     @Override
-    public void request() {
+    public Void request() {
         try {
-            final HttpClient CLIENT = HttpClient.newHttpClient();
-            final HttpResponse<String> RESPONSE = CLIENT.send(this.asRequest(), HttpResponse.BodyHandlers.ofString());
-
+            final HttpResponse<String> RESPONSE = this.sendHttpRequest(HttpResponse.BodyHandlers.ofString());
             switch(RESPONSE.statusCode()) {
                 case 201 -> Console.log("Collaborator invitation sent successfully for " + this.githubUsername).type(PhotonLogTypes.WEB_SERVER).container(PhotonEngine.LOGGER).send();
                 case 204 -> Console.log("Permission updated successfully for " + this.githubUsername).type(PhotonLogTypes.WEB_SERVER).container(PhotonEngine.LOGGER).send();
@@ -54,5 +51,6 @@ public class SetRepositoryPermissionsRequest extends GithubApiRequest {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
     }
 }

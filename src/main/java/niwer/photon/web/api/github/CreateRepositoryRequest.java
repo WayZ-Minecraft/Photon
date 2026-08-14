@@ -1,6 +1,5 @@
 package niwer.photon.web.api.github;
 
-import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 
 import com.google.gson.annotations.SerializedName;
@@ -16,7 +15,7 @@ import niwer.photon.web.HttpMethod;
  * 
  * @author Niwer
  */
-public class CreateRepositoryRequest extends GithubApiRequest {
+public class CreateRepositoryRequest extends GithubApiRequest<Void> {
 
     @SerializedName("owner") private final String owner;
     @SerializedName("name") private final String name; // Repository name
@@ -41,11 +40,9 @@ public class CreateRepositoryRequest extends GithubApiRequest {
     public HttpMethod method() { return HttpMethod.POST; }
 
     @Override
-    public void request() {
+    public Void request() {
         try {
-            final HttpClient CLIENT = HttpClient.newHttpClient();
-            final HttpResponse<String> RESPONSE = CLIENT.send(this.asRequest(), HttpResponse.BodyHandlers.ofString());
-
+            final HttpResponse<String> RESPONSE = this.sendHttpRequest(HttpResponse.BodyHandlers.ofString());
             switch(RESPONSE.statusCode()) {
                 case 201 -> Console.log("Repository created successfully.").type(PhotonLogTypes.WEB_SERVER).container(PhotonEngine.LOGGER).send();
                 default -> Console.log("Error (" + RESPONSE.statusCode() + ") : " + RESPONSE.body()).type(PhotonLogTypes.WEB_SERVER).container(PhotonEngine.LOGGER).send();
@@ -53,5 +50,6 @@ public class CreateRepositoryRequest extends GithubApiRequest {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
     }
 }

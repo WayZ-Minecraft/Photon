@@ -5,7 +5,7 @@ import java.net.http.HttpRequest.Builder;
 import niwer.photon.Directories;
 import niwer.photon.web.api.ApiRequest;
 
-public abstract class GithubApiRequest extends ApiRequest {
+public abstract class GithubApiRequest<T> extends ApiRequest<T> {
 
     @Override
     public void addHeaders(Builder builder) {

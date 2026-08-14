@@ -5,6 +5,7 @@ import niwer.photon.util.GsonUtils;
 import niwer.photon.util.session.AdminSessionManager;
 import niwer.photon.util.session.AuthSession;
 import niwer.photon.web.HttpMethod;
+import niwer.photon.web.endpoints.EndpointUtils;
 import niwer.photon.web.endpoints.IEndpoint;
 
 public class AdminLoginEndpoint implements IEndpoint {
@@ -45,8 +46,8 @@ public class AdminLoginEndpoint implements IEndpoint {
     }
 
     private static Credentials readCredentials(Context handler) {
-        final String email = firstNonBlank(handler.formParam("email"), handler.queryParam("email"));
-        final String password = firstNonBlank(handler.formParam("password"), handler.queryParam("password"));
+        final String email = EndpointUtils.firstNonBlank(handler.formParam("email"), handler.queryParam("email"));
+        final String password = EndpointUtils.firstNonBlank(handler.formParam("password"), handler.queryParam("password"));
         if (email != null && password != null) return new Credentials(email, password);
 
         try {
@@ -54,12 +55,6 @@ public class AdminLoginEndpoint implements IEndpoint {
             if (jsonCredentials != null) return jsonCredentials;
         } catch (Exception ignored) {}
 
-        return null;
-    }
-
-    private static String firstNonBlank(String first, String second) {
-        if (first != null && !first.isBlank()) return first;
-        if (second != null && !second.isBlank()) return second;
         return null;
     }
 

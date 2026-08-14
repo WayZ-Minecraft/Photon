@@ -1,7 +1,11 @@
 package niwer.photon.web.api;
 
 import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 
 import niwer.photon.util.GsonUtils;
 import niwer.photon.web.HttpMethod;
@@ -11,12 +15,27 @@ import niwer.photon.web.HttpMethod;
  * 
  * @author Niwer
  */
-public abstract class ApiRequest {
+public abstract class ApiRequest<T> {
+
+    private final HttpClient CLIENT;
+
+    protected ApiRequest() {
+        try {
+            this.CLIENT = HttpClient.newHttpClient();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize HTTP client", e);
+        }
+    }
 
     /**
      * Send the request to the server
+     * 
+     * @param <T> The type of the response expected from the server
+     * @return An object representing the response from the server.
+     * The type of the response is determined by the implementation of this method in subclasses.
+     * It may also be null if the request fails or if the server returns an error response or if the request does not expect a response body.
      */
-    public abstract void request();
+    public abstract T request();
 
     /**
      * Get the URL of the request
@@ -45,12 +64,7 @@ public abstract class ApiRequest {
         return HttpRequest.BodyPublishers.ofString(GsonUtils.GSON.toJson(this));
     }
 
-    /**
-     * Prepare the HttpRequest.Builder with the necessary headers and URI
-     * 
-     * @return The prepared HttpRequest.Builder
-     */
-    public final HttpRequest asRequest() {
+    private final HttpRequest asRequest() {
         final HttpRequest.Builder builder = HttpRequest.newBuilder().uri(this.toURI()).header("User-Agent", "Photon-Backend");
         this.addHeaders(builder); // Add any additional headers defined in the subclass
 
@@ -66,10 +80,32 @@ public abstract class ApiRequest {
     }
 
     /**
+     * Send the HTTP request and return the response. This method uses the HttpClient to send the request prepared by the asRequest() method and returns the HttpResponse.
+     * 
+     * @param <E> The type of the response body
+     * @param bodyHandler The handler for processing the response body
+     * @return The HTTP response
+     * @throws Exception If an error occurs while sending the request
+     */
+    protected final <E> HttpResponse<E> sendHttpRequest(HttpResponse.BodyHandler<E> bodyHandler) throws Exception {
+        return this.CLIENT.send(this.asRequest(), bodyHandler);
+    }
+
+    /**
      * Sanitize a string by removing all non-alphanumeric characters and converting it to lowercase
      * 
      * @param input The string to sanitize
      * @return The sanitized string
      */
     protected String sanitizeAndLower(String input) { return input.replaceAll("[^a-zA-Z0-9-_]", "").toLowerCase(); }
+
+    /**
+     * URL-encode a string using UTF-8 encoding. This method is useful for encoding query parameters or path segments in URLs.
+     * 
+     * @param value The string to URL-encode
+     * @return The URL-encoded string
+     */
+    protected String encode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
 }

@@ -23,6 +23,9 @@ import niwer.photon.sql.SubscriptionTable.SubscriptionStatus;
 import niwer.photon.util.GsonUtils;
 import niwer.photon.util.PhotonLogTypes;
 import niwer.photon.web.HttpMethod;
+import niwer.photon.web.api.stripe.StripeGetCheckoutSessionByIdRequest;
+import niwer.photon.web.api.stripe.StripeGetInvoiceByIdRequest;
+import niwer.photon.web.api.stripe.StripeGetSubByIdRequest;
 import niwer.photon.web.endpoints.EndpointUtils;
 import niwer.photon.web.endpoints.IEndpoint;
 
@@ -107,7 +110,7 @@ public class StripeWebhookEndpoint implements IEndpoint {
     }
 
     private static void handleSubscriptionEvent(Context handler, String payload, String apiKey, String type) {
-        final JsonObject subscription = StripeSupport.resolveSubscription(apiKey, payload);
+        final JsonObject subscription = new StripeGetSubByIdRequest(payload, true).request();
         if (subscription == null) {
             ignore(handler, "missing subscription object for event " + type, true);
             return;
@@ -142,7 +145,7 @@ public class StripeWebhookEndpoint implements IEndpoint {
     }
 
     private static void handleInvoiceEvent(Context handler, String payload, String apiKey, String type) {
-        final JsonObject invoice = StripeSupport.resolveInvoice(apiKey, payload);
+        final JsonObject invoice = new StripeGetInvoiceByIdRequest(payload, true).request();
         if (invoice == null) {
             ignore(handler, "missing invoice object for event " + type, true);
             return;
@@ -207,7 +210,7 @@ public class StripeWebhookEndpoint implements IEndpoint {
     }
 
     private static void handleCheckoutSessionEvent(Context handler, String payload, String apiKey, String type) {
-        final JsonObject checkoutSession = StripeSupport.resolveCheckoutSession(apiKey, payload);
+        final JsonObject checkoutSession = new StripeGetCheckoutSessionByIdRequest(payload, true).request();
         if (checkoutSession == null) {
             ignore(handler, "missing checkout session object for event " + type, true);
             return;
@@ -232,7 +235,7 @@ public class StripeWebhookEndpoint implements IEndpoint {
         }
 
         final JsonObject customerDetails = GsonUtils.getObject(checkoutSession, "customer_details");
-        final JsonObject subscription = StripeSupport.resolveSubscriptionById(apiKey, GsonUtils.getString(checkoutSession, "subscription"));
+        final JsonObject subscription = new StripeGetSubByIdRequest(GsonUtils.getString(checkoutSession, "subscription")).request();
         final StripeSupport.CustomerPayload customerPayload = StripeSupport.resolveCustomer(
             apiKey,
             GsonUtils.getString(checkoutSession, "customer"),

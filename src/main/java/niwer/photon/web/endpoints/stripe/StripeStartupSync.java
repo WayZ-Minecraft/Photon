@@ -14,6 +14,7 @@ import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.sql.SubscriptionTable.SubscriptionStatus;
 import niwer.photon.util.GsonUtils;
 import niwer.photon.util.PhotonLogTypes;
+import niwer.photon.web.api.stripe.StripeListSubsRequests;
 
 public final class StripeStartupSync {
 
@@ -33,11 +34,11 @@ public final class StripeStartupSync {
         int errors = 0;
 
         try {
-            final Map<String, JsonObject> latestByEmail = new LinkedHashMap<>();
+            final Map<String, JsonObject> LATEST_BY_EMAIL = new LinkedHashMap<>();
             String startingAfter = null;
 
             while (true) {
-                final JsonObject page = StripeSupport.listSubscriptionsPage(apiKey, startingAfter, PAGE_SIZE);
+                final JsonObject page = new StripeListSubsRequests(startingAfter, PAGE_SIZE).request();
                 if (page == null) break;
 
                 final JsonArray data = getArray(page, "data");
@@ -60,7 +61,7 @@ public final class StripeStartupSync {
                         continue;
                     }
 
-                    latestByEmail.putIfAbsent(normalizedEmail, subscription);
+                    LATEST_BY_EMAIL.putIfAbsent(normalizedEmail, subscription);
                 }
 
                 if (!GsonUtils.getBoolean(page, "has_more")) break;
@@ -68,7 +69,7 @@ public final class StripeStartupSync {
                 if (startingAfter == null || startingAfter.isBlank()) break;
             }
 
-            for (JsonObject subscription : latestByEmail.values()) {
+            for (JsonObject subscription : LATEST_BY_EMAIL.values()) {
                 try {
                     final StripeSupport.CustomerPayload customer = StripeSupport.resolveCustomerFromSubscription(apiKey, subscription);
                     final String email = SubscriptionTable.normalizeEmail(customer.email());

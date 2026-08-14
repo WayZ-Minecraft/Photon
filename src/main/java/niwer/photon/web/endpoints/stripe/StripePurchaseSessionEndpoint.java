@@ -11,6 +11,7 @@ import niwer.photon.objects.ObjectPurchase;
 import niwer.photon.sql.PurchaseTable;
 import niwer.photon.util.GsonUtils;
 import niwer.photon.web.HttpMethod;
+import niwer.photon.web.api.stripe.StripeGetCheckoutSessionByIdRequest;
 import niwer.photon.web.endpoints.EndpointUtils;
 import niwer.photon.web.endpoints.IEndpoint;
 
@@ -42,7 +43,7 @@ public class StripePurchaseSessionEndpoint implements IEndpoint {
 		}
 
 		/* Resolve the checkout session by its ID */
-		final JsonObject checkoutSession = StripeSupport.resolveCheckoutSessionById(apiKey, checkoutSessionId);
+		final JsonObject checkoutSession = new StripeGetCheckoutSessionByIdRequest(checkoutSessionId).request();
 		if (checkoutSession == null) {
 			handler.status(502).result("Unable to resolve checkout session");
 			return;

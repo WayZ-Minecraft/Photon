@@ -1,6 +1,5 @@
 package niwer.photon.web.api.github;
 
-import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 
 import niwer.lumen.Console;
@@ -14,7 +13,7 @@ import niwer.photon.web.HttpMethod;
  * 
  * @author Niwer
  */
-public class RemoveTeamMemberRequest extends GithubApiRequest {
+public class RemoveTeamMemberRequest extends GithubApiRequest<Void> {
 
     private final transient String githubUsername;
     private final transient String TEAM_SLUG = Directories.getConfig().github_customer_team;
@@ -32,11 +31,9 @@ public class RemoveTeamMemberRequest extends GithubApiRequest {
     public HttpMethod method() { return HttpMethod.DELETE; }
 
     @Override
-    public void request() {
+    public Void request() {
         try {
-            final HttpClient CLIENT = HttpClient.newHttpClient();
-            final HttpResponse<String> RESPONSE = CLIENT.send(this.asRequest(), HttpResponse.BodyHandlers.ofString());
-
+            final HttpResponse<String> RESPONSE = this.sendHttpRequest(HttpResponse.BodyHandlers.ofString());
             switch (RESPONSE.statusCode()) {
                 case 204 -> Console.log(String.format("User '%s' successfully removed from team '%s'.", this.githubUsername, TEAM_SLUG)).type(PhotonLogTypes.WEB_SERVER).container(PhotonEngine.LOGGER).send();
                 default  -> Console.log(String.format("Error (%d) : %s", RESPONSE.statusCode(), RESPONSE.body())).type(PhotonLogTypes.WEB_SERVER).container(PhotonEngine.LOGGER).send();
@@ -44,5 +41,6 @@ public class RemoveTeamMemberRequest extends GithubApiRequest {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
     }
 }

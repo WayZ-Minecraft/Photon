@@ -1,10 +1,5 @@
 package niwer.photon.web.endpoints.stripe;
 
-import java.util.Date;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
@@ -14,16 +9,23 @@ import io.javalin.http.Context;
 import niwer.lumen.Console;
 import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
-import niwer.photon.objects.ObjectSubscription;
-import niwer.photon.objects.ObjectUserAccount;
-import niwer.photon.sql.PlayerAccountTable;
+import niwer.photon.objects.ObjectPurchase;
+import niwer.photon.objects.stripe.StripeCheckoutSession;
+import niwer.photon.objects.stripe.StripeCustomer;
+import niwer.photon.objects.stripe.StripeInvoice;
+import niwer.photon.objects.stripe.StripeSubscription;
 import niwer.photon.sql.PurchaseTable;
 import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.sql.SubscriptionTable.SubscriptionStatus;
-import niwer.photon.util.GsonUtils;
 import niwer.photon.util.PhotonLogTypes;
 import niwer.photon.web.HttpMethod;
+import niwer.photon.web.api.github.AddTeamMemberRequest;
+import niwer.photon.web.api.github.CreateRepositoryRequest;
+import niwer.photon.web.api.github.RemoveRepositoryCollaboratorRequest;
+import niwer.photon.web.api.github.RemoveTeamMemberRequest;
+import niwer.photon.web.api.github.SetRepositoryPermissionsRequest;
 import niwer.photon.web.api.stripe.StripeGetCheckoutSessionByIdRequest;
+import niwer.photon.web.api.stripe.StripeGetCustomerRequest;
 import niwer.photon.web.api.stripe.StripeGetInvoiceByIdRequest;
 import niwer.photon.web.api.stripe.StripeGetSubByIdRequest;
 import niwer.photon.web.endpoints.EndpointUtils;
@@ -48,26 +50,23 @@ public class StripeWebhookEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
-        final String payload = handler.body();
-        final String sigHeader = handler.header("Stripe-Signature");
-        final String endpointSecret = Directories.getConfig().stripe_webhook_signature;
-        final String apiKey = Directories.getConfig().stripe_api_key;
-
-        /* Print a small message so we know we've received the event */
-        Console.log("Received Stripe webhook event").type(PhotonLogTypes.STRIPE).container(PhotonEngine.LOGGER).send();
+        final String PAYLOAD = handler.body();
+        final String SIG_HEADER = handler.header("Stripe-Signature");
+        final String ENDPOINT_SECRET = Directories.getConfig().stripe_webhook_signature;
+        final String API_KEY = Directories.getConfig().stripe_api_key;
 
         /* Stripe API */
-        if (apiKey == null || apiKey.isBlank()) {
+        if (API_KEY == null || API_KEY.isBlank()) {
             Console.log("stripe_api_key is not configured").type(PhotonLogTypes.STRIPE).error().container(PhotonEngine.LOGGER).send();
             handler.status(500).result("stripe_api_key is not configured");
             return;
         }
-        Stripe.apiKey = apiKey;
+        Stripe.apiKey = API_KEY;
 
-        Event event;
+        /* Parse the webhook event */
+        final Event EVENT;
         try {
-            if (endpointSecret != null && !endpointSecret.isBlank()) event = Webhook.constructEvent(payload, sigHeader, endpointSecret);
-            else event = Event.GSON.fromJson(payload, Event.class); // No signing secret configured — parse without verification
+            EVENT = ENDPOINT_SECRET != null && !ENDPOINT_SECRET.isBlank() ? Webhook.constructEvent(PAYLOAD, SIG_HEADER, ENDPOINT_SECRET) : Event.GSON.fromJson(PAYLOAD, Event.class); // No signing secret configured — parse without verification
         } catch (SignatureVerificationException e) {
             Console.log("Invalid Stripe webhook signature: " + e.getMessage()).type(PhotonLogTypes.STRIPE).error().container(PhotonEngine.LOGGER).send();
             handler.status(400).result("Invalid signature");
@@ -78,25 +77,33 @@ public class StripeWebhookEndpoint implements IEndpoint {
             return;
         }
 
-        final String type = event.getType();
+        /* Determine the event type */
+        final String EVENT_TYPE = EVENT.getType();
         try {
-            if (type == null || type.isBlank()) {
+            /* Print a small message so we know we've received the event */
+            Console.log("Received Stripe webhook event : " + EVENT_TYPE).type(PhotonLogTypes.STRIPE).container(PhotonEngine.LOGGER).send();
+
+            /* Check if the event type is valid */
+            if (EVENT_TYPE == null || EVENT_TYPE.isBlank()) {
                 ignore(handler, "missing event type", true);
                 return;
             }
 
-            if (type.startsWith("customer.subscription")) {
-                handleSubscriptionEvent(handler, payload, apiKey, type);
+            /* Handle subscription events */
+            if (EVENT_TYPE.startsWith("customer.subscription")) {
+                handleSubscriptionEvent(handler, PAYLOAD, EVENT_TYPE);
                 return;
             }
 
-            if (type.startsWith("checkout.session.")) {
-                handleCheckoutSessionEvent(handler, payload, apiKey, type);
+            /* Handle checkout session events */
+            if (EVENT_TYPE.startsWith("checkout.session.")) {
+                handleCheckoutSessionEvent(handler, PAYLOAD, EVENT_TYPE);
                 return;
             }
 
-            if (type.startsWith("invoice.")) {
-                handleInvoiceEvent(handler, payload, apiKey, type);
+            /* Handle invoice events */
+            if (EVENT_TYPE.startsWith("invoice.")) {
+                handleInvoiceEvent(handler, PAYLOAD, EVENT_TYPE);
                 return;
             }
         } catch (Exception e) {
@@ -105,238 +112,111 @@ public class StripeWebhookEndpoint implements IEndpoint {
             return;
         }
 
-        Console.log("Stripe webhook ignored: unhandled event type " + type).type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
+        Console.log("Stripe webhook ignored: unhandled event type " + EVENT_TYPE).type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
         handler.status(200).result("ignored");
     }
 
-    private static void handleSubscriptionEvent(Context handler, String payload, String apiKey, String type) {
-        final JsonObject subscription = new StripeGetSubByIdRequest(payload, true).request();
-        if (subscription == null) {
-            ignore(handler, "missing subscription object for event " + type, true);
+    private static void handleSubscriptionEvent(Context handler, String payload, String eventType) {
+        final StripeSubscription SUBSCRIPTION = new StripeGetSubByIdRequest(payload, true).request();
+        if (SUBSCRIPTION == null) {
+            ignore(handler, "missing subscription object for event " + eventType, true);
             return;
         }
 
-        final StripeSupport.CustomerPayload customerPayload = StripeSupport.resolveCustomerFromSubscription(apiKey, subscription);
-        final String subscriptionId = GsonUtils.getString(subscription, "id");
-        if (customerPayload.email() == null || customerPayload.email().isBlank()) {
-            ignore(handler, "missing customer email for subscription " + subscriptionId, false);
+        /* Resolve customer from subscription */
+        final StripeCustomer CUSTOMER = StripeGetCustomerRequest.resolveCustomerFromSubscription(SUBSCRIPTION);
+        if (CUSTOMER.email() == null || CUSTOMER.email().isBlank()) {
+            ignore(handler, "missing customer email for subscription " + SUBSCRIPTION.id(), false);
             return;
         }
 
-        final long periodEnd = GsonUtils.getLong(subscription, "current_period_end") * 1000L;
-        final String stripeStatus = GsonUtils.getString(subscription, "status");
-        final SubscriptionStatus status = StripeSupport.stripeStatusToLocal(stripeStatus);
+        /* If subscription is canceled or deleted, revoke GitHub access */
+        if ("customer.subscription.deleted".equals(eventType) || SUBSCRIPTION.status() == SubscriptionStatus.CANCELED || SUBSCRIPTION.status() == SubscriptionStatus.EXPIRED) revokeGitHubAccess(CUSTOMER.id());
 
-        final ObjectSubscription subscriptionRecord = SubscriptionTable.upsertSubscription(
-            customerPayload.email(),
-            customerPayload.name(),
-            customerPayload.customerId(),
-            subscriptionId,
-            status,
-            periodEnd == 0L ? null : new Date(periodEnd)
-        );
-
-        // If subscription is canceled or deleted, revoke GitHub access
-        if ("customer.subscription.deleted".equals(type) || status == SubscriptionStatus.CANCELED || status == SubscriptionStatus.EXPIRED) {
-            revokeGitHubAccessForSubscription(subscriptionRecord);
-        }
-
-        handler.status(200).json(subscriptionRecord);
+        handler.status(200).json(SubscriptionTable.upsertSubscription(CUSTOMER.email(), CUSTOMER.name(), CUSTOMER.id(), SUBSCRIPTION.id(), SUBSCRIPTION.status(), null));
     }
 
-    private static void handleInvoiceEvent(Context handler, String payload, String apiKey, String type) {
-        final JsonObject invoice = new StripeGetInvoiceByIdRequest(payload, true).request();
-        if (invoice == null) {
-            ignore(handler, "missing invoice object for event " + type, true);
+    private static void handleInvoiceEvent(Context handler, String payload, String eventType) {
+        final StripeInvoice INVOICE = new StripeGetInvoiceByIdRequest(payload, true).request();
+        if (INVOICE == null) {
+            ignore(handler, "missing invoice object for event " + eventType, true);
             return;
         }
 
-        final StripeSupport.CustomerPayload customerPayload = StripeSupport.resolveCustomer(
-            apiKey,
-            GsonUtils.getString(invoice, "customer"),
-            GsonUtils.getObject(invoice, "metadata"),
-            GsonUtils.getString(invoice, "customer_email")
-        );
-        final String subscriptionId = GsonUtils.getString(invoice, "subscription");
-        if (customerPayload.email() == null || customerPayload.email().isBlank()) {
-            ignore(handler, "missing customer email for invoice event " + type, false);
+        final StripeCustomer CUSTOMER = StripeGetCustomerRequest.resolveCustomerFromInvoice(INVOICE);
+        if (CUSTOMER.email() == null || CUSTOMER.email().isBlank()) {
+            ignore(handler, "missing customer email for invoice event " + eventType, false);
             return;
         }
 
-        final long periodEnd = GsonUtils.getLong(invoice, "period_end") * 1000L;
-        final SubscriptionStatus status = "invoice.payment_failed".equals(type) ? SubscriptionStatus.EXPIRED : SubscriptionStatus.ACTIVE;
-        final ObjectSubscription subscriptionRecord = SubscriptionTable.upsertSubscription(
-            customerPayload.email(),
-            customerPayload.name(),
-            customerPayload.customerId(),
-            subscriptionId,
-            status,
-            periodEnd == 0L ? null : new Date(periodEnd)
-        );
+        /* Revoke GitHub access if payment failed */
+        if ("invoice.payment_failed".equals(eventType)) revokeGitHubAccess(INVOICE.customerId());
 
-        // Revoke GitHub access if payment failed
-        if ("invoice.payment_failed".equals(type)) {
-            revokeGitHubAccessForSubscription(subscriptionRecord);
-        }
-
-        handler.status(200).json(subscriptionRecord);
+        final SubscriptionStatus STATUS = "invoice.payment_failed".equals(eventType) ? SubscriptionStatus.EXPIRED : SubscriptionStatus.ACTIVE;
+        handler.status(200).json(SubscriptionTable.upsertSubscription(CUSTOMER.email(), CUSTOMER.name(), CUSTOMER.id(), null, STATUS, null));
     }
 
-    /**
-     * Helper to look up the user account and revoke GitHub permissions asynchronously
-     */
-    private static void revokeGitHubAccessForSubscription(ObjectSubscription subscription) {
-        if (subscription == null || subscription.accountUuid() == null) return;
+    private static void handleCheckoutSessionEvent(Context handler, String payload, String eventType) {
+        final StripeCheckoutSession CHECKOUT_SESSION = new StripeGetCheckoutSessionByIdRequest(payload, true).request();
+        if (CHECKOUT_SESSION == null) {
+            ignore(handler, "missing checkout session object for event " + eventType, true);
+            return;
+        }
+
+        /* Resolve the purchase token */
+        final String PURCHASE_TOKEN = EndpointUtils.firstNonBlank(CHECKOUT_SESSION.clientRefId(), CHECKOUT_SESSION.id());
+        if (PURCHASE_TOKEN == null || PURCHASE_TOKEN.isBlank()) {
+            ignore(handler, "missing purchase token for checkout session " + CHECKOUT_SESSION.id(), false);
+            return;
+        }
+
+        /* Resolve the GitHub username */
+        final String GITHUB_USERNAME = CHECKOUT_SESSION.getCustomFieldByKeys("githubusername").text().value().trim();
+
+        /* Resolve the subscription */
+        final StripeSubscription SUBSCRIPTION = new StripeGetSubByIdRequest(CHECKOUT_SESSION.subscriptionId()).request();
+        final var PURCHASE = PurchaseTable.completePurchase(PURCHASE_TOKEN, CHECKOUT_SESSION.id(), CHECKOUT_SESSION.customerID(), CHECKOUT_SESSION.subscriptionId(), CHECKOUT_SESSION.customerDetails().email(), CHECKOUT_SESSION.customerDetails().name(), SUBSCRIPTION.status(), null, GITHUB_USERNAME);
+        if (PURCHASE == null) {
+            ignore(handler, "missing pending purchase for token " + PURCHASE_TOKEN, false);
+            return;
+        }
+
+        /* Create the repo and/or invite/set permissions, finally add the user to the team, if a GitHub username is provided */
+        if (GITHUB_USERNAME != null && !GITHUB_USERNAME.isBlank()) {
+            Thread.ofVirtual().start(() -> {
+                try {
+                    new CreateRepositoryRequest(GITHUB_USERNAME).request(); // Step A: Create the template repository
+                    Thread.sleep(2500); // Brief pause so GitHub finishes initializing the new repository
+                    new SetRepositoryPermissionsRequest(GITHUB_USERNAME, "admin").request(); // Step B: Grant customer permissions (invite as collaborator)
+                    new AddTeamMemberRequest(GITHUB_USERNAME).request(); // Add customer to organization team
+                } catch (Exception e) {
+                    Console.log("Failed GitHub provisioning for " + GITHUB_USERNAME + ": " + e.getMessage()).type(PhotonLogTypes.STRIPE).error().container(PhotonEngine.LOGGER).send();
+                }
+            });
+        }
+
+        handler.status(200).json(SubscriptionTable.upsertSubscription(PURCHASE.customerEmail(), PURCHASE.customerName(), PURCHASE.stripeCustomerId(), SUBSCRIPTION.id(), SUBSCRIPTION.status(), null));
+    }
+
+    private static void revokeGitHubAccess(String stripeCustomerId) {
+        if (stripeCustomerId == null) return;
 
         Thread.ofVirtual().start(() -> {
             try {
-                // Fetch the user account via UUID to get their GitHub username
-                final ObjectUserAccount account = PlayerAccountTable.getAccountByUUID(subscription.accountUuid());
-                if (account == null || account.getUsername() == null || account.getUsername().isBlank()) return;
+                final ObjectPurchase PURCHASE = PurchaseTable.getByCustomerId(stripeCustomerId);
+                if (PURCHASE == null) return;
 
-                final String githubUser = account.getUsername();
-
-                // Remove repo collaborator access
-                new niwer.photon.web.api.github.RemoveRepositoryCollaboratorRequest(githubUser).request();
-
-                // Remove from the customer team
-                new niwer.photon.web.api.github.RemoveTeamMemberRequest(githubUser).request();
-
-                Console.log("Revoked GitHub access for " + githubUser).type(PhotonLogTypes.STRIPE).container(PhotonEngine.LOGGER).send();
+                final String GITHUB_USERNAME = PURCHASE.githubUsername();
+                new RemoveRepositoryCollaboratorRequest(GITHUB_USERNAME).request(); // Remove repo collaborator access
+                new RemoveTeamMemberRequest(GITHUB_USERNAME).request(); // Remove from the customer team
             } catch (Exception e) {
                 Console.log("Error revoking GitHub access: " + e.getMessage()).type(PhotonLogTypes.STRIPE).error().container(PhotonEngine.LOGGER).send();
             }
         });
     }
 
-    private static void handleCheckoutSessionEvent(Context handler, String payload, String apiKey, String type) {
-        final JsonObject checkoutSession = new StripeGetCheckoutSessionByIdRequest(payload, true).request();
-        if (checkoutSession == null) {
-            ignore(handler, "missing checkout session object for event " + type, true);
-            return;
-        }
-
-        final JsonObject metadata = GsonUtils.getObject(checkoutSession, "metadata");
-        final String purchaseToken = EndpointUtils.firstNonBlank(
-            GsonUtils.getString(checkoutSession, "client_reference_id"),
-            GsonUtils.getString(metadata, "purchase_token"),
-            GsonUtils.getString(metadata, "purchaseToken"),
-            GsonUtils.getString(checkoutSession, "id")
-        );
-        if (purchaseToken == null || purchaseToken.isBlank()) {
-            ignore(handler, "missing purchase token for checkout session " + GsonUtils.getString(checkoutSession, "id"), false);
-            return;
-        }
-
-        // 1. Extract GitHub username from Custom Fields or Metadata fallback
-        String githubUsername = extractCustomField(checkoutSession, "github_username");
-        if (githubUsername == null || githubUsername.isBlank()) {
-            githubUsername = GsonUtils.getString(metadata, "github_username");
-        }
-
-        final JsonObject customerDetails = GsonUtils.getObject(checkoutSession, "customer_details");
-        final JsonObject subscription = new StripeGetSubByIdRequest(GsonUtils.getString(checkoutSession, "subscription")).request();
-        final StripeSupport.CustomerPayload customerPayload = StripeSupport.resolveCustomer(
-            apiKey,
-            GsonUtils.getString(checkoutSession, "customer"),
-            metadata,
-            EndpointUtils.firstNonBlank(GsonUtils.getString(customerDetails, "email"), GsonUtils.getString(checkoutSession, "customer_email"))
-        );
-        final String subscriptionId = GsonUtils.getString(subscription, "id");
-        final long periodEnd = subscription == null ? 0L : GsonUtils.getLong(subscription, "current_period_end") * 1000L;
-        final SubscriptionStatus status = StripeSupport.stripeStatusToLocal(subscription == null ? GsonUtils.getString(checkoutSession, "status") : GsonUtils.getString(subscription, "status"));
-
-        final var purchase = PurchaseTable.completePurchase(
-            purchaseToken,
-            GsonUtils.getString(checkoutSession, "id"),
-            GsonUtils.getString(checkoutSession, "customer"),
-            subscriptionId,
-            customerPayload.email(),
-            customerPayload.name(),
-            status,
-            periodEnd == 0L ? null : new java.util.Date(periodEnd)
-        );
-
-        if (purchase == null) {
-            ignore(handler, "missing pending purchase for token " + purchaseToken, false);
-            return;
-        }
-
-        final ObjectSubscription subscriptionRecord = SubscriptionTable.upsertSubscription(
-            purchase.customerEmail(),
-            purchase.customerName(),
-            purchase.stripeCustomerId(),
-            subscriptionId,
-            status,
-            periodEnd == 0L ? null : new java.util.Date(periodEnd)
-        );
-
-        // 2. Trigger GitHub Repo Creation & Team Addition Asynchronously
-        if (githubUsername != null && !githubUsername.isBlank()) {
-            final String finalGhUser = githubUsername.trim();
-            Thread.ofVirtual().start(() -> {
-                try {
-                    Console.log("Starting GitHub provisioning for: " + finalGhUser)
-                        .type(PhotonLogTypes.STRIPE)
-                        .container(PhotonEngine.LOGGER)
-                        .send();
-
-                    // Step A: Create the template repository
-                    new niwer.photon.web.api.github.CreateRepositoryRequest(finalGhUser).request();
-
-                    // Brief pause so GitHub finishes initializing the new repository
-                    Thread.sleep(2500);
-
-                    // Step B: Grant customer permissions (invite as collaborator)
-                    new niwer.photon.web.api.github.SetRepositoryPermissionsRequest(finalGhUser, "admin").request();
-
-                    // Step C: Add customer to organization team
-                    new niwer.photon.web.api.github.AddTeamMemberRequest(finalGhUser).request();
-
-                    Console.log("GitHub provisioning completed for: " + finalGhUser)
-                        .type(PhotonLogTypes.STRIPE)
-                        .container(PhotonEngine.LOGGER)
-                        .send();
-                } catch (Exception e) {
-                    Console.log("Failed GitHub provisioning for " + finalGhUser + ": " + e.getMessage())
-                        .type(PhotonLogTypes.STRIPE)
-                        .error()
-                        .container(PhotonEngine.LOGGER)
-                        .send();
-                }
-            });
-        }
-
-        handler.status(200).json(subscriptionRecord);
-    }
-
     private static void ignore(Context handler, String reason, boolean plainIgnoredResponse) {
         Console.log("Stripe webhook ignored: " + reason).type(PhotonLogTypes.STRIPE).error().container(PhotonEngine.LOGGER).send();
         handler.status(200).result(plainIgnoredResponse ? "ignored" : "missing customer email");
-    }
-    
-    public static String extractCustomField(JsonObject checkoutSession, String fieldKey) {
-        if (checkoutSession == null || !checkoutSession.has("custom_fields")) return null;
-        
-        try {
-            JsonArray customFields = checkoutSession.getAsJsonArray("custom_fields");
-            if (customFields == null) return null;
-
-            for (JsonElement el : customFields) {
-                JsonObject field = el.getAsJsonObject();
-                String key = GsonUtils.getString(field, "key");
-                
-                // Check if key matches (or falls back to text label)
-                if (fieldKey.equalsIgnoreCase(key)) {
-                    JsonObject textObj = field.getAsJsonObject("text");
-                    if (textObj != null && textObj.has("value")) {
-                        return textObj.get("value").getAsString().trim();
-                    }
-                }
-            }
-        } catch (Exception e) {
-            // Silently catch if parsing custom_fields fails
-        }
-        return null;
     }
 }

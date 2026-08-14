@@ -11,37 +11,6 @@ import niwer.photon.util.GsonUtils;
 public class EndpointUtils {
 
     /**
-     * Returns the first non-blank string from the provided arguments.
-     * If the first argument is non-blank, it is returned; otherwise, the fallback value is returned. If both are blank or null, null is returned.
-     * 
-     * @param first The first string to check for non-blank value
-     * @param fallback The fallback string to return if the first is blank or null
-     * @return The first non-blank string, or null if both are blank or null
-     */
-    public static String firstNonBlank(String first, String fallback) {
-        if (first != null && !first.isBlank()) return first;
-        if (fallback != null && !fallback.isBlank()) return fallback;
-        return null;
-    }
-
-    /**
-     * Returns the first non-blank string from the provided arguments.
-     * 
-     * @param first The first string to check for non-blank value
-     * @param second The second string to check for non-blank value
-     * @param third The third string to check for non-blank value
-     * @param fourth The fourth string to check for non-blank value
-     * @return The first non-blank string, or null if all are blank or null
-     */
-    public static String firstNonBlank(String first, String second, String third, String fourth) {
-		if (first != null && !first.isBlank()) return first;
-		if (second != null && !second.isBlank()) return second;
-		if (third != null && !third.isBlank()) return third;
-		if (fourth != null && !fourth.isBlank()) return fourth;
-		return null;
-	}
-
-    /**
      * Returns the first non-blank string from the provided array of strings.
      * 
      * @param values An array of strings to check for non-blank values

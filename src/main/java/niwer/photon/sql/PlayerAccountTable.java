@@ -231,17 +231,6 @@ public class PlayerAccountTable extends Table {
             .executeHasResult();
     }
 
-    public static void setGithubUsername(String uuid, String githubUsername) {
-        if (uuid == null || uuid.trim().isEmpty()) {
-            Console.log("Cannot update githubUsername with null/empty UUID").error().container(PhotonEngine.LOGGER).send();
-            return;
-        }
-        UpdateManager.update(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
-            .set("githubUsername", githubUsername)
-            .where(Expression.of("uuid").isEqualTo(uuid))
-            .execute();
-    }
-
     public static void setAdministrator(String uuid, boolean isAdministrator) {
         if (uuid == null || uuid.trim().isEmpty()) {
             Console.log("Cannot update administrator with null/empty UUID").error().container(PhotonEngine.LOGGER).send();

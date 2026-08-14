@@ -1,19 +1,16 @@
 package niwer.photon.web.endpoints.stripe;
 
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
 import niwer.lumen.Console;
 import niwer.photon.PhotonEngine;
+import niwer.photon.objects.stripe.StripeCustomer;
+import niwer.photon.objects.stripe.StripeSubscription;
+import niwer.photon.objects.stripe.StripeSubscriptionList;
 import niwer.photon.sql.SubscriptionTable;
-import niwer.photon.sql.SubscriptionTable.SubscriptionStatus;
-import niwer.photon.util.GsonUtils;
 import niwer.photon.util.PhotonLogTypes;
+import niwer.photon.web.api.stripe.StripeGetCustomerRequest;
 import niwer.photon.web.api.stripe.StripeListSubsRequests;
 
 public final class StripeStartupSync {
@@ -22,34 +19,26 @@ public final class StripeStartupSync {
 
     private StripeStartupSync() {}
 
-    public static void run(String apiKey) {
-        if (apiKey == null || apiKey.isBlank()) {
-            Console.log("Stripe startup sync skipped: stripe_api_key is not configured").type(PhotonLogTypes.STRIPE).container(PhotonEngine.LOGGER).send();
-            return;
-        }
-
+    public static void start() {
         int seenSubscriptions = 0;
         int upserted = 0;
         int skippedNoEmail = 0;
         int errors = 0;
 
         try {
-            final Map<String, JsonObject> LATEST_BY_EMAIL = new LinkedHashMap<>();
+            final Map<String, StripeSubscription> LATEST_BY_EMAIL = new LinkedHashMap<>();
             String startingAfter = null;
 
             while (true) {
-                final JsonObject page = new StripeListSubsRequests(startingAfter, PAGE_SIZE).request();
-                if (page == null) break;
+                final StripeSubscriptionList CONTAINER = new StripeListSubsRequests(startingAfter, PAGE_SIZE).request();
+                if (CONTAINER == null) break;
 
-                final JsonArray data = getArray(page, "data");
-                if (data == null || data.isEmpty()) break;
-
-                for (JsonElement element : data) {
-                    if (element == null || !element.isJsonObject()) continue;
-
+                /* Get all subscriptions from the list */
+                for (final StripeSubscription SUBSCRIPTION : CONTAINER.data()) {
+                    if (SUBSCRIPTION == null) continue;
                     seenSubscriptions++;
-                    final JsonObject subscription = element.getAsJsonObject();
-                    final StripeSupport.CustomerPayload customer = StripeSupport.resolveCustomerFromSubscription(apiKey, subscription);
+
+                    final StripeCustomer customer = StripeGetCustomerRequest.resolveCustomerFromSubscription(SUBSCRIPTION);
                     if (customer.email() == null || customer.email().isBlank()) {
                         skippedNoEmail++;
                         continue;
@@ -61,35 +50,33 @@ public final class StripeStartupSync {
                         continue;
                     }
 
-                    LATEST_BY_EMAIL.putIfAbsent(normalizedEmail, subscription);
+                    LATEST_BY_EMAIL.putIfAbsent(normalizedEmail, SUBSCRIPTION);
                 }
 
-                if (!GsonUtils.getBoolean(page, "has_more")) break;
-                startingAfter = GsonUtils.getString(data.get(data.size() - 1).getAsJsonObject(), "id");
+                if (!CONTAINER.hasMore()) break;
+
+                startingAfter = CONTAINER.last().id();
                 if (startingAfter == null || startingAfter.isBlank()) break;
             }
 
-            for (JsonObject subscription : LATEST_BY_EMAIL.values()) {
+            for (StripeSubscription subscription : LATEST_BY_EMAIL.values()) {
                 try {
-                    final StripeSupport.CustomerPayload customer = StripeSupport.resolveCustomerFromSubscription(apiKey, subscription);
+                    final StripeCustomer customer = StripeGetCustomerRequest.resolveCustomerFromSubscription(subscription);
                     final String email = SubscriptionTable.normalizeEmail(customer.email());
-                    final String subscriptionId = GsonUtils.getString(subscription, "id");
+                    final String subscriptionId = subscription.id();
 
                     if (email == null || email.isBlank() || subscriptionId == null || subscriptionId.isBlank()) {
                         skippedNoEmail++;
                         continue;
                     }
 
-                    final long periodEnd = GsonUtils.getLong(subscription, "current_period_end") * 1000L;
-                    final SubscriptionStatus status = StripeSupport.stripeStatusToLocal(GsonUtils.getString(subscription, "status"));
-
                     SubscriptionTable.upsertSubscription(
                         email,
                         customer.name(),
-                        customer.customerId(),
+                        customer.id(),
                         subscriptionId,
-                        status,
-                        periodEnd == 0L ? null : new Date(periodEnd)
+                        subscription.status(),
+                        null
                     );
                     upserted++;
                 } catch (Exception e) {
@@ -100,15 +87,6 @@ public final class StripeStartupSync {
             Console.log("Stripe startup sync finished: subscriptions=" + seenSubscriptions + ", upserted=" + upserted + ", skippedNoEmail=" + skippedNoEmail + ", errors=" + errors).type(PhotonLogTypes.STRIPE).container(PhotonEngine.LOGGER).send();
         } catch (Exception e) {
             Console.log("Stripe startup sync failed: " + e.getMessage()).type(PhotonLogTypes.STRIPE).error().container(PhotonEngine.LOGGER).send();
-        }
-    }
-
-    private static JsonArray getArray(JsonObject object, String key) {
-        if (object == null || key == null || !object.has(key) || object.get(key).isJsonNull()) return null;
-        try {
-            return object.getAsJsonArray(key);
-        } catch (Exception ignored) {
-            return null;
         }
     }
 }

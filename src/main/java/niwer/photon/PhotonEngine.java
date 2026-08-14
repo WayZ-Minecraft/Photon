@@ -125,7 +125,7 @@ public class PhotonEngine {
         DatabaseBackupManager.start();
 
         /* Repopulate Stripe subscriptions on startup */
-        StripeStartupSync.run(Directories.getConfig().stripe_api_key);
+        StripeStartupSync.start();
 
         /* Starting the discord bot if token available */
         if(Directories.getConfig().discord_bot_token !=null && !Directories.getConfig().discord_bot_token.isEmpty()) {

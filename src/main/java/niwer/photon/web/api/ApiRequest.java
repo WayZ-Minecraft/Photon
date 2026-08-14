@@ -17,7 +17,7 @@ import niwer.photon.web.HttpMethod;
  */
 public abstract class ApiRequest<T> {
 
-    private final HttpClient CLIENT;
+    private final transient HttpClient CLIENT;
 
     protected ApiRequest() {
         try {

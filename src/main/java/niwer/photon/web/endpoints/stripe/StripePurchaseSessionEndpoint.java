@@ -1,15 +1,10 @@
 package niwer.photon.web.endpoints.stripe;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import com.google.gson.JsonObject;
-
 import io.javalin.http.Context;
 import niwer.photon.Directories;
 import niwer.photon.objects.ObjectPurchase;
+import niwer.photon.objects.stripe.StripeCheckoutSession;
 import niwer.photon.sql.PurchaseTable;
-import niwer.photon.util.GsonUtils;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.api.stripe.StripeGetCheckoutSessionByIdRequest;
 import niwer.photon.web.endpoints.EndpointUtils;
@@ -43,43 +38,18 @@ public class StripePurchaseSessionEndpoint implements IEndpoint {
 		}
 
 		/* Resolve the checkout session by its ID */
-		final JsonObject checkoutSession = new StripeGetCheckoutSessionByIdRequest(checkoutSessionId).request();
+		final StripeCheckoutSession checkoutSession = new StripeGetCheckoutSessionByIdRequest(checkoutSessionId).request();
 		if (checkoutSession == null) {
 			handler.status(502).result("Unable to resolve checkout session");
 			return;
 		}
 
-		/* Determine the purchase reference */
-		final String purchaseReference = EndpointUtils.firstNonBlank(
-			GsonUtils.getString(checkoutSession, "client_reference_id"),
-			GsonUtils.getString(GsonUtils.getObject(checkoutSession, "metadata"), "purchase_token"),
-			GsonUtils.getString(GsonUtils.getObject(checkoutSession, "metadata"), "purchaseToken"),
-			GsonUtils.getString(checkoutSession, "id")
-		);
-
-		/* Resolve the customer information */
-		final StripeSupport.CustomerPayload customerPayload = StripeSupport.resolveCustomer(
-			apiKey,
-			GsonUtils.getString(checkoutSession, "customer"),
-			GsonUtils.getObject(checkoutSession, "metadata"),
-			EndpointUtils.firstNonBlank(GsonUtils.getString(GsonUtils.getObject(checkoutSession, "customer_details"), "email"), GsonUtils.getString(checkoutSession, "customer_email"))
-		);
-
-		final String customerName = EndpointUtils.firstNonBlank(customerPayload.name(), GsonUtils.getString(GsonUtils.getObject(checkoutSession, "customer_details"), "name"));
-
 		/* Ensure the purchase record exists */
-		final ObjectPurchase purchase = PurchaseTable.createOrRetrievePendingPurchase(purchaseReference, checkoutSessionId, customerPayload.email(), customerName);
+		final ObjectPurchase purchase = PurchaseTable.createOrRetrievePendingPurchase(checkoutSession.clientRefId(), checkoutSessionId, checkoutSession.customerDetails().email(), checkoutSession.customerDetails().name());
 		if (purchase == null) {
 			handler.status(500).result("Failed to seed purchase session");
 			return;
 		}
-
-		final Map<String, Object> response = new LinkedHashMap<>();
-		response.put("purchaseToken", purchase.purchaseToken());
-		response.put("checkoutSessionId", purchase.checkoutSessionId());
-		response.put("status", purchase.status());
-		response.put("customerEmail", purchase.customerEmail());
-		response.put("customerName", purchase.customerName());
-		handler.json(response);
+		handler.json(purchase.payload());
 	}
 }

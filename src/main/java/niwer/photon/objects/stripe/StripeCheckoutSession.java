@@ -15,9 +15,9 @@ public class StripeCheckoutSession {
 
     @SerializedName("id") private String id;
     @SerializedName("client_reference_id") private String clientRefId;
-    @SerializedName("custom_fields") private List<CustomField> customFields;
+    @SerializedName("custom_fields") private List<CustomField> customFields = List.of();
     @SerializedName("customer") private String customerID;
-    @SerializedName("customer_details") private CustomerDetails customerDetails;
+    @SerializedName("customer_details") private CustomerDetails customerDetails = new CustomerDetails();
     @SerializedName("customer_email") private String customerEmail;
     @SerializedName("invoice") private String invoiceId;
     @SerializedName("subscription") private String subscriptionId;
@@ -27,6 +27,12 @@ public class StripeCheckoutSession {
     public String clientRefId() { return this.clientRefId; }
 
     public List<CustomField> customFields() { return this.customFields; }
+
+    public CustomField getCustomFieldByKeys(String key) {
+        if (key == null || key.isBlank()) return new CustomField();
+        
+        return this.customFields.stream().filter(field -> key.equals(field.key())).findFirst().orElse(new CustomField());
+    }
 
     public String customerID() { return this.customerID; }
 
@@ -41,7 +47,7 @@ public class StripeCheckoutSession {
     public static class CustomField {
         @SerializedName("key") private String key;
         @SerializedName("optional") private boolean optional;
-        @SerializedName("text") private CustomFieldText text;
+        @SerializedName("text") private CustomFieldText text = new CustomFieldText();
 
         public String key() { return this.key; }
 
@@ -52,7 +58,7 @@ public class StripeCheckoutSession {
 
     public static class CustomFieldText {
         @SerializedName("default_value") private String defaultValue;
-        @SerializedName("value") private String value;
+        @SerializedName("value") private String value = "";
 
         public String defaultValue() { return this.defaultValue; }
 
@@ -61,7 +67,10 @@ public class StripeCheckoutSession {
 
     public static class CustomerDetails {
         @SerializedName("email") private String email;
+        @SerializedName("name") private String name;
 
         public String email() { return this.email; }
+
+        public String name() { return this.name; }
     }
 }

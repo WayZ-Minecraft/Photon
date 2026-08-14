@@ -4,7 +4,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import niwer.lumen.Console;
 import niwer.photon.Directories;
@@ -14,9 +13,9 @@ import niwer.photon.util.PhotonLogTypes;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.api.ApiRequest;
 
-public abstract class StripeApiRequest<T> extends ApiRequest<JsonObject> {
+public abstract class StripeApiRequest<T> extends ApiRequest<T> {
 
-    private final Class<T> TYPE_CLASS;
+    private transient final Class<T> TYPE_CLASS;
 
     protected StripeApiRequest(Class<T> responseType) { this.TYPE_CLASS = responseType; }
 
@@ -29,22 +28,11 @@ public abstract class StripeApiRequest<T> extends ApiRequest<JsonObject> {
     @Override
     public HttpMethod method() { return HttpMethod.GET; }
 
-    // @Override
-    // public T request() {
-    //     try {
-    //         final HttpResponse<String> RESPONSE = this.sendHttpRequest(HttpResponse.BodyHandlers.ofString());
-    //         if(RESPONSE.statusCode() == 200) return GsonUtils.GSON.fromJson(RESPONSE.body(), this.TYPE_CLASS);
-    //         else Console.log(String.format("Error (%d) : %s", RESPONSE.statusCode(), RESPONSE.body())).type(PhotonLogTypes.WEB_SERVER).container(PhotonEngine.LOGGER).send();
-    //     } catch (Exception e) {
-    //         e.printStackTrace();
-    //     }
-    //     return null;
-    // }
     @Override
-    public JsonObject request() {
+    public T request() {
         try {
             final HttpResponse<String> RESPONSE = this.sendHttpRequest(HttpResponse.BodyHandlers.ofString());
-            if(RESPONSE.statusCode() == 200) return JsonParser.parseString(RESPONSE.body()).getAsJsonObject();
+            if(RESPONSE.statusCode() == 200) return GsonUtils.GSON.fromJson(RESPONSE.body(), this.TYPE_CLASS);
             else Console.log(String.format("Error (%d) : %s", RESPONSE.statusCode(), RESPONSE.body())).type(PhotonLogTypes.WEB_SERVER).container(PhotonEngine.LOGGER).send();
         } catch (Exception e) {
             e.printStackTrace();

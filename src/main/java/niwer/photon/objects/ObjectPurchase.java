@@ -7,7 +7,7 @@ import niwer.queryon.SQLSerializable;
 import niwer.queryon.tables.api.IColumnField;
 import niwer.queryon.tables.api.IDefaultValue;
 
-public class ObjectPurchase extends SQLSerializable<ObjectPurchase> {
+public class ObjectPurchase extends SQLSerializable<ObjectPurchase> implements IPayloadProvider {
 
 	@IColumnField(name = "purchase_token", primaryKey = true, notNull = true)
 	private String purchaseToken;
@@ -21,7 +21,7 @@ public class ObjectPurchase extends SQLSerializable<ObjectPurchase> {
 	@IColumnField(name = "customer_name")
 	private String customerName;
 
-	@IColumnField(name = "stripe_customer_id")
+	@IColumnField(name = "stripe_customer_id", unique = true)
 	private String stripeCustomerId;
 
 	@IColumnField(name = "stripe_subscription_id")

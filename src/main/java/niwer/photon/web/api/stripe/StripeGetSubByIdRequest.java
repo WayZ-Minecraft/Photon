@@ -1,13 +1,15 @@
 package niwer.photon.web.api.stripe;
 
-public class StripeGetSubByIdRequest extends StripeApiRequest {
+import niwer.photon.objects.stripe.StripeSubscription;
+
+public class StripeGetSubByIdRequest extends StripeApiRequest<StripeSubscription> {
 
     private final String subscriptionId;
 
     public StripeGetSubByIdRequest(String subscriptionId) { this(subscriptionId, false); }
 
     public StripeGetSubByIdRequest(String payloadOrId, boolean isPayload) {
-        super(null);
+        super(StripeSubscription.class);
         this.subscriptionId = this.encode(isPayload ? extractDataObjectId(payloadOrId) : payloadOrId);
     }
 

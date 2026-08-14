@@ -33,16 +33,13 @@ public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
     @IColumnField(name = "administrator", defaultValue = @IDefaultValue(value = "false"))
     private boolean administrator;
 
-    @IColumnField(name = "githubUsername")
-    private String githubUsername;
-
     public static String generateAuthCode() { return new BigInteger(40, new SecureRandom()).toString(32); }
 
     public boolean hasDiscordLinked() { return this.discordID != null && !this.discordID.isEmpty(); }
 
     @Override
     public String toString() {
-        return String.format("User Account{username='%s', email='%s', uuid='%s', discordID='%s', administrator=%s, githubUsername=%s}", this.username, this.email, this.uuid, this.discordID, isAdministrator(), this.githubUsername());
+        return String.format("User Account{username='%s', email='%s', uuid='%s', discordID='%s', administrator=%s}", this.username, this.email, this.uuid, this.discordID, isAdministrator());
     }
 
     public String getUsername() { return this.username; }
@@ -59,9 +56,6 @@ public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
 
     public boolean isAdministrator() { return this.administrator; }
     public boolean getAdministrator() { return this.administrator; }
-
-    public String githubUsername() { return this.githubUsername; }
-    public String getGithubUsername() { return this.githubUsername; }
 
     public Map<String, Object> toPublicMap() {
         final Map<String, Object> response = new LinkedHashMap<>();

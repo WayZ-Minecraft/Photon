@@ -55,7 +55,7 @@ public class PurchaseTable extends Table {
 	 * @param expiresAt The date at which the purchase expires.
 	 * @return The updated purchase record, or null if the update failed.
 	 */
-	public static ObjectPurchase completePurchase(String purchaseToken, String checkoutSessionId, String stripeCustomerId, String stripeSubscriptionId, String customerEmail, String customerName, SubscriptionStatus status, Date expiresAt) {
+	public static ObjectPurchase completePurchase(String purchaseToken, String checkoutSessionId, String stripeCustomerId, String stripeSubscriptionId, String customerEmail, String customerName, SubscriptionStatus status, Date expiresAt, String githubUsername) {
 		ObjectPurchase current = getByPurchaseReference(purchaseToken);
 		if (current == null) current = createOrRetrievePendingPurchase(purchaseToken, checkoutSessionId, customerEmail, customerName);
 		if (current == null) return null;
@@ -69,6 +69,7 @@ public class PurchaseTable extends Table {
 			.set("status", status == null ? current.status() : status)
 			.set("expires_at", expiresAt)
 			.set("updated_at", new Date())
+			.set("github_username", githubUsername != null && !githubUsername.isBlank() ? githubUsername : current.githubUsername())
 			.where(Expression.of("purchase_token").isEqualTo(normalizeToken(purchaseToken)))
 			.execute();
 
@@ -86,6 +87,20 @@ public class PurchaseTable extends Table {
 		}
 
 		return updated;
+	}
+
+	/**
+	 * Retrieves a purchase record from the database based on the provided Stripe customer ID.
+	 * 
+	 * @param stripeCustomerId The Stripe customer ID associated with the purchase to retrieve.
+	 * @return An ObjectPurchase instance representing the purchase record, or null if no matching record is found.
+	 */
+	public static ObjectPurchase getByCustomerId(String stripeCustomerId) {
+		if (stripeCustomerId == null || stripeCustomerId.isBlank()) return null;
+		return SelectionManager.select(PhotonEngine.DATA_BASE, PurchaseTable.class)
+			.where(Expression.of("stripe_customer_id").isEqualTo(stripeCustomerId.trim()))
+			.limit(1)
+			.executeSerializable(ObjectPurchase.class);
 	}
 
 	/**
@@ -171,32 +186,6 @@ public class PurchaseTable extends Table {
 			.set("updated_at", new Date())
 			.where(Expression.of("purchase_token").isEqualTo(normalizeToken(purchaseToken)))
 			.execute();
-
-		// Trigger GitHub Automation (Async)
-		final String githubUser = account.getGithubUsername();
-		if (githubUser != null && !githubUser.isBlank()) {
-			Thread.ofVirtual().start(() -> {
-				try {
-					// Generate repo from template
-					new niwer.photon.web.api.github.CreateRepositoryRequest(githubUser).request();
-					
-					// Small sleep to ensure GitHub registers the repository
-					Thread.sleep(2000);
-
-					// Set repository permissions (invite as collaborator)
-					new niwer.photon.web.api.github.SetRepositoryPermissionsRequest(githubUser, "admin").request();
-
-					// Add to organization customer team
-					new niwer.photon.web.api.github.AddTeamMemberRequest(githubUser).request();
-				} catch (Exception e) {
-					Console.log("GitHub provisioning failed for " + githubUser + ": " + e.getMessage())
-						.type(PhotonLogTypes.WEB_SERVER)
-						.error()
-						.container(PhotonEngine.LOGGER)
-						.send();
-				}
-			});
-		}
 
 		return true;
 	}

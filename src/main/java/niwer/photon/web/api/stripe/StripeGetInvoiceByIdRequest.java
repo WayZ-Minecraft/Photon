@@ -1,18 +1,20 @@
 package niwer.photon.web.api.stripe;
 
+import niwer.photon.objects.stripe.StripeInvoice;
+
 /**
  * This class is used to retrieve a specific invoice from Stripe by its ID.
  * 
  * @author Niwer
  */
-public class StripeGetInvoiceByIdRequest extends StripeApiRequest {
+public class StripeGetInvoiceByIdRequest extends StripeApiRequest<StripeInvoice> {
 
     private final String invoiceId;
 
     public StripeGetInvoiceByIdRequest(String invoiceId) { this(invoiceId, false); }
 
     public StripeGetInvoiceByIdRequest(String payloadOrId, boolean isPayload) {
-        super(null);
+        super(StripeInvoice.class);
         this.invoiceId = this.encode(isPayload ? extractDataObjectId(payloadOrId) : payloadOrId);
     }
 

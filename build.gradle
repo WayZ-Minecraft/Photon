@@ -44,6 +44,7 @@ tasks.named('test') {
 
 /* Generate JAR */
 jar {
+	enabled = false
 	duplicatesStrategy 'exclude'
    	manifest { attributes([ "Main-Class": "niwer.photon.PhotonEngine" ]) }
 }

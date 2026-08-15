@@ -29,7 +29,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Build Project
-        run: ./gradlew build
+        run: ./gradlew shadowJar # Calling shadow directly may fix the 3MB release file spawning from nowhere...
 
       # Connecting to GitHub Container Registry
       - name: Log in to GitHub Container Registry

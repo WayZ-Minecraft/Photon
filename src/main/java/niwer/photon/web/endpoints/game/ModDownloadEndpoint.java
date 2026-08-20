@@ -3,6 +3,7 @@ package niwer.photon.web.endpoints.game;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import io.javalin.http.Context;
 import niwer.lumen.Console;
@@ -24,6 +25,8 @@ public class ModDownloadEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context ctx) {
+        IEndpoint.setupRateLimit(ctx, 10, TimeUnit.MINUTES);
+
         /* Check if a channel was provided as query parameter */
         final var QUERY_CHANNEL = ctx.queryParam("channel");
 

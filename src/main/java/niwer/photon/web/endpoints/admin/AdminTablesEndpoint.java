@@ -1,6 +1,7 @@
 package niwer.photon.web.endpoints.admin;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import io.javalin.http.Context;
 import niwer.photon.util.session.AdminSessionManager;
@@ -26,6 +27,8 @@ public class AdminTablesEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
+        IEndpoint.setupRateLimit(handler, 5, TimeUnit.MINUTES);
+
         if (AdminSessionManager.requireAdministrator(handler) == null) return;
         handler.json(TABLES);
     }

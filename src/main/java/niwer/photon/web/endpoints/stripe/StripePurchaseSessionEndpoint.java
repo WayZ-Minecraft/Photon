@@ -1,5 +1,7 @@
 package niwer.photon.web.endpoints.stripe;
 
+import java.util.concurrent.TimeUnit;
+
 import io.javalin.http.Context;
 import niwer.photon.Directories;
 import niwer.photon.objects.ObjectPurchase;
@@ -24,6 +26,8 @@ public class StripePurchaseSessionEndpoint implements IEndpoint {
 
 	@Override
 	public void handle(Context handler) {
+		IEndpoint.setupRateLimit(handler, 15, TimeUnit.SECONDS);
+
 		final String checkoutSessionId = EndpointUtils.firstNonBlank(handler.formParam("checkoutSessionId"), handler.formParam("token"), handler.queryParam("checkoutSessionId"), handler.queryParam("token"));
 		if (checkoutSessionId == null || checkoutSessionId.isBlank()) {
 			handler.status(400).result("Missing checkout session id");

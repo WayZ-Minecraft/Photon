@@ -1,5 +1,7 @@
 package niwer.photon.web.endpoints.game;
 
+import java.util.concurrent.TimeUnit;
+
 import io.javalin.http.Context;
 import niwer.photon.Directories;
 import niwer.photon.Directories.NetworkConfig;
@@ -15,6 +17,8 @@ public class InfoEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
+        IEndpoint.setupRateLimit(handler, 5, TimeUnit.MINUTES);
+        
         final NetworkConfig CONFIG = Directories.getConfig();
         handler.json(new Config(CONFIG));
     }

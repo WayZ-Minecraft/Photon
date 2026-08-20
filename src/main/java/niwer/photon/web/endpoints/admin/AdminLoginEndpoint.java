@@ -1,5 +1,7 @@
 package niwer.photon.web.endpoints.admin;
 
+import java.util.concurrent.TimeUnit;
+
 import io.javalin.http.Context;
 import niwer.photon.util.GsonUtils;
 import niwer.photon.util.session.AdminSessionManager;
@@ -16,6 +18,8 @@ public class AdminLoginEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
+        IEndpoint.setupRateLimit(handler, 5, TimeUnit.MINUTES);
+
         final Credentials credentials = readCredentials(handler);
         if (credentials == null || credentials.email == null || credentials.password == null) {
             handler.status(400).result("Missing parameters");

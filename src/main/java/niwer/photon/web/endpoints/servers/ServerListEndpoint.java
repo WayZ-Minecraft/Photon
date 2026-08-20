@@ -1,5 +1,7 @@
 package niwer.photon.web.endpoints.servers;
 
+import java.util.concurrent.TimeUnit;
+
 import io.javalin.http.Context;
 import niwer.photon.sql.ServerTable;
 import niwer.photon.web.HttpMethod;
@@ -13,6 +15,7 @@ public class ServerListEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
+        IEndpoint.setupRateLimit(handler, 5, TimeUnit.MINUTES);
         handler.json(ServerTable.getVisibleServers());
     }
 }

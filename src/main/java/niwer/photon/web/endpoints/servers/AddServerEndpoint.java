@@ -1,5 +1,7 @@
 package niwer.photon.web.endpoints.servers;
 
+import java.util.concurrent.TimeUnit;
+
 import io.javalin.http.Context;
 import niwer.photon.objects.ObjectServer;
 import niwer.photon.sql.ServerTable;
@@ -8,16 +10,26 @@ import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
 /**
- * Endpoint for adding or updating a server in the database. The server must provide its IP, port, name, and optionally a MOTD. The IP must match the request's remote IP for security reasons.
+ * Endpoint for adding or updating a server in the database. The server must
+ * provide its IP, port, name, and optionally a MOTD. The IP must match the
+ * request's remote IP for security reasons.
  */
 public class AddServerEndpoint implements IEndpoint {
 
-    @Override public String path() { return "/servers/add-server"; }
+    @Override
+    public String path() {
+        return "/servers/add-server";
+    }
 
-    @Override public HttpMethod method() { return HttpMethod.POST; }
+    @Override
+    public HttpMethod method() {
+        return HttpMethod.POST;
+    }
 
     @Override
     public void handle(Context handler) {
+        IEndpoint.setupRateLimit(handler, 5, TimeUnit.MINUTES);
+
         final ObjectServer server;
         try {
             server = GsonUtils.GSON.fromJson(handler.body(), ObjectServer.class);
@@ -32,9 +44,11 @@ public class AddServerEndpoint implements IEndpoint {
         }
 
         // final String remoteIp = handler.ip();
-        // if (server.serverIP == null || server.serverIP.isBlank() || !server.serverIP.equals(remoteIp)) {
-        //     handler.status(403).result(String.format("Server IP mismatch (Sender: %s isn't equal to server: %s)", handler.ip(), server.serverIP));
-        //     return;
+        // if (server.serverIP == null || server.serverIP.isBlank() ||
+        // !server.serverIP.equals(remoteIp)) {
+        // handler.status(403).result(String.format("Server IP mismatch (Sender: %s
+        // isn't equal to server: %s)", handler.ip(), server.serverIP));
+        // return;
         // }
 
         if (server.serverPort <= 0 || server.serverPort > 65535) {

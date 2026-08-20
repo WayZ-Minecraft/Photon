@@ -1,5 +1,7 @@
 package niwer.photon.web.endpoints.admin;
 
+import java.util.concurrent.TimeUnit;
+
 import io.javalin.http.Context;
 import niwer.photon.util.session.AdminSessionManager;
 import niwer.photon.web.HttpMethod;
@@ -13,6 +15,8 @@ public class AdminMeEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
+        IEndpoint.setupRateLimit(handler, 10, TimeUnit.MINUTES);
+
         final var account = AdminSessionManager.requireAdministrator(handler);
         if (account == null) return;
 

@@ -1,6 +1,7 @@
 package niwer.photon.web.endpoints.accounts;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import io.javalin.http.Context;
 import niwer.photon.sql.SubscriptionTable;
@@ -16,6 +17,8 @@ public class UserMeEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
+        IEndpoint.setupRateLimit(handler, 10, TimeUnit.MINUTES);
+
         final var account = UserSessionManager.requireAccount(handler);
         if (account == null) return;
 

@@ -1,5 +1,7 @@
 package niwer.photon.web.endpoints.accounts;
 
+import java.util.concurrent.TimeUnit;
+
 import io.javalin.http.Context;
 import niwer.photon.objects.ObjectSubscription;
 import niwer.photon.objects.ObjectUserAccount;
@@ -24,6 +26,8 @@ public class AuthAccountEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
+        IEndpoint.setupRateLimit(handler, 5, TimeUnit.MINUTES);
+
         final String email = handler.formParam("email");
         final String password = handler.formParam("password");
         final String checkoutSessionId = firstNonBlank(handler.formParam("checkoutSessionId"), handler.formParam("token"));

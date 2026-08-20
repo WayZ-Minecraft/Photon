@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import io.javalin.http.Context;
 import niwer.photon.PhotonEngine;
@@ -22,6 +23,8 @@ public class AdminTableDataEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
+        IEndpoint.setupRateLimit(handler, 5, TimeUnit.MINUTES);
+
         if (AdminSessionManager.requireAdministrator(handler) == null) return;
 
         final String tableName = handler.pathParam("table");

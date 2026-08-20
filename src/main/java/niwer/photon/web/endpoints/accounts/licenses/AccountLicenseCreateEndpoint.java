@@ -1,5 +1,7 @@
 package niwer.photon.web.endpoints.accounts.licenses;
 
+import java.util.concurrent.TimeUnit;
+
 import com.google.gson.JsonObject;
 
 import io.javalin.http.Context;
@@ -21,6 +23,8 @@ public class AccountLicenseCreateEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
+        IEndpoint.setupRateLimit(handler, 10, TimeUnit.SECONDS);
+
         final var account = UserSessionManager.requireAccount(handler);
         if (account == null) return;
         if (!SubscriptionTable.isActive(account.getEmail(), account.getUuid())) {

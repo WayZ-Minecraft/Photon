@@ -1,5 +1,6 @@
 package niwer.photon.web.endpoints.accounts;
 
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import io.javalin.http.Context;
@@ -26,6 +27,8 @@ public class CreateAccountEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
+        IEndpoint.setupRateLimit(handler, 5, TimeUnit.MINUTES);
+        
         final String username = handler.formParam("username");
         final String email = handler.formParam("email");
         final String password = handler.formParam("password");

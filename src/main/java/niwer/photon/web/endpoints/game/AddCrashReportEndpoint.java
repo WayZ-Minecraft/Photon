@@ -1,5 +1,7 @@
 package niwer.photon.web.endpoints.game;
 
+import java.util.concurrent.TimeUnit;
+
 import io.javalin.http.Context;
 import niwer.lumen.Console;
 import niwer.photon.PhotonEngine;
@@ -17,6 +19,8 @@ public class AddCrashReportEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
+        IEndpoint.setupRateLimit(handler, 10, TimeUnit.MINUTES);
+
         final String FILE_MESSAGE = handler.formParam("fileMessage");
         final String USER_UUID = handler.formParam("userUUID");
         final String SIDE = handler.formParam("side");

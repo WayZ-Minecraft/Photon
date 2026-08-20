@@ -1,5 +1,7 @@
 package niwer.photon.web.endpoints.admin;
 
+import java.util.concurrent.TimeUnit;
+
 import io.javalin.http.Context;
 import niwer.photon.Directories;
 import niwer.photon.util.GsonUtils;
@@ -15,6 +17,8 @@ public class AdminUpdateConfigEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
+        IEndpoint.setupRateLimit(handler, 5, TimeUnit.MINUTES);
+
         if (AdminSessionManager.requireAdministrator(handler) == null) return;
         if (!AdminSessionManager.validateCsrf(handler)) { handler.status(403).result("Invalid CSRF token"); return; }
 

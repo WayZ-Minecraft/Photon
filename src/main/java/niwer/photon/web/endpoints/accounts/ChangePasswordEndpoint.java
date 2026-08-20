@@ -1,5 +1,7 @@
 package niwer.photon.web.endpoints.accounts;
 
+import java.util.concurrent.TimeUnit;
+
 import io.javalin.http.Context;
 import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
@@ -15,6 +17,8 @@ public class ChangePasswordEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
+        IEndpoint.setupRateLimit(handler, 5, TimeUnit.MINUTES);
+
         final PasswordChangeRequest request;
         try {
             request = GsonUtils.GSON.fromJson(handler.body(), PasswordChangeRequest.class);

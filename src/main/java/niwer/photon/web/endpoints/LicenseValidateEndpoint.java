@@ -1,6 +1,7 @@
 package niwer.photon.web.endpoints;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import io.javalin.http.Context;
 import niwer.photon.util.license.LicenseManager;
@@ -19,6 +20,8 @@ public class LicenseValidateEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
+        IEndpoint.setupRateLimit(handler, 15, TimeUnit.SECONDS);
+
         final Map<String, Object> body = EndpointUtils.parseBody(handler.body());
 
         /* Get the license key */

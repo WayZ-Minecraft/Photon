@@ -3,6 +3,7 @@ package niwer.photon.web.endpoints.admin;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.concurrent.TimeUnit;
 
 import io.javalin.http.Context;
 import niwer.photon.Directories;
@@ -20,6 +21,8 @@ public class AdminUpdateEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
+        IEndpoint.setupRateLimit(handler, 5, TimeUnit.MINUTES);
+
         final String typeParam = handler.queryParam("type");
         final String channelParam = handler.queryParam("channel");
         final boolean metadataOnly = Boolean.parseBoolean(handler.queryParam("metadata")); // If true, only return metadata (SHA-1 and size) without the file content

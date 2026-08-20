@@ -1,7 +1,10 @@
 package niwer.photon.web.endpoints;
 
+import java.util.concurrent.TimeUnit;
+
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
+import io.javalin.plugin.bundled.RateLimitPlugin;
 import niwer.photon.web.HttpMethod;
 
 /**
@@ -30,6 +33,18 @@ public interface IEndpoint {
      * @param handler The Javalin Context object representing the incoming request and response. The handler should use this object to read request data and set the response.
      */
     void handle(Context handler);
+
+    /**
+     * Sets up a rate limit for the given handler.
+     * This method configures the RateLimitPlugin to allow a specified number of requests per time unit.
+     * 
+     * @param handler The Javalin Context object representing the incoming request and response.
+     * @param numRequests The maximum number of requests allowed within the specified time unit.
+     * @param unit The time unit for the rate limit (e.g., TimeUnit.MINUTES, TimeUnit.SECONDS).
+     */
+    public static void setupRateLimit(Context handler, int numRequests, TimeUnit unit) {
+        handler.with(RateLimitPlugin.class).requestPerTimeUnit(numRequests, unit);
+    }
 
     /**
      * Registers the given endpoint class with the provided JavalinConfig. The endpoint class must have a no-argument constructor.

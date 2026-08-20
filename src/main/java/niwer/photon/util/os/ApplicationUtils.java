@@ -9,12 +9,16 @@ import java.util.TimerTask;
 
 import javax.swing.JOptionPane;
 
-import niwer.photon.PhotonEngine;
-
 import niwer.lumen.Console;
 import niwer.lumen.types.DefaultLogTypes;
+import niwer.photon.PhotonEngine;
 
+/**
+ * @author Niwer
+ */
 public class ApplicationUtils {
+
+	private ApplicationUtils() {}
 
 	public static void restart(Class<?> clazz, String... commands) { restart(clazz, 1500L, commands); }
 	

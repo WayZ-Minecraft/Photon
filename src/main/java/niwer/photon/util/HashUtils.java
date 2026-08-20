@@ -12,6 +12,9 @@ import java.util.Arrays;
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
 
+/**
+ * @author Niwer
+ */
 public final class HashUtils {
 
     private static final int ITERATIONS = 3;
@@ -82,6 +85,8 @@ public final class HashUtils {
      * @throws IOException if an I/O error occurs reading the file
      */
     public static String hashFile(Path file) throws IOException {
+        if(file == null || !Files.exists(file) || !Files.isRegularFile(file)) throw new IllegalArgumentException("Invalid file path provided for hashing.");
+
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             try (InputStream IS = Files.newInputStream(file); DigestInputStream DIS = new DigestInputStream(IS, digest)) {

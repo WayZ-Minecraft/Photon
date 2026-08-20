@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Base64;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.imageio.ImageIO;
 
@@ -35,6 +36,8 @@ public class Directories
 	public static File configFile = new File(BASE_DIR + "/config.json");
 	
 	public static NetworkConfig getConfig() { return config == null ? NetworkConfig.DEFAULT : config; }
+
+	private Directories() {}
 
     /**
      * Load all directories and files
@@ -131,6 +134,7 @@ public class Directories
 		/* Web Server */
 		@SerializedName("webserver_host") public String webserver_host = null; // null = all interfaces,
 		@SerializedName("webserver_port") public int webserver_port = 7070;
+		@SerializedName("webserver_api_key") public String webserver_api_key = UUID.randomUUID().toString(); // We're generating a random signature on the first launch, and then saving it in the config file. This signature is used to secure the endpoints, and should be kept secret.
 
 		/* Database backups */
 		@SerializedName("database_backup_enabled") public boolean database_backup_enabled = Boolean.TRUE;
@@ -149,6 +153,13 @@ public class Directories
 		@SerializedName("github_template_owner") public String github_template_owner = ""; // The owner of the template repository to use when creating new repositories for users
 		@SerializedName("github_new_repo_owner") public String github_new_repo_owner = ""; // The owner of the new repository to create
 		@SerializedName("github_customer_team") public String github_customer_team = "customers"; // The team slug for the "customers" team in the GitHub organization
+
+		/* Mail */
+		@SerializedName("mail_sender_email") public String mail_sender_email = "sender@example.org";
+		@SerializedName("mail_smtp_host") public String mail_smtp_host = "";
+		@SerializedName("mail_smtp_port") public int mail_smtp_port = 587;
+		@SerializedName("mail_username") public String mail_username = "";
+		@SerializedName("mail_password") public String mail_password = "";
 
 		/* Stripe */
 		@SerializedName("stripe_api_key") public String stripe_api_key = "";
@@ -170,6 +181,21 @@ public class Directories
 		@SerializedName("terms_of_sale_url") public String terms_of_sale_url = "";
 		@SerializedName("privacy_policy_url") public String privacy_policy_url = "";
 
+		public boolean isEmpty() {
+			return this.equals(NetworkConfig.DEFAULT);
+		}
+
 		public String dbBackupFilePrefix() { return database_backup_file_prefix != null && !database_backup_file_prefix.isBlank() ? database_backup_file_prefix : "db_backup"; }
+
+		public boolean hasEmailConfig() {
+			return mail_sender_email != null && !mail_sender_email.isBlank() &&
+				mail_smtp_host != null && !mail_smtp_host.isBlank() &&
+				mail_username != null && !mail_username.isBlank() &&
+				mail_password != null && !mail_password.isBlank();
+		}
+
+		public boolean hasBotToken() {
+			return discord_bot_token != null && !discord_bot_token.isBlank();
+		}
 	}
 }

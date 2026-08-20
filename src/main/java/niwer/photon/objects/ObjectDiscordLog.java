@@ -6,6 +6,9 @@ import niwer.queryon.SQLSerializable;
 import niwer.queryon.tables.api.IColumnField;
 import niwer.queryon.tables.api.IDefaultValue;
 
+/**
+ * @author Niwer 
+ */
 public class ObjectDiscordLog extends SQLSerializable<ObjectDiscordLog> {
 
     @IColumnField(name = "id", primaryKey = true, autoIncrement = true)

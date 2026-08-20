@@ -13,6 +13,9 @@ import niwer.queryon.SQLSerializable;
 import niwer.queryon.tables.api.IColumnField;
 import niwer.queryon.tables.api.IDefaultValue;
 
+/**
+ * @author Niwer 
+ */
 public class ObjectLicense extends SQLSerializable<ObjectLicense> implements IPayloadProvider {
 	@IColumnField(name = "license_key", primaryKey = true, notNull = true)
 	private String licenseKey;

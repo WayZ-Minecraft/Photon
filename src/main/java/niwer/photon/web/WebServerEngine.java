@@ -43,74 +43,77 @@ import niwer.photon.web.endpoints.stripe.StripeWebhookEndpoint;
 public class WebServerEngine {
 
     public static void load() {
-        /* Change debug level */
-        {
-            PhotonLogTypes.silenceLogsFor("io.javalin");
-            PhotonLogTypes.silenceLogsFor("org.eclipse.jetty");
-        }
-
-        /* Load admin sessions */
-        AdminSessionManager.load();
-        UserSessionManager.load();
-
-        /* Create the web server */
-        final var WEB_SERVER = Javalin.create(cfg -> {
-            /* Set the static files directory (index.html, main.css, main.js, etc.) */
-            cfg.staticFiles.add("/public");
-
-            /* Endpoints */
-            IEndpoint.register(cfg, HomeEndpoint.class);
-            IEndpoint.register(cfg, StatusServersEndpoint.class);
-            IEndpoint.register(cfg, InfoEndpoint.class);
-            IEndpoint.register(cfg, AddCrashReportEndpoint.class);
-            IEndpoint.register(cfg, AddAntiCheatReportEndpoint.class);
-            IEndpoint.register(cfg, AddHWIDEndpoint.class);
-            IEndpoint.register(cfg, LicenseValidateEndpoint.class);
-            IEndpoint.register(cfg, AdminUpdateEndpoint.class);
-            IEndpoint.register(cfg, ModDownloadEndpoint.class);
+        Thread thread = new Thread(() -> {
+            /* Change debug level */
             {
-                /* Admin panel */
-                IEndpoint.register(cfg, AdminLoginEndpoint.class);
-                IEndpoint.register(cfg, AdminMeEndpoint.class);
-                IEndpoint.register(cfg, AdminConfigEndpoint.class);
-                IEndpoint.register(cfg, AdminUpdateConfigEndpoint.class);
-                IEndpoint.register(cfg, AdminUploadUpdateEndpoint.class);
-                IEndpoint.register(cfg, AdminRestartEndpoint.class);
-                IEndpoint.register(cfg, AdminTablesEndpoint.class);
-                IEndpoint.register(cfg, AdminTableDataEndpoint.class);
-            }
-            {
-                /* Stripe */
-                IEndpoint.register(cfg, StripePurchaseSessionEndpoint.class);
-                IEndpoint.register(cfg, StripeWebhookEndpoint.class);
-            }
-            {
-                /* Accounts */
-                IEndpoint.register(cfg, CreateAccountEndpoint.class);
-                IEndpoint.register(cfg, AuthAccountEndpoint.class);
-                IEndpoint.register(cfg, UserMeEndpoint.class);
-                IEndpoint.register(cfg, ChangePasswordEndpoint.class);
-                IEndpoint.register(cfg, UpdateProfileEndpoint.class);
-                IEndpoint.register(cfg, AccountLicenseListEndpoint.class);
-                IEndpoint.register(cfg, AccountLicenseCreateEndpoint.class);
-                IEndpoint.register(cfg, AccountLicenseRevokeEndpoint.class);
-            }
-            {
-                /* Servers */
-                IEndpoint.register(cfg, AddServerEndpoint.class);
-                IEndpoint.register(cfg, ServerListEndpoint.class);
+                PhotonLogTypes.silenceLogsFor("io.javalin");
+                PhotonLogTypes.silenceLogsFor("org.eclipse.jetty");
             }
 
-            /* Force Configure Jetty */
-            cfg.jetty.host = Directories.getConfig().webserver_host;
-            cfg.jetty.port = Directories.getConfig().webserver_port;
-            cfg.jetty.modifyHttpConfiguration(httpConfig -> httpConfig.addCustomizer(new ForwardedRequestCustomizer()));
-        });
+            /* Load admin sessions */
+            AdminSessionManager.load();
+            UserSessionManager.load();
 
-        /* Start the web server */
-        WEB_SERVER.start(Directories.getConfig().webserver_host, Directories.getConfig().webserver_port);
+            /* Create the web server */
+            final var WEB_SERVER = Javalin.create(cfg -> {
+                /* Set the static files directory (index.html, main.css, main.js, etc.) */
+                cfg.staticFiles.add("/public");
 
-        Console.log(getServingBox(Directories.getConfig().webserver_port)).container(PhotonEngine.LOGGER).type(PhotonLogTypes.WEB_SERVER).send();
+                /* Endpoints */
+                IEndpoint.register(cfg, HomeEndpoint.class);
+                IEndpoint.register(cfg, StatusServersEndpoint.class);
+                IEndpoint.register(cfg, InfoEndpoint.class);
+                IEndpoint.register(cfg, AddCrashReportEndpoint.class);
+                IEndpoint.register(cfg, AddAntiCheatReportEndpoint.class);
+                IEndpoint.register(cfg, AddHWIDEndpoint.class);
+                IEndpoint.register(cfg, LicenseValidateEndpoint.class);
+                IEndpoint.register(cfg, AdminUpdateEndpoint.class);
+                IEndpoint.register(cfg, ModDownloadEndpoint.class);
+                {
+                    /* Admin panel */
+                    IEndpoint.register(cfg, AdminLoginEndpoint.class);
+                    IEndpoint.register(cfg, AdminMeEndpoint.class);
+                    IEndpoint.register(cfg, AdminConfigEndpoint.class);
+                    IEndpoint.register(cfg, AdminUpdateConfigEndpoint.class);
+                    IEndpoint.register(cfg, AdminUploadUpdateEndpoint.class);
+                    IEndpoint.register(cfg, AdminRestartEndpoint.class);
+                    IEndpoint.register(cfg, AdminTablesEndpoint.class);
+                    IEndpoint.register(cfg, AdminTableDataEndpoint.class);
+                }
+                {
+                    /* Stripe */
+                    IEndpoint.register(cfg, StripePurchaseSessionEndpoint.class);
+                    IEndpoint.register(cfg, StripeWebhookEndpoint.class);
+                }
+                {
+                    /* Accounts */
+                    IEndpoint.register(cfg, CreateAccountEndpoint.class);
+                    IEndpoint.register(cfg, AuthAccountEndpoint.class);
+                    IEndpoint.register(cfg, UserMeEndpoint.class);
+                    IEndpoint.register(cfg, ChangePasswordEndpoint.class);
+                    IEndpoint.register(cfg, UpdateProfileEndpoint.class);
+                    IEndpoint.register(cfg, AccountLicenseListEndpoint.class);
+                    IEndpoint.register(cfg, AccountLicenseCreateEndpoint.class);
+                    IEndpoint.register(cfg, AccountLicenseRevokeEndpoint.class);
+                }
+                {
+                    /* Servers */
+                    IEndpoint.register(cfg, AddServerEndpoint.class);
+                    IEndpoint.register(cfg, ServerListEndpoint.class);
+                }
+
+                /* Force Configure Jetty */
+                cfg.jetty.host = Directories.getConfig().webserver_host;
+                cfg.jetty.port = Directories.getConfig().webserver_port;
+                cfg.jetty.modifyHttpConfiguration(httpConfig -> httpConfig.addCustomizer(new ForwardedRequestCustomizer()));
+            });
+
+            /* Start the web server */
+            WEB_SERVER.start(Directories.getConfig().webserver_host, Directories.getConfig().webserver_port);
+
+            Console.log(getServingBox(Directories.getConfig().webserver_port)).container(PhotonEngine.LOGGER).type(PhotonLogTypes.WEB_SERVER).send();
+        }, "Web Server Thread");
+        thread.start();
     }
 
     /**

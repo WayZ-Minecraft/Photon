@@ -4,6 +4,9 @@ import java.util.List;
 
 import com.google.gson.annotations.SerializedName;
 
+/**
+ * @author Niwer 
+ */
 public class StripeSubscriptionList {
 
     @SerializedName("data") public List<StripeSubscription> data;

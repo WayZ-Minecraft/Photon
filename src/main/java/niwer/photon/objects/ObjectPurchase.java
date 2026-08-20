@@ -7,6 +7,9 @@ import niwer.queryon.SQLSerializable;
 import niwer.queryon.tables.api.IColumnField;
 import niwer.queryon.tables.api.IDefaultValue;
 
+/**
+ * @author Niwer 
+ */
 public class ObjectPurchase extends SQLSerializable<ObjectPurchase> implements IPayloadProvider {
 
 	@IColumnField(name = "purchase_token", primaryKey = true, notNull = true)

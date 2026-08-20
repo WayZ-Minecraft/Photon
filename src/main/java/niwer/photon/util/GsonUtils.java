@@ -5,10 +5,15 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+/**
+ * @author Niwer
+ */
 public class GsonUtils {
 
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();	
 	public static final Gson PRETTY_GSON = new GsonBuilder().setPrettyPrinting().create();
+
+    private GsonUtils() {}
 
     /**
      * Parses a JSON string into a JsonObject. Returns null if the input is null, blank, or cannot be parsed.

@@ -2,6 +2,9 @@ package niwer.photon.objects.stripe;
 
 import com.google.gson.annotations.SerializedName;
 
+/**
+ * @author Niwer 
+ */
 public class StripeInvoice {
 
     @SerializedName("id") private String id;

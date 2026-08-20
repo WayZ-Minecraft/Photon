@@ -10,6 +10,9 @@ import niwer.queryon.SQLSerializable;
 import niwer.queryon.tables.api.IColumnField;
 import niwer.queryon.tables.api.IDefaultValue;
 
+/**
+ * @author Niwer 
+ */
 public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
 
     @IColumnField(name = "username", notNull = true)

@@ -33,6 +33,11 @@ import niwer.photon.web.WebServerEngine;
 import niwer.photon.web.endpoints.stripe.StripeStartupSync;
 import niwer.queryon.DataBase;
 
+/**
+ * Main entry point. This class is responsible for initializing stuff, loading features, registering database tables, starting the Discord bot, and launching the web API and server.
+ * 
+ * @author Niwer
+ */
 public class PhotonEngine {
 
     private static volatile String currentIP = null;
@@ -128,18 +133,12 @@ public class PhotonEngine {
         StripeStartupSync.start();
 
         /* Starting the discord bot if token available */
-        if(Directories.getConfig().discord_bot_token !=null && !Directories.getConfig().discord_bot_token.isEmpty()) {
-            try {
-                BotEngine.load(Arrays.asList(args).contains("--restart"));
-                Console.log("Discord Bot started successfully").type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
-            } catch (Exception e) {
-                Console.log("Failed to start Discord Bot: " + e.getMessage()).type(PhotonLogTypes.NETWORK).error().container(PhotonEngine.LOGGER).send();
-                e.printStackTrace();
-            }
-        } else Console.log("Discord Bot token not configured, skipping bot startup").type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
+        BotEngine.load(Arrays.asList(args).contains("--restart"));
 
         /* Starts the web API and Server */
         WebServerEngine.load();
+
+        /* Log that the network server is running */
         Console.log("Network Server is now running and waiting for connections...").type(PhotonLogTypes.NETWORK).sendToProcessor().container(PhotonEngine.LOGGER).send();
     }
 }

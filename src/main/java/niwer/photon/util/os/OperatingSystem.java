@@ -4,11 +4,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 
+import niwer.photon.util.HashUtils;
+
+/**
+ * @author Niwer
+ */
 public enum OperatingSystem {
 
 	LINUX("linux", "unix"),
@@ -83,7 +87,7 @@ public enum OperatingSystem {
 	 */
 	public static String getHWID() {
 		final String toEncrypt = System.getenv("COMPUTERNAME") + System.getProperty("user.name") + System.getenv("PROCESSOR_IDENTIFIER") + System.getenv("PROCESSOR_LEVEL");
-		return hash(toEncrypt);
+		return HashUtils.hash(toEncrypt);
     }
 
 	/**
@@ -92,6 +96,7 @@ public enum OperatingSystem {
 	 * @param algorithm Algorithm
 	 * @return Hash
 	 */
+	@Deprecated
 	public static String hash(File toHash, String algorithm) {
 		if (toHash == null) return "unknown";
 		try {
@@ -106,25 +111,5 @@ public enum OperatingSystem {
 			e.printStackTrace();
 			return null;
 		}
-	}
-
-	/**
-	 * Hashes the string with SHA-1
-	 * @param toHash String
-	 * @return Hash
-	 */
-	public static String hash(String toHash) { return hash(toHash, "SHA-1"); }
-
-	/**
-	 * Hashes the string with the specified algorithm
-	 * @param toHash String
-	 * @param algorithm Algorithm
-	 * @return Hash
-	 */
-	public static String hash(String toHash, String algorithm) {
-		try {
-			MessageDigest md = MessageDigest.getInstance(algorithm);
-			return HexFormat.of().formatHex(md.digest(toHash.getBytes(StandardCharsets.UTF_8)));
-		} catch (NoSuchAlgorithmException e) { return ""; }
 	}
 }

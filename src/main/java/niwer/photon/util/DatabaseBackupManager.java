@@ -117,7 +117,7 @@ public final class DatabaseBackupManager {
         if(Directories.getConfig() == null || Directories.getConfig().database_backup_retention_days <= 0) return;
         if(Directories.BACKUPS_DIR == null || !Directories.BACKUPS_DIR.exists() || !Directories.BACKUPS_DIR.isDirectory()) throw new IllegalStateException("Backups directory is not properly configured or accessible");
 
-        final var STREAM = Stream.of(Directories.BACKUPS_DIR.listFiles()).parallel().filter(file -> {
+        Stream.of(Directories.BACKUPS_DIR.listFiles()).parallel().filter(file -> {
             try {
                 if (file == null || !file.isFile()) return false; // Skip folders and nulls
     
@@ -128,8 +128,7 @@ public final class DatabaseBackupManager {
                 Console.log("Failed to delete old database backups: " + e.getMessage()).error().type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
                 return false;
             }
-        });
-        STREAM.forEach(file -> {
+        }).forEach(file -> {
             if (file != null) file.delete();
         });
     }

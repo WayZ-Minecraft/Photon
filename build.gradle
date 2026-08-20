@@ -31,6 +31,7 @@ dependencies {
 	implementation "de.mkammerer:argon2-jvm:${project.argon2_version}"
 	implementation "de.mkammerer:argon2-jvm-nolibs:${project.argon2_version}"
 	implementation "com.stripe:stripe-java:${project.stripe_version}"
+	implementation "org.simplejavamail:simple-java-mail:${project.simple_java_mail_version}"
 }
 
 java {
@@ -51,6 +52,7 @@ jar {
 
 /* Add all dependcies to the jar */
 shadowJar {
+	mustRunAfter tasks.named('jar')
 	mergeServiceFiles()
 	// minimize { // TODO minimize cause issues when built (production env.) for logging libs (Logback, SLF4J, etc.)
     //     exclude(dependency('org.xerial:sqlite-jdbc:.*'))

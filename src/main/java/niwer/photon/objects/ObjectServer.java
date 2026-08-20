@@ -5,6 +5,9 @@ import java.util.Date;
 import niwer.queryon.SQLSerializable;
 import niwer.queryon.tables.api.IColumnField;
 
+/**
+ * @author Niwer 
+ */
 public class ObjectServer extends SQLSerializable<ObjectServer> {
 
     @IColumnField(name = "id", primaryKey = true, autoIncrement = true)

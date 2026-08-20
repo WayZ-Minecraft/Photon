@@ -4,6 +4,9 @@ import com.google.gson.annotations.SerializedName;
 
 import niwer.photon.sql.SubscriptionTable.SubscriptionStatus;
 
+/**
+ * @author Niwer 
+ */
 public class StripeSubscription {
 
     @SerializedName("id") private String id;

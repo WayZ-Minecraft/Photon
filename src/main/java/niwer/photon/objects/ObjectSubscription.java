@@ -8,6 +8,9 @@ import niwer.queryon.SQLSerializable;
 import niwer.queryon.tables.api.IColumnField;
 import niwer.queryon.tables.api.IDefaultValue;
 
+/**
+ * @author Niwer 
+ */
 public class ObjectSubscription extends SQLSerializable<ObjectSubscription> {
 
     @IColumnField(name = "id", primaryKey = true, autoIncrement = true)

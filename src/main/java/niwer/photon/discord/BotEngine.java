@@ -53,29 +53,39 @@ public class BotEngine extends ListenerAdapter {
      * @throws LoginException
      * @throws InterruptedException
      */
-    public static void load(boolean shouldRestart) throws LoginException, InterruptedException {
-        /* Try to silence JDA logs */
-        PhotonLogTypes.silenceLogsFor("net.dv8tion.jda");
-        
-        botBuilder = JDABuilder.createDefault(Directories.getConfig().discord_bot_token);
-        botBuilder.setActivity(Activity.playing(Directories.getConfig().bot_activity));
-        botBuilder.addEventListeners(new BotEngine());
-        botBuilder.addEventListeners(new CommandsManager());
-        botBuilder.enableIntents(GatewayIntent.MESSAGE_CONTENT);
-        botBuilder.enableIntents(GatewayIntent.GUILD_MEMBERS);
-        botBuilder.enableIntents(GatewayIntent.GUILD_PRESENCES);
-        botBuilder.enableIntents(GatewayIntent.GUILD_MODERATION);
-        botBuilder.setMemberCachePolicy(MemberCachePolicy.ALL);
-        botBuilder.build();
+    public static void load(boolean shouldRestart) {
+        Thread t = new Thread(() -> {
+            if(!Directories.getConfig().hasBotToken()) throw new IllegalStateException("Discord bot token is not set. Please check the configuration file.");
 
-        isRestarting = shouldRestart;
+            try {
+                /* Try to silence JDA logs */
+                PhotonLogTypes.silenceLogsFor("net.dv8tion.jda");
+                
+                botBuilder = JDABuilder.createDefault(Directories.getConfig().discord_bot_token);
+                botBuilder.setActivity(Activity.playing(Directories.getConfig().bot_activity));
+                botBuilder.addEventListeners(new BotEngine());
+                botBuilder.addEventListeners(new CommandsManager());
+                botBuilder.enableIntents(GatewayIntent.MESSAGE_CONTENT);
+                botBuilder.enableIntents(GatewayIntent.GUILD_MEMBERS);
+                botBuilder.enableIntents(GatewayIntent.GUILD_PRESENCES);
+                botBuilder.enableIntents(GatewayIntent.GUILD_MODERATION);
+                botBuilder.setMemberCachePolicy(MemberCachePolicy.ALL);
+                botBuilder.build();
 
-        CommandsManager.load();
-        TranslationManager.loadAllLanguages("lang");
+                isRestarting = shouldRestart;
 
-        Console.log("Discord Bot connection established").type(PhotonLogTypes.DISCORD_BOT).container(PhotonEngine.LOGGER).send();
+                CommandsManager.load();
+                TranslationManager.loadAllLanguages("lang");
+                Thread.sleep(550); // Wait a bit to ensure guild is loaded
 
-        Thread.sleep(550); // Wait a bit to ensure guild is loaded
+                /* Log that the Discord Bot is running */
+                Console.log("Discord Bot started successfully").type(PhotonLogTypes.NETWORK).container(PhotonEngine.LOGGER).send();
+            } catch (InterruptedException e) {
+                Console.log("Failed to start Discord Bot: " + e.getMessage()).type(PhotonLogTypes.NETWORK).error().container(PhotonEngine.LOGGER).send();
+                e.printStackTrace();
+            }
+        }, "Discord Bot Thread");
+        t.start();
     }
 
     /**

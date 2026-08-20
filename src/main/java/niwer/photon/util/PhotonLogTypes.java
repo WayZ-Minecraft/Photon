@@ -15,6 +15,8 @@ public class PhotonLogTypes {
     public static final ILogType WEB_SERVER = new BasicLogType("WEB_SERVER", EnumLogColor.YELLOW);
     public static final ILogType STRIPE = new BasicLogType("STRIPE", EnumLogColor.BLUE);
 
+    private PhotonLogTypes() {}
+
     public static final void silenceLogsFor(String loggerName) {
         final var logger = LoggerFactory.getLogger(loggerName);
 

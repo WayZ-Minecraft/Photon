@@ -3,6 +3,7 @@ package niwer.photon.web;
 import org.eclipse.jetty.server.ForwardedRequestCustomizer;
 
 import io.javalin.Javalin;
+import io.javalin.plugin.bundled.RateLimitPlugin;
 import niwer.lumen.Console;
 import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
@@ -59,6 +60,11 @@ public class WebServerEngine {
                 /* Set the static files directory (index.html, main.css, main.js, etc.) */
                 cfg.staticFiles.add("/public");
 
+                /* Register plugins */
+                cfg.registerPlugin(new RateLimitPlugin(plugin_cfg -> {
+                    plugin_cfg.setKeyFunction(ctx -> ctx.ip() + "-" + ctx.path()); // Use IP and path as the key for rate limiting
+                }));
+
                 /* Endpoints */
                 IEndpoint.register(cfg, HomeEndpoint.class);
                 IEndpoint.register(cfg, StatusServersEndpoint.class);
@@ -87,7 +93,7 @@ public class WebServerEngine {
                 }
                 {
                     /* Accounts */
-                    IEndpoint.register(cfg, CreateAccountEndpoint.class);
+                    IEndpoint.register(cfg, CreateAccountEndpoint.class);   
                     IEndpoint.register(cfg, AuthAccountEndpoint.class);
                     IEndpoint.register(cfg, UserMeEndpoint.class);
                     IEndpoint.register(cfg, ChangePasswordEndpoint.class);

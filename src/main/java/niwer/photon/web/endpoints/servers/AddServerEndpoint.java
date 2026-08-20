@@ -28,7 +28,7 @@ public class AddServerEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
-        IEndpoint.setupRateLimit(handler, 5, TimeUnit.MINUTES);
+        IEndpoint.setupRateLimit(handler, 1, TimeUnit.MINUTES);
 
         final ObjectServer server;
         try {

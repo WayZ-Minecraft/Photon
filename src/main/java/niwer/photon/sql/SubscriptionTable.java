@@ -88,7 +88,7 @@ public class SubscriptionTable extends Table {
                 .set("account_uuid", nextAccountUuid)
                 .set("customer_name", customerName)
                 .set("customer_id", customerId)
-                .set("subscription_id", subscriptionId)
+                // .set("subscription_id", subscriptionId) // Unique, so we don't update it to avoid conflicts
                 .set("status", status.name())
                 .set("expires_at", expiresAt)
                 .set("updated_at", updatedAt)

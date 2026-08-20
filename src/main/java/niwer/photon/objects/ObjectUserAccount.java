@@ -3,9 +3,10 @@ package niwer.photon.objects;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 
+import niwer.photon.util.TranslationManager.Language;
 import niwer.queryon.SQLSerializable;
 import niwer.queryon.tables.api.IColumnField;
 import niwer.queryon.tables.api.IDefaultValue;
@@ -36,6 +37,9 @@ public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
     @IColumnField(name = "administrator", defaultValue = @IDefaultValue(value = "false"))
     private boolean administrator;
 
+    @IColumnField(name = "language", defaultValue = @IDefaultValue(value = "ENGLISH"))
+    private Language language = Language.ENGLISH;
+
     public static String generateAuthCode() { return new BigInteger(40, new SecureRandom()).toString(32); }
 
     public boolean hasDiscordLinked() { return this.discordID != null && !this.discordID.isEmpty(); }
@@ -60,14 +64,17 @@ public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
     public boolean isAdministrator() { return this.administrator; }
     public boolean getAdministrator() { return this.administrator; }
 
+    public Language getLanguage() { return this.language; }
+
     public Map<String, Object> toPublicMap() {
-        final Map<String, Object> response = new LinkedHashMap<>();
+        final Map<String, Object> response = new HashMap<>();
         response.put("username", this.username);
         response.put("email", this.email);
         response.put("uuid", this.uuid);
         response.put("discordID", this.discordID);
         response.put("discordAuthCode", this.discordAuthCode);
         response.put("administrator", isAdministrator());
+        response.put("language", this.language.name());
         return response;
     }
 

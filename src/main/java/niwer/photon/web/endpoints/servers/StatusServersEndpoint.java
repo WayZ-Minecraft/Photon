@@ -7,6 +7,9 @@ import niwer.photon.sql.ServerTable;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
+/**
+ * @author Niwer
+ */
 public class StatusServersEndpoint implements IEndpoint {
 
     @Override public String path() { return "/api/status/servers"; }
@@ -15,7 +18,7 @@ public class StatusServersEndpoint implements IEndpoint {
 
     @Override
     public void handle(Context handler) {
-        IEndpoint.setupRateLimit(handler, 5, TimeUnit.MINUTES);
+        IEndpoint.setupRateLimit(handler, 5, TimeUnit.SECONDS);
         handler.json(ServerTable.getAllServers());
     }
 }

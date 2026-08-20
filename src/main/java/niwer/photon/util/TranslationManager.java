@@ -9,11 +9,10 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import niwer.lumen.Console;
 import niwer.photon.PhotonEngine;
 import niwer.photon.sql.DiscordProfileTable;
 import niwer.photon.util.os.OperatingSystem;
-
-import niwer.lumen.Console;
 
 public class TranslationManager {
 	

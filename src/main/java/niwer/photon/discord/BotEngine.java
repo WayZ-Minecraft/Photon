@@ -34,7 +34,6 @@ import niwer.photon.discord.commands.CommandsManager;
 import niwer.photon.sql.DiscordLogTable;
 import niwer.photon.sql.DiscordLogTable.ModerationType;
 import niwer.photon.util.PhotonLogTypes;
-import niwer.photon.util.TranslationManager;
 
 /**
  * Main class of the bot, load the bot and register important slash commands
@@ -75,7 +74,6 @@ public class BotEngine extends ListenerAdapter {
                 isRestarting = shouldRestart;
 
                 CommandsManager.load();
-                TranslationManager.loadAllLanguages("lang");
                 Thread.sleep(550); // Wait a bit to ensure guild is loaded
 
                 /* Log that the Discord Bot is running */

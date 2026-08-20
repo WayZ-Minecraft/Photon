@@ -29,6 +29,7 @@ import niwer.photon.sql.ServerTable;
 import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.DatabaseBackupManager;
 import niwer.photon.util.PhotonLogTypes;
+import niwer.photon.util.TranslationManager;
 import niwer.photon.web.WebServerEngine;
 import niwer.photon.web.endpoints.stripe.StripeStartupSync;
 import niwer.queryon.DataBase;
@@ -109,6 +110,9 @@ public class PhotonEngine {
         /* Load features */
         Directories.load();
 
+        /* Load translations */
+        TranslationManager.loadAllLanguages("lang");
+
         /* Register tables to the Data Base */
         DATA_BASE
             /* Security */
@@ -130,7 +134,7 @@ public class PhotonEngine {
         DatabaseBackupManager.start();
 
         /* Repopulate Stripe subscriptions on startup */
-        StripeStartupSync.start();
+        StripeStartupSync.load();
 
         /* Starting the discord bot if token available */
         BotEngine.load(Arrays.asList(args).contains("--restart"));

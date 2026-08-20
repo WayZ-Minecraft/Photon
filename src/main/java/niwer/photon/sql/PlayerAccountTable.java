@@ -8,6 +8,7 @@ import niwer.photon.PhotonEngine;
 import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.util.HashUtils;
 import niwer.photon.util.PhotonLogTypes;
+import niwer.photon.util.TranslationManager.Language;
 import niwer.queryon.DataBase;
 import niwer.queryon.queries.Expression;
 import niwer.queryon.queries.interaction.DeletionManager;
@@ -82,6 +83,17 @@ public class PlayerAccountTable extends Table {
         }
         UpdateManager.update(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
             .set("discordID", discordID)
+            .where(Expression.of("uuid").isEqualTo(uuid))
+            .execute();
+    }
+
+    public static void updateLanguage(String uuid, Language language) {
+        if (uuid == null || uuid.trim().isEmpty()) {
+            Console.log("Cannot update language for null/empty UUID").error().container(PhotonEngine.LOGGER).send();
+            return;
+        }
+        UpdateManager.update(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
+            .set("language", language.name())
             .where(Expression.of("uuid").isEqualTo(uuid))
             .execute();
     }

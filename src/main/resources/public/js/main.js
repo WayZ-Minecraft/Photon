@@ -667,7 +667,7 @@ const App = {
     },
 
     async restartService() {
-        if(!confirm('Restart Photon Network now?')) return;
+        if(!confirm('Restart Photon now?')) return;
         try {
             await Api('/api/admin/restart', { method: 'POST' });
             UI.toast('Restart requested', 'success');

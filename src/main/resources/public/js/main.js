@@ -8,6 +8,7 @@ const State = {
     purchaseToken: new URLSearchParams(window.location.search).get('token') || '',
     activePage: 'overview',
     config: null,
+    licenseProducts: [],
     configSchema: [
         { key: 'bot_activity', label: 'Bot Activity', type: 'text' },
         { key: 'discord_bot_token', label: 'Discord Bot Token', type: 'password' },
@@ -518,6 +519,7 @@ const App = {
     // --- Subscriptions ---
     async loadLicenses() {
         try {
+            await this.loadLicenseProducts();
             const licenses = await Api('/accounts/licenses');
             const tbody = document.getElementById('licensesTableBody');
             
@@ -558,10 +560,21 @@ const App = {
         } catch (e) { UI.toast('Failed to load licenses', 'error'); }
     },
 
+    async loadLicenseProducts() {
+        const products = await Api('/accounts/license-products');
+        State.licenseProducts = Array.isArray(products) ? products : [];
+        const select = document.getElementById('licenseProductSelect');
+        if (!select) return;
+
+        select.innerHTML = State.licenseProducts.length
+            ? State.licenseProducts.map(product => `<option value="${UI.escapeHTML(product.id)}">${UI.escapeHTML(product.name || product.id)}</option>`).join('')
+            : '<option value="">No products available</option>';
+    },
+
     async createLicense(e) {
         e.preventDefault();
         const fd = new FormData(e.target);
-        const payload = { name: fd.get('name') };
+        const payload = { name: fd.get('name'), product_id: fd.get('product_id') };
         if (fd.get('duration_days')) payload.duration_days = Number(fd.get('duration_days'));
 
         try {

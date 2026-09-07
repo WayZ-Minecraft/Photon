@@ -39,6 +39,11 @@ Photon is configured via a JSON file : `network/config.json`, which contains set
 	- In `network/config.json` set `stripe_webhook_signature` to the private signature key from your Stripe dashboard (not the public API key). This is used to verify incoming webhook events from Stripe.
 	- Set `stripe_api_key` in `network/config.json` to enable Stripe checkout session creation.
 
+- **Licenses**
+	- `license_products` is a list of products available when creating a license. Each entry contains an `id`, display `name`, and optional `default_duration_days`.
+	- Existing `license_product_id` and `license_default_duration_days` values remain supported as a fallback when `license_products` is absent or empty.
+	- Example: `"license_products": [{"id": "niwer-engine", "name": "Niwer Engine", "default_duration_days": 30}]`
+
 ## Endpoints
 
 The routes below are the ones typically called by the game client, launcher, Stripe, or server processes. Admin-panel routes are kept in a separate section.

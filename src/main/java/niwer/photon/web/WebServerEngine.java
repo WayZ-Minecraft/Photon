@@ -20,6 +20,7 @@ import niwer.photon.web.endpoints.accounts.UpdateProfileEndpoint;
 import niwer.photon.web.endpoints.accounts.UserMeEndpoint;
 import niwer.photon.web.endpoints.accounts.licenses.AccountLicenseCreateEndpoint;
 import niwer.photon.web.endpoints.accounts.licenses.AccountLicenseListEndpoint;
+import niwer.photon.web.endpoints.accounts.licenses.AccountLicenseProductsEndpoint;
 import niwer.photon.web.endpoints.accounts.licenses.AccountLicenseRevokeEndpoint;
 import niwer.photon.web.endpoints.admin.AdminConfigEndpoint;
 import niwer.photon.web.endpoints.admin.AdminLoginEndpoint;
@@ -99,6 +100,7 @@ public class WebServerEngine {
                     IEndpoint.register(cfg, ChangePasswordEndpoint.class);
                     IEndpoint.register(cfg, UpdateProfileEndpoint.class);
                     IEndpoint.register(cfg, AccountLicenseListEndpoint.class);
+                    IEndpoint.register(cfg, AccountLicenseProductsEndpoint.class);
                     IEndpoint.register(cfg, AccountLicenseCreateEndpoint.class);
                     IEndpoint.register(cfg, AccountLicenseRevokeEndpoint.class);
                 }

@@ -291,6 +291,12 @@
                     <input type="text" name="name" required placeholder="e.g. Production Server">
                 </div>
                 <div class="form-group">
+                    <label>Product</label>
+                    <select name="product_id" id="licenseProductSelect" required>
+                        <option value="">Loading products...</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>Duration (Days)</label>
                     <input type="number" name="duration_days" placeholder="30" min="1">
                     <span class="text-sm text-secondary">Leave blank for default.</span>

@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
@@ -146,6 +147,14 @@ public class Directories
 		/* Licensing */
 		@SerializedName("license_product_id") public String license_product_id = "niwer-engine";
 		@SerializedName("license_default_duration_days") public long license_default_duration_days = 30L; // 30 days (1 month) default duration for licenses issued without an explicit expiration date
+		@SerializedName("license_products") public List<LicenseProduct> license_products;
+
+		public List<LicenseProduct> getLicenseProducts() {
+			if (license_products == null || license_products.isEmpty()) {
+				return List.of(new LicenseProduct(license_product_id, license_product_id, license_default_duration_days));
+			}
+			return license_products;
+		}
 
 		/* Github */
 		@SerializedName("github_pat") public String github_pat = ""; // Personal Access Token for GitHub API authentication
@@ -196,6 +205,20 @@ public class Directories
 
 		public boolean hasBotToken() {
 			return discord_bot_token != null && !discord_bot_token.isBlank();
+		}
+
+		public static class LicenseProduct {
+			public String id;
+			public String name;
+			public Long default_duration_days;
+
+			public LicenseProduct() {}
+
+			public LicenseProduct(String id, String name, Long defaultDurationDays) {
+				this.id = id;
+				this.name = name;
+				this.default_duration_days = defaultDurationDays;
+			}
 		}
 	}
 }

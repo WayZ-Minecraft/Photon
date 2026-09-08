@@ -47,6 +47,8 @@ public class ObjectSubscription extends SQLSerializable<ObjectSubscription> {
 
     public boolean isActive() { return SubscriptionStatus.ACTIVE == status && (expiresAt == null || expiresAt.after(new Date())); }
 
+    public int id() { return id; }
+
     public String customerEmail() { return customerEmail; }
 
     public String accountUuid() { return accountUuid; }

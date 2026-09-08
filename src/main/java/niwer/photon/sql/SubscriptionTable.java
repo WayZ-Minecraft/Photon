@@ -60,6 +60,14 @@ public class SubscriptionTable extends Table {
             .executeSerializable(ObjectSubscription.class);
     }
 
+    public static ObjectSubscription getByCustomerId(String customerId) {
+        if (customerId == null || customerId.isBlank()) return null;
+        return SelectionManager.select(PhotonEngine.DATA_BASE, SubscriptionTable.class)
+            .where(Expression.of("customer_id").isEqualTo(customerId))
+            .limit(1)
+            .executeSerializable(ObjectSubscription.class);
+    }
+
     public static List<ObjectSubscription> getByAccountUuid(String accountUuid) {
         if (accountUuid == null || accountUuid.isBlank()) return List.of();
         return SelectionManager.select(PhotonEngine.DATA_BASE, SubscriptionTable.class)
@@ -85,8 +93,10 @@ public class SubscriptionTable extends Table {
         final String normalizedEmail = normalizeEmail(email);
         final Date updatedAt = new Date();
         final ObjectSubscription current = getBySubscriptionId(subscriptionId);
-        final ObjectSubscription currentByAccountUuid = current == null ? getByAccountUuid(accountUuid).stream().filter(subscription -> productId == null || productId.equals(subscription.productId())).findFirst().orElse(null) : null;
-        final ObjectSubscription existing = current != null ? current : currentByAccountUuid;
+        final ObjectSubscription currentByCustomerId = current == null ? getByCustomerId(customerId) : null;
+        final ObjectSubscription currentByAccountUuid = current == null && currentByCustomerId == null ? getByAccountUuid(accountUuid).stream().filter(subscription -> productId == null || productId.equals(subscription.productId())).findFirst().orElse(null) : null;
+        final ObjectSubscription existing = current != null ? current : (currentByCustomerId != null ? currentByCustomerId : currentByAccountUuid);
+        if (existing == null && (subscriptionId == null || subscriptionId.isBlank())) return null;
         final String nextAccountUuid = accountUuid != null && !accountUuid.isBlank() ? accountUuid : (existing == null ? null : existing.accountUuid());
 
         if (existing == null) {
@@ -100,15 +110,15 @@ public class SubscriptionTable extends Table {
                 .set("customer_name", customerName)
                 .set("customer_id", customerId)
 				.set("product_id", productId != null && !productId.isBlank() ? productId : existing.productId())
-                // .set("subscription_id", subscriptionId) // Unique, so we don't update it to avoid conflicts
+				.set("subscription_id", subscriptionId != null && !subscriptionId.isBlank() ? subscriptionId : existing.subscriptionId())
                 .set("status", status.name())
                 .set("expires_at", expiresAt)
                 .set("updated_at", updatedAt)
-                .where(Expression.of(existing.accountUuid() != null && !existing.accountUuid().isBlank() ? "account_uuid" : "customer_email").isEqualTo(existing.accountUuid() != null && !existing.accountUuid().isBlank() ? existing.accountUuid() : normalizedEmail))
+                .where(Expression.of(existing.subscriptionId() != null && !existing.subscriptionId().isBlank() ? "subscription_id" : "id").isEqualTo(existing.subscriptionId() != null && !existing.subscriptionId().isBlank() ? existing.subscriptionId() : existing.id()))
                 .execute();
         }
 
-        return getByEmail(normalizedEmail);
+            return existing == null ? getBySubscriptionId(subscriptionId) : existing;
     }
 
     public static boolean isActive(String email, String accountUuid) {

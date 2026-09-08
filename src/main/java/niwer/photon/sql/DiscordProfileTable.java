@@ -51,7 +51,7 @@ public class DiscordProfileTable extends Table {
         if(!QUERY.executeHasResult()) return null; // No preferences found for the user
 
         final String USERR_LANG = QUERY.executePrimitive(String.class);
-        return Language.fromNameString(USERR_LANG);
+        return Language.fromString(USERR_LANG);
     }
 
     /**

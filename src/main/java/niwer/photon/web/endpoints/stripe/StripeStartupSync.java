@@ -11,6 +11,7 @@ import niwer.photon.objects.stripe.StripeSubscriptionList;
 import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.PhotonLogTypes;
 import niwer.photon.web.api.stripe.StripeGetCustomerRequest;
+import niwer.photon.web.api.stripe.StripeProductResolver;
 import niwer.photon.web.api.stripe.StripeListSubsRequests;
 
 public final class StripeStartupSync {
@@ -31,6 +32,7 @@ public final class StripeStartupSync {
         int seenSubscriptions = 0;
         int upserted = 0;
         int skippedNoEmail = 0;
+        int skippedNoProduct = 0;
         int errors = 0;
         
         final Map<String, StripeSubscription> LATEST_BY_EMAIL = new LinkedHashMap<>();
@@ -77,12 +79,17 @@ public final class StripeStartupSync {
                     continue;
                 }
 
-                SubscriptionTable.upsertSubscription(email, customer.name(), customer.id(), subscriptionId, subscription.status(), null );
+                final String productId = StripeProductResolver.productIdForSubscription(subscription);
+                if (productId == null) {
+                    skippedNoProduct++;
+                    continue;
+                }
+                SubscriptionTable.upsertSubscription(email, customer.name(), customer.id(), subscriptionId, subscription.status(), null, null, productId);
                 upserted++;
             } catch (Exception e) {
                 errors++;
             }
         }
-        Console.log("Stripe startup sync finished: subscriptions=" + seenSubscriptions + ", upserted=" + upserted + ", skippedNoEmail=" + skippedNoEmail + ", errors=" + errors).type(PhotonLogTypes.STRIPE).container(PhotonEngine.LOGGER).send();
+        Console.log("Stripe startup sync finished: subscriptions=" + seenSubscriptions + ", upserted=" + upserted + ", skippedNoEmail=" + skippedNoEmail + ", skippedNoProduct=" + skippedNoProduct + ", errors=" + errors).type(PhotonLogTypes.STRIPE).container(PhotonEngine.LOGGER).send();
     }
 }

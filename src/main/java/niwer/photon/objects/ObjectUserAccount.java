@@ -38,7 +38,7 @@ public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
     private boolean administrator;
 
     @IColumnField(name = "language", defaultValue = @IDefaultValue(value = "ENGLISH"))
-    private Language language = Language.ENGLISH;
+    private String language = Language.ENGLISH.name();
 
     public static String generateAuthCode() { return new BigInteger(40, new SecureRandom()).toString(32); }
 
@@ -64,7 +64,7 @@ public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
     public boolean isAdministrator() { return this.administrator; }
     public boolean getAdministrator() { return this.administrator; }
 
-    public Language getLanguage() { return this.language; }
+    public Language getLanguage() { return Language.fromString(this.language); }
 
     public Map<String, Object> toPublicMap() {
         final Map<String, Object> response = new HashMap<>();
@@ -74,7 +74,7 @@ public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
         response.put("discordID", this.discordID);
         response.put("discordAuthCode", this.discordAuthCode);
         response.put("administrator", isAdministrator());
-        response.put("language", this.language.name());
+        response.put("language", getLanguage().name());
         return response;
     }
 

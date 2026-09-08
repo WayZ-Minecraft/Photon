@@ -40,9 +40,9 @@ Photon is configured via a JSON file : `network/config.json`, which contains set
 	- Set `stripe_api_key` in `network/config.json` to enable Stripe checkout session creation.
 
 - **Licenses**
-	- `license_products` is a list of products available when creating a license. Each entry contains an `id`, display `name`, and optional `default_duration_days`.
-	- Example: `"license_products": [{"id": "niwer-engine", "name": "Niwer Engine", "default_duration_days": 30}]`
-	- Stripe Checkout sessions must include `metadata.product_id` matching the product ID. Sessions with a subscription create subscription access; payment sessions without a subscription create one-time purchase access.
+	- `license_products` is a list of products available when creating a license. Each entry contains an `id`, display `name`, optional `default_license_duration_days`, and Stripe `stripe_price_id`.
+	- Example: `"license_products": [{"id": "niwer-engine", "name": "Niwer Engine", "default_license_duration_days": 30, "stripe_price_id": "price_123"}]`
+	- Photon retrieves Checkout Session line items from Stripe and matches their Price ID against `stripe_price_id`. Product metadata is not used.
 
 ## Endpoints
 

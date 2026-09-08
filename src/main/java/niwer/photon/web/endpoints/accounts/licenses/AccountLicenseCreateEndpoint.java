@@ -47,7 +47,7 @@ public class AccountLicenseCreateEndpoint implements IEndpoint {
             return;
         }
         final String name = GsonUtils.getString(body, "name", "name", account.getUsername());
-        final Long durationDays = GsonUtils.getLong(body, "duration_days", "durationDays", product.default_duration_days);
+        final Long durationDays = GsonUtils.getLong(body, "duration_days", "durationDays", product.default_license_duration_days);
         final Long expiresAt = GsonUtils.getLong(body, "expires_at", "expiresAt", null);
 
         final Long computedExpiresAt = expiresAt != null ? expiresAt : (durationDays == null || durationDays <= 0L ? null : System.currentTimeMillis() + (durationDays * 86400000L));

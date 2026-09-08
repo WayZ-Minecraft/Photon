@@ -145,9 +145,9 @@ public class Directories
 		@SerializedName("database_backup_retention_days") public long database_backup_retention_days = 15L; // Keep backups for 15 days by default
 
 		/* Licensing */
-		@SerializedName("license_products") public List<LicenseProduct> license_products;
+		@SerializedName("license_products") public List<Product> license_products;
 
-		public List<LicenseProduct> getLicenseProducts() {
+		public List<Product> getLicenseProducts() {
 			return license_products == null ? List.of() : license_products;
 		}
 
@@ -200,18 +200,40 @@ public class Directories
 			return discord_bot_token != null && !discord_bot_token.isBlank();
 		}
 
-		public static class LicenseProduct {
+		public static class Product {
 			public String id;
 			public String name;
-			public Long default_duration_days;
+			public Long default_license_duration_days;
+			public String stripe_price_id;
 
-			public LicenseProduct() {}
+			public Product() {}
 
-			public LicenseProduct(String id, String name, Long defaultDurationDays) {
+			public Product(String id, String name, Long defaultDurationDays) {
 				this.id = id;
 				this.name = name;
-				this.default_duration_days = defaultDurationDays;
+				this.default_license_duration_days = defaultDurationDays;
 			}
+
+			public Product(String id, String name, Long defaultDurationDays, String stripePriceId) {
+				this(id, name, defaultDurationDays);
+				this.stripe_price_id = stripePriceId;
+			}
+		}
+
+		public Product productByStripePriceId(String stripePriceId) {
+			if (stripePriceId == null || stripePriceId.isBlank()) return null;
+			return getLicenseProducts().stream()
+				.filter(product -> stripePriceId.equals(product.stripe_price_id))
+				.findFirst()
+				.orElse(null);
+		}
+
+		public Product productByStripePriceOrProductId(String priceId, String productId) {
+			return getLicenseProducts().stream()
+				.filter(product -> (priceId != null && priceId.equals(product.stripe_price_id))
+					|| (productId != null && productId.equals(product.stripe_price_id)))
+				.findFirst()
+				.orElse(null);
 		}
 	}
 }

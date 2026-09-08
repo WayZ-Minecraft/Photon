@@ -1,7 +1,6 @@
 package niwer.photon.objects.stripe;
 
 import java.util.List;
-import java.util.Map;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -22,7 +21,6 @@ public class StripeCheckoutSession {
     @SerializedName("customer_email") private String customerEmail;
     @SerializedName("invoice") private String invoiceId;
     @SerializedName("subscription") private String subscriptionId;
-    @SerializedName("metadata") private Map<String, String> metadata = Map.of();
 
     public String id() { return this.id; }
 
@@ -45,7 +43,6 @@ public class StripeCheckoutSession {
     public String invoiceId() { return this.invoiceId; }
 
     public String subscriptionId() { return this.subscriptionId; }
-    public String productId() { return metadata == null ? null : metadata.get("product_id"); }
 
     public static class CustomField {
         @SerializedName("key") private String key;

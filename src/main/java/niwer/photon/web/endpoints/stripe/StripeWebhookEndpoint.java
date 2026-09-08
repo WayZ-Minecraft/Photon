@@ -28,6 +28,7 @@ import niwer.photon.web.api.stripe.StripeGetCheckoutSessionByIdRequest;
 import niwer.photon.web.api.stripe.StripeGetCustomerRequest;
 import niwer.photon.web.api.stripe.StripeGetInvoiceByIdRequest;
 import niwer.photon.web.api.stripe.StripeGetSubByIdRequest;
+import niwer.photon.web.api.stripe.StripeProductResolver;
 import niwer.photon.web.endpoints.EndpointUtils;
 import niwer.photon.web.endpoints.IEndpoint;
 
@@ -132,7 +133,12 @@ public class StripeWebhookEndpoint implements IEndpoint {
         /* If subscription is canceled or deleted, revoke GitHub access */
         if ("customer.subscription.deleted".equals(eventType) || SUBSCRIPTION.status() == SubscriptionStatus.CANCELED || SUBSCRIPTION.status() == SubscriptionStatus.EXPIRED) revokeGitHubAccess(CUSTOMER.id());
 
-        handler.status(200).json(SubscriptionTable.upsertSubscription(CUSTOMER.email(), CUSTOMER.name(), CUSTOMER.id(), SUBSCRIPTION.id(), SUBSCRIPTION.status(), null, null, SUBSCRIPTION.productId()));
+        final String productId = StripeProductResolver.productIdForSubscription(SUBSCRIPTION);
+        if (productId == null) {
+            ignore(handler, "subscription price is not configured", false);
+            return;
+        }
+        handler.status(200).json(SubscriptionTable.upsertSubscription(CUSTOMER.email(), CUSTOMER.name(), CUSTOMER.id(), SUBSCRIPTION.id(), SUBSCRIPTION.status(), null, null, productId));
     }
 
     private static void handleInvoiceEvent(Context handler, String payload, String eventType) {
@@ -153,7 +159,12 @@ public class StripeWebhookEndpoint implements IEndpoint {
 
         final SubscriptionStatus STATUS = "invoice.payment_failed".equals(eventType) ? SubscriptionStatus.EXPIRED : SubscriptionStatus.ACTIVE;
         final var subscription = SubscriptionTable.getBySubscriptionId(INVOICE.subscriptionId());
-        handler.status(200).json(SubscriptionTable.upsertSubscription(CUSTOMER.email(), CUSTOMER.name(), CUSTOMER.id(), INVOICE.subscriptionId(), STATUS, null, subscription == null ? null : subscription.accountUuid(), subscription == null ? null : subscription.productId()));
+        final var existingSubscription = subscription == null ? SubscriptionTable.getByCustomerId(CUSTOMER.id()) : subscription;
+        if (existingSubscription == null) {
+            handler.status(200).result("ignored");
+            return;
+        }
+        handler.status(200).json(SubscriptionTable.upsertSubscription(CUSTOMER.email(), CUSTOMER.name(), CUSTOMER.id(), existingSubscription.subscriptionId(), STATUS, null, existingSubscription.accountUuid(), existingSubscription.productId()));
     }
 
     private static void handleCheckoutSessionEvent(Context handler, String payload, String eventType) {
@@ -170,12 +181,18 @@ public class StripeWebhookEndpoint implements IEndpoint {
             return;
         }
 
+        final String PRODUCT_ID = StripeProductResolver.productIdForCheckoutSession(CHECKOUT_SESSION.id());
+        if (PRODUCT_ID == null) {
+            ignore(handler, "checkout price is not configured", false);
+            return;
+        }
+
         /* Resolve the GitHub username */
         final String GITHUB_USERNAME = CHECKOUT_SESSION.getCustomFieldByKeys("githubusername").text().value().trim();
 
         /* Resolve the subscription */
         final StripeSubscription SUBSCRIPTION = CHECKOUT_SESSION.subscriptionId() == null ? null : new StripeGetSubByIdRequest(CHECKOUT_SESSION.subscriptionId()).request();
-        final var PURCHASE = PurchaseTable.completePurchase(PURCHASE_TOKEN, CHECKOUT_SESSION.id(), CHECKOUT_SESSION.customerID(), CHECKOUT_SESSION.subscriptionId(), CHECKOUT_SESSION.customerDetails().email(), CHECKOUT_SESSION.customerDetails().name(), SUBSCRIPTION == null ? SubscriptionStatus.ACTIVE : SUBSCRIPTION.status(), null, GITHUB_USERNAME, CHECKOUT_SESSION.productId());
+        final var PURCHASE = PurchaseTable.completePurchase(PURCHASE_TOKEN, CHECKOUT_SESSION.id(), CHECKOUT_SESSION.customerID(), CHECKOUT_SESSION.subscriptionId(), CHECKOUT_SESSION.customerDetails().email(), CHECKOUT_SESSION.customerDetails().name(), SUBSCRIPTION == null ? SubscriptionStatus.ACTIVE : SUBSCRIPTION.status(), null, GITHUB_USERNAME, PRODUCT_ID);
         if (PURCHASE == null) {
             ignore(handler, "missing pending purchase for token " + PURCHASE_TOKEN, false);
             return;

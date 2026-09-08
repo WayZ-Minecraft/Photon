@@ -26,7 +26,7 @@ public class LanguageCommand extends AbstractSlashCommand {
     @Override
     public void handle(SlashCommandInteractionEvent event) {
         final OptionMapping LANGUAGE_ARG = event.getOption("language");
-        final var LANGUAGE = Language.fromNameString(LANGUAGE_ARG.getAsString());
+        final var LANGUAGE = Language.fromString(LANGUAGE_ARG.getAsString());
 
         /* Set the new user language */
         try {

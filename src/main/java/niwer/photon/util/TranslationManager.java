@@ -37,18 +37,15 @@ public class TranslationManager {
 
 		public Locale locale() { return this.locale; }
 
-		public static Language fromCodeString(String code) {
+		/**
+		 * Get the language from the given name or code.
+		 * 
+		 * @param name The name or code of the language. (e.g "ENGLISH", "en", "fr", ...)
+		 * @return The language if found, otherwise the default language (ENGLISH).
+		 */
+		public static Language fromString(String name) {
 			for (final Language LANG : Language.values()) {
-				if (LANG.code.equalsIgnoreCase(code)) return LANG;
-			}
-			
-			/* Default to English if the code is not found */
-			return ENGLISH;
-		}
-
-		public static Language fromNameString(String name) {
-			for (final Language LANG : Language.values()) {
-				if (LANG.name().equalsIgnoreCase(name)) return LANG;
+				if (LANG.name().equalsIgnoreCase(name) || LANG.code.equalsIgnoreCase(name)) return LANG;
 			}
 			
 			/* Default to English if the name is not found */

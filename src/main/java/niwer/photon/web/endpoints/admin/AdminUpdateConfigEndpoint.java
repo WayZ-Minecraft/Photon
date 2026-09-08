@@ -72,7 +72,7 @@ public class AdminUpdateConfigEndpoint implements IEndpoint {
             String server_creator_role_id,
             String webserver_host,
             Integer webserver_port,
-            List<Directories.NetworkConfig.LicenseProduct> license_products,
+            List<Directories.NetworkConfig.Product> license_products,
             String stripe_api_key,
             String stripe_webhook_secret,
             String api_version,

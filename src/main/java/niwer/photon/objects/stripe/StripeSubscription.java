@@ -1,7 +1,7 @@
 package niwer.photon.objects.stripe;
 
 import com.google.gson.annotations.SerializedName;
-import java.util.Map;
+import java.util.List;
 
 import niwer.photon.sql.SubscriptionTable.SubscriptionStatus;
 
@@ -15,7 +15,7 @@ public class StripeSubscription {
     @SerializedName("latest_invoice") private String latestInvoice;
     @SerializedName("current_period_end") private String currentPeriodEnd;
     @SerializedName("status") private String status;
-    @SerializedName("metadata") private Map<String, String> metadata = Map.of();
+    @SerializedName("items") private Items items;
 
     public String id() { return id; }
 
@@ -23,7 +23,30 @@ public class StripeSubscription {
 
     public String latestInvoice() { return latestInvoice; }
 
-    public String productId() { return metadata == null ? null : metadata.get("product_id"); }
+    public String priceId() { return items == null ? null : items.priceId(); }
+
+    public String productId() { return items == null ? null : items.productId(); }
+
+    private static class Items {
+        @SerializedName("data") private List<Item> data = List.of();
+
+        public String priceId() {
+            return data == null || data.isEmpty() || data.get(0) == null || data.get(0).price == null ? null : data.get(0).price.id;
+        }
+
+        public String productId() {
+            return data == null || data.isEmpty() || data.get(0) == null || data.get(0).price == null ? null : data.get(0).price.product;
+        }
+    }
+
+    private static class Item {
+        @SerializedName("price") private Price price;
+    }
+
+    private static class Price {
+        @SerializedName("id") private String id;
+        @SerializedName("product") private String product;
+    }
 
     public SubscriptionStatus status() {
         if (this.status == null || this.status.isBlank()) return SubscriptionStatus.EXPIRED;

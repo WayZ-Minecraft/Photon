@@ -63,15 +63,15 @@ public class PlayerAccountTable extends Table {
         }
 
         final String UniqueUserID = UUID.randomUUID().toString();
-            final String hashedPassword = hashPassword(password);
-            if (hashedPassword == null) {
-                Console.log("Cannot hash password for account creation").type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
-                return null;
-            }
+        final String hashedPassword = hashPassword(password);
+        if (hashedPassword == null) {
+            Console.log("Cannot hash password for account creation").type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
+            return null;
+        }
 
-            InsertionManager.insert(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "uuid", "username", "email", "password", "discordAuthCode")
-                .row(UniqueUserID, username.trim(), email.trim().toLowerCase(), hashedPassword, ObjectUserAccount.generateAuthCode())
-            .execute();
+        InsertionManager.insert(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "uuid", "username", "email", "password", "discordAuthCode")
+            .row(UniqueUserID, username.trim(), email.trim().toLowerCase(), hashedPassword, ObjectUserAccount.generateAuthCode())
+        .execute();
 
         return getAccountByUUID(UniqueUserID);
     }

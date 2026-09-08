@@ -25,6 +25,9 @@ public class ObjectSubscription extends SQLSerializable<ObjectSubscription> {
     @IColumnField(name = "customer_name")
     private String customerName;
 
+    @IColumnField(name = "product_id")
+    private String productId;
+
     @IColumnField(name = "customer_id")
     private String customerId;
 
@@ -49,6 +52,8 @@ public class ObjectSubscription extends SQLSerializable<ObjectSubscription> {
     public String accountUuid() { return accountUuid; }
 
     public String customerName() { return customerName; }
+
+    public String productId() { return productId; }
 
     public String customerId() { return customerId; }
 

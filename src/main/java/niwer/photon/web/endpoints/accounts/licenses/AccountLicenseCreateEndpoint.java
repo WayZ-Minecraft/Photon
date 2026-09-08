@@ -28,11 +28,6 @@ public class AccountLicenseCreateEndpoint implements IEndpoint {
 
         final var account = UserSessionManager.requireAccount(handler);
         if (account == null) return;
-        if (!SubscriptionTable.isActive(account.getEmail(), account.getUuid())) {
-            handler.status(403).result("Active subscription required");
-            return;
-        }
-
         final JsonObject body = EndpointUtils.readBody(handler);
         final String requestedProductId = GsonUtils.getString(body, "product_id", "productId", null);
         final var products = Directories.getConfig().getLicenseProducts();
@@ -47,10 +42,12 @@ public class AccountLicenseCreateEndpoint implements IEndpoint {
         }
 
         final String productId = product.id;
+        if (!SubscriptionTable.hasAccess(account.getEmail(), account.getUuid(), productId)) {
+            handler.status(403).result("Purchase or active subscription required for this product");
+            return;
+        }
         final String name = GsonUtils.getString(body, "name", "name", account.getUsername());
-        final Long defaultDurationDays = product.default_duration_days != null
-            ? product.default_duration_days : Directories.getConfig().license_default_duration_days;
-        final Long durationDays = GsonUtils.getLong(body, "duration_days", "durationDays", defaultDurationDays);
+        final Long durationDays = GsonUtils.getLong(body, "duration_days", "durationDays", product.default_duration_days);
         final Long expiresAt = GsonUtils.getLong(body, "expires_at", "expiresAt", null);
 
         final Long computedExpiresAt = expiresAt != null ? expiresAt : (durationDays == null || durationDays <= 0L ? null : System.currentTimeMillis() + (durationDays * 86400000L));

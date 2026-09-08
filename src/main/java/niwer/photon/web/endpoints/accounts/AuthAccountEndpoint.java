@@ -100,9 +100,7 @@ public class AuthAccountEndpoint implements IEndpoint {
     }
 
     protected java.util.Map<String, Object> accountResponse(ObjectUserAccount account) {
-        final var response = account.toPublicMap();
-        response.putAll(SubscriptionTable.subscriptionDetails(account.getEmail(), account.getUuid()));
-        return response;
+        return account.toPublicMap();
     }
 
     private static String firstNonBlank(String first, String second) {

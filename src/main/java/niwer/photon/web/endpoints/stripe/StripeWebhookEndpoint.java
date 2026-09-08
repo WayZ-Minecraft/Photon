@@ -85,7 +85,6 @@ public class StripeWebhookEndpoint implements IEndpoint {
 
             /* Check if the event type is valid */
             if (EVENT_TYPE == null || EVENT_TYPE.isBlank()) {
-                ignore(handler, "missing event type", true);
                 return;
             }
 
@@ -133,7 +132,7 @@ public class StripeWebhookEndpoint implements IEndpoint {
         /* If subscription is canceled or deleted, revoke GitHub access */
         if ("customer.subscription.deleted".equals(eventType) || SUBSCRIPTION.status() == SubscriptionStatus.CANCELED || SUBSCRIPTION.status() == SubscriptionStatus.EXPIRED) revokeGitHubAccess(CUSTOMER.id());
 
-        handler.status(200).json(SubscriptionTable.upsertSubscription(CUSTOMER.email(), CUSTOMER.name(), CUSTOMER.id(), SUBSCRIPTION.id(), SUBSCRIPTION.status(), null));
+        handler.status(200).json(SubscriptionTable.upsertSubscription(CUSTOMER.email(), CUSTOMER.name(), CUSTOMER.id(), SUBSCRIPTION.id(), SUBSCRIPTION.status(), null, null, SUBSCRIPTION.productId()));
     }
 
     private static void handleInvoiceEvent(Context handler, String payload, String eventType) {
@@ -153,7 +152,8 @@ public class StripeWebhookEndpoint implements IEndpoint {
         if ("invoice.payment_failed".equals(eventType)) revokeGitHubAccess(INVOICE.customerId());
 
         final SubscriptionStatus STATUS = "invoice.payment_failed".equals(eventType) ? SubscriptionStatus.EXPIRED : SubscriptionStatus.ACTIVE;
-        handler.status(200).json(SubscriptionTable.upsertSubscription(CUSTOMER.email(), CUSTOMER.name(), CUSTOMER.id(), null, STATUS, null));
+        final var subscription = SubscriptionTable.getBySubscriptionId(INVOICE.subscriptionId());
+        handler.status(200).json(SubscriptionTable.upsertSubscription(CUSTOMER.email(), CUSTOMER.name(), CUSTOMER.id(), INVOICE.subscriptionId(), STATUS, null, subscription == null ? null : subscription.accountUuid(), subscription == null ? null : subscription.productId()));
     }
 
     private static void handleCheckoutSessionEvent(Context handler, String payload, String eventType) {
@@ -174,8 +174,8 @@ public class StripeWebhookEndpoint implements IEndpoint {
         final String GITHUB_USERNAME = CHECKOUT_SESSION.getCustomFieldByKeys("githubusername").text().value().trim();
 
         /* Resolve the subscription */
-        final StripeSubscription SUBSCRIPTION = new StripeGetSubByIdRequest(CHECKOUT_SESSION.subscriptionId()).request();
-        final var PURCHASE = PurchaseTable.completePurchase(PURCHASE_TOKEN, CHECKOUT_SESSION.id(), CHECKOUT_SESSION.customerID(), CHECKOUT_SESSION.subscriptionId(), CHECKOUT_SESSION.customerDetails().email(), CHECKOUT_SESSION.customerDetails().name(), SUBSCRIPTION.status(), null, GITHUB_USERNAME);
+        final StripeSubscription SUBSCRIPTION = CHECKOUT_SESSION.subscriptionId() == null ? null : new StripeGetSubByIdRequest(CHECKOUT_SESSION.subscriptionId()).request();
+        final var PURCHASE = PurchaseTable.completePurchase(PURCHASE_TOKEN, CHECKOUT_SESSION.id(), CHECKOUT_SESSION.customerID(), CHECKOUT_SESSION.subscriptionId(), CHECKOUT_SESSION.customerDetails().email(), CHECKOUT_SESSION.customerDetails().name(), SUBSCRIPTION == null ? SubscriptionStatus.ACTIVE : SUBSCRIPTION.status(), null, GITHUB_USERNAME, CHECKOUT_SESSION.productId());
         if (PURCHASE == null) {
             ignore(handler, "missing pending purchase for token " + PURCHASE_TOKEN, false);
             return;
@@ -195,7 +195,11 @@ public class StripeWebhookEndpoint implements IEndpoint {
             });
         }
 
-        handler.status(200).json(SubscriptionTable.upsertSubscription(PURCHASE.customerEmail(), PURCHASE.customerName(), PURCHASE.stripeCustomerId(), SUBSCRIPTION.id(), SUBSCRIPTION.status(), null));
+        if (SUBSCRIPTION == null) {
+            handler.status(200).json(PURCHASE);
+            return;
+        }
+        handler.status(200).json(SubscriptionTable.upsertSubscription(PURCHASE.customerEmail(), PURCHASE.customerName(), PURCHASE.stripeCustomerId(), SUBSCRIPTION.id(), SUBSCRIPTION.status(), null, PURCHASE.linkedAccountUuid(), PURCHASE.productId()));
     }
 
     private static void revokeGitHubAccess(String stripeCustomerId) {

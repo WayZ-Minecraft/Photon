@@ -9,8 +9,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -145,15 +145,10 @@ public class Directories
 		@SerializedName("database_backup_retention_days") public long database_backup_retention_days = 15L; // Keep backups for 15 days by default
 
 		/* Licensing */
-		@SerializedName("license_product_id") public String license_product_id = "niwer-engine";
-		@SerializedName("license_default_duration_days") public long license_default_duration_days = 30L; // 30 days (1 month) default duration for licenses issued without an explicit expiration date
 		@SerializedName("license_products") public List<LicenseProduct> license_products;
 
 		public List<LicenseProduct> getLicenseProducts() {
-			if (license_products == null || license_products.isEmpty()) {
-				return List.of(new LicenseProduct(license_product_id, license_product_id, license_default_duration_days));
-			}
-			return license_products;
+			return license_products == null ? List.of() : license_products;
 		}
 
 		/* Github */
@@ -175,9 +170,7 @@ public class Directories
 		@SerializedName("stripe_webhook_secret") public String stripe_webhook_signature = "";
 
 		/* Versions infos */
-		@SerializedName("api_version") public String api_version = "1.0.0";
 		@SerializedName("mod_version") public String mod_version = "1.0.0";
-		@SerializedName("launcher_version") public String launcher_version = "1.0.0";
 
 		@SerializedName("twitter_url") public String twitter_url = "https://twitter.com/";
 		@SerializedName("twitch_url") public String twitch_url = "https://twitch.tv/";

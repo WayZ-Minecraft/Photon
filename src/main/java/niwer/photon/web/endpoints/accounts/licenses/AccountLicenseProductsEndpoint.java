@@ -21,8 +21,8 @@ public class AccountLicenseProductsEndpoint implements IEndpoint {
 
         final var account = UserSessionManager.requireAccount(handler);
         if (account == null) return;
-        if (!SubscriptionTable.isActive(account.getEmail(), account.getUuid())) {
-            handler.status(403).result("Active subscription required");
+        if (!SubscriptionTable.hasAnyAccess(account.getUuid())) {
+            handler.status(403).result("Purchase or active subscription required");
             return;
         }
 

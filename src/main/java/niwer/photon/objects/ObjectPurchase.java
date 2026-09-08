@@ -24,6 +24,9 @@ public class ObjectPurchase extends SQLSerializable<ObjectPurchase> implements I
 	@IColumnField(name = "customer_name")
 	private String customerName;
 
+	@IColumnField(name = "product_id")
+	private String productId;
+
 	@IColumnField(name = "stripe_customer_id", unique = true)
 	private String stripeCustomerId;
 
@@ -60,6 +63,8 @@ public class ObjectPurchase extends SQLSerializable<ObjectPurchase> implements I
 	public String customerEmail() { return customerEmail; }
 
 	public String customerName() { return customerName; }
+
+	public String productId() { return productId; }
 
 	public String stripeCustomerId() { return stripeCustomerId; }
 

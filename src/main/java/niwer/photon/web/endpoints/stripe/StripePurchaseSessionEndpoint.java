@@ -49,7 +49,7 @@ public class StripePurchaseSessionEndpoint implements IEndpoint {
 		}
 
 		/* Ensure the purchase record exists */
-		final ObjectPurchase purchase = PurchaseTable.createOrRetrievePendingPurchase(checkoutSession.clientRefId(), checkoutSessionId, checkoutSession.customerDetails().email(), checkoutSession.customerDetails().name());
+		final ObjectPurchase purchase = PurchaseTable.createOrRetrievePendingPurchase(checkoutSession.clientRefId(), checkoutSessionId, checkoutSession.customerDetails().email(), checkoutSession.customerDetails().name(), checkoutSession.productId());
 		if (purchase == null) {
 			handler.status(500).result("Failed to seed purchase session");
 			return;

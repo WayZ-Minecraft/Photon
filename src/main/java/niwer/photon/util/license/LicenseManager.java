@@ -76,8 +76,10 @@ public final class LicenseManager {
 		if (license.isExpired()) return LicenseValidationResult.invalid(LicenseFailureReason.EXPIRED, "License key has expired");
 
 		/* Ensure creator's subscription is active; license becomes usable again if subscription restarts */
-		final boolean IS_SUB_ACTIVE = license.creatorUuid() != null && !license.creatorUuid().isBlank() ? SubscriptionTable.isActive(license.customerEmail(), license.creatorUuid()) : SubscriptionTable.isActive(license.customerEmail());
-		if (!IS_SUB_ACTIVE) return LicenseValidationResult.invalid(LicenseFailureReason.SUBSCRIPTION_INACTIVE, "License creator subscription is not active");
+		final boolean HAS_ACCESS = license.creatorUuid() != null && !license.creatorUuid().isBlank()
+			? SubscriptionTable.hasAccess(license.customerEmail(), license.creatorUuid(), license.productId())
+			: SubscriptionTable.hasAccess(license.customerEmail(), null, license.productId());
+		if (!HAS_ACCESS) return LicenseValidationResult.invalid(LicenseFailureReason.SUBSCRIPTION_INACTIVE, "License creator has no active entitlement for this product");
 
 		final String CURREND_HWID = (hardwareId != null && !hardwareId.isBlank()) ? hardwareId : OperatingSystem.getHWID();
 		if (license.hwid() != null && !license.hwid().isBlank()) { // If the key is already bound to a hardware id, ensure it matches the current machine's hwid

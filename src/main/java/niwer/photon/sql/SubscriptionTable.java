@@ -44,7 +44,7 @@ public class SubscriptionTable extends Table {
             .executeSerializable(ObjectSubscription.class);
     }
 
-    public static ObjectSubscription getByAccountUuid(String accountUuid) {
+    public static ObjectSubscription getFirstByAccountUuid(String accountUuid) {
         if (accountUuid == null || accountUuid.isBlank()) return null;
         return SelectionManager.select(PhotonEngine.DATA_BASE, SubscriptionTable.class)
             .where(Expression.of("account_uuid").isEqualTo(accountUuid))
@@ -60,6 +60,13 @@ public class SubscriptionTable extends Table {
             .executeSerializable(ObjectSubscription.class);
     }
 
+    public static List<ObjectSubscription> getByAccountUuid(String accountUuid) {
+        if (accountUuid == null || accountUuid.isBlank()) return List.of();
+        return SelectionManager.select(PhotonEngine.DATA_BASE, SubscriptionTable.class)
+            .where(Expression.of("account_uuid").isEqualTo(accountUuid))
+            .executeList(ObjectSubscription.class);
+    }
+
     public static List<ObjectSubscription> getAllActive() {
         return SelectionManager.select(PhotonEngine.DATA_BASE, SubscriptionTable.class)
             .where(Expression.of("status").isEqualTo(SubscriptionStatus.ACTIVE))
@@ -71,16 +78,20 @@ public class SubscriptionTable extends Table {
     }
 
     public static ObjectSubscription upsertSubscription(String email, String customerName, String customerId, String subscriptionId, SubscriptionStatus status, Date expiresAt, String accountUuid) {
+        return upsertSubscription(email, customerName, customerId, subscriptionId, status, expiresAt, accountUuid, null);
+    }
+
+    public static ObjectSubscription upsertSubscription(String email, String customerName, String customerId, String subscriptionId, SubscriptionStatus status, Date expiresAt, String accountUuid, String productId) {
         final String normalizedEmail = normalizeEmail(email);
         final Date updatedAt = new Date();
-        final ObjectSubscription current = getByEmail(normalizedEmail);
-        final ObjectSubscription currentByAccountUuid = current == null ? getByAccountUuid(accountUuid) : null;
+        final ObjectSubscription current = getBySubscriptionId(subscriptionId);
+        final ObjectSubscription currentByAccountUuid = current == null ? getByAccountUuid(accountUuid).stream().filter(subscription -> productId == null || productId.equals(subscription.productId())).findFirst().orElse(null) : null;
         final ObjectSubscription existing = current != null ? current : currentByAccountUuid;
         final String nextAccountUuid = accountUuid != null && !accountUuid.isBlank() ? accountUuid : (existing == null ? null : existing.accountUuid());
 
         if (existing == null) {
-            InsertionManager.insert(PhotonEngine.DATA_BASE, SubscriptionTable.class, "customer_email", "account_uuid", "customer_name", "customer_id", "subscription_id", "status", "expires_at", "updated_at")
-                .row(normalizedEmail, nextAccountUuid, customerName, customerId, subscriptionId, status.name(), expiresAt, updatedAt)
+            InsertionManager.insert(PhotonEngine.DATA_BASE, SubscriptionTable.class, "customer_email", "account_uuid", "customer_name", "customer_id", "subscription_id", "product_id", "status", "expires_at", "updated_at")
+                .row(normalizedEmail, nextAccountUuid, customerName, customerId, subscriptionId, productId, status.name(), expiresAt, updatedAt)
                 .execute();
         } else {
             UpdateManager.update(PhotonEngine.DATA_BASE, SubscriptionTable.class)
@@ -88,6 +99,7 @@ public class SubscriptionTable extends Table {
                 .set("account_uuid", nextAccountUuid)
                 .set("customer_name", customerName)
                 .set("customer_id", customerId)
+				.set("product_id", productId != null && !productId.isBlank() ? productId : existing.productId())
                 // .set("subscription_id", subscriptionId) // Unique, so we don't update it to avoid conflicts
                 .set("status", status.name())
                 .set("expires_at", expiresAt)
@@ -99,31 +111,56 @@ public class SubscriptionTable extends Table {
         return getByEmail(normalizedEmail);
     }
 
-    public static boolean isActive(String email) {
-        return isActive(email, null);
-    }
-
     public static boolean isActive(String email, String accountUuid) {
         final ObjectSubscription subscription = resolveSubscription(email, accountUuid);
         return subscription != null && subscription.isActive();
     }
 
-    public static Map<String, Object> subscriptionDetails(String email) {
-        return subscriptionDetails(email, null);
+
+    public static List<Map<String, Object>> entitlements(String accountUuid) {
+        final List<Map<String, Object>> subscriptions = getByAccountUuid(accountUuid).stream()
+            .map(item -> entitlementRecord(item.productId(), item.status(), item.expiresAt() == null ? null : item.expiresAt().getTime(), null))
+            .toList();
+        final List<Map<String, Object>> purchases = PurchaseTable.getByAccountUuid(accountUuid).stream()
+            .map(item -> entitlementRecord(item.productId(), item.status(), item.expiresAt() == null ? null : item.expiresAt().getTime(), item.createdAt() == null ? null : item.createdAt().getTime()))
+            .toList();
+        return java.util.stream.Stream.concat(
+            subscriptions.stream().map(item -> entitlement(item, "SUBSCRIPTION")),
+            purchases.stream().map(item -> entitlement(item, "ONE_TIME"))
+        ).toList();
     }
 
-    public static Map<String, Object> subscriptionDetails(String email, String accountUuid) {
-        final Map<String, Object> response = new LinkedHashMap<>();
-        final ObjectSubscription subscription = resolveSubscription(email, accountUuid);
-        response.put("subscriber", subscription != null && subscription.isActive());
-        response.put("subscriptionStatus", subscription == null ? SubscriptionStatus.EXPIRED : subscription.status());
-        response.put("subscriptionExpiresAt", subscription == null || subscription.expiresAt() == null ? null : subscription.expiresAt().getTime());
-        response.put("subscriptionAccountUuid", subscription == null ? null : subscription.accountUuid());
-        return response;
+    private static Map<String, Object> entitlementRecord(String productId, SubscriptionStatus status, Long expiresAt, Long createdAt) {
+        final Map<String, Object> record = new LinkedHashMap<>();
+        record.put("productId", productId);
+        record.put("status", status);
+        if (expiresAt != null) record.put("expiresAt", expiresAt);
+        if (createdAt != null) record.put("createdAt", createdAt);
+        return record;
+    }
+
+    private static Map<String, Object> entitlement(Map<String, Object> item, String type) {
+        final Map<String, Object> record = new LinkedHashMap<>(item);
+        record.put("type", type);
+        return record;
+    }
+
+    public static boolean hasAccess(String email, String accountUuid, String productId) {
+        if (productId == null || productId.isBlank()) return false;
+        final boolean subscriptionAccess = getByAccountUuid(accountUuid).stream().anyMatch(subscription -> productId.equals(subscription.productId()) && subscription.isActive());
+        final boolean purchaseAccess = PurchaseTable.getByAccountUuid(accountUuid).stream().anyMatch(purchase -> productId.equals(purchase.productId())
+            && purchase.status() == SubscriptionStatus.ACTIVE
+            && (purchase.expiresAt() == null || purchase.expiresAt().after(new Date()))
+        );
+        return subscriptionAccess || purchaseAccess;
+    }
+
+    public static boolean hasAnyAccess(String accountUuid) {
+        return getByAccountUuid(accountUuid).stream().anyMatch(ObjectSubscription::isActive) || PurchaseTable.getByAccountUuid(accountUuid).stream().anyMatch(purchase -> purchase.status() == SubscriptionStatus.ACTIVE);
     }
 
     private static ObjectSubscription resolveSubscription(String email, String accountUuid) {
-        final ObjectSubscription subscriptionByUuid = accountUuid != null && !accountUuid.isBlank() ? getByAccountUuid(accountUuid) : null;
+        final ObjectSubscription subscriptionByUuid = accountUuid != null && !accountUuid.isBlank() ? getFirstByAccountUuid(accountUuid) : null;
         if (subscriptionByUuid != null) return subscriptionByUuid;
         return getByEmail(email);
     }

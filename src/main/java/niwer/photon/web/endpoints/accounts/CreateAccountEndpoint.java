@@ -107,9 +107,7 @@ public class CreateAccountEndpoint implements IEndpoint {
             return;
         }
 
-        final var response = ACCOUNT.toPublicMap();
-        response.putAll(SubscriptionTable.subscriptionDetails(ACCOUNT.getEmail(), ACCOUNT.getUuid()));
-        handler.json(new LoginResponse(session.token(), response));
+        handler.json(new LoginResponse(session.token(), ACCOUNT.toPublicMap()));
     }
 
     protected boolean emailExists(String email) {

@@ -10,10 +10,13 @@ public class StripeInvoice {
     @SerializedName("id") private String id;
     @SerializedName("customer") private String customerId;
     @SerializedName("customer_email") private String customerEmail;
+    @SerializedName("subscription") private String subscriptionId;
 
     public String id() { return id; }
 
     public String customerId() { return customerId; }
 
     public String customerEmail() { return customerEmail; }
+
+    public String subscriptionId() { return subscriptionId; }
 }

@@ -41,8 +41,8 @@ Photon is configured via a JSON file : `network/config.json`, which contains set
 
 - **Licenses**
 	- `license_products` is a list of products available when creating a license. Each entry contains an `id`, display `name`, and optional `default_duration_days`.
-	- Existing `license_product_id` and `license_default_duration_days` values remain supported as a fallback when `license_products` is absent or empty.
 	- Example: `"license_products": [{"id": "niwer-engine", "name": "Niwer Engine", "default_duration_days": 30}]`
+	- Stripe Checkout sessions must include `metadata.product_id` matching the product ID. Sessions with a subscription create subscription access; payment sessions without a subscription create one-time purchase access.
 
 ## Endpoints
 
@@ -57,6 +57,7 @@ The routes below are the ones typically called by the game client, launcher, Str
 		- Required fields: `email`, `password`.
 	- `GET /accounts/me` — Return the current account.
 		- Auth via `X-Photon-User-Token` or `Authorization: Bearer <token>`.
+	- `GET /accounts/entitlements` — Return the account's subscriptions and one-time product purchases.
 	- `POST /accounts/change_password` — Change a password.
 		- Body fields: `email`, `currentPassword`, `newPassword`.
 	- `POST /accounts/update_profile` — Update username, email, or password.

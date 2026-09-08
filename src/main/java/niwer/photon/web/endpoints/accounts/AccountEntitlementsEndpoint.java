@@ -3,13 +3,14 @@ package niwer.photon.web.endpoints.accounts;
 import java.util.concurrent.TimeUnit;
 
 import io.javalin.http.Context;
+import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.session.UserSessionManager;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
-public class UserMeEndpoint implements IEndpoint {
+public class AccountEntitlementsEndpoint implements IEndpoint {
 
-    @Override public String path() { return "/accounts/me"; }
+    @Override public String path() { return "/accounts/entitlements"; }
 
     @Override public HttpMethod method() { return HttpMethod.GET; }
 
@@ -20,6 +21,6 @@ public class UserMeEndpoint implements IEndpoint {
         final var account = UserSessionManager.requireAccount(handler);
         if (account == null) return;
 
-        handler.json(account.toPublicMap());
+        handler.json(SubscriptionTable.entitlements(account.getUuid()));
     }
 }

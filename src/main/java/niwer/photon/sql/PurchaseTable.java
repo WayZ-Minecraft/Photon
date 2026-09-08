@@ -1,6 +1,7 @@
 package niwer.photon.sql;
 
 import java.util.Date;
+import java.util.List;
 
 import niwer.lumen.Console;
 import niwer.photon.PhotonEngine;
@@ -26,6 +27,10 @@ public class PurchaseTable extends Table {
 	@Override public String name() { return "Purchase"; }
 
 	public static ObjectPurchase createOrRetrievePendingPurchase(String purchaseToken, String checkoutSessionId, String customerEmail, String customerName) {
+		return createOrRetrievePendingPurchase(purchaseToken, checkoutSessionId, customerEmail, customerName, null);
+	}
+
+	public static ObjectPurchase createOrRetrievePendingPurchase(String purchaseToken, String checkoutSessionId, String customerEmail, String customerName, String productId) {
 		final ObjectPurchase current = getByPurchaseReference(purchaseToken);
 		if (current != null) return current;
 
@@ -34,8 +39,8 @@ public class PurchaseTable extends Table {
 
 		final String normalizedCheckoutSessionId = checkoutSessionId == null || checkoutSessionId.isBlank() ? normalizedToken : checkoutSessionId.trim();
 		final Date now = new Date();
-		InsertionManager.insert(PhotonEngine.DATA_BASE, PurchaseTable.class, "purchase_token", "checkout_session_id", "customer_email", "customer_name", "status", "created_at", "updated_at")
-			.row(normalizedToken, normalizedCheckoutSessionId, normalizeEmail(customerEmail), customerName, SubscriptionStatus.PENDING, now, now)
+		InsertionManager.insert(PhotonEngine.DATA_BASE, PurchaseTable.class, "purchase_token", "checkout_session_id", "customer_email", "customer_name", "product_id", "status", "created_at", "updated_at")
+			.row(normalizedToken, normalizedCheckoutSessionId, normalizeEmail(customerEmail), customerName, productId, SubscriptionStatus.PENDING, now, now)
 			.execute();
 		return getByToken(normalizedToken);
 	}
@@ -56,8 +61,12 @@ public class PurchaseTable extends Table {
 	 * @return The updated purchase record, or null if the update failed.
 	 */
 	public static ObjectPurchase completePurchase(String purchaseToken, String checkoutSessionId, String stripeCustomerId, String stripeSubscriptionId, String customerEmail, String customerName, SubscriptionStatus status, Date expiresAt, String githubUsername) {
+		return completePurchase(purchaseToken, checkoutSessionId, stripeCustomerId, stripeSubscriptionId, customerEmail, customerName, status, expiresAt, githubUsername, null);
+	}
+
+	public static ObjectPurchase completePurchase(String purchaseToken, String checkoutSessionId, String stripeCustomerId, String stripeSubscriptionId, String customerEmail, String customerName, SubscriptionStatus status, Date expiresAt, String githubUsername, String productId) {
 		ObjectPurchase current = getByPurchaseReference(purchaseToken);
-		if (current == null) current = createOrRetrievePendingPurchase(purchaseToken, checkoutSessionId, customerEmail, customerName);
+		if (current == null) current = createOrRetrievePendingPurchase(purchaseToken, checkoutSessionId, customerEmail, customerName, productId);
 		if (current == null) return null;
 
 		UpdateManager.update(PhotonEngine.DATA_BASE, PurchaseTable.class)
@@ -66,6 +75,7 @@ public class PurchaseTable extends Table {
 			.set("stripe_subscription_id", stripeSubscriptionId)
 			.set("customer_email", normalizeEmail(customerEmail != null && !customerEmail.isBlank() ? customerEmail : current.customerEmail()))
 			.set("customer_name", customerName != null && !customerName.isBlank() ? customerName : current.customerName())
+			.set("product_id", productId != null && !productId.isBlank() ? productId : current.productId())
 			.set("status", status == null ? current.status() : status)
 			.set("expires_at", expiresAt)
 			.set("updated_at", new Date())
@@ -82,7 +92,8 @@ public class PurchaseTable extends Table {
 				updated.stripeSubscriptionId(),
 				updated.status(),
 				updated.expiresAt(),
-				updated.linkedAccountUuid()
+				updated.linkedAccountUuid(),
+				updated.productId()
 			);
 		}
 
@@ -129,6 +140,13 @@ public class PurchaseTable extends Table {
 			.where(Expression.of("checkout_session_id").isEqualTo(checkoutSessionId.trim()))
 			.limit(1)
 			.executeSerializable(ObjectPurchase.class);
+	}
+
+	public static List<ObjectPurchase> getByAccountUuid(String accountUuid) {
+		if (accountUuid == null || accountUuid.isBlank()) return List.of();
+		return SelectionManager.select(PhotonEngine.DATA_BASE, PurchaseTable.class)
+			.where(Expression.of("linked_account_uuid").isEqualTo(accountUuid))
+			.executeList(ObjectPurchase.class);
 	}
 
 	private static ObjectPurchase getByPurchaseReference(String purchaseReference) {

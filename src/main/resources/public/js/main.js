@@ -9,6 +9,7 @@ const State = {
     activePage: 'overview',
     config: null,
     licenseProducts: [],
+    entitlements: [],
     configSchema: [
         { key: 'bot_activity', label: 'Bot Activity', type: 'text' },
         { key: 'discord_bot_token', label: 'Discord Bot Token', type: 'password' },
@@ -17,8 +18,6 @@ const State = {
         { key: 'network_console_channel_id', label: 'Console Channel ID', type: 'text' },
         { key: 'server_creator_role_id', label: 'Server Creator Role ID', type: 'text' },
         { key: 'webserver_port', label: 'Webserver Port', type: 'number' },
-        { key: 'license_product_id', label: 'License Product ID', type: 'text' },
-        { key: 'license_default_duration_days', label: 'Default License Duration (days)', type: 'number' },
         { key: 'stripe_api_key', label: 'Stripe API Key', type: 'password' },
         { key: 'stripe_webhook_secret', label: 'Stripe Webhook Secret', type: 'password' },
         { key: 'api_version', label: 'API Version', type: 'text' },
@@ -111,8 +110,9 @@ const UI = {
 
         if (State.userToken && !State.token) {
             Api('/accounts/me')
-                .then((account) => {
+                .then(async (account) => {
                     State.account = account;
+                    await App.loadEntitlements();
                     localStorage.setItem('photon-account', JSON.stringify(account));
                     this.updateAuthVisbility();
                 })
@@ -163,18 +163,18 @@ const UI = {
 
         // Lazy load logic
         if(pageId === 'overview') App.loadPublicServers();
-        if(pageId === 'licenses' && State.account?.subscriber) App.loadLicenses();
+        if(pageId === 'licenses' && State.entitlements.length) App.loadLicenses();
         if(pageId === 'tables') App.loadTablesList();
     },
 
     updateAuthVisbility() {
         const isAdmin = !!State.token || State.account?.administrator;
         const isUser = !!State.userToken || !!State.account;
-        const isSub = isUser && (State.account?.subscriber || State.account?.subscriptionStatus === 'ACTIVE');
+        const hasAccess = isUser && State.entitlements.length > 0;
 
         document.querySelectorAll('.guest-only').forEach(el => el.classList.toggle('hidden', isUser));
         document.querySelectorAll('.auth-required').forEach(el => el.classList.toggle('hidden', !isUser));
-        document.querySelectorAll('.sub-required').forEach(el => el.classList.toggle('hidden', !isSub));
+        document.querySelectorAll('.sub-required').forEach(el => el.classList.toggle('hidden', !hasAccess));
         document.querySelectorAll('.admin-required').forEach(el => el.classList.toggle('hidden', !isAdmin));
 
         if (isUser && State.account) {
@@ -188,7 +188,10 @@ const UI = {
             const grid = document.getElementById('profileDetailsGrid');
             if (grid) {
                 const copyable = ['username', 'uuid', 'email', 'discordAuthCode'];
-                grid.innerHTML = Object.entries(State.account).map(([key, val]) => {
+                const hiddenProfileFields = new Set(['entitlements', 'subscriptionexpiresat', 'accountuuid', 'subscriber', 'subscriptionstatus', 'purchases', 'subscriptions']);
+                grid.innerHTML = Object.entries(State.account)
+                    .filter(([key]) => !hiddenProfileFields.has(key.toLowerCase()))
+                    .map(([key, val]) => {
                     const v = formatVal(val);
                     const isCopyable = copyable.includes(key) && val;
                     return `
@@ -204,53 +207,29 @@ const UI = {
                             ` : ''}
                         </div>
                     `;
-                }).join('');
+                    }).join('');
             }
 
-            // Subscription Overview Update
-            const subBox = document.getElementById('subscriptionStatusBox');
-            if (subBox) {
-                if (State.account.subscriber) {
-                    subBox.innerHTML = `
-                        <div><p class="text-secondary" style="margin:0">Your subscription is active and in good standing.</p></div>
-                        <span class="badge active" style="font-size: 0.9rem; padding: 0.5rem 1rem;"><i class="fa-solid fa-check"></i> Active</span>
+            const entitlementsGrid = document.getElementById('entitlementsGrid');
+            if (entitlementsGrid) {
+                const entitlements = State.entitlements;
+                entitlementsGrid.innerHTML = entitlements.length ? entitlements.map(entitlement => {
+                    const isActive = String(entitlement.status || '').toUpperCase() === 'ACTIVE';
+                    const type = entitlement.type === 'ONE_TIME' ? 'One-time purchase' : 'Subscription';
+                    return `
+                        <div class="card">
+                            <div class="card-header"><strong>${this.escapeHTML(entitlement.productId || 'Unknown product')}</strong></div>
+                            <div class="card-body">
+                                <span class="text-secondary text-sm">${type}</span>
+                                ${entitlement.type === 'SUBSCRIPTION' ? `<p class="text-secondary text-sm" style="margin: 0.5rem 0 0;">Expires: ${this.escapeHTML(entitlement.expiresAt ? formatDate(entitlement.expiresAt) : 'No expiry date')}</p>` : (entitlement.expiresAt ? `<p class="text-secondary text-sm" style="margin: 0.5rem 0 0;">Expires: ${this.escapeHTML(formatDate(entitlement.expiresAt))}</p>` : '')}
+                                <div style="margin-top: 0.5rem;"><span class="badge ${isActive ? 'active' : 'inactive'}">${this.escapeHTML(entitlement.status || 'UNKNOWN')}</span></div>
+                            </div>
+                        </div>
                     `;
-                } else {
-                    const storeUrl = State.config?.store_url || 'https://google.com';
-                    subBox.innerHTML = `
-                        <div><p class="text-secondary" style="margin:0">You do not have an active subscription.</p></div>
-                        <a href="${this.escapeHTML(storeUrl)}" target="_blank" class="btn primary"><i class="fa-solid fa-cart-shopping"></i> Go to Store</a>
-                    `;
-                }
-            }
-
-            const profileSubCard = document.getElementById('profileSubscriptionCard');
-            if (profileSubCard) {
-                const status = State.account.subscriptionStatus || (isSub ? 'ACTIVE' : 'EXPIRED');
-                const expiresAt = State.account.subscriptionExpiresAt ? formatDate(State.account.subscriptionExpiresAt) : 'No expiry date';
-                profileSubCard.innerHTML = `
-                    <div class="card-header">
-                        <span style="text-transform: capitalize;"><i class="fa-solid fa-credit-card text-accent" style="margin-right: 6px;"></i>Subscription</span>
-                    </div>
-                    <div class="card-body">
-                        <strong style="color: var(--text-primary); font-size: 0.95rem;">${this.escapeHTML(status)}</strong>
-                        <p class="text-secondary text-sm" style="margin: 0.5rem 0 0;">Expires: ${this.escapeHTML(expiresAt)}</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="badge ${isSub ? 'active' : 'inactive'}">${isSub ? 'Active' : 'Inactive'}</span>
-                    </div>
-                `;
+                }).join('') : '<p class="text-secondary">No products linked to this account.</p>';
             }
 
             document.getElementById('purchaseAlert').classList.add('hidden');
-        } else {
-                const subBox = document.getElementById('subscriptionStatusBox');
-                if(subBox) {
-                    subBox.innerHTML = `
-                        <div><p class="text-secondary" style="margin:0">Sign in to view your subscription status.</p></div>
-                        <button onclick="UI.openModal('authModal')" class="btn primary"><i class="fa-solid fa-right-to-bracket"></i> Sign In</button>
-                    `;
-                }
         }
     },
 
@@ -366,6 +345,7 @@ const App = {
             const payload = await Api('/accounts/auth_account', { method: 'POST', headers, body: body.toString() });
             
             State.userToken = payload.token || ''; State.account = payload.account || payload;
+            await this.loadEntitlements();
             localStorage.setItem('photon-user-token', State.userToken);
             localStorage.setItem('photon-account', JSON.stringify(State.account));
             
@@ -415,6 +395,7 @@ const App = {
             
             State.userToken = res.token || ''; 
             State.account = res.account || res;
+            await this.loadEntitlements();
             localStorage.setItem('photon-user-token', State.userToken);
             localStorage.setItem('photon-account', JSON.stringify(State.account));
             
@@ -436,7 +417,7 @@ const App = {
     },
 
     async logout() {
-        State.token = ''; State.userToken = ''; State.account = null;
+        State.token = ''; State.userToken = ''; State.account = null; State.entitlements = [];
         localStorage.removeItem('photon-account');
         localStorage.removeItem('photon-user-token');
         UI.updateAuthVisbility();
@@ -448,7 +429,7 @@ const App = {
         UI.closeModal(null, true);
         if (State.account?.administrator) this.loadAdminConfig();
         UI.updateAuthVisbility();
-        if (State.account?.subscriber) UI.navigate('licenses');
+        if (State.entitlements.length) UI.navigate('licenses');
         else UI.navigate('user');
     },
 
@@ -479,6 +460,15 @@ const App = {
             UI.closeModal(null, true);
             UI.toast('Profile updated', 'success');
         } catch (err) { UI.toast(err.message, 'error'); }
+    },
+
+    async loadEntitlements() {
+        try {
+            const entitlements = await Api('/accounts/entitlements');
+            State.entitlements = Array.isArray(entitlements) ? entitlements : [];
+        } catch (err) {
+            State.entitlements = [];
+        }
     },
 
     // --- Public ---

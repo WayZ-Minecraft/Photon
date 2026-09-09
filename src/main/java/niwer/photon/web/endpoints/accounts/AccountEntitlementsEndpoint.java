@@ -3,7 +3,7 @@ package niwer.photon.web.endpoints.accounts;
 import java.util.concurrent.TimeUnit;
 
 import io.javalin.http.Context;
-import niwer.photon.sql.SubscriptionTable;
+import niwer.photon.util.EntitlementService;
 import niwer.photon.util.session.SessionManager;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
@@ -21,6 +21,6 @@ public class AccountEntitlementsEndpoint implements IEndpoint {
         final var account = SessionManager.requireAccount(handler);
         if (account == null) return;
 
-        handler.json(SubscriptionTable.entitlements(account.getUuid()));
+        handler.json(EntitlementService.getEntitlements(account.getUuid()));
     }
 }

@@ -8,6 +8,7 @@ import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.sql.PurchaseTable;
 import niwer.photon.sql.SubscriptionTable;
+import niwer.photon.util.EntitlementService;
 import niwer.photon.util.GsonUtils;
 import niwer.photon.util.session.AuthSession;
 import niwer.photon.util.session.SessionManager;
@@ -61,7 +62,7 @@ public class AuthAccountEndpoint implements IEndpoint {
                 handler.status(403).result("Invalid or expired purchase token");
                 return;
             }
-            if (!PurchaseTable.redeem(checkoutSessionId, account)) {
+            if (!EntitlementService.redeemPurchase(checkoutSessionId, account)) {
                 handler.status(500).result("Failed to link purchase token");
                 return;
             }

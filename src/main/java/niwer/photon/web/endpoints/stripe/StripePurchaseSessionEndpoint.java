@@ -4,12 +4,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.javalin.http.Context;
 import niwer.photon.Directories;
-import niwer.photon.objects.ObjectPurchase;
-import niwer.photon.objects.stripe.StripeCheckoutSession;
-import niwer.photon.sql.PurchaseTable;
 import niwer.photon.web.HttpMethod;
-import niwer.photon.web.api.stripe.StripeGetCheckoutSessionByIdRequest;
-import niwer.photon.web.api.stripe.StripeProductResolver;
 import niwer.photon.web.endpoints.EndpointUtils;
 import niwer.photon.web.endpoints.IEndpoint;
 
@@ -43,24 +38,24 @@ public class StripePurchaseSessionEndpoint implements IEndpoint {
 		}
 
 		/* Resolve the checkout session by its ID */
-		final StripeCheckoutSession checkoutSession = new StripeGetCheckoutSessionByIdRequest(checkoutSessionId).request();
-		if (checkoutSession == null) {
-			handler.status(502).result("Unable to resolve checkout session");
-			return;
-		}
+		// final StripeCheckoutSession checkoutSession = new StripeGetCheckoutSessionByIdRequest(checkoutSessionId).request();
+		// if (checkoutSession == null) {
+		// 	handler.status(502).result("Unable to resolve checkout session");
+		// 	return;
+		// }
 
-		/* Ensure the purchase record exists */
-		final String productId = StripeProductResolver.productIdForCheckoutSession(checkoutSession.id());
-		if (productId == null) {
-			handler.status(400).result("Checkout price is not configured");
-			return;
-		}
+		// /* Ensure the purchase record exists */
+		// final String productId = StripeProductResolver.productIdForCheckoutSession(checkoutSession.id());
+		// if (productId == null) {
+		// 	handler.status(400).result("Checkout price is not configured");
+		// 	return;
+		// }
 
-		final ObjectPurchase purchase = PurchaseTable.createOrRetrievePendingPurchase(checkoutSession.clientRefId(), checkoutSessionId, checkoutSession.customerDetails().email(), checkoutSession.customerDetails().name(), productId);
-		if (purchase == null) {
-			handler.status(500).result("Failed to seed purchase session");
-			return;
-		}
-		handler.json(purchase.payload());
+		// final ObjectPurchase purchase = PurchaseTable.createOrRetrievePendingPurchase(checkoutSession.clientRefId(), checkoutSessionId, checkoutSession.customerDetails().email(), checkoutSession.customerDetails().name(), productId);
+		// if (purchase == null) {
+		// 	handler.status(500).result("Failed to seed purchase session");
+		// 	return;
+		// }
+		// handler.json(purchase.payload());
 	}
 }

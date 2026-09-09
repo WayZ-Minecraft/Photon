@@ -8,7 +8,7 @@ import com.google.gson.JsonObject;
 import io.javalin.http.Context;
 import niwer.photon.Directories;
 import niwer.photon.objects.ObjectLicense;
-import niwer.photon.sql.SubscriptionTable;
+import niwer.photon.util.EntitlementService;
 import niwer.photon.util.GsonUtils;
 import niwer.photon.util.license.LicenseManager;
 import niwer.photon.util.session.SessionManager;
@@ -43,7 +43,7 @@ public class AccountLicenseCreateEndpoint implements IEndpoint {
         }
 
         final String productId = product.id();
-        if (!SubscriptionTable.hasAccess(ACCOUNT.getEmail(), ACCOUNT.getUuid(), productId)) {
+        if (!EntitlementService.hasAccess(ACCOUNT.getUuid(), productId)) {
             handler.status(403).result("Purchase or active subscription required for this product");
             return;
         }

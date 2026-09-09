@@ -2,7 +2,7 @@ package niwer.photon.objects;
 
 import java.util.Date;
 
-import niwer.photon.sql.SubscriptionTable.SubscriptionStatus;
+import niwer.photon.util.subscribtion.SubscriptionStatus;
 import niwer.queryon.SQLSerializable;
 import niwer.queryon.tables.api.IColumnField;
 import niwer.queryon.tables.api.IDefaultValue;
@@ -29,9 +29,6 @@ public class ObjectPurchase extends SQLSerializable<ObjectPurchase> implements I
 
 	@IColumnField(name = "stripe_customer_id", unique = true)
 	private String stripeCustomerId;
-
-	@IColumnField(name = "stripe_subscription_id")
-	private String stripeSubscriptionId;
 
 	@IColumnField(name = "status", notNull = true, defaultValue = @IDefaultValue(value = "ACTIVE"))
 	private SubscriptionStatus status;
@@ -67,8 +64,6 @@ public class ObjectPurchase extends SQLSerializable<ObjectPurchase> implements I
 	public String productId() { return productId; }
 
 	public String stripeCustomerId() { return stripeCustomerId; }
-
-	public String stripeSubscriptionId() { return stripeSubscriptionId; }
 
 	public SubscriptionStatus status() { return status; }
 

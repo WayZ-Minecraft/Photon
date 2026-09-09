@@ -4,7 +4,7 @@ import java.util.Date;
 
 import niwer.photon.objects.ObjectLicense;
 import niwer.photon.sql.LicenseTable;
-import niwer.photon.sql.SubscriptionTable;
+import niwer.photon.util.EntitlementService;
 import niwer.photon.util.HashUtils;
 import niwer.photon.util.OperatingSystem;
 
@@ -76,9 +76,7 @@ public final class LicenseManager {
 		if (license.isExpired()) return LicenseValidationResult.invalid(LicenseFailureReason.EXPIRED, "License key has expired");
 
 		/* Ensure creator's subscription is active; license becomes usable again if subscription restarts */
-		final boolean HAS_ACCESS = license.creatorUuid() != null && !license.creatorUuid().isBlank()
-			? SubscriptionTable.hasAccess(license.customerEmail(), license.creatorUuid(), license.productId())
-			: SubscriptionTable.hasAccess(license.customerEmail(), null, license.productId());
+		final boolean HAS_ACCESS = EntitlementService.hasAccess(license.creatorUuid(), license.productId());
 		if (!HAS_ACCESS) return LicenseValidationResult.invalid(LicenseFailureReason.SUBSCRIPTION_INACTIVE, "License creator has no active entitlement for this product");
 
 		final String CURREND_HWID = (hardwareId != null && !hardwareId.isBlank()) ? hardwareId : OperatingSystem.getHWID();

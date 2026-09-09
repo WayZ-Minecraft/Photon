@@ -15,6 +15,11 @@ public class ObjectGithubRelease {
     @SerializedName("published_at") public String publishedAt;
     @SerializedName("assets") public List<GithubAsset> assets;
 
+    @Override
+    public String toString() {
+        return String.format("ObjectGithubRelease{id=%d, tagName='%s', name='%s', body='%s', draft=%b, prerelease=%b, publishedAt='%s'}", id, tagName, name, body, draft, prerelease, publishedAt);
+    }
+
     public class GithubAsset {
         @SerializedName("id") public long id;
         @SerializedName("name") public String name;

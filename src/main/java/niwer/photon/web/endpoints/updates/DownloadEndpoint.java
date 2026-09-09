@@ -4,6 +4,8 @@ import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
 import io.javalin.http.Context;
+import niwer.photon.Directories;
+import niwer.photon.objects.ObjectProduct;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.api.github.DownloadAssetService;
 import niwer.photon.web.endpoints.IEndpoint;
@@ -16,7 +18,7 @@ import niwer.photon.web.endpoints.IEndpoint;
  */
 public class DownloadEndpoint implements IEndpoint {
 
-    @Override public String path() { return "/download/mod"; }
+    @Override public String path() { return "/download"; }
 
     @Override public HttpMethod method() { return HttpMethod.GET; }
 
@@ -25,29 +27,45 @@ public class DownloadEndpoint implements IEndpoint {
         IEndpoint.setupRateLimit(ctx, 10, TimeUnit.MINUTES);
 
         /* Check if any asset id was provided as query parameter */
-        final var ASSET_ID = ctx.queryParam("current_version");
+        final var ASSET_ID = ctx.queryParam("assetId");
         if (ASSET_ID == null) {
             ctx.status(400).result("Please provide the asset ID.");
             return;
         }
 
         /* Check if any repo was provided as query parameter */
-        final var REPO = ctx.queryParam("repo");
-        if (REPO == null) {
-            ctx.status(400).result("Please provide the repository name.");
+        final var PRODUCT_ID = ctx.queryParam("product");
+        if(PRODUCT_ID == null) {
+            ctx.status(400).result("Please provide a valid product ID.");
             return;
         }
 
-        /* Check if any repo owner was provided as query parameter */
-        final var OWNER = ctx.queryParam("owner");
-        if (OWNER == null) {
-            ctx.status(400).result("Please provide the repository owner.");
+        final ObjectProduct PRODUCT = Directories.getConfig().getProducts().stream()
+            .filter(product -> PRODUCT_ID.equals(product.id()) || (product.hasRepo() && PRODUCT_ID.equals(product.repoKey())))
+            .findFirst().orElse(null);
+        final var REPO = PRODUCT.repoName();
+        final var OWNER = PRODUCT.repoOwner();
+        if (REPO == null || OWNER == null) {
+            ctx.status(400).result("The requested product is not available.");
             return;
         }
 
         /* Get the latest version from GitHub */
-        final String NAME = REPO+"-"+ASSET_ID+".jar"; //TODO ?
-        final InputStream MOD_FILE = new DownloadAssetService(OWNER, REPO, Long.parseLong(ASSET_ID)).request();
+        final long ASSET_NUMBER;
+        try {
+            ASSET_NUMBER = Long.parseLong(ASSET_ID);
+        } catch (NumberFormatException e) {
+            ctx.status(400).result("The asset ID must be a number.");
+            return;
+        }
+
+        final String NAME = REPO+"-"+ASSET_ID+".jar"; // TODO: make this more dynamic in the future, maybe by fetching the asset name from GitHub API
+        final InputStream MOD_FILE = new DownloadAssetService(OWNER, REPO, ASSET_NUMBER).request();
+
+        if (MOD_FILE == null) {
+            ctx.status(404).result("The requested asset could not be downloaded.");
+            return;
+        }
 
         ctx.contentType("application/java-archive"); // Set the MIME type 
         ctx.header("Content-Disposition", "attachment; filename=\"" + NAME + "\""); // Tell the browser to treat it as a downloadable attachment with a filename

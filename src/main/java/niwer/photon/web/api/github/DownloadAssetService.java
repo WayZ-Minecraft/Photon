@@ -4,9 +4,11 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.Builder;
 import java.net.http.HttpResponse;
 
 import niwer.lumen.Console;
+import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
 import niwer.photon.util.PhotonLogTypes;
 import niwer.photon.web.HttpMethod;
@@ -36,6 +38,14 @@ public class DownloadAssetService extends GithubApiRequest<InputStream> {
 
     @Override
     public HttpMethod method() { return HttpMethod.GET; }
+
+    @Override
+    public void addHeaders(Builder builder) {
+        builder.header("Authorization", "Bearer " + Directories.getConfig().github_pat)
+            .header("Accept", "application/octet-stream")
+            .header("X-GitHub-Api-Version", "2026-03-10")
+            .header("Content-Type", "application/json");
+    }
 
     @Override
     public InputStream request() {

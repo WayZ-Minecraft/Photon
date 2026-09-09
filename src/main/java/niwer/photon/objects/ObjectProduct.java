@@ -45,8 +45,24 @@ public class ObjectProduct {
     public String repoOwner() { return this.repoOwner; }
 
     public String repoName() { return this.repoName; }
+    
+    public String repoKey() { return this.repoOwner + "/" + this.repoName; }
 
     public Set<String> excludedReleaseTags() {
         return this.excluded_release_tags == null ? Collections.emptySet() : this.excluded_release_tags;
+    }
+
+    /**
+     * @return True if the config for this product has repo owner and has a repo name.
+     */
+    public boolean hasRepo() {
+        return (this.repoOwner != null && !this.repoOwner.isEmpty())
+            && (this.repoName != null && !this.repoName.isEmpty());
+    }
+
+    @Override
+    public String toString() {
+        return String.format("ObjectProduct{id='%s', name='%s', is_license_required=%s, default_license_duration_days=%s, stripe_price_id='%s', repo_owner='%s', repo_name='%s', excluded_release_tags=%s}",
+            id, name, is_license_required, default_license_duration_days, stripe_price_id, repoOwner, repoName, excluded_release_tags);
     }
 }

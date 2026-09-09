@@ -1,6 +1,7 @@
 package niwer.photon.web;
 
 import org.eclipse.jetty.server.ForwardedRequestCustomizer;
+import org.slf4j.LoggerFactory;
 
 import io.javalin.Javalin;
 import io.javalin.plugin.bundled.RateLimitPlugin;
@@ -37,6 +38,7 @@ import niwer.photon.web.endpoints.servers.StatusServersEndpoint;
 import niwer.photon.web.endpoints.stripe.StripePurchaseSessionEndpoint;
 import niwer.photon.web.endpoints.stripe.StripeWebhookEndpoint;
 import niwer.photon.web.endpoints.updates.DownloadEndpoint;
+import niwer.photon.web.endpoints.updates.GetAssetsEndpoint;
 
 public class WebServerEngine {
 
@@ -54,6 +56,9 @@ public class WebServerEngine {
 
             /* Create the web server */
             final var WEB_SERVER = Javalin.create(cfg -> {
+                cfg.startup.showJavalinBanner = false;
+                System.out.println("SLF4J Provider: " + LoggerFactory.getILoggerFactory().getClass().getName());
+
                 /* Set the static files directory (index.html, main.css, main.js, etc.) */
                 cfg.staticFiles.add("/public");
 
@@ -71,6 +76,7 @@ public class WebServerEngine {
                 IEndpoint.register(cfg, AddHWIDEndpoint.class);
                 IEndpoint.register(cfg, LicenseValidateEndpoint.class);
                 IEndpoint.register(cfg, DownloadEndpoint.class);
+                IEndpoint.register(cfg, GetAssetsEndpoint.class);
                 {
                     /* Admin panel */
                     IEndpoint.register(cfg, AdminLoginEndpoint.class);

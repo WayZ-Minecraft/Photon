@@ -163,6 +163,7 @@ const UI = {
 
         // Lazy load logic
         if(pageId === 'overview') App.loadPublicServers();
+        if(pageId === 'downloads') App.loadDownloads();
         if(pageId === 'licenses' && State.entitlements.length) App.loadLicenses();
         if(pageId === 'admin') App.loadTablesList();
     },
@@ -495,10 +496,43 @@ const App = {
         }
     },
 
-    downloadMod(e) {
-        e.preventDefault();
-        const chan = document.getElementById('downloadChannel').value;
-        window.location.href = `/download/mod?channel=${encodeURIComponent(chan)}`;
+    async loadDownloads() {
+        const grid = document.getElementById('downloadsGrid');
+        try {
+            const repositories = await Api('/download/list');
+            const sections = Object.entries(repositories || {}).map(([repository, releases]) => {
+                const rows = releases.flatMap(release => (release.assets || [])
+                    .filter(asset => asset.name && asset.name.endsWith('.jar'))
+                    .map(asset => `
+                        <tr>
+                            <td>${UI.escapeHTML(release.name || release.tag_name || 'Unreleased')}</td>
+                            <td><span class="font-mono text-sm">${UI.escapeHTML(asset.name)}</span></td>
+                            <td class="download-action">
+                                <a class="btn primary icon-btn" title="Download" href="/download?product=${encodeURIComponent(repository)}&assetId=${asset.id}" target="_blank">
+                                    <i class="fa-solid fa-cloud-arrow-down"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    `)).join('');
+
+                return `
+                    <section class="download-repository">
+                        <div class="download-repository-header">
+                            <h3><i class="fa-solid fa-code-branch text-accent"></i> ${UI.escapeHTML(repository)}</h3>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead><tr><th>Release</th><th>Asset</th><th>Download</th></tr></thead>
+                                <tbody>${rows || '<tr><td colspan="3" class="text-secondary">No downloadable assets found.</td></tr>'}</tbody>
+                            </table>
+                        </div>
+                    </section>
+                `;
+            });
+            grid.innerHTML = sections.length ? sections.join('') : '<p class="text-secondary">No downloadable assets found.</p>';
+        } catch (e) {
+            grid.innerHTML = '<p class="text-secondary text-danger">Failed to load downloads.</p>';
+        }
     },
 
     // --- Subscriptions ---

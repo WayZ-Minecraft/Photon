@@ -10,9 +10,9 @@ import java.util.stream.Collectors;
 import com.google.gson.reflect.TypeToken;
 
 import niwer.lumen.Console;
-import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
 import niwer.photon.objects.ObjectGithubRelease;
+import niwer.photon.objects.ObjectProduct;
 import niwer.photon.util.GsonUtils;
 import niwer.photon.util.PhotonLogTypes;
 import niwer.photon.web.HttpMethod;
@@ -27,26 +27,28 @@ public class GetReleasesRequest extends GithubApiRequest<List<ObjectGithubReleas
 
     private final String owner;
     private final String repo;
+    private final Set<String> excludedTags;
 
-    public GetReleasesRequest(String owner, String repo) {
+    public GetReleasesRequest(ObjectProduct product) {
+        this(product.repoOwner(), product.repoName(), product.excludedReleaseTags());
+    }
+
+    public GetReleasesRequest(String owner, String repo, Set<String> excludedTags) {
         this.owner = owner;
         this.repo = repo;
+        this.excludedTags = excludedTags == null ? Collections.emptySet() : excludedTags;
     }
 
     @Override
-    public String url() {
-        return "https://api.github.com/repos/" + owner + "/" + repo + "/releases?per_page=100";
-    }
+    public String url() { return "https://api.github.com/repos/" + owner + "/" + repo + "/releases?per_page=100"; }
 
     @Override
-    public HttpMethod method() {
-        return HttpMethod.GET;
-    }
+    public HttpMethod method() { return HttpMethod.GET; }
 
     @Override
     public List<ObjectGithubRelease> request() {
         try {
-            final HttpResponse<String> RESPONSE = sendHttpRequest(HttpResponse.BodyHandlers.ofString());
+            final HttpResponse<String> RESPONSE = this.sendHttpRequest(HttpResponse.BodyHandlers.ofString());
             if (RESPONSE.statusCode() != 200) {
                 Console.log("No releases found for %s/%s with status code %d", owner, repo, RESPONSE.statusCode()).type(PhotonLogTypes.WEB_SERVER).container(PhotonEngine.LOGGER).send();
                 return Collections.emptyList();
@@ -54,14 +56,12 @@ public class GetReleasesRequest extends GithubApiRequest<List<ObjectGithubReleas
 
             final Type LIST_TYPE = new TypeToken<List<ObjectGithubRelease>>(){}.getType();
             final List<ObjectGithubRelease> RELEASES = GsonUtils.GSON.fromJson(RESPONSE.body(), LIST_TYPE);
-
-            final Set<String> EXCLUDED_TAGS = Directories.getConfig().getProducts().stream().flatMap(product -> product.excludedReleaseTags().stream()).collect(Collectors.toSet());
+            
             return RELEASES.stream()
                     .filter(release -> !release.draft) // Exclude draft releases
-                    .filter(release -> !EXCLUDED_TAGS.contains(release.tagName)) // Filter out unwanted versions
+                    .filter(release -> !excludedTags.contains(release.tagName)) // Filter out unwanted versions
                     .filter(release -> release.assets != null && release.assets.stream().anyMatch(a -> a.name.endsWith(".jar"))) // Ensure the release has at least one .jar asset
                     .collect(Collectors.toList());
-
         } catch (Exception e) {
             e.printStackTrace();
             return Collections.emptyList();

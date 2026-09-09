@@ -16,6 +16,7 @@
         </div>
         <div class="nav-links" id="navMenu">
             <a class="nav-link active" data-target="overview">Overview</a>
+            <a class="nav-link" data-target="downloads">Downloads</a>
             <a class="nav-link sub-required hidden" data-target="licenses">Licenses</a>
             <a class="nav-link admin-required hidden" data-target="admin">Admin</a>
         </div>
@@ -41,21 +42,6 @@
                     <button class="btn primary" onclick="UI.openModal('authModal')">Link Account</button>
                 </div>
             </div>
-
-            <div class="panel">
-                    <div class="panel-header">
-                        <h2><i class="fa-solid fa-download text-accent"></i> Download the Engine</h2>
-                    </div>
-                    <form onsubmit="App.downloadMod(event)" style="display: flex; gap: 1rem; align-items: center; margin-top: 1rem;">
-                        <select id="downloadChannel" style="flex: 1;">
-                            <option value="STABLE">STABLE</option>
-                            <option value="BETA">BETA</option>
-                            <option value="ALPHA">ALPHA</option>
-                        </select>
-                        <button type="submit" class="btn primary"><i class="fa-solid fa-cloud-arrow-down"></i> Download</button>
-                    </form>
-            </div>
-
             <div class="panel">
                 <div class="panel-header">
                     <h2><i class="fa-solid fa-server text-accent"></i> Public Servers</h2>
@@ -68,23 +54,14 @@
             </div>
         </section>
 
-        <!-- PAGE: User Profile -->
-        <section id="page-user" class="page">
+        <!-- PAGE: Downloads -->
+        <section id="page-downloads" class="page">
             <div class="panel">
                 <div class="panel-header">
-                    <h2><i class="fa-solid fa-box-open text-accent"></i> Your Products</h2>
+                    <h2><i class="fa-solid fa-download text-accent"></i> Downloads</h2>
                 </div>
-                <div class="grid grid-cols-3" id="entitlementsGrid">
-                    <p class="text-secondary">Sign in to view your products.</p>
-                </div>
-            </div>
-            <div class="panel">
-                <div class="panel-header">
-                    <h2><i class="fa-solid fa-user text-accent"></i> Your Profile</h2>
-                    <button class="btn primary icon-btn" title="Edit Profile" onclick="UI.openModal('editProfileModal')"><i class="fa-solid fa-pen"></i></button>
-                </div>
-                <div class="grid grid-cols-2" id="profileDetailsGrid">
-                    <!-- Dynamic properties injected by JS -->
+                <div id="downloadsGrid">
+                    <p class="text-secondary">Loading downloads...</p>
                 </div>
             </div>
         </section>
@@ -134,141 +111,40 @@
                 </div>
             </div>
         </section>
+
+        <!-- PAGE: User Profile -->
+        <section id="page-user" class="page">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-box-open text-accent"></i> Your Products</h2>
+                </div>
+                <div class="grid grid-cols-3" id="entitlementsGrid">
+                    <p class="text-secondary">Sign in to view your products.</p>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-user text-accent"></i> Your Profile</h2>
+                    <button class="btn primary icon-btn" title="Edit Profile" onclick="UI.openModal('editProfileModal')"><i class="fa-solid fa-pen"></i></button>
+                </div>
+                <div class="grid grid-cols-2" id="profileDetailsGrid">
+                    <!-- Dynamic properties injected by JS -->
+                </div>
+            </div>
+        </section>
     </main>
 
-    <footer>
-        <div class="footer-links">
-            <a href="#" id="footerStoreLink" target="_blank" title="Store"><i class="fa-solid fa-store fa-lg"></i></a>
-            <a href="#" id="footerTosLink" target="_blank" title="Terms of Service"><i class="fa-solid fa-scale-balanced fa-lg"></i></a>
-            <a href="#" id="footerTosaleLink" target="_blank" title="Terms of Sale"><i class="fa-solid fa-scale-unbalanced fa-lg"></i></a>
-            <a href="#" id="footerPrivacyLink" target="_blank" title="Privacy Policy"><i class="fa-solid fa-shield-halved fa-lg"></i></a>
-        </div>
-    </footer>
+    <!-- Footer -->
+    <footer><inc-footer></inc-footer></footer>
 
     <!-- Modals -->
-    <!-- Auth Modal -->
-    <div class="modal-backdrop" id="authModal" onclick="UI.closeModal(event)">
-        <div class="modal">
-            <button class="modal-close icon-btn" onclick="UI.closeModal(null, true)"><i class="fa-solid fa-xmark"></i></button>
-            <div class="modal-tabs">
-                <div class="modal-tab active" onclick="UI.switchAuthTab('login')">Login</div>
-                <div class="modal-tab" onclick="UI.switchAuthTab('register')">Register</div>
-            </div>
-            
-            <!-- Login Form -->
-            <form id="loginForm" class="modal-panel active" onsubmit="App.login(event)">
-                <div style="text-align: center; margin-bottom: 1.5rem;">
-                    <h2><i class="fa-solid fa-fingerprint text-accent"></i> Authentication</h2>
-                    <p class="text-sm text-secondary">Sign in to your account</p>
-                </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <div class="input-wrapper">
-                        <i class="fa-regular fa-envelope left-icon"></i>
-                        <input type="email" name="email" required placeholder="joe@gmail.com">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-lock left-icon"></i>
-                        <input type="password" name="password" required placeholder="••••••••">
-                    </div>
-                </div>
-                <button type="submit" class="btn primary" style="width: 100%; margin-top: 1rem;">Login</button>
-            </form>
+    <inc-auth-modal></inc-auth-modal>
+    <inc-create-license-modal></inc-create-license-modal>
+    <inc-edit-profile-modal></inc-edit-profile-modal>
 
-            <!-- Register Form -->
-            <form id="registerForm" class="modal-panel" onsubmit="App.register(event)">
-                <div style="text-align: center; margin-bottom: 1.5rem;">
-                    <h2><i class="fa-solid fa-user-plus text-accent"></i> Create Account</h2>
-                    <p class="text-sm text-secondary" id="registerModalSubtitle">Join the network</p>
-                </div>
-                <div class="form-group">
-                    <label>Username</label>
-                    <div class="input-wrapper">
-                        <i class="fa-regular fa-user left-icon"></i>
-                        <input type="text" name="username" required placeholder="JoeDalton_">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <div class="input-wrapper">
-                        <i class="fa-regular fa-envelope left-icon"></i>
-                        <input type="email" name="email" required placeholder="joe@gmail.com">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-lock left-icon"></i>
-                        <input type="password" name="password" required minlength="8" placeholder="••••••••">
-                    </div>
-                </div>
-                <button type="submit" class="btn primary" style="width: 100%; margin-top: 1rem;">Register</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Create License Modal -->
-    <div class="modal-backdrop" id="createLicenseModal" onclick="UI.closeModal(event)">
-        <div class="modal">
-            <button class="modal-close icon-btn" onclick="UI.closeModal(null, true)"><i class="fa-solid fa-xmark"></i></button>
-            <form onsubmit="App.createLicense(event)">
-                <h2 style="margin-bottom: 1.5rem;"><i class="fa-solid fa-key text-accent"></i> New License</h2>
-                <div class="form-group">
-                    <label>License Name / Identifier</label>
-                    <input type="text" name="name" required placeholder="e.g. Production Server">
-                </div>
-                <div class="form-group">
-                    <label>Product</label>
-                    <select name="product_id" id="licenseProductSelect" required>
-                        <option value="">Loading products...</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Duration (Days)</label>
-                    <input type="number" name="duration_days" placeholder="30" min="1">
-                    <span class="text-sm text-secondary">Leave blank for default.</span>
-                </div>
-                <button type="submit" class="btn primary" style="width: 100%; margin-top: 1rem;">Generate Key</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Edit Profile Modal -->
-    <div class="modal-backdrop" id="editProfileModal" onclick="UI.closeModal(event)">
-        <div class="modal">
-            <button class="modal-close icon-btn" onclick="UI.closeModal(null, true)"><i class="fa-solid fa-xmark"></i></button>
-            <form onsubmit="App.updateProfile(event)">
-                <h2 style="margin-bottom: 1.5rem;"><i class="fa-solid fa-user-pen text-accent"></i> Edit Details</h2>
-                <div class="grid">
-                    <div class="grid grid-cols-2">
-                        <div class="form-group">
-                            <label>Username</label>
-                            <input type="text" name="username" id="editUsername" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" name="email" id="editEmail" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>New Password <span class="text-secondary">(Optional)</span></label>
-                        <input type="password" name="newPassword" minlength="8" placeholder="Leave blank to keep current">
-                    </div>
-                    <div class="form-group">
-                        <label>Current Password <span class="text-danger">*</span></label>
-                        <input type="password" name="currentPassword" required placeholder="Required to save changes">
-                    </div>
-                    <button type="submit" class="btn primary" style="width: 100%; margin-top: 1rem;">Save Changes</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Toast Container -->
-    <div id="toast-container"></div>
+    <div id="toast-container"></div><!-- Toast Container -->
+    <script src="js/common.inc.js"></script>
+    <script src="js/modals.inc.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

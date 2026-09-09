@@ -14,7 +14,6 @@ import org.simplejavamail.recipient.RecipientBuilder;
 
 import jakarta.mail.Message.RecipientType;
 import niwer.photon.Directories;
-import niwer.photon.util.os.OperatingSystem;
 
 /**
  * This class is responsible for managing email sending functionality. It provides methods to send emails, configure email settings, and handle email-related tasks.

@@ -11,13 +11,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import niwer.photon.discord.commands.network.ExecuteSQLCommand;
-import niwer.photon.discord.commands.network.PostUpdateCommand;
-import niwer.photon.discord.commands.network.RestartNetworkCommand;
-import niwer.photon.discord.commands.network.accounts.ListAccountsCommand;
-import niwer.photon.discord.commands.network.accounts.ManagerAccountCommand;
 
-@SuppressWarnings("null") // The compiler in Photon is not good at handling JDA's @Nonnull annotations, so we suppress null warnings in this class
 public class CommandsManager extends ListenerAdapter {
     public static final Map<String, AbstractSlashCommand> COMMANDS = new HashMap<>(); // Commands that are also available in private messages
     
@@ -33,21 +27,6 @@ public class CommandsManager extends ListenerAdapter {
 
         /* Guild only commands */
         new ClearCommand().register();
-        {
-            /* Official Server commands */
-            new RestartNetworkCommand().register();
-            new PostUpdateCommand().register();
-
-            new ListAccountsCommand().register();
-            new ManagerAccountCommand().register();
-
-            new ExecuteSQLCommand().register();
-        }
-
-        {
-            /* User servers commands */
-            //TODO
-        }
     }
 
     @Nonnull

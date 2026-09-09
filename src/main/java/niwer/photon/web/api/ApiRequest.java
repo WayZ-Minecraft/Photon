@@ -17,11 +17,19 @@ import niwer.photon.web.HttpMethod;
  */
 public abstract class ApiRequest<T> {
 
-    private final transient HttpClient CLIENT;
+    protected final transient HttpClient CLIENT;
 
     protected ApiRequest() {
         try {
             this.CLIENT = HttpClient.newHttpClient();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize HTTP client", e);
+        }
+    }
+
+    protected ApiRequest(HttpClient.Redirect redirect) {
+        try {
+            this.CLIENT = HttpClient.newBuilder().followRedirects(redirect).build();
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize HTTP client", e);
         }
@@ -89,6 +97,18 @@ public abstract class ApiRequest<T> {
      */
     protected final <E> HttpResponse<E> sendHttpRequest(HttpResponse.BodyHandler<E> bodyHandler) throws Exception {
         return this.CLIENT.send(this.asRequest(), bodyHandler);
+    }
+
+    /**
+     * Send the HTTP request asynchronously and return the response. This method uses the HttpClient to send the request prepared by the asRequest() method and returns the HttpResponse.
+     * 
+     * @param <E> The type of the response body
+     * @param bodyHandler The handler for processing the response body
+     * @return The HTTP response
+     * @throws Exception If an error occurs while sending the request
+     */
+    protected final <E> HttpResponse<E> sendHttpRequestAsync(HttpResponse.BodyHandler<E> bodyHandler) throws Exception {
+        return this.CLIENT.sendAsync(this.asRequest(), bodyHandler).join();
     }
 
     /**

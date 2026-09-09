@@ -16,7 +16,7 @@ public final class StripeProductResolver {
             .filter(item -> Directories.getConfig().productByStripePriceOrProductId(item.priceId(), item.productId()) != null)
             .map(item -> Directories.getConfig().productByStripePriceOrProductId(item.priceId(), item.productId()))
             .filter(product -> product != null)
-            .map(product -> product.id)
+            .map(product -> product.id())
             .findFirst()
             .orElse(null);
     }
@@ -24,6 +24,6 @@ public final class StripeProductResolver {
     public static String productIdForSubscription(StripeSubscription subscription) {
         if (subscription == null) return null;
         final var product = Directories.getConfig().productByStripePriceOrProductId(subscription.priceId(), subscription.productId());
-        return product == null ? null : product.id;
+        return product == null ? null : product.id();
     }
 }

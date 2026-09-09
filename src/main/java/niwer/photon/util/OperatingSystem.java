@@ -1,4 +1,4 @@
-package niwer.photon.util.os;
+package niwer.photon.util;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -7,8 +7,6 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
-
-import niwer.photon.util.HashUtils;
 
 /**
  * @author Niwer

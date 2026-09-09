@@ -11,8 +11,7 @@ import java.util.Map;
 
 import niwer.lumen.Console;
 import niwer.photon.PhotonEngine;
-import niwer.photon.sql.DiscordProfileTable;
-import niwer.photon.util.os.OperatingSystem;
+import niwer.photon.sql.PlayerAccountTable;
 
 public class TranslationManager {
 	
@@ -126,6 +125,6 @@ public class TranslationManager {
 	 * @return The translation for the given key.
 	 */
 	public static String format(String discordUserID, String key, Object... obj) {
-		return format(DiscordProfileTable.getLanguage(discordUserID), key, obj);
+		return format(PlayerAccountTable.getLanguage(discordUserID), key, obj);
 	}
 }

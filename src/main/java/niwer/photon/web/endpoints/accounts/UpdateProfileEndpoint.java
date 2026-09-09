@@ -9,6 +9,11 @@ import niwer.photon.util.GsonUtils;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
+/**
+ * Endpoint to update a user's profile information, including username, email, and password.
+ * 
+ * @author Niwer
+ */
 public class UpdateProfileEndpoint implements IEndpoint {
 
     @Override public String path() { return "/accounts/update_profile"; }

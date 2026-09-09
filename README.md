@@ -1,6 +1,6 @@
 # Photon
 
-Photon is a network application for Niwer's stuff such as the engine/framework, official content-packs.
+Photon is a network application for Niwer's stuff such as the engine/framework, official content-packs & Armo.
 It also provide the official discord bot, database for anti-cheat reports, crash-reports, accounts & much more.
 
 ## Run
@@ -59,14 +59,20 @@ The routes below are the ones typically called by the game client, launcher, Str
 		- Auth via `X-Photon-User-Token` or `Authorization: Bearer <token>`.
 	- `GET /accounts/entitlements` — Return the account's subscriptions and one-time product purchases.
 	- `POST /accounts/change_password` — Change a password.
-		- Body fields: `email`, `currentPassword`, `newPassword`.
+		- Required body fields: `email`, `currentPassword`, `newPassword`.
 	- `POST /accounts/update_profile` — Update username, email, or password.
-		- Body fields: `uuid`, `currentPassword`, optional `username`, `email`, `newPassword`, `confirmPassword`.
+		- Required body fields: `uuid`, `currentPassword`, optional `username`, `email`, `newPassword`, `confirmPassword`.
 	- `GET /accounts/licenses` — List the caller’s licenses.
 	- `POST /accounts/licenses` — Create a license for the current subscriber.
 	- `POST /accounts/licenses/revoke` — Revoke one of the caller’s licenses.
 
-- **Game / launcher**
+- **Updates**
+	- `GET /download/list` — List available download assets.
+		- Optional query parameters: `owner`, `repo`, `assetId`.
+	- `GET /download/mod` — Download a specific asset from GitHub.
+		- Required query parameters: `owner`, `repo`, `assetId`.
+
+- **Software (Games / Applications / Launchers)**
 	- `GET /game/config` — Public runtime config used by the client.
 	- `POST /game/add-crash-report` — Upload a crash report.
 		- Required fields: `fileMessage`, `userUUID`, `timestamp`.
@@ -77,7 +83,6 @@ The routes below are the ones typically called by the game client, launcher, Str
 		- Required fields: `hwid`, `userUUID`, `operatingSystem`.
 	- `POST /licenses/validate` — Validate a license key on the client.
 		- Required fields: `license_key`, `product_id`, `hardware_id`.
-	- `GET /download/mod` — Download the current mod package.
 
 - **Servers / status**
 	- `POST /servers/add-server` — Register or update a server entry.
@@ -93,12 +98,7 @@ The routes below are the ones typically called by the game client, launcher, Str
 ## Admin endpoints
 
 These routes require an admin session or admin token.
-
 - `POST /api/admin/login`
 - `GET /api/admin/me`
 - `GET /api/admin/tables`
 - `GET /api/admin/tables/{table}`
-- `GET /api/admin/config`
-- `PUT /api/admin/config`
-- `POST /api/admin/restart`
-- `POST /api/admin/updates/upload`

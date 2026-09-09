@@ -6,7 +6,7 @@ import niwer.photon.objects.ObjectLicense;
 import niwer.photon.sql.LicenseTable;
 import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.HashUtils;
-import niwer.photon.util.os.OperatingSystem;
+import niwer.photon.util.OperatingSystem;
 
 /**
  * Utility class for validating license keys for the Photon Network Engine.
@@ -63,15 +63,15 @@ public final class LicenseManager {
      * 
      * @param licenseKey
      * @param publicKeyValue
-     * @param expectedProductId
+     * @param productId
      * @return a LicenseValidationResult containing the validation result and claims if valid, or failure reason if invalid
      */
-	public static LicenseValidationResult validateLicense(final String licenseKey, final String expectedProductId, final String hardwareId) {
+	public static LicenseValidationResult validateLicense(final String licenseKey, final String productId, final String hardwareId) {
 		final String NORMALIZED_KEY = normalizeKey(licenseKey);
 		final ObjectLicense license = LicenseTable.getByKey(NORMALIZED_KEY);
 		if (license == null) return LicenseValidationResult.missing(); // License key not found in database
 
-		if (license.productId() == null || !license.productId().equalsIgnoreCase(expectedProductId)) return LicenseValidationResult.invalid(LicenseFailureReason.PRODUCT_MISMATCH, "License is not valid for product '" + expectedProductId + "'");
+		if (license.productId() == null || !license.productId().equalsIgnoreCase(productId)) return LicenseValidationResult.invalid(LicenseFailureReason.PRODUCT_MISMATCH, "License is not valid for product '" + productId + "'");
 		if (LicenseTable.LicenseStatus.REVOKED == license.status()) return LicenseValidationResult.invalid(LicenseFailureReason.UNEXPECTED_ERROR, "License key has been revoked");
 		if (license.isExpired()) return LicenseValidationResult.invalid(LicenseFailureReason.EXPIRED, "License key has expired");
 

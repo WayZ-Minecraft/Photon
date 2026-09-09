@@ -1,12 +1,11 @@
 package niwer.photon.discord.commands;
 
-import niwer.photon.sql.DiscordProfileTable;
-import niwer.photon.util.TranslationManager;
-import niwer.photon.util.TranslationManager.Language;
-
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
+import niwer.photon.sql.PlayerAccountTable;
+import niwer.photon.util.TranslationManager;
+import niwer.photon.util.TranslationManager.Language;
 import niwer.queryon.QueryonException;
 
 /**
@@ -30,7 +29,7 @@ public class LanguageCommand extends AbstractSlashCommand {
 
         /* Set the new user language */
         try {
-            DiscordProfileTable.setLanguage(event.getUser().getId(), LANGUAGE);
+            PlayerAccountTable.setLanguageFromUUID(event.getUser().getId(), LANGUAGE);
             event.reply(TranslationManager.format(event.getUser().getId(), "command.reply.language.success")).queue();
         } catch (QueryonException e) {
             event.reply(TranslationManager.format(event.getUser().getId(), "command.reply.language.failure")).queue();

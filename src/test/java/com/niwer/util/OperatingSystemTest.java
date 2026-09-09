@@ -1,10 +1,10 @@
-package com.niwer.util.os;
+package com.niwer.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import niwer.photon.util.os.OperatingSystem;
+import niwer.photon.util.OperatingSystem;
 
 public class OperatingSystemTest {
 

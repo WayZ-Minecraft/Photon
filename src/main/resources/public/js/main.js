@@ -164,7 +164,7 @@ const UI = {
         // Lazy load logic
         if(pageId === 'overview') App.loadPublicServers();
         if(pageId === 'licenses' && State.entitlements.length) App.loadLicenses();
-        if(pageId === 'tables') App.loadTablesList();
+        if(pageId === 'admin') App.loadTablesList();
     },
 
     updateAuthVisbility() {
@@ -282,11 +282,7 @@ const App = {
     async init() {
         UI.init();
         UI.navigate(window.location.hash.replace('#','') || 'overview');
-        
-        const promises = [this.loadPublicServers()];
-        if (State.token || State.account?.administrator) promises.push(this.loadAdminConfig());
-        
-        await Promise.allSettled(promises);
+        await Promise.allSettled([this.loadPublicServers()]);
     },
 
     // --- Authentication ---
@@ -427,7 +423,6 @@ const App = {
 
     onLoginSuccess() {
         UI.closeModal(null, true);
-        if (State.account?.administrator) this.loadAdminConfig();
         UI.updateAuthVisbility();
         if (State.entitlements.length) UI.navigate('licenses');
         else UI.navigate('user');
@@ -585,44 +580,7 @@ const App = {
         } catch (err) { UI.toast(err.message, 'error'); }
     },
 
-    // --- Admin & Config ---
-    async loadAdminConfig() {
-        try {
-            State.config = await Api('/api/admin/config');
-            const form = document.getElementById('configForm');
-            
-            form.innerHTML = State.configSchema.map(f => `
-                <div class="form-group">
-                    <label>${UI.escapeHTML(f.label)}</label>
-                    <input type="${f.type}" name="${f.key}" value="${UI.escapeHTML(State.config[f.key] || '')}">
-                </div>
-            `).join('');
-
-            // Update footer links if available
-            if (State.config.store_url) document.getElementById('footerStoreLink').href = State.config.store_url;
-            if (State.config.terms_of_service_url) document.getElementById('footerTosLink').href = State.config.terms_of_service_url;
-            if (State.config.terms_of_sale_url) document.getElementById('footerTosaleLink').href = State.config.terms_of_sale_url;
-            if (State.config.privacy_policy_url) document.getElementById('footerPrivacyLink').href = State.config.privacy_policy_url;
-
-            UI.updateAuthVisbility(); // Re-trigger UI update for overview store button if config changed
-        } catch (e) { /* user lacks permission, silently ignore */ }
-    },
-
-    async saveConfig(e) {
-        e.preventDefault();
-        const fd = new FormData(e.target);
-        const payload = {};
-        State.configSchema.forEach(f => {
-            const val = fd.get(f.key);
-            payload[f.key] = f.type === 'number' ? (val ? Number(val) : null) : val;
-        });
-        try {
-            State.config = await Api('/api/admin/config', { method: 'PUT', body: JSON.stringify(payload) });
-            UI.toast('Config saved', 'success');
-            this.loadAdminConfig(); // Refresh UI mappings
-        } catch (err) { UI.toast(err.message, 'error'); }
-    },
-
+    // --- Admin ---
     async loadTablesList() {
         try {
             const tables = await Api('/api/admin/tables');
@@ -667,25 +625,7 @@ const App = {
             UI.toast('Failed to load table data', 'error');
             document.getElementById('dataTableBody').innerHTML = '<tr><td class="text-danger">Failed to fetch data.</td></tr>';
         }
-    },
-
-    async restartService() {
-        if(!confirm('Restart Photon now?')) return;
-        try {
-            await Api('/api/admin/restart', { method: 'POST' });
-            UI.toast('Restart requested', 'success');
-        } catch(e) { UI.toast(e.message, 'error'); }
-    },
-
-    async uploadUpdate(e) {
-        e.preventDefault();
-        try {
-            await Api('/api/admin/updates/upload', { method: 'POST', body: new FormData(e.target) });
-            UI.toast('Update uploaded successfully', 'success');
-            e.target.reset();
-        } catch(err) { UI.toast(err.message, 'error'); }
     }
 };
 
-// Boot
-document.addEventListener('DOMContentLoaded', () => App.init());
+document.addEventListener('DOMContentLoaded', () => App.init()); // Boot

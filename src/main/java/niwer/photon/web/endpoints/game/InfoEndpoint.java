@@ -5,7 +5,6 @@ import java.util.concurrent.TimeUnit;
 import io.javalin.http.Context;
 import niwer.photon.Directories;
 import niwer.photon.Directories.NetworkConfig;
-import niwer.photon.PhotonEngine;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
@@ -27,14 +26,6 @@ public class InfoEndpoint implements IEndpoint {
         String official_logo_base64,
         String discord_bot_id,
 
-        // String api_version,
-        String mod_version,
-        // String launcher_version,
-
-        String network_ip,
-        String webserver_host,
-        int webserver_port,
-
         String twitter_url,
         String twitch_url,
         String youtube_url,
@@ -45,15 +36,7 @@ public class InfoEndpoint implements IEndpoint {
             this(
                 Directories.getOfficialLogoBase64(),
                 config.discord_bot_id,
-
-                // config.api_version,
-                config.mod_version,
-                // config.launcher_version,
-
-                PhotonEngine.getCurrentIP(),
-                config.webserver_host,
-                config.webserver_port,
-
+                
                 config.twitter_url,
                 config.twitch_url,
                 config.youtube_url,

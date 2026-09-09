@@ -76,7 +76,7 @@ public class PlayerAccountTable extends Table {
         return getAccountByUUID(UniqueUserID);
     }
 
-    public static void updateDiscordID(String uuid, String discordID) {
+    public static void setDiscordID(String uuid, String discordID) {
         if (uuid == null || uuid.trim().isEmpty()) {
             Console.log("Cannot update Discord ID for null/empty UUID").error().container(PhotonEngine.LOGGER).send();
             return;
@@ -87,7 +87,13 @@ public class PlayerAccountTable extends Table {
             .execute();
     }
 
-    public static void updateLanguage(String uuid, Language language) {
+    /**
+     * Update language preferences for a user by UUID.
+     * 
+     * @param uuid The unique identifier of the user
+     * @param language The new language preference to set
+     */
+    public static void setLanguageFromUUID(String uuid, Language language) {
         if (uuid == null || uuid.trim().isEmpty()) {
             Console.log("Cannot update language for null/empty UUID").error().container(PhotonEngine.LOGGER).send();
             return;
@@ -96,6 +102,40 @@ public class PlayerAccountTable extends Table {
             .set("language", language.name())
             .where(Expression.of("uuid").isEqualTo(uuid))
             .execute();
+    }
+
+    /**
+     * Update language preferences for a user.
+     * 
+     * @param discordUserID The discord id of the user
+     * @param newUserLanguage List of Languages to set
+     */
+    public static void setLanguageFromDiscordID(String discordUserID, Language newUserLanguage) {
+        if (discordUserID == null || discordUserID.trim().isEmpty()) {
+            Console.log("Cannot update language for null/empty Discord ID").error().container(PhotonEngine.LOGGER).send();
+            return;
+        }
+
+        UpdateManager.update(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
+            .set("language", newUserLanguage.name())
+            .where(Expression.of("discord_user_id").isEqualTo(discordUserID))
+            .execute();
+    }
+
+    /**
+     * Retrieve language preferences for a user.
+     * 
+     * @param discordIdOrAccountUUID The discord id of the user or the account UUID
+     * @return List of Languages or null if user has no preferences
+     */
+    public static Language getLanguage(String discordIdOrAccountUUID) {
+        final var QUERY = SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "language")
+            .where(Expression.of("discord_user_id").isEqualTo(discordIdOrAccountUUID).or(Expression.of("uuid").isEqualTo(discordIdOrAccountUUID)));
+        
+        if(!QUERY.executeHasResult()) return null; // No preferences found for the user
+
+        final String USERR_LANG = QUERY.executePrimitive(String.class);
+        return Language.fromString(USERR_LANG);
     }
 
     public static boolean existByUUID(String uuid) { return getAccountByUUID(uuid) != null; }

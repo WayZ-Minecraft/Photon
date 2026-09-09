@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.imageio.ImageIO;
@@ -19,11 +18,10 @@ import javax.imageio.ImageIO;
 import com.google.gson.annotations.SerializedName;
 
 import niwer.lumen.Console;
+import niwer.photon.objects.ObjectProduct;
 import niwer.photon.util.GsonUtils;
+import niwer.photon.util.OperatingSystem;
 import niwer.photon.util.PhotonLogTypes;
-import niwer.photon.util.os.OperatingSystem;
-import niwer.photon.util.updater.UpdateChannel;
-import niwer.photon.util.updater.UpdateFileType;
 
 public class Directories
 {
@@ -58,8 +56,6 @@ public class Directories
 			if (config == null) config = new NetworkConfig();
 		} catch (IOException e) {}
 	}
-
-	public static String getPathForUpdateChannel(UpdateFileType type, UpdateChannel channel) { return Directories.getConfig().filePaths.get(type).get(channel); }
 
 	/**
 	 * Save all directories and files
@@ -107,23 +103,6 @@ public class Directories
 	public static class NetworkConfig {
 		private static final NetworkConfig DEFAULT = new NetworkConfig();
 		
-		private static Map<UpdateChannel, String> updatePaths(String fileName) {
-			final String SERVICES_UPDATE_DIR = BASE_DIR.getPath() + "/services_update/";
-			return Map.of(
-				UpdateChannel.STABLE, SERVICES_UPDATE_DIR + fileName + ".jar",
-				UpdateChannel.DEV, SERVICES_UPDATE_DIR + fileName + "-dev.jar",
-				UpdateChannel.TEST, SERVICES_UPDATE_DIR + fileName + "-test.jar"
-			);
-		}
-
-		@SerializedName("file_paths")
-		public Map<UpdateFileType, Map<UpdateChannel, String>> filePaths = Map.of(
-			UpdateFileType.MOD, updatePaths("mod"),
-			UpdateFileType.API, updatePaths("api"),
-			UpdateFileType.NETWORK, updatePaths("network"),
-			UpdateFileType.LAUNCHER, updatePaths("launcher")
-		);
-		
 		/* Bot infos */
 		@SerializedName("bot_activity") public String bot_activity = "/";
 		@SerializedName("discord_bot_token") public String discord_bot_token = "";
@@ -145,11 +124,7 @@ public class Directories
 		@SerializedName("database_backup_retention_days") public long database_backup_retention_days = 15L; // Keep backups for 15 days by default
 
 		/* Licensing */
-		@SerializedName("license_products") public List<Product> license_products;
-
-		public List<Product> getLicenseProducts() {
-			return license_products == null ? List.of() : license_products;
-		}
+		@SerializedName("products") public List<ObjectProduct> products;
 
 		/* Github */
 		@SerializedName("github_pat") public String github_pat = ""; // Personal Access Token for GitHub API authentication
@@ -187,7 +162,9 @@ public class Directories
 			return this.equals(NetworkConfig.DEFAULT);
 		}
 
-		public String dbBackupFilePrefix() { return database_backup_file_prefix != null && !database_backup_file_prefix.isBlank() ? database_backup_file_prefix : "db_backup"; }
+		public String dbBackupFilePrefix() {
+			return database_backup_file_prefix != null && !database_backup_file_prefix.isBlank() ? database_backup_file_prefix : "db_backup";
+		}
 
 		public boolean hasEmailConfig() {
 			return mail_sender_email != null && !mail_sender_email.isBlank() &&
@@ -200,38 +177,22 @@ public class Directories
 			return discord_bot_token != null && !discord_bot_token.isBlank();
 		}
 
-		public static class Product {
-			public String id;
-			public String name;
-			public Long default_license_duration_days;
-			public String stripe_price_id;
-
-			public Product() {}
-
-			public Product(String id, String name, Long defaultDurationDays) {
-				this.id = id;
-				this.name = name;
-				this.default_license_duration_days = defaultDurationDays;
-			}
-
-			public Product(String id, String name, Long defaultDurationDays, String stripePriceId) {
-				this(id, name, defaultDurationDays);
-				this.stripe_price_id = stripePriceId;
-			}
+		public List<ObjectProduct> getProducts() {
+			return products == null ? List.of() : products;
 		}
 
-		public Product productByStripePriceId(String stripePriceId) {
+		public ObjectProduct productByStripePriceId(String stripePriceId) {
 			if (stripePriceId == null || stripePriceId.isBlank()) return null;
-			return getLicenseProducts().stream()
-				.filter(product -> stripePriceId.equals(product.stripe_price_id))
+			return getProducts().stream()
+				.filter(product -> stripePriceId.equals(product.stripePriceId()))
 				.findFirst()
 				.orElse(null);
 		}
 
-		public Product productByStripePriceOrProductId(String priceId, String productId) {
-			return getLicenseProducts().stream()
-				.filter(product -> (priceId != null && priceId.equals(product.stripe_price_id))
-					|| (productId != null && productId.equals(product.stripe_price_id)))
+		public ObjectProduct productByStripePriceOrProductId(String priceId, String productId) {
+			return getProducts().stream()
+				.filter(product -> (priceId != null && priceId.equals(product.stripePriceId()))
+					|| (productId != null && productId.equals(product.stripePriceId())))
 				.findFirst()
 				.orElse(null);
 		}

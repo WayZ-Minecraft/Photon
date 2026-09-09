@@ -5,8 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 import niwer.photon.Directories;
-import niwer.photon.util.updater.UpdateChannel;
-import niwer.photon.util.updater.UpdateFileType;
 
 public class DirectoriesTest {
 
@@ -23,14 +21,6 @@ public class DirectoriesTest {
     public void testGetConfig() {
         Directories.load();
         assertTrue(Directories.getConfig() != null);
-    }
-
-    @Test
-    public void testGetPathForUpdateChannel() {
-        Directories.load();
-        String path = Directories.getPathForUpdateChannel(UpdateFileType.MOD, UpdateChannel.STABLE);
-            
-        assertTrue(path != null && !path.isEmpty());
     }
 
     @Test

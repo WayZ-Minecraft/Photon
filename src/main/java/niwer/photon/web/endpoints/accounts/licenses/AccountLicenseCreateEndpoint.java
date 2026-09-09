@@ -1,7 +1,7 @@
 package niwer.photon.web.endpoints.accounts.licenses;
 
-import java.util.concurrent.TimeUnit;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import com.google.gson.JsonObject;
 
@@ -30,24 +30,24 @@ public class AccountLicenseCreateEndpoint implements IEndpoint {
         if (account == null) return;
         final JsonObject body = EndpointUtils.readBody(handler);
         final String requestedProductId = GsonUtils.getString(body, "product_id", "productId", null);
-        final var products = Directories.getConfig().getLicenseProducts();
+        final var products = Directories.getConfig().getProducts();
         final var product = products.stream()
-            .filter(candidate -> Objects.equals(candidate.id, requestedProductId) || (requestedProductId == null && candidate == products.get(0)))
+            .filter(candidate -> Objects.equals(candidate.id(), requestedProductId) || (requestedProductId == null && candidate == products.get(0)))
             .findFirst()
             .orElse(null);
 
-        if (product == null || product.id == null || product.id.isBlank()) {
+        if (product == null || product.id() == null || product.id().isBlank()) {
             handler.status(400).result("Unknown license product");
             return;
         }
 
-        final String productId = product.id;
+        final String productId = product.id();
         if (!SubscriptionTable.hasAccess(account.getEmail(), account.getUuid(), productId)) {
             handler.status(403).result("Purchase or active subscription required for this product");
             return;
         }
         final String name = GsonUtils.getString(body, "name", "name", account.getUsername());
-        final Long durationDays = GsonUtils.getLong(body, "duration_days", "durationDays", product.default_license_duration_days);
+        final Long durationDays = GsonUtils.getLong(body, "duration_days", "durationDays", product.defaultLicenseDurationDays());
         final Long expiresAt = GsonUtils.getLong(body, "expires_at", "expiresAt", null);
 
         final Long computedExpiresAt = expiresAt != null ? expiresAt : (durationDays == null || durationDays <= 0L ? null : System.currentTimeMillis() + (durationDays * 86400000L));

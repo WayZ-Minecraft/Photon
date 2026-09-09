@@ -62,34 +62,6 @@ public class GsonUtils {
         }
     }
 
-    /**
-     * Retrieves a long value from a JsonObject by key. Returns 0 if the parent object is null, the key is null, or the key does not exist in the parent object.
-     * 
-     * @param object The parent JsonObject from which to retrieve the long value
-     * @param key The key of the long value to retrieve
-     * @return The long value associated with the specified key, or 0 if it does not exist
-     */
-    public static long getLong(JsonObject object, String key) {
-        if (object == null || key == null || !object.has(key) || object.get(key).isJsonNull()) return 0L;
-        try {
-            return object.get(key).getAsLong();
-        } catch (Exception ignored) {
-            return 0L;
-        }
-    }
-
-    /**
-     * Retrieves a JsonObject from another JsonObject by key, with an option to allow null values. If allowNull is true, the method will return null if the key does not exist or is null; otherwise, it will return an empty JsonObject.
-     * 
-     * @param object The parent JsonObject from which to retrieve the child object
-     * @param key The key of the child JsonObject to retrieve
-     * @param allowNull Whether to allow null values
-     * @return The child JsonObject associated with the specified key, or null if it does not exist
-     */
-    public static JsonObject getObject(JsonObject object, String key, boolean allowNull) {
-        return getObject(object, key);
-    }
-
     public static String getString(JsonObject body, String primaryKey, String secondaryKey, String defaultValue) {
         if (body != null && body.has(primaryKey) && !body.get(primaryKey).isJsonNull()) return body.get(primaryKey).getAsString();
         if (body != null && body.has(secondaryKey) && !body.get(secondaryKey).isJsonNull()) return body.get(secondaryKey).getAsString();
@@ -105,14 +77,4 @@ public class GsonUtils {
         }
         return defaultValue;
     }
-
-    public static boolean getBoolean(JsonObject object, String key) {
-        if (object == null || key == null || !object.has(key) || object.get(key).isJsonNull()) return false;
-        try {
-            return object.get(key).getAsBoolean();
-        } catch (Exception ignored) {
-            return false;
-        }
-    }
-
 }

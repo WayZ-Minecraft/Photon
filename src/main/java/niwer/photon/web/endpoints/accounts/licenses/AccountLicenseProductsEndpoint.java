@@ -26,6 +26,6 @@ public class AccountLicenseProductsEndpoint implements IEndpoint {
             return;
         }
 
-        handler.json(Directories.getConfig().getLicenseProducts());
+        handler.json(Directories.getConfig().getProducts());
     }
 }

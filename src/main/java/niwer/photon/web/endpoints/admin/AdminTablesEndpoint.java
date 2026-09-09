@@ -17,8 +17,7 @@ public class AdminTablesEndpoint implements IEndpoint {
         new TableInfo("HWID", "HWIDs", "HWID bindings"),
         new TableInfo("CrashReport", "Crash reports", "Stored crash reports"),
         new TableInfo("Anticheat", "Anti-cheat reports", "Stored anti-cheat reports"),
-        new TableInfo("DiscordLog", "Discord logs", "Moderation logs"),
-        new TableInfo("DiscordAccount", "Discord profiles", "Discord progression profiles")
+        new TableInfo("DiscordLog", "Discord logs", "Moderation logs")
     );
 
     @Override public String path() { return "/api/admin/tables"; }

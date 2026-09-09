@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,21 +39,21 @@ public class AdminTableDataEndpoint implements IEndpoint {
             return;
         }
 
-        final int limit = clampLimit(handler.queryParam("limit"));
-        final List<String> columns = new ArrayList<>();
-        final List<Map<String, Object>> rows = new ArrayList<>();
+        final int LIMIT = clampLimit(handler.queryParam("limit"));
+        final List<String> COLUMNS = new ArrayList<>();
+        final List<Map<String, Object>> ROWS = new ArrayList<>();
 
         try {
             PhotonEngine.DATA_BASE.connect();
-            try (Statement STATEMENT = PhotonEngine.DATA_BASE.sqlConnection().createStatement(); ResultSet RESULT = STATEMENT.executeQuery("SELECT * FROM \"" + TABLE_INFO.table() + "\" LIMIT " + limit)) {
+            try (Statement STATEMENT = PhotonEngine.DATA_BASE.sqlConnection().createStatement(); ResultSet RESULT = STATEMENT.executeQuery("SELECT * FROM \"" + TABLE_INFO.table() + "\" LIMIT " + LIMIT)) {
 
                 final ResultSetMetaData METADATA = RESULT.getMetaData();
-                for (int column = 1; column <= METADATA.getColumnCount(); column++) columns.add(METADATA.getColumnName(column));
+                for (int column = 1; column <= METADATA.getColumnCount(); column++) COLUMNS.add(METADATA.getColumnName(column));
 
                 while (RESULT.next()) {
                     final Map<String, Object> ROW = new LinkedHashMap<>();
                     for (int column = 1; column <= METADATA.getColumnCount(); column++) ROW.put(METADATA.getColumnName(column), normalizeValue(RESULT.getObject(column)));
-                    rows.add(ROW);
+                    ROWS.add(ROW);
                 }
             }
         } catch (Exception e) {
@@ -60,24 +61,21 @@ public class AdminTableDataEndpoint implements IEndpoint {
             return;
         }
 
-        handler.json(new TableData(TABLE_INFO.table(), TABLE_INFO.label(), columns, rows));
+        handler.json(new TableData(TABLE_INFO.table(), TABLE_INFO.label(), COLUMNS, ROWS));
     }
 
     private static int clampLimit(String limitValue) {
-        final int defaultLimit = 250;
-        if (limitValue == null || limitValue.isBlank()) return defaultLimit;
+        final int DEFAULT_LIMIT = 250;
+        if (limitValue == null || limitValue.isBlank()) return DEFAULT_LIMIT;
 
         try {
             return Math.max(1, Math.min(Integer.parseInt(limitValue), 500));
         } catch (NumberFormatException e) {
-            return defaultLimit;
+            return DEFAULT_LIMIT;
         }
     }
 
-    private static Object normalizeValue(Object value) {
-        if (value instanceof java.util.Date date) return date.toString();
-        return value;
-    }
+    private static Object normalizeValue(Object value) { return (value instanceof Date date) ? date.toString() : value; }
 
     public record TableData(String table, String label, List<String> columns, List<Map<String, Object>> rows) {}
 }

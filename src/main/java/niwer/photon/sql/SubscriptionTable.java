@@ -3,9 +3,15 @@ package niwer.photon.sql;
 import java.util.Date;
 import java.util.List;
 
+import com.stripe.model.Customer;
+import com.stripe.model.Price;
+import com.stripe.model.Subscription;
+import com.stripe.model.SubscriptionItem;
+
 import niwer.photon.PhotonEngine;
 import niwer.photon.objects.ObjectSubscription;
-import niwer.photon.util.subscribtion.SubscriptionStatus;
+import niwer.photon.util.stripe.StripeHelper;
+import niwer.photon.util.stripe.StripePurchaseStatus;
 import niwer.queryon.DataBase;
 import niwer.queryon.queries.Expression;
 import niwer.queryon.queries.interaction.InsertionManager;
@@ -67,15 +73,47 @@ public class SubscriptionTable extends Table {
 
     public static List<ObjectSubscription> getAllActive() {
         return SelectionManager.select(PhotonEngine.DATA_BASE, SubscriptionTable.class)
-            .where(Expression.of("status").isEqualTo(SubscriptionStatus.ACTIVE))
+            .where(Expression.of("status").isEqualTo(StripePurchaseStatus.ACTIVE))
             .executeList(ObjectSubscription.class);
     }
 
-    public static ObjectSubscription upsertSubscription(String email, String customerName, String customerId, String subscriptionId, SubscriptionStatus status, Date expiresAt, String accountUuid) {
+    public static ObjectSubscription upsertSubscription(String email, String customerName, String customerId, String subscriptionId, StripePurchaseStatus status, Date expiresAt, String accountUuid) {
         return upsertSubscription(email, customerName, customerId, subscriptionId, status, expiresAt, accountUuid, null);
     }
 
-    public static ObjectSubscription upsertSubscription(String email, String customerName, String customerId, String subscriptionId, SubscriptionStatus status, Date expiresAt, String accountUuid, String productId) {
+    public static ObjectSubscription upsertSubscription(Subscription sub) {
+        if (sub == null) return null;
+
+        final Customer customer = sub.getCustomerObject();
+        final String rawEmail = customer != null ? customer.getEmail() : null;
+        final String email = normalizeEmail(rawEmail);
+        if (email == null || email.isBlank()) return null;
+
+        final Price price = (sub.getItems() != null && !sub.getItems().getData().isEmpty())
+            ? sub.getItems().getData().get(0).getPrice()
+            : null;
+
+        Date expiresAt = null;
+        if (sub.getEndedAt() != null) {
+            expiresAt = new Date(sub.getEndedAt() * 1000L);
+        } else if (sub.getItems() != null && !sub.getItems().getData().isEmpty()) {
+            final SubscriptionItem item = sub.getItems().getData().get(0);
+            if (item.getCurrentPeriodEnd() != null) {
+                expiresAt = new Date(item.getCurrentPeriodEnd() * 1000L);
+            }
+        }
+
+        final StripePurchaseStatus status = StripeHelper.mapSubscriptionStatus(sub.getStatus());
+        final String name = customer != null ? customer.getName() : null;
+
+        // Preserve existing linked account UUID if present
+        final ObjectSubscription existing = getBySubscriptionId(sub.getId());
+        final String accountUuid = existing != null ? existing.accountUuid() : null;
+
+        return upsertSubscription(email, name, sub.getCustomer(), sub.getId(), status, expiresAt, accountUuid, StripeHelper.resolveProductId(price));
+    }
+
+    public static ObjectSubscription upsertSubscription(String email, String customerName, String customerId, String subscriptionId, StripePurchaseStatus status, Date expiresAt, String accountUuid, String productId) {
         final String normalizedEmail = normalizeEmail(email);
         final Date updatedAt = new Date();
         final ObjectSubscription current = getBySubscriptionId(subscriptionId);

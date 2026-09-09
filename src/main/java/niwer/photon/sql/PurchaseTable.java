@@ -3,9 +3,15 @@ package niwer.photon.sql;
 import java.util.Date;
 import java.util.List;
 
+import com.stripe.model.Customer;
+import com.stripe.model.Price;
+import com.stripe.model.checkout.Session;
+import com.stripe.param.checkout.SessionListLineItemsParams;
+
 import niwer.photon.PhotonEngine;
 import niwer.photon.objects.ObjectPurchase;
-import niwer.photon.util.subscribtion.SubscriptionStatus;
+import niwer.photon.util.stripe.StripeHelper;
+import niwer.photon.util.stripe.StripePurchaseStatus;
 import niwer.queryon.DataBase;
 import niwer.queryon.queries.Expression;
 import niwer.queryon.queries.interaction.InsertionManager;
@@ -32,12 +38,48 @@ public class PurchaseTable extends Table {
         final String normalizedCheckoutSessionId = checkoutSessionId == null || checkoutSessionId.isBlank() ? normalizedToken : checkoutSessionId.trim();
         final Date now = new Date();
         InsertionManager.insert(PhotonEngine.DATA_BASE, PurchaseTable.class, "purchase_token", "checkout_session_id", "customer_email", "customer_name", "product_id", "status", "created_at", "updated_at")
-            .row(normalizedToken, normalizedCheckoutSessionId, normalizeEmail(customerEmail), customerName, productId, SubscriptionStatus.PENDING, now, now)
+            .row(normalizedToken, normalizedCheckoutSessionId, normalizeEmail(customerEmail), customerName, productId, StripePurchaseStatus.PENDING, now, now)
             .execute();
         return getByToken(normalizedToken);
     }
 
-	public static ObjectPurchase upsertCompletedPurchase(String purchaseToken, String checkoutSessionId, String stripeCustomerId, String stripeSubscriptionId, String customerEmail, String customerName, SubscriptionStatus status, Date expiresAt, String githubUsername, String productId) {
+	public static ObjectPurchase upsertCompletedPurchase(Session session) {
+        if (session == null || session.getId() == null) return null;
+
+        Price price = null;
+        try {
+            final var lineItems = session.listLineItems(SessionListLineItemsParams.builder().setLimit(1L).build());
+            if (lineItems != null && !lineItems.getData().isEmpty()) {
+                price = lineItems.getData().get(0).getPrice();
+            }
+        } catch (Exception ignored) {}
+
+        final Customer customer = session.getCustomerObject();
+        final var details = session.getCustomerDetails();
+
+        final String email = customer != null && customer.getEmail() != null && !customer.getEmail().isBlank()
+            ? customer.getEmail()
+            : (details != null ? details.getEmail() : null);
+
+        final String name = customer != null && customer.getName() != null && !customer.getName().isBlank()
+            ? customer.getName()
+            : (details != null ? details.getName() : null);
+
+        final String customerId = customer != null ? customer.getId() : session.getCustomer();
+        final StripePurchaseStatus status = "paid".equalsIgnoreCase(session.getPaymentStatus())
+            ? StripePurchaseStatus.ACTIVE
+            : StripePurchaseStatus.PENDING;
+
+        final String token = session.getClientReferenceId() != null && !session.getClientReferenceId().isBlank()
+            ? session.getClientReferenceId()
+            : session.getId();
+
+        final String githubUsername = session.getMetadata() != null ? session.getMetadata().get("github_username") : null;
+
+        return upsertCompletedPurchase(token, session.getId(), customerId, null, email, name, status, null, githubUsername, StripeHelper.resolveProductId(price));
+    }
+
+	public static ObjectPurchase upsertCompletedPurchase(String purchaseToken, String checkoutSessionId, String stripeCustomerId, String stripeSubscriptionId, String customerEmail, String customerName, StripePurchaseStatus status, Date expiresAt, String githubUsername, String productId) {
 		final String token = purchaseToken != null && !purchaseToken.isBlank() ? normalizeToken(purchaseToken) : normalizeToken(checkoutSessionId);
 		if (token == null || token.isBlank()) return null;
 
@@ -60,7 +102,7 @@ public class PurchaseTable extends Table {
 		return completePurchase(token, checkoutSessionId, stripeCustomerId, stripeSubscriptionId, customerEmail, customerName, status, expiresAt, githubUsername, productId);
 	}
 
-    public static ObjectPurchase completePurchase(String purchaseToken, String checkoutSessionId, String stripeCustomerId, String stripeSubscriptionId, String customerEmail, String customerName, SubscriptionStatus status, Date expiresAt, String githubUsername, String productId) {
+    public static ObjectPurchase completePurchase(String purchaseToken, String checkoutSessionId, String stripeCustomerId, String stripeSubscriptionId, String customerEmail, String customerName, StripePurchaseStatus status, Date expiresAt, String githubUsername, String productId) {
         ObjectPurchase current = getByPurchaseReference(purchaseToken);
         if (current == null) current = createOrRetrievePendingPurchase(purchaseToken, checkoutSessionId, customerEmail, customerName, productId);
         if (current == null) return null;
@@ -131,7 +173,7 @@ public class PurchaseTable extends Table {
         UpdateManager.update(PhotonEngine.DATA_BASE, PurchaseTable.class)
             .set("linked_account_uuid", accountUuid)
             .set("redeemed_at", new Date())
-            .set("status", SubscriptionStatus.ACTIVE)
+            .set("status", StripePurchaseStatus.ACTIVE)
             .set("updated_at", new Date())
             .where(Expression.of("purchase_token").isEqualTo(normalizeToken(purchaseToken)))
             .execute();

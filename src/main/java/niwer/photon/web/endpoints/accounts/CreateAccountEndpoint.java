@@ -9,10 +9,10 @@ import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.sql.PurchaseTable;
 import niwer.photon.sql.SubscriptionTable;
-import niwer.photon.util.EntitlementService;
 import niwer.photon.util.session.AuthSession;
 import niwer.photon.util.session.SessionManager;
 import niwer.photon.util.session.SessionManager.Scope;
+import niwer.photon.util.stripe.EntitlementManager;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.EndpointUtils;
 import niwer.photon.web.endpoints.IEndpoint;
@@ -89,7 +89,7 @@ public class CreateAccountEndpoint implements IEndpoint {
             return;
         }
 
-        if (hasPurchaseReference && !EntitlementService.redeemPurchase(checkoutSessionId, ACCOUNT)) {
+        if (hasPurchaseReference && !EntitlementManager.redeemPurchase(checkoutSessionId, ACCOUNT)) {
             handler.status(500).result("Failed to link purchase token");
             return;
         } else if (subscription != null && subscription.isActive()) {

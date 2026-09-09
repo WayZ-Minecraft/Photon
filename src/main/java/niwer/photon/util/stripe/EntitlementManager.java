@@ -1,4 +1,4 @@
-package niwer.photon.util;
+package niwer.photon.util.stripe;
 
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -11,11 +11,10 @@ import niwer.photon.objects.ObjectSubscription;
 import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PurchaseTable;
 import niwer.photon.sql.SubscriptionTable;
-import niwer.photon.util.subscribtion.SubscriptionStatus;
 
-public final class EntitlementService {
+public final class EntitlementManager {
 
-    private EntitlementService() {}
+    private EntitlementManager() {}
 
     public static boolean hasAccess(String accountUuid, String productId) {
         if (accountUuid == null || accountUuid.isBlank() || productId == null || productId.isBlank()) return false;
@@ -24,7 +23,7 @@ public final class EntitlementService {
         if (HAS_SUB_ACCESS) return true;
 
         return PurchaseTable.getByAccountUuid(accountUuid).stream().anyMatch(p -> productId.equals(p.productId())
-            && p.status() == SubscriptionStatus.ACTIVE
+            && p.status() == StripePurchaseStatus.ACTIVE
             && (p.expiresAt() == null || p.expiresAt().after(new Date())));
     }
 
@@ -34,7 +33,7 @@ public final class EntitlementService {
         final boolean HAS_SUB = SubscriptionTable.getByAccountUuid(accountUuid).stream().anyMatch(ObjectSubscription::isActive);
         if (HAS_SUB) return true;
 
-        return PurchaseTable.getByAccountUuid(accountUuid).stream().anyMatch(p -> p.status() == SubscriptionStatus.ACTIVE && (p.expiresAt() == null || p.expiresAt().after(new Date())));
+        return PurchaseTable.getByAccountUuid(accountUuid).stream().anyMatch(p -> p.status() == StripePurchaseStatus.ACTIVE && (p.expiresAt() == null || p.expiresAt().after(new Date())));
     }
 
     public static List<Map<String, Object>> getEntitlements(String accountUuid) {
@@ -78,7 +77,7 @@ public final class EntitlementService {
         return PurchaseTable.markAsRedeemed(purchaseToken, account.getUuid());
     }
 
-    private static Map<String, Object> entitlementRecord(String productId, SubscriptionStatus status, Long expiresAt, Long createdAt) {
+    private static Map<String, Object> entitlementRecord(String productId, StripePurchaseStatus status, Long expiresAt, Long createdAt) {
         final Map<String, Object> RECORD = new LinkedHashMap<>();
         RECORD.put("productId", productId);
         RECORD.put("status", status);

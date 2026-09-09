@@ -29,8 +29,8 @@ import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.DatabaseBackupManager;
 import niwer.photon.util.PhotonLogTypes;
 import niwer.photon.util.TranslationManager;
+import niwer.photon.util.stripe.StripeStartupSync;
 import niwer.photon.web.WebServerEngine;
-import niwer.photon.web.endpoints.stripe.StripeStartupSync;
 import niwer.queryon.DataBase;
 
 /**

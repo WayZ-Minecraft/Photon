@@ -1,6 +1,6 @@
-package niwer.photon.util.subscribtion;
+package niwer.photon.util.stripe;
 
-public enum SubscriptionStatus {
+public enum StripePurchaseStatus {
     ACTIVE,
     PENDING,
     CANCELED,

@@ -181,18 +181,16 @@ public class Directories
 			return products == null ? List.of() : products;
 		}
 
+		/**
+		 * Resolve a product by its Stripe price ID.
+		 * 
+		 * @param stripePriceId The Stripe price ID to look for.
+		 * @return The product corresponding to the Stripe price ID, or null if it cannot be found.
+		 */
 		public ObjectProduct productByStripePriceId(String stripePriceId) {
 			if (stripePriceId == null || stripePriceId.isBlank()) return null;
 			return getProducts().stream()
 				.filter(product -> stripePriceId.equals(product.stripePriceId()))
-				.findFirst()
-				.orElse(null);
-		}
-
-		public ObjectProduct productByStripePriceOrProductId(String priceId, String productId) {
-			return getProducts().stream()
-				.filter(product -> (priceId != null && priceId.equals(product.stripePriceId()))
-					|| (productId != null && productId.equals(product.stripePriceId())))
 				.findFirst()
 				.orElse(null);
 		}

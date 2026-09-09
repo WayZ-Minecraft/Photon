@@ -54,7 +54,7 @@ public class ChangePasswordEndpoint implements IEndpoint {
         }
 
         PlayerAccountTable.setPassword(account.getUuid(), request.newPassword);
-        handler.json(account.toPublicMap());
+        handler.json(account.payload());
     }
 
     private record PasswordChangeRequest(String email, String currentPassword, String newPassword) {}

@@ -14,7 +14,7 @@ import niwer.photon.web.endpoints.IEndpoint;
  * 
  * @author Niwer
  */
-public class UpdateProfileEndpoint implements IEndpoint {
+public class UpdateAccountSettingsEndpoint implements IEndpoint {
 
     @Override public String path() { return "/accounts/update_profile"; }
 
@@ -93,7 +93,7 @@ public class UpdateProfileEndpoint implements IEndpoint {
         }
 
         final ObjectUserAccount updatedAccount = PlayerAccountTable.getAccountByUUID(account.getUuid());
-        handler.json(updatedAccount == null ? account.toPublicMap() : updatedAccount.toPublicMap());
+        handler.json(updatedAccount == null ? account.payload() : updatedAccount.payload());
     }
 
     private record ProfileUpdateRequest(

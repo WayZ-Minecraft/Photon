@@ -11,7 +11,7 @@ import niwer.photon.objects.ObjectLicense;
 import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.GsonUtils;
 import niwer.photon.util.license.LicenseManager;
-import niwer.photon.util.session.UserSessionManager;
+import niwer.photon.util.session.SessionManager;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.EndpointUtils;
 import niwer.photon.web.endpoints.IEndpoint;
@@ -26,8 +26,9 @@ public class AccountLicenseCreateEndpoint implements IEndpoint {
     public void handle(Context handler) {
         IEndpoint.setupRateLimit(handler, 10, TimeUnit.SECONDS);
 
-        final var account = UserSessionManager.requireAccount(handler);
-        if (account == null) return;
+        final var ACCOUNT = SessionManager.requireAccount(handler);
+        if (ACCOUNT == null) return;
+
         final JsonObject body = EndpointUtils.readBody(handler);
         final String requestedProductId = GsonUtils.getString(body, "product_id", "productId", null);
         final var products = Directories.getConfig().getProducts();
@@ -42,16 +43,16 @@ public class AccountLicenseCreateEndpoint implements IEndpoint {
         }
 
         final String productId = product.id();
-        if (!SubscriptionTable.hasAccess(account.getEmail(), account.getUuid(), productId)) {
+        if (!SubscriptionTable.hasAccess(ACCOUNT.getEmail(), ACCOUNT.getUuid(), productId)) {
             handler.status(403).result("Purchase or active subscription required for this product");
             return;
         }
-        final String name = GsonUtils.getString(body, "name", "name", account.getUsername());
+        final String name = GsonUtils.getString(body, "name", "name", ACCOUNT.getUsername());
         final Long durationDays = GsonUtils.getLong(body, "duration_days", "durationDays", product.defaultLicenseDurationDays());
         final Long expiresAt = GsonUtils.getLong(body, "expires_at", "expiresAt", null);
 
         final Long computedExpiresAt = expiresAt != null ? expiresAt : (durationDays == null || durationDays <= 0L ? null : System.currentTimeMillis() + (durationDays * 86400000L));
-        final ObjectLicense license = LicenseManager.issueLicense(productId, name, account.getEmail(), account.getUuid(), computedExpiresAt);
+        final ObjectLicense license = LicenseManager.issueLicense(productId, name, ACCOUNT.getEmail(), ACCOUNT.getUuid(), computedExpiresAt);
         if(license == null) {
             handler.status(500).result("Failed to create license");
             return;

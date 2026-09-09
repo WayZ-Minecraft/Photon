@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit;
 import io.javalin.http.Context;
 import niwer.photon.Directories;
 import niwer.photon.sql.SubscriptionTable;
-import niwer.photon.util.session.UserSessionManager;
+import niwer.photon.util.session.SessionManager;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
@@ -19,9 +19,10 @@ public class AccountLicenseProductsEndpoint implements IEndpoint {
     public void handle(Context handler) {
         IEndpoint.setupRateLimit(handler, 10, TimeUnit.SECONDS);
 
-        final var account = UserSessionManager.requireAccount(handler);
-        if (account == null) return;
-        if (!SubscriptionTable.hasAnyAccess(account.getUuid())) {
+        final var ACCOUNT = SessionManager.requireAccount(handler);
+        if (ACCOUNT == null) return;
+        
+        if (!SubscriptionTable.hasAnyAccess(ACCOUNT.getUuid())) {
             handler.status(403).result("Purchase or active subscription required");
             return;
         }

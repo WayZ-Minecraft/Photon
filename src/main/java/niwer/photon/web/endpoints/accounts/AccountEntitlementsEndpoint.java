@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.javalin.http.Context;
 import niwer.photon.sql.SubscriptionTable;
-import niwer.photon.util.session.UserSessionManager;
+import niwer.photon.util.session.SessionManager;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
@@ -18,7 +18,7 @@ public class AccountEntitlementsEndpoint implements IEndpoint {
     public void handle(Context handler) {
         IEndpoint.setupRateLimit(handler, 10, TimeUnit.MINUTES);
 
-        final var account = UserSessionManager.requireAccount(handler);
+        final var account = SessionManager.requireAccount(handler);
         if (account == null) return;
 
         handler.json(SubscriptionTable.entitlements(account.getUuid()));

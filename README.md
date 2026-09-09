@@ -83,7 +83,7 @@ The routes below are the ones typically called by the game client, launcher, Str
 	- `POST /licenses/validate` — Validate a license key on the client.
 		- Required fields: `license_key`, `product_id`, `hardware_id`.
 
-- **Servers / status**
+- **Servers**
 	- `POST /servers/add-server` — Register or update a server entry.
 		- The request IP must match the remote IP.
 	- `GET /servers/server-list` — List known servers.
@@ -98,6 +98,5 @@ The routes below are the ones typically called by the game client, launcher, Str
 
 These routes require an admin session or admin token.
 - `POST /api/admin/login`
-- `GET /api/admin/me`
 - `GET /api/admin/tables`
 - `GET /api/admin/tables/{table}`

@@ -8,7 +8,7 @@ import io.javalin.http.Context;
 import niwer.photon.objects.ObjectLicense;
 import niwer.photon.sql.LicenseTable;
 import niwer.photon.sql.SubscriptionTable;
-import niwer.photon.util.session.UserSessionManager;
+import niwer.photon.util.session.SessionManager;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
@@ -22,14 +22,15 @@ public class AccountLicenseListEndpoint implements IEndpoint {
     public void handle(Context handler) {
         IEndpoint.setupRateLimit(handler, 10, TimeUnit.SECONDS);
 
-        final var account = UserSessionManager.requireAccount(handler);
-        if (account == null) return;
-        if (!SubscriptionTable.hasAnyAccess(account.getUuid())) {
+        final var ACCOUNT = SessionManager.requireAccount(handler);
+        if (ACCOUNT == null) return;
+        
+        if (!SubscriptionTable.hasAnyAccess(ACCOUNT.getUuid())) {
             handler.status(403).result("Purchase or active subscription required");
             return;
         }
 
-        final List<ObjectLicense> licenses = LicenseTable.getByCreatorUuid(account.getUuid());
+        final List<ObjectLicense> licenses = LicenseTable.getByCreatorUuid(ACCOUNT.getUuid());
         handler.json(licenses.stream().map(license -> Objects.requireNonNull(license).payload()).toList());
     }
 }

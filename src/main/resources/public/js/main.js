@@ -297,59 +297,58 @@ const App = {
     async login(e) {
         e.preventDefault();
         const btn = e.target.querySelector('button[type="submit"]');
-        const originalText = btn.innerHTML;
+        const originalText = btn ? btn.innerHTML : '';
         if (btn) {
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
         }
 
         const formData = new FormData(e.target);
-        const body = new URLSearchParams();
-        for (const [key, val] of formData.entries()) {
-            body.append(key, val);
-        }
-        
-        // Append the purchase token if it exists
-        if (State.purchaseToken) body.set('token', State.purchaseToken);
+        const body = new URLSearchParams(formData);
 
-        const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+        if (State.purchaseToken) {
+            body.set('token', State.purchaseToken);
+        }
 
         try {
-            // Pre-emptively notify the stripe session endpoint just like in register
             if (State.purchaseToken) {
                 await fetch('/stripe/purchase_session', {
-                    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: new URLSearchParams({ checkoutSessionId: State.purchaseToken })
-                }).catch(()=>{});
+                }).catch(() => {});
             }
 
-            // Try Admin
-            const adminRes = await fetch('/api/admin/login', { method: 'POST', headers, body: body.toString(), credentials: 'same-origin' });
-            if (adminRes.ok) {
-                const payload = await adminRes.json();
-                State.token = ''; State.userToken = ''; State.account = payload.account || payload;
-                localStorage.setItem('photon-account', JSON.stringify(State.account));
-                UI.toast('Signed in as admin', 'success');
-                
-                // Clear token from URL after successful auth
-                this.clearPurchaseToken();
-                
-                this.onLoginSuccess();
-                return;
+            // Single unified auth call
+            const res = await fetch('accounts/auth_account', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString(),
+                credentials: 'same-origin'
+            });
+
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(errText || 'Login failed');
             }
 
-            // Fallback to User
-            const payload = await Api('/accounts/auth_account', { method: 'POST', headers, body: body.toString() });
-            
-            State.userToken = payload.token || ''; State.account = payload.account || payload;
-            await this.loadEntitlements();
-            localStorage.setItem('photon-user-token', State.userToken);
+            const payload = await res.json();
+            State.account = payload.account || payload;
             localStorage.setItem('photon-account', JSON.stringify(State.account));
-            
-            // Clear token from URL after successful auth
-            this.clearPurchaseToken();
 
-            UI.toast('Signed in', 'success');
+            if (payload.isAdmin) {
+                State.token = '';
+                State.userToken = '';
+                localStorage.removeItem('photon-user-token');
+                UI.toast('Signed in as admin', 'success');
+            } else {
+                State.userToken = payload.token || '';
+                localStorage.setItem('photon-user-token', State.userToken);
+                await this.loadEntitlements();
+                UI.toast('Signed in', 'success');
+            }
+
+            this.clearPurchaseToken();
             this.onLoginSuccess();
         } catch (err) {
             UI.toast(err.message, 'error');

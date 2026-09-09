@@ -3,11 +3,11 @@ package niwer.photon.web.endpoints.accounts;
 import java.util.concurrent.TimeUnit;
 
 import io.javalin.http.Context;
-import niwer.photon.util.session.UserSessionManager;
+import niwer.photon.util.session.SessionManager;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
-public class UserMeEndpoint implements IEndpoint {
+public class MeEndpoint implements IEndpoint {
 
     @Override public String path() { return "/accounts/me"; }
 
@@ -17,9 +17,9 @@ public class UserMeEndpoint implements IEndpoint {
     public void handle(Context handler) {
         IEndpoint.setupRateLimit(handler, 10, TimeUnit.MINUTES);
 
-        final var account = UserSessionManager.requireAccount(handler);
-        if (account == null) return;
+        final var ACCOUNT = SessionManager.requireAccount(handler);
+        if (ACCOUNT == null) return;
 
-        handler.json(account.toPublicMap());
+        handler.json(ACCOUNT.payload());
     }
 }

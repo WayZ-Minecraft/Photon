@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.javalin.http.Context;
-import niwer.photon.util.session.AdminSessionManager;
+import niwer.photon.util.session.SessionManager;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
@@ -29,7 +29,7 @@ public class AdminTablesEndpoint implements IEndpoint {
     public void handle(Context handler) {
         IEndpoint.setupRateLimit(handler, 5, TimeUnit.MINUTES);
 
-        if (AdminSessionManager.requireAdministrator(handler) == null) return;
+        if (SessionManager.requireAdministrator(handler) == null) return;
         handler.json(TABLES);
     }
 

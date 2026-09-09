@@ -9,7 +9,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.reflect.TypeToken;
-
 import io.javalin.http.Context;
 import niwer.photon.Directories;
 import niwer.photon.objects.ObjectUserAccount;
@@ -18,48 +17,69 @@ import niwer.photon.util.GsonUtils;
 
 public final class SessionManager {
 
+    private static final Type SESSION_MAP_TYPE = new TypeToken<Map<String, SessionSnapshot>>() {}.getType();
+
     public enum Scope {
-        ADMIN("admin_sessions.json"),
-        USER("user_sessions.json");
+        ADMIN("admin_sessions.json", "photon_admin", true),
+        USER("user_sessions.json", "X-Photon-User-Token", false);
 
         private final File file;
+        private final String headerOrCookie;
+        private final boolean isCookie;
         private final Map<String, SessionSnapshot> sessions = new ConcurrentHashMap<>();
 
-        Scope(String filename) {
+        Scope(String filename, String headerOrCookie, boolean isCookie) {
             this.file = new File(Directories.BASE_DIR, filename);
+            this.headerOrCookie = headerOrCookie;
+            this.isCookie = isCookie;
+        }
+
+        private synchronized void load() {
+            sessions.clear();
+            if (!file.exists()) return;
+            try (FileReader reader = new FileReader(file)) {
+                Map<String, SessionSnapshot> loaded = GsonUtils.GSON.fromJson(reader, SESSION_MAP_TYPE);
+                if (loaded != null) sessions.putAll(loaded);
+            } catch (Exception ignored) {}
+        }
+
+        private synchronized void save() {
+            if (!Directories.BASE_DIR.exists()) Directories.BASE_DIR.mkdirs();
+            try (FileWriter writer = new FileWriter(file)) {
+                GsonUtils.GSON.toJson(sessions, SESSION_MAP_TYPE, writer);
+            } catch (Exception ignored) {}
+        }
+
+        private String extractToken(Context handler) {
+            String token = isCookie ? handler.cookie(headerOrCookie) : handler.header(headerOrCookie);
+            if (token != null && !token.isBlank()) return token.trim();
+
+            String auth = handler.header("Authorization");
+            if (auth != null && auth.startsWith("Bearer ")) {
+                return auth.substring(7).trim();
+            }
+            return null;
         }
     }
 
-    private static final Type SESSION_MAP_TYPE = new TypeToken<Map<String, SessionSnapshot>>() {}.getType();
-
     static {
-        for (final Scope SCOPE : Scope.values()) load(SCOPE);
+        for (Scope scope : Scope.values()) scope.load();
     }
 
     private SessionManager() {}
 
-    public static synchronized void load(Scope scope) {
-        scope.sessions.clear();
-        if (!scope.file.exists()) return;
-
-        try (FileReader reader = new FileReader(scope.file)) {
-            final Map<String, SessionSnapshot> loaded = GsonUtils.GSON.fromJson(reader, SESSION_MAP_TYPE);
-            if (loaded != null) scope.sessions.putAll(loaded);
-        } catch (Exception ignored) {}
-    }
-
-    private static synchronized void save(Scope scope) {
-        if (!Directories.BASE_DIR.exists()) Directories.BASE_DIR.mkdirs();
-
-        try (FileWriter writer = new FileWriter(scope.file)) {
-            GsonUtils.GSON.toJson(scope.sessions, SESSION_MAP_TYPE, writer);
-        } catch (Exception ignored) {}
-    }
-
+    /**
+     * Attempts to log in a user with the provided email and password, creating a new session if successful. Returns an AuthSession object containing the session token and account information, or null if login fails.
+     * 
+     * @param email The email address of the user attempting to log in
+     * @param password The password of the user attempting to log in
+     * @param scope The scope of the session (ADMIN or USER) to determine which session map to use
+     * @return An AuthSession object containing the session token and account information if login is successful; null otherwise
+     */
     public static AuthSession login(String email, String password, Scope scope) {
         if (email == null || password == null) return null;
 
-        final ObjectUserAccount account = PlayerAccountTable.getAccountByEmail(email);
+        ObjectUserAccount account = PlayerAccountTable.getAccountByEmail(email);
         if (account == null || account.password() == null) return null;
         if (scope == Scope.ADMIN && !account.isAdministrator()) return null;
         if (!PlayerAccountTable.passwordMatches(account.password(), password)) return null;
@@ -71,52 +91,57 @@ public final class SessionManager {
         return createSession(account, scope);
     }
 
-    public static AuthSession createSession(ObjectUserAccount account, Scope scope) {
+    private static AuthSession createSession(ObjectUserAccount account, Scope scope) {
         if (account == null) return null;
 
-        final String token = UUID.randomUUID().toString().replace("-", "");
-        final String csrf = (scope == Scope.ADMIN) ? UUID.randomUUID().toString().replace("-", "") : null;
+        String token = UUID.randomUUID().toString();
+        String csrf = (scope == Scope.ADMIN) ? UUID.randomUUID().toString() : null;
 
         scope.sessions.put(token, new SessionSnapshot(account, System.currentTimeMillis(), csrf));
-        save(scope);
+        scope.save();
         return new AuthSession(token, account);
     }
 
     private static ObjectUserAccount accountFromRequest(Context handler, Scope scope) {
-        final String token = extractToken(handler, scope);
-        if (token == null || token.isBlank()) {
-            // Admin can fall back to checking user credentials if admin-capable
-            if (scope == Scope.ADMIN) {
-                final ObjectUserAccount userAccount = accountFromRequest(handler, Scope.USER);
-                return (userAccount != null && userAccount.isAdministrator()) ? userAccount : null;
-            }
-            return null;
-        }
+        String token = scope.extractToken(handler);
+        SessionSnapshot session = (token != null) ? scope.sessions.get(token) : null;
 
-        final SessionSnapshot session = scope.sessions.get(token);
         if (session == null) {
+            // Admins can fall back to regular user session if the account has admin privileges
             if (scope == Scope.ADMIN) {
-                final ObjectUserAccount userAccount = accountFromRequest(handler, Scope.USER);
+                ObjectUserAccount userAccount = accountFromRequest(handler, Scope.USER);
                 return (userAccount != null && userAccount.isAdministrator()) ? userAccount : null;
             }
             return null;
         }
 
-        final ObjectUserAccount snapshot = session.account();
-        if (snapshot == null || snapshot.getUuid() == null || snapshot.getUuid().isBlank()) return snapshot;
+        ObjectUserAccount snapshot = session.account();
+        if (snapshot == null || snapshot.getUuid() == null) return null;
 
-        final ObjectUserAccount account = PlayerAccountTable.getAccountByUUID(snapshot.getUuid());
-        return account;
+        ObjectUserAccount freshAccount = PlayerAccountTable.getAccountByUUID(snapshot.getUuid());
+        return (freshAccount != null) ? freshAccount : snapshot;
     }
 
+    /**
+     * Requires that the request is made by a logged-in user. If the request is not made by a logged-in user, it will respond with a 401 Unauthorized status code and return null.
+     * 
+     * @param handler The Javalin context containing the request and response information
+     * @return The ObjectUserAccount of the user making the request, or null if the request is not made by a logged-in user
+     */
     public static ObjectUserAccount requireAccount(Context handler) {
-        final ObjectUserAccount account = accountFromRequest(handler, Scope.USER);
+        ObjectUserAccount account = accountFromRequest(handler, Scope.USER);
         if (account == null) handler.status(401).result("Unauthorized");
         return account;
     }
 
+    /**
+     * Requires that the request is made by an administrator. If the request is not made by an administrator, it will respond with a 401 Unauthorized or 403 Forbidden status code and return null.
+     * 
+     * @param handler The Javalin context containing the request and response information
+     * @return The ObjectUserAccount of the administrator making the request, or null if the request is not made by an administrator
+     */
     public static ObjectUserAccount requireAdministrator(Context handler) {
-        final ObjectUserAccount account = accountFromRequest(handler, Scope.ADMIN);
+        ObjectUserAccount account = accountFromRequest(handler, Scope.ADMIN);
         if (account == null) {
             handler.status(401).result("Unauthorized");
             return null;
@@ -128,49 +153,42 @@ public final class SessionManager {
         return account;
     }
 
+    /**
+     * Logs out the session associated with the given token and scope.
+     * 
+     * @param token The session token to invalidate
+     * @param scope The scope of the session (ADMIN or USER) to determine which session map to modify
+     */
     public static void logout(String token, Scope scope) {
-        if (token != null && !token.isBlank()) {
-            scope.sessions.remove(token);
-            save(scope);
-        }
+        if (token != null && scope.sessions.remove(token) != null) scope.save();
     }
 
+    /**
+     * Retrieves the CSRF token associated with a given session token.
+     * 
+     * @param token The session token for which to retrieve the CSRF token
+     * @return The CSRF token associated with the session, or null if the session does not exist or the token is invalid
+     */
     public static String getCsrfForToken(String token) {
         if (token == null || token.isBlank()) return null;
-        final SessionSnapshot session = Scope.ADMIN.sessions.get(token);
+        SessionSnapshot session = Scope.ADMIN.sessions.get(token);
         return (session != null) ? session.csrf() : null;
     }
 
+    /**
+     * Validates the CSRF token provided in the request against the CSRF token stored in the session associated with the request's token.
+     * 
+     * @param handler The Javalin context containing the request and response information
+     * @return True if the CSRF token is valid and matches the session's CSRF token; false otherwise
+     */
     public static boolean validateCsrf(Context handler) {
-        try {
-            final String token = extractToken(handler, Scope.ADMIN);
-            if (token == null || token.isBlank()) return false;
+        String token = Scope.ADMIN.extractToken(handler);
+        if (token == null) return false;
 
-            final SessionSnapshot session = Scope.ADMIN.sessions.get(token);
-            if (session == null || session.csrf() == null || session.csrf().isBlank()) return false;
+        SessionSnapshot session = Scope.ADMIN.sessions.get(token);
+        if (session == null || session.csrf() == null) return false;
 
-            final String header = handler.header("X-CSRF-Token");
-            return header != null && header.equals(session.csrf());
-        } catch (Exception ignored) {
-            return false;
-        }
-    }
-
-    private static String extractToken(Context handler, Scope scope) {
-        if (scope == Scope.ADMIN) {
-            try {
-                final String cookieToken = handler.cookie("photon_admin");
-                if (cookieToken != null && !cookieToken.isBlank()) return cookieToken.trim();
-            } catch (Exception ignored) {}
-        } else {
-            final String headerToken = handler.header("X-Photon-User-Token");
-            if (headerToken != null && !headerToken.isBlank()) return headerToken.trim();
-        }
-
-        final String auth = handler.header("Authorization");
-        if (auth != null && auth.startsWith("Bearer ")) {
-            return auth.substring("Bearer ".length()).trim();
-        }
-        return null;
+        String header = handler.header("X-CSRF-Token");
+        return session.csrf().equals(header);
     }
 }

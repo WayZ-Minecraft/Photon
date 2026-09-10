@@ -419,6 +419,7 @@ const App = {
     },
 
     async logout() {
+        await Api('/accounts/logout', { method: 'POST' });
         State.token = ''; State.userToken = ''; State.account = null; State.entitlements = [];
         localStorage.removeItem('photon-account');
         localStorage.removeItem('photon-user-token');

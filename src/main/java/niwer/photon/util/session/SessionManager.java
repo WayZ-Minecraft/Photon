@@ -52,7 +52,14 @@ public final class SessionManager {
             } catch (Exception ignored) {}
         }
 
-        private String extractToken(Context handler) {
+        /**
+         * Extracts the session token from the request context, either from a cookie or a header, depending on the scope's configuration.
+         * If the token is not found in the expected location, it will also check for a Bearer token in the Authorization header.
+         * 
+         * @param handler The Javalin context containing the request and response information
+         * @return The extracted session token as a String, or null if no token is found
+         */
+        public String extractToken(Context handler) {
             String token = isCookie ? handler.cookie(headerOrCookie) : handler.header(headerOrCookie);
             if (token != null && !token.isBlank()) return token.trim();
 

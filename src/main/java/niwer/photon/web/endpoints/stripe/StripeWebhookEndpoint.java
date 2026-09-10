@@ -12,6 +12,7 @@ import io.javalin.http.Context;
 import niwer.lumen.Console;
 import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
+import niwer.photon.sql.PurchaseTable;
 import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.GitHubProvisioningService;
 import niwer.photon.util.PhotonLogTypes;
@@ -69,6 +70,9 @@ public class StripeWebhookEndpoint implements IEndpoint {
     }
 
     private void handleCheckoutSession(Session session) throws Exception {
+        /* Seed the purchase reference used by account creation/login redemption. */
+        PurchaseTable.upsertCompletedPurchase(session);
+
         if ("subscription".equalsIgnoreCase(session.getMode())) {
             /* If the session is for a subscription, we need to sync the subscription. */
             if (session.getSubscription() != null) syncSubscription(Subscription.retrieve(session.getSubscription()));

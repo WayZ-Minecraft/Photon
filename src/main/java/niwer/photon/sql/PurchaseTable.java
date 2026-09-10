@@ -92,7 +92,7 @@ public class PurchaseTable extends Table {
 
 		if (existing == null) {
 			final Date now = new Date();
-			InsertionManager.insert(PhotonEngine.DATA_BASE, PurchaseTable.class, "purchase_token", "checkout_session_id", "stripe_customer_id", "customer_email", "customer_name", "product_id", "status", "expires_at", "github_username", "created_at", "updated_at")
+			InsertionManager.insert(PhotonEngine.DATA_BASE, PurchaseTable.class, "purchase_token", "checkout_session_id", "stripe_customer_id", "customer_email", "customer_name", "product_id", "status", "github_username", "created_at", "updated_at")
 				.row(token, checkoutSessionId, stripeCustomerId, StripeHelper.normalizeEmail(customerEmail), customerName, productId, status, githubUsername, now, now)
 				.execute();
 			return getByToken(token);
@@ -203,12 +203,14 @@ public class PurchaseTable extends Table {
 	 */
     public static boolean markAsRedeemed(String purchaseToken, String accountUuid) {
         if (purchaseToken == null || purchaseToken.isBlank() || accountUuid == null || accountUuid.isBlank()) return false;
+        final ObjectPurchase PURCHASE = getByPurchaseReference(purchaseToken);
+        if (PURCHASE == null || PURCHASE.purchaseToken() == null || PURCHASE.purchaseToken().isBlank()) return false;
         UpdateManager.update(PhotonEngine.DATA_BASE, PurchaseTable.class)
             .set("linked_account_uuid", accountUuid)
             .set("redeemed_at", new Date())
             .set("status", StripePurchaseStatus.ACTIVE)
             .set("updated_at", new Date())
-            .where(Expression.of("purchase_token").isEqualTo(StripeHelper.normalizeToken(purchaseToken)))
+            .where(Expression.of("purchase_token").isEqualTo(PURCHASE.purchaseToken()))
             .execute();
         return true;
     }

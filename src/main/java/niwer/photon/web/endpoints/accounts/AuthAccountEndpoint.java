@@ -5,7 +5,6 @@ import java.util.concurrent.TimeUnit;
 import io.javalin.http.Context;
 import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
-import niwer.photon.sql.PurchaseTable;
 import niwer.photon.util.GsonUtils;
 import niwer.photon.util.HashUtils;
 import niwer.photon.util.session.Session;
@@ -49,12 +48,8 @@ public class AuthAccountEndpoint implements IEndpoint {
 
         final String CHECKOUT_SESSION_ID = CREDENTIALS.token;
         if (CHECKOUT_SESSION_ID != null && !CHECKOUT_SESSION_ID.isBlank()) {
-            if (!PurchaseTable.canRedeem(CHECKOUT_SESSION_ID)) {
-                handler.status(403).result("Invalid or expired purchase token");
-                return;
-            }
             if (!EntitlementManager.redeemPurchase(CHECKOUT_SESSION_ID, ACCOUNT)) {
-                handler.status(500).result("Failed to link purchase token");
+                handler.status(403).result("Invalid or expired purchase token");
                 return;
             }
         }
@@ -84,7 +79,12 @@ public class AuthAccountEndpoint implements IEndpoint {
     private static Credentials readCredentials(Context handler) {
         String email = EndpointUtils.firstNonBlank(handler.formParam("email"), handler.queryParam("email"));
         String password = EndpointUtils.firstNonBlank(handler.formParam("password"), handler.queryParam("password"));
-        String token = EndpointUtils.firstNonBlank(handler.formParam("checkoutSessionId"), handler.formParam("token"));
+        String token = EndpointUtils.firstNonBlank(
+            handler.formParam("checkoutSessionId"),
+            handler.formParam("token"),
+            handler.queryParam("checkoutSessionId"),
+            handler.queryParam("token")
+        );
 
         if (email != null && password != null) return new Credentials(email, password, token);
 

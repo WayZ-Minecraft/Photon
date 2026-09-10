@@ -86,7 +86,12 @@ public class SubscriptionTable extends Table {
     public static ObjectSubscription upsertSubscription(Subscription sub) {
         if (sub == null) return null;
 
-        final Customer CUSTOMER = sub.getCustomerObject();
+        Customer CUSTOMER = sub.getCustomerObject();
+        if (CUSTOMER == null && sub.getCustomer() != null && !sub.getCustomer().isBlank()) {
+            try {
+                CUSTOMER = Customer.retrieve(sub.getCustomer());
+            } catch (Exception ignored) {}
+        }
         final String EMAIL = StripeHelper.normalizeEmail(CUSTOMER != null ? CUSTOMER.getEmail() : null);
         if (EMAIL == null || EMAIL.isBlank()) return null;
 

@@ -64,9 +64,7 @@ public final class SessionManager {
             if (token != null && !token.isBlank()) return token.trim();
 
             String auth = handler.header("Authorization");
-            if (auth != null && auth.startsWith("Bearer ")) {
-                return auth.substring(7).trim();
-            }
+            if (auth != null && auth.startsWith("Bearer ")) return auth.substring(7).trim();
             return null;
         }
     }
@@ -112,8 +110,11 @@ public final class SessionManager {
         SessionSnapshot session = (token != null) ? scope.sessions.get(token) : null;
 
         if (session == null) {
-            // Admins can fall back to regular user session if the account has admin privileges
-            if (scope == Scope.ADMIN) {
+            if(scope == Scope.USER) { // If user session is not found, check if an admin session exists and the account has admin privileges
+                ObjectUserAccount adminAccount = accountFromRequest(handler, Scope.ADMIN);
+                return (adminAccount != null && adminAccount.isAdministrator()) ? adminAccount : null;
+            }
+            if (scope == Scope.ADMIN) { // Admins can fall back to regular user session if the account has admin privileges
                 ObjectUserAccount userAccount = accountFromRequest(handler, Scope.USER);
                 return (userAccount != null && userAccount.isAdministrator()) ? userAccount : null;
             }

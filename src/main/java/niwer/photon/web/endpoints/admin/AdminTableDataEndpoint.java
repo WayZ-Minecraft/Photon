@@ -28,9 +28,9 @@ public class AdminTableDataEndpoint implements IEndpoint {
 
         if (SessionManager.requireAdministrator(handler) == null) return;
 
-        final String TABLe_NAME = handler.pathParam("table");
+        final String TABLE_NAME = handler.pathParam("table");
         final AdminTablesEndpoint.TableInfo TABLE_INFO = AdminTablesEndpoint.getTables().stream()
-            .filter(info -> info.table().equalsIgnoreCase(TABLe_NAME))
+            .filter(info -> info.table().equalsIgnoreCase(TABLE_NAME))
             .findFirst()
             .orElse(null);
 

@@ -162,9 +162,10 @@ const UI = {
         State.activePage = pageId;
 
         // Lazy load logic
+        const isAdmin = !!State.token || State.account?.administrator;
         if(pageId === 'overview') App.loadPublicServers();
         if(pageId === 'downloads') App.loadDownloads();
-        if(pageId === 'licenses' && State.entitlements.length) App.loadLicenses();
+        if(pageId === 'licenses' && (State.entitlements.length || isAdmin )) App.loadLicenses(); // Allow admins to view licenses even without entitlements
         if(pageId === 'admin') App.loadTablesList();
     },
 
@@ -431,8 +432,6 @@ const App = {
     onLoginSuccess() {
         UI.closeModal(null, true);
         UI.updateAuthVisbility();
-        if (State.entitlements.length) UI.navigate('licenses');
-        else UI.navigate('user');
     },
 
     async updateProfile(e) {

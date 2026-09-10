@@ -12,11 +12,11 @@ public class AdminTablesEndpoint implements IEndpoint {
 
     private static final List<TableInfo> TABLES = List.of(
         new TableInfo("Server", "Servers", "Saved server status rows"),
-        new TableInfo("PlayerAccount", "Accounts", "Registered player accounts"),
+        new TableInfo("Account", "Accounts", "Registered player accounts"),
         new TableInfo("License", "Licenses", "Issued licenses"),
         new TableInfo("HWID", "HWIDs", "HWID bindings"),
         new TableInfo("CrashReport", "Crash reports", "Stored crash reports"),
-        new TableInfo("Anticheat", "Anti-cheat reports", "Stored anti-cheat reports"),
+        new TableInfo("AnticheatReport", "Anti-cheat reports", "Stored anti-cheat reports"),
         new TableInfo("DiscordLog", "Discord logs", "Moderation logs")
     );
 

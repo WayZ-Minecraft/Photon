@@ -20,7 +20,7 @@ public class AccountLicenseProductsEndpoint implements IEndpoint {
     @Override
     public void handle(Context handler) {
         IEndpoint.setupRateLimit(handler, 10, TimeUnit.SECONDS);
-
+        
         final var ACCOUNT = SessionManager.requireAccount(handler);
         if (ACCOUNT == null) return;
         

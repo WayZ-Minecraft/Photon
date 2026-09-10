@@ -43,7 +43,7 @@ public class AccountLicenseCreateEndpoint implements IEndpoint {
         }
 
         final String PRODUCT_ID = PRODUCT.id();
-        if (!EntitlementManager.hasAccess(ACCOUNT.getUuid(), PRODUCT_ID)) {
+        if (!ACCOUNT.isAdministrator() && !EntitlementManager.hasAccess(ACCOUNT.getUuid(), PRODUCT_ID)) {
             handler.status(403).result("Purchase or active subscription required for this product");
             return;
         }

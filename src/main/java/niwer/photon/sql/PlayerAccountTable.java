@@ -75,6 +75,17 @@ public class PlayerAccountTable extends Table {
         return getAccountByUUID(UniqueUserID);
     }
 
+    public static void setAdmin(String uuid, boolean isAdmin) {
+        if (uuid == null || uuid.trim().isEmpty()) {
+            Console.log("Cannot update admin status for null/empty UUID").error().container(PhotonEngine.LOGGER).send();
+            return;
+        }
+        UpdateManager.update(PhotonEngine.DATA_BASE, PlayerAccountTable.class)
+            .set("administrator", isAdmin)
+            .where(Expression.of("uuid").isEqualTo(uuid))
+            .execute();
+    }
+
     public static void setDiscordID(String uuid, String discordID) {
         if (uuid == null || uuid.trim().isEmpty()) {
             Console.log("Cannot update Discord ID for null/empty UUID").error().container(PhotonEngine.LOGGER).send();

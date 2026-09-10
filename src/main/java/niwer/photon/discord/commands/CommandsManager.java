@@ -27,6 +27,7 @@ public class CommandsManager extends ListenerAdapter {
 
         /* Guild only commands */
         new ClearCommand().register();
+        new SetAdminCommand().register();
     }
 
     @Nonnull

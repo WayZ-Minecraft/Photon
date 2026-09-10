@@ -172,7 +172,7 @@ public class BotEngine extends ListenerAdapter {
 
         final EmbedBuilder LOGS_EMBED = new EmbedBuilder();
         LOGS_EMBED.setColor(data.type().color().color());
-        LOGS_EMBED.setTitle((data.isError() ? "[Error] " : "") + data.type().name());
+        LOGS_EMBED.setTitle((data.isError() ? "[Error] " : "") + data.type().name() + (Directories.getConfig().isDevEnvironment() ? " [DEV]" : ""));
         LOGS_EMBED.setDescription(String.format("%s", data.message()));
         LOGS_EMBED.setTimestamp(OffsetDateTime.now());
         getConsoleChannel().sendMessageEmbeds(LOGS_EMBED.build()).queue();

@@ -26,7 +26,7 @@ public class AccountLicenseListEndpoint implements IEndpoint {
         if (ACCOUNT == null) return;
         
         /* Check if the user has any access to the license system */
-        if (!EntitlementManager.hasAnyAccess(ACCOUNT.getUuid())) {
+        if (!ACCOUNT.isAdministrator() && !EntitlementManager.hasAnyAccess(ACCOUNT.getUuid())) {
             handler.status(403).result("Purchase or active subscription required");
             return;
         }

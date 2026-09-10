@@ -25,14 +25,14 @@ public class AccountLicenseProductsEndpoint implements IEndpoint {
         if (ACCOUNT == null) return;
         
         /* Check if the user has any access to the license system */
-        if (!EntitlementManager.hasAnyAccess(ACCOUNT.getUuid())) {
+        if (!ACCOUNT.isAdministrator() && !EntitlementManager.hasAnyAccess(ACCOUNT.getUuid())) {
             handler.status(403).result("Purchase or active subscription required");
             return;
         }
         
         /* Get the products to which the user has access */
         final List<Map<String, Object>> PRODUCTS = Directories.getConfig().getProducts().stream()
-            .filter(product -> product.isLicenseRequired() && EntitlementManager.hasAccess(ACCOUNT.getUuid(), product.id()))
+            .filter(product -> product.isLicenseRequired() && (ACCOUNT.isAdministrator() || EntitlementManager.hasAccess(ACCOUNT.getUuid(), product.id())))
             .map(product -> product.payload())
             .toList();
         handler.json(PRODUCTS);

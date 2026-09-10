@@ -104,6 +104,8 @@ public class Directories
 	public static class NetworkConfig {
 		private static final NetworkConfig DEFAULT = new NetworkConfig();
 		
+		@SerializedName("isDevEnv") public boolean isDevEnv = false;
+
 		/* Bot infos */
 		@SerializedName("bot_activity") public String bot_activity = "/";
 		@SerializedName("discord_bot_token") public String discord_bot_token = "";
@@ -206,6 +208,10 @@ public class Directories
 				.filter(product -> product.stripePriceIds() != null && product.stripePriceIds().contains(stripePriceId))
 				.findFirst()
 				.orElse(null);
+		}
+
+		public boolean isDevEnvironment() {
+			return isDevEnv;
 		}
 	}
 }

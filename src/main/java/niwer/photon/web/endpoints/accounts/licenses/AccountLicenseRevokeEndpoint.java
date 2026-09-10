@@ -28,7 +28,7 @@ public class AccountLicenseRevokeEndpoint implements IEndpoint {
         if (ACCOUNT == null) return;
         
         /* Check if the user has any access to the license system */
-        if (!EntitlementManager.hasAnyAccess(ACCOUNT.getUuid())) {
+        if (!ACCOUNT.isAdministrator() && !EntitlementManager.hasAnyAccess(ACCOUNT.getUuid())) {
             handler.status(403).result("Purchase or active subscription required");
             return;
         }
@@ -48,13 +48,13 @@ public class AccountLicenseRevokeEndpoint implements IEndpoint {
         }
 
         /* Check if the user has access to the product */
-        if(!EntitlementManager.hasAccess(ACCOUNT.getUuid(), LICENSE.productId())) {
+        if (!ACCOUNT.isAdministrator() && !EntitlementManager.hasAccess(ACCOUNT.getUuid(), LICENSE.productId())) {
             handler.status(403).result("You do not have access to this product");
             return;
         }
 
         /* Check if the user is the creator of the license */
-        if (LICENSE.creatorUuid() == null || !LICENSE.creatorUuid().equalsIgnoreCase(ACCOUNT.getUuid())) {
+        if (!ACCOUNT.isAdministrator() && (LICENSE.creatorUuid() == null || !LICENSE.creatorUuid().equalsIgnoreCase(ACCOUNT.getUuid()))) {
             handler.status(403).result("You can only revoke your own licenses");
             return;
         }

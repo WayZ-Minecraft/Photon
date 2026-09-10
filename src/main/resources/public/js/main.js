@@ -234,7 +234,13 @@ const UI = {
         }
     },
 
-    openModal(id) { document.getElementById(id).classList.add('open'); },
+    openModal(id) {
+        const modal = document.getElementById(id);
+        if (!modal) return;
+
+        modal.classList.add('open');
+        if (id === 'createLicenseModal') App.loadLicenseProducts();
+    },
     
     closeModal(event, force=false) {
         if (force || (event && event.target && event.target.classList.contains('modal-backdrop'))) {
@@ -579,14 +585,21 @@ const App = {
     },
 
     async loadLicenseProducts() {
-        const products = await Api('/accounts/license-products');
-        State.licenseProducts = Array.isArray(products) ? products : [];
         const select = document.getElementById('licenseProductSelect');
         if (!select) return;
 
-        select.innerHTML = State.licenseProducts.length
-            ? State.licenseProducts.map(product => `<option value="${UI.escapeHTML(product.id)}">${UI.escapeHTML(product.name || product.id)}</option>`).join('')
-            : '<option value="">No products available</option>';
+        select.innerHTML = '<option value="">Loading products...</option>';
+        try {
+            const products = await Api('/accounts/license-products');
+            State.licenseProducts = Array.isArray(products) ? products : [];
+            select.innerHTML = State.licenseProducts.length
+                ? State.licenseProducts.map(product => `<option value="${UI.escapeHTML(product.id)}">${UI.escapeHTML(product.name || product.id)}</option>`).join('')
+                : '<option value="">No products available</option>';
+        } catch (error) {
+            State.licenseProducts = [];
+            select.innerHTML = '<option value="">Unable to load products</option>';
+            UI.toast(error.message || 'Failed to load license products', 'error');
+        }
     },
 
     async createLicense(e) {

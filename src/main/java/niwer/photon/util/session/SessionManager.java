@@ -9,11 +9,13 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.reflect.TypeToken;
+
 import io.javalin.http.Context;
 import niwer.photon.Directories;
 import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.util.GsonUtils;
+import niwer.photon.util.HashUtils;
 
 public final class SessionManager {
 
@@ -76,22 +78,18 @@ public final class SessionManager {
      * @param scope The scope of the session (ADMIN or USER) to determine which session map to use
      * @return An AuthSession object containing the session token and account information if login is successful; null otherwise
      */
-    public static AuthSession login(String email, String password, Scope scope) {
+    public static Session login(String email, String password, Scope scope) {
         if (email == null || password == null) return null;
 
         ObjectUserAccount account = PlayerAccountTable.getAccountByEmail(email);
         if (account == null || account.password() == null) return null;
         if (scope == Scope.ADMIN && !account.isAdministrator()) return null;
-        if (!PlayerAccountTable.passwordMatches(account.password(), password)) return null;
-
-        if (!PlayerAccountTable.isArgon2Password(account.password())) {
-            PlayerAccountTable.setPassword(account.getUuid(), password);
-        }
+        if (!HashUtils.passwordMatches(account.password(), password)) return null;
 
         return createSession(account, scope);
     }
 
-    private static AuthSession createSession(ObjectUserAccount account, Scope scope) {
+    private static Session createSession(ObjectUserAccount account, Scope scope) {
         if (account == null) return null;
 
         String token = UUID.randomUUID().toString();
@@ -99,7 +97,7 @@ public final class SessionManager {
 
         scope.sessions.put(token, new SessionSnapshot(account, System.currentTimeMillis(), csrf));
         scope.save();
-        return new AuthSession(token, account);
+        return new Session(token, account);
     }
 
     private static ObjectUserAccount accountFromRequest(Context handler, Scope scope) {

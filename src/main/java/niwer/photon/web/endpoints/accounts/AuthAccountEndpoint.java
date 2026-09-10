@@ -3,15 +3,15 @@ package niwer.photon.web.endpoints.accounts;
 import java.util.concurrent.TimeUnit;
 
 import io.javalin.http.Context;
-import niwer.photon.objects.ObjectSubscription;
 import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.sql.PurchaseTable;
-import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.GsonUtils;
-import niwer.photon.util.session.AuthSession;
+import niwer.photon.util.HashUtils;
+import niwer.photon.util.session.Session;
 import niwer.photon.util.session.SessionManager;
 import niwer.photon.util.session.SessionManager.Scope;
+import niwer.photon.util.stripe.EntitlementManager;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.EndpointUtils;
 import niwer.photon.web.endpoints.IEndpoint;
@@ -26,70 +26,52 @@ public class AuthAccountEndpoint implements IEndpoint {
     public void handle(Context handler) {
         IEndpoint.setupRateLimit(handler, 5, TimeUnit.MINUTES);
 
-        final Credentials credentials = readCredentials(handler);
-        if (credentials == null || credentials.email == null || credentials.password == null || credentials.email.isBlank() || credentials.password.isBlank()) {
+        final Credentials CREDENTIALS = readCredentials(handler);
+        if (CREDENTIALS == null || CREDENTIALS.email == null || CREDENTIALS.password == null || CREDENTIALS.email.isBlank() || CREDENTIALS.password.isBlank()) {
             handler.status(400).result("Missing or blank parameters");
             return;
         }
 
         /* Try to login as admin first */
-        final AuthSession adminSession = SessionManager.login(credentials.email, credentials.password, Scope.ADMIN);
-        if (adminSession != null) {
-            setupAdminCookies(handler, adminSession);
-            handler.json(new LoginResponse(null, adminSession.account().payload(), true));
+        final Session ADMIN_SESSION = SessionManager.login(CREDENTIALS.email, CREDENTIALS.password, Scope.ADMIN);
+        if (ADMIN_SESSION != null) {
+            setupAdminCookies(handler, ADMIN_SESSION);
+            handler.json(new LoginResponse(null, ADMIN_SESSION.account().payload(), true));
             return;
         }
 
         /* Standard user auth. */
-        final ObjectUserAccount account = PlayerAccountTable.getAccountByEmail(credentials.email);
-        if (account == null || !PlayerAccountTable.passwordMatches(account.password(), credentials.password)) {
+        final ObjectUserAccount ACCOUNT = PlayerAccountTable.getAccountByEmail(CREDENTIALS.email);
+        if (ACCOUNT == null || !HashUtils.passwordMatches(ACCOUNT.password(), CREDENTIALS.password)) {
             handler.status(401).result("Invalid credentials or access denied");
             return;
         }
 
-        if (!PlayerAccountTable.isArgon2Password(account.password())) {
-            PlayerAccountTable.setPassword(account.getUuid(), credentials.password);
-        }
-
-        // Handle Purchase and Subscription Linking
-        final String checkoutSessionId = credentials.token;
-        final boolean hasPurchaseReference = checkoutSessionId != null && !checkoutSessionId.isBlank();
-        final ObjectSubscription subscription = SubscriptionTable.getByEmail(credentials.email);
-
-        if (hasPurchaseReference) {
-            if (!PurchaseTable.canRedeem(checkoutSessionId)) {
+        final String CHECKOUT_SESSION_ID = CREDENTIALS.token;
+        if (CHECKOUT_SESSION_ID != null && !CHECKOUT_SESSION_ID.isBlank()) {
+            if (!PurchaseTable.canRedeem(CHECKOUT_SESSION_ID)) {
                 handler.status(403).result("Invalid or expired purchase token");
                 return;
             }
-            if (!PurchaseTable.redeem(checkoutSessionId, account)) {
+            if (!EntitlementManager.redeemPurchase(CHECKOUT_SESSION_ID, ACCOUNT)) {
                 handler.status(500).result("Failed to link purchase token");
                 return;
             }
-        } else if (subscription != null && subscription.isActive()) {
-            SubscriptionTable.upsertSubscription(
-                subscription.customerEmail(),
-                subscription.customerName(),
-                subscription.customerId(),
-                subscription.subscriptionId(),
-                subscription.status(),
-                subscription.expiresAt(),
-                account.getUuid()
-            );
         }
 
-        final AuthSession userSession = SessionManager.login(credentials.email, credentials.password, Scope.USER);
-        if (userSession == null) {
+        final Session USER_AUTH = SessionManager.login(CREDENTIALS.email, CREDENTIALS.password, Scope.USER);
+        if (USER_AUTH == null) {
             handler.status(401).result("Invalid credentials or access denied");
             return;
         }
 
-        handler.json(new LoginResponse(userSession.token(), account.payload(), false));
+        handler.json(new LoginResponse(USER_AUTH.token(), ACCOUNT.payload(), false));
     }
 
-    private static void setupAdminCookies(Context handler, AuthSession session) {
+    private static void setupAdminCookies(Context handler, Session session) {
         try {
-            final String adminCookie = "photon_admin=" + session.token() + "; HttpOnly; Path=/; Max-Age=3600; SameSite=Strict";
-            handler.res().addHeader("Set-Cookie", adminCookie);
+            final String ADMIN_COOKIE = "photon_admin=" + session.token() + "; HttpOnly; Path=/; Max-Age=3600; SameSite=Strict";
+            handler.res().addHeader("Set-Cookie", ADMIN_COOKIE);
 
             final String csrf = SessionManager.getCsrfForToken(session.token());
             if (csrf != null && !csrf.isBlank()) {

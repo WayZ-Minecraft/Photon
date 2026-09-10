@@ -1,12 +1,17 @@
 package niwer.photon.sql;
 
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+
+import com.stripe.model.Customer;
+import com.stripe.model.Price;
+import com.stripe.model.Subscription;
+import com.stripe.model.SubscriptionItem;
 
 import niwer.photon.PhotonEngine;
 import niwer.photon.objects.ObjectSubscription;
+import niwer.photon.util.stripe.StripeHelper;
+import niwer.photon.util.stripe.StripePurchaseStatus;
 import niwer.queryon.DataBase;
 import niwer.queryon.queries.Expression;
 import niwer.queryon.queries.interaction.InsertionManager;
@@ -14,16 +19,10 @@ import niwer.queryon.queries.interaction.SelectionManager;
 import niwer.queryon.queries.interaction.UpdateManager;
 import niwer.queryon.tables.Table;
 
+/**
+ * @author Niwer
+ */
 public class SubscriptionTable extends Table {
-
-    public static enum SubscriptionStatus {
-        ACTIVE,
-        PENDING,
-        CANCELED,
-        LINKING_PENDING,
-        LINKED,
-        EXPIRED;
-    }
 
     public SubscriptionTable(DataBase db) {
         super(db);
@@ -32,27 +31,21 @@ public class SubscriptionTable extends Table {
 
     @Override public String name() { return "Subscription"; }
 
-    public static String normalizeEmail(String email) {
-        return email == null ? null : email.trim().toLowerCase();
-    }
-
+    /**
+     * Retrieves a subscription record by the associated email address.
+     * 
+     * @param email The email address associated with the subscription.
+     * @return An ObjectSubscription instance if found, otherwise null.
+     */
     public static ObjectSubscription getByEmail(String email) {
         if (email == null || email.isBlank()) return null;
         return SelectionManager.select(PhotonEngine.DATA_BASE, SubscriptionTable.class)
-            .where(Expression.of("customer_email").isEqualTo(normalizeEmail(email)))
+            .where(Expression.of("customer_email").isEqualTo(StripeHelper.normalizeEmail(email)))
             .limit(1)
             .executeSerializable(ObjectSubscription.class);
     }
 
-    public static ObjectSubscription getFirstByAccountUuid(String accountUuid) {
-        if (accountUuid == null || accountUuid.isBlank()) return null;
-        return SelectionManager.select(PhotonEngine.DATA_BASE, SubscriptionTable.class)
-            .where(Expression.of("account_uuid").isEqualTo(accountUuid))
-            .limit(1)
-            .executeSerializable(ObjectSubscription.class);
-    }
-
-    public static ObjectSubscription getBySubscriptionId(String subscriptionId) {
+    private static ObjectSubscription getBySubscriptionId(String subscriptionId) {
         if (subscriptionId == null || subscriptionId.isBlank()) return null;
         return SelectionManager.select(PhotonEngine.DATA_BASE, SubscriptionTable.class)
             .where(Expression.of("subscription_id").isEqualTo(subscriptionId))
@@ -60,6 +53,12 @@ public class SubscriptionTable extends Table {
             .executeSerializable(ObjectSubscription.class);
     }
 
+    /**
+     * Retrieves a subscription record by the associated Stripe customer ID.
+     * 
+     * @param customerId The Stripe customer ID associated with the subscription.
+     * @return An ObjectSubscription instance if found, otherwise null.
+     */
     public static ObjectSubscription getByCustomerId(String customerId) {
         if (customerId == null || customerId.isBlank()) return null;
         return SelectionManager.select(PhotonEngine.DATA_BASE, SubscriptionTable.class)
@@ -68,6 +67,9 @@ public class SubscriptionTable extends Table {
             .executeSerializable(ObjectSubscription.class);
     }
 
+    /**
+     * This method retrieves all subscription records associated with a specific account UUID. 
+     */
     public static List<ObjectSubscription> getByAccountUuid(String accountUuid) {
         if (accountUuid == null || accountUuid.isBlank()) return List.of();
         return SelectionManager.select(PhotonEngine.DATA_BASE, SubscriptionTable.class)
@@ -75,22 +77,53 @@ public class SubscriptionTable extends Table {
             .executeList(ObjectSubscription.class);
     }
 
-    public static List<ObjectSubscription> getAllActive() {
-        return SelectionManager.select(PhotonEngine.DATA_BASE, SubscriptionTable.class)
-            .where(Expression.of("status").isEqualTo(SubscriptionStatus.ACTIVE))
-            .executeList(ObjectSubscription.class);
+    /**
+     * Upserts a subscription record based on the provided Stripe Subscription object. If a subscription with the same subscription ID already exists, it will be updated; otherwise, a new record will be created.
+     * 
+     * @param sub The Stripe Subscription object containing the subscription details to be upserted.
+     * @return An ObjectSubscription instance representing the upserted subscription record.
+     */
+    public static ObjectSubscription upsertSubscription(Subscription sub) {
+        if (sub == null) return null;
+
+        final Customer CUSTOMER = sub.getCustomerObject();
+        final String EMAIL = StripeHelper.normalizeEmail(CUSTOMER != null ? CUSTOMER.getEmail() : null);
+        if (EMAIL == null || EMAIL.isBlank()) return null;
+
+        final Price PRICE = (sub.getItems() != null && !sub.getItems().getData().isEmpty()) ? sub.getItems().getData().get(0).getPrice() : null;
+
+        Date expiresAt = null;
+        if (sub.getEndedAt() != null) expiresAt = new Date(sub.getEndedAt() * 1000L);
+        else if (sub.getItems() != null && !sub.getItems().getData().isEmpty()) {
+            final SubscriptionItem item = sub.getItems().getData().get(0);
+            if (item.getCurrentPeriodEnd() != null) expiresAt = new Date(item.getCurrentPeriodEnd() * 1000L);
+        }
+
+        final StripePurchaseStatus STATUS = StripeHelper.mapSubscriptionStatus(sub.getStatus());
+        final String NAME = CUSTOMER != null ? CUSTOMER.getName() : null;
+
+        // Preserve existing linked account UUID if present
+        final ObjectSubscription EXISTING = getBySubscriptionId(sub.getId());
+        final String ACCOUNT_UUID = EXISTING != null ? EXISTING.accountUuid() : null;
+
+        return upsertSubscription(EMAIL, NAME, sub.getCustomer(), sub.getId(), STATUS, expiresAt, ACCOUNT_UUID, StripeHelper.resolveProductId(PRICE));
     }
 
-    public static ObjectSubscription upsertSubscription(String email, String customerName, String customerId, String subscriptionId, SubscriptionStatus status, Date expiresAt) {
-        return upsertSubscription(email, customerName, customerId, subscriptionId, status, expiresAt, null);
-    }
-
-    public static ObjectSubscription upsertSubscription(String email, String customerName, String customerId, String subscriptionId, SubscriptionStatus status, Date expiresAt, String accountUuid) {
-        return upsertSubscription(email, customerName, customerId, subscriptionId, status, expiresAt, accountUuid, null);
-    }
-
-    public static ObjectSubscription upsertSubscription(String email, String customerName, String customerId, String subscriptionId, SubscriptionStatus status, Date expiresAt, String accountUuid, String productId) {
-        final String normalizedEmail = normalizeEmail(email);
+    /**
+     * Upserts a subscription record with the provided details. If a subscription with the same subscription ID already exists, it will be updated; otherwise, a new record will be created.
+     * 
+     * @param email The email address associated with the subscription.
+     * @param customerName The name of the customer associated with the subscription.
+     * @param customerId The Stripe customer ID associated with the subscription.
+     * @param subscriptionId The Stripe subscription ID.
+     * @param status The status of the subscription (e.g., ACTIVE, CANCELED).
+     * @param expiresAt The expiration date of the subscription, if applicable.
+     * @param accountUuid The UUID of the account associated with the subscription.
+     * @param productId The product ID associated with the subscription.
+     * @return An ObjectSubscription instance representing the upserted subscription record.
+     */
+    public static ObjectSubscription upsertSubscription(String email, String customerName, String customerId, String subscriptionId, StripePurchaseStatus status, Date expiresAt, String accountUuid, String productId) {
+        final String normalizedEmail = StripeHelper.normalizeEmail(email);
         final Date updatedAt = new Date();
         final ObjectSubscription current = getBySubscriptionId(subscriptionId);
         final ObjectSubscription currentByCustomerId = current == null ? getByCustomerId(customerId) : null;
@@ -109,8 +142,8 @@ public class SubscriptionTable extends Table {
                 .set("account_uuid", nextAccountUuid)
                 .set("customer_name", customerName)
                 .set("customer_id", customerId)
-				.set("product_id", productId != null && !productId.isBlank() ? productId : existing.productId())
-				.set("subscription_id", subscriptionId != null && !subscriptionId.isBlank() ? subscriptionId : existing.subscriptionId())
+                .set("product_id", productId != null && !productId.isBlank() ? productId : existing.productId())
+                .set("subscription_id", subscriptionId != null && !subscriptionId.isBlank() ? subscriptionId : existing.subscriptionId())
                 .set("status", status.name())
                 .set("expires_at", expiresAt)
                 .set("updated_at", updatedAt)
@@ -118,60 +151,28 @@ public class SubscriptionTable extends Table {
                 .execute();
         }
 
-            return existing == null ? getBySubscriptionId(subscriptionId) : existing;
+        return existing == null ? getBySubscriptionId(subscriptionId) : existing;
     }
 
-    public static boolean isActive(String email, String accountUuid) {
-        final ObjectSubscription subscription = resolveSubscription(email, accountUuid);
-        return subscription != null && subscription.isActive();
-    }
-
-
-    public static List<Map<String, Object>> entitlements(String accountUuid) {
-        final List<Map<String, Object>> subscriptions = getByAccountUuid(accountUuid).stream()
-            .map(item -> entitlementRecord(item.productId(), item.status(), item.expiresAt() == null ? null : item.expiresAt().getTime(), null))
-            .toList();
-        final List<Map<String, Object>> purchases = PurchaseTable.getByAccountUuid(accountUuid).stream()
-            .map(item -> entitlementRecord(item.productId(), item.status(), item.expiresAt() == null ? null : item.expiresAt().getTime(), item.createdAt() == null ? null : item.createdAt().getTime()))
-            .toList();
-        return java.util.stream.Stream.concat(
-            subscriptions.stream().map(item -> entitlement(item, "SUBSCRIPTION")),
-            purchases.stream().map(item -> entitlement(item, "ONE_TIME"))
-        ).toList();
-    }
-
-    private static Map<String, Object> entitlementRecord(String productId, SubscriptionStatus status, Long expiresAt, Long createdAt) {
-        final Map<String, Object> record = new LinkedHashMap<>();
-        record.put("productId", productId);
-        record.put("status", status);
-        if (expiresAt != null) record.put("expiresAt", expiresAt);
-        if (createdAt != null) record.put("createdAt", createdAt);
-        return record;
-    }
-
-    private static Map<String, Object> entitlement(Map<String, Object> item, String type) {
-        final Map<String, Object> record = new LinkedHashMap<>(item);
-        record.put("type", type);
-        return record;
-    }
-
-    public static boolean hasAccess(String email, String accountUuid, String productId) {
-        if (productId == null || productId.isBlank()) return false;
-        final boolean subscriptionAccess = getByAccountUuid(accountUuid).stream().anyMatch(subscription -> productId.equals(subscription.productId()) && subscription.isActive());
-        final boolean purchaseAccess = PurchaseTable.getByAccountUuid(accountUuid).stream().anyMatch(purchase -> productId.equals(purchase.productId())
-            && purchase.status() == SubscriptionStatus.ACTIVE
-            && (purchase.expiresAt() == null || purchase.expiresAt().after(new Date()))
-        );
-        return subscriptionAccess || purchaseAccess;
-    }
-
-    public static boolean hasAnyAccess(String accountUuid) {
-        return getByAccountUuid(accountUuid).stream().anyMatch(ObjectSubscription::isActive) || PurchaseTable.getByAccountUuid(accountUuid).stream().anyMatch(purchase -> purchase.status() == SubscriptionStatus.ACTIVE);
-    }
-
-    private static ObjectSubscription resolveSubscription(String email, String accountUuid) {
-        final ObjectSubscription subscriptionByUuid = accountUuid != null && !accountUuid.isBlank() ? getFirstByAccountUuid(accountUuid) : null;
-        if (subscriptionByUuid != null) return subscriptionByUuid;
-        return getByEmail(email);
+    /**
+     * Cancels a subscription by its subscription ID. This will update the subscription's status to CANCELED and set the expires_at timestamp to the current time.
+     * 
+     * @param subscriptionId The ID of the subscription to cancel.
+     */
+    public static void cancelSubscription(String subscriptionId) {
+        if (subscriptionId == null || subscriptionId.isBlank()) return;
+        final ObjectSubscription existing = getBySubscriptionId(subscriptionId);
+        if (existing != null) {
+            upsertSubscription(
+                existing.customerEmail(),
+                existing.customerName(),
+                existing.customerId(),
+                existing.subscriptionId(),
+                StripePurchaseStatus.CANCELED,
+                new Date(),
+                existing.accountUuid(),
+                existing.productId()
+            );
+        }
     }
 }

@@ -7,8 +7,8 @@ import java.util.concurrent.TimeUnit;
 import io.javalin.http.Context;
 import niwer.photon.objects.ObjectLicense;
 import niwer.photon.sql.LicenseTable;
-import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.session.SessionManager;
+import niwer.photon.util.stripe.EntitlementManager;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
@@ -25,12 +25,13 @@ public class AccountLicenseListEndpoint implements IEndpoint {
         final var ACCOUNT = SessionManager.requireAccount(handler);
         if (ACCOUNT == null) return;
         
-        if (!SubscriptionTable.hasAnyAccess(ACCOUNT.getUuid())) {
+        /* Check if the user has any access to the license system */
+        if (!EntitlementManager.hasAnyAccess(ACCOUNT.getUuid())) {
             handler.status(403).result("Purchase or active subscription required");
             return;
         }
 
-        final List<ObjectLicense> licenses = LicenseTable.getByCreatorUuid(ACCOUNT.getUuid());
-        handler.json(licenses.stream().map(license -> Objects.requireNonNull(license).payload()).toList());
+        final List<ObjectLicense> LICENSES = LicenseTable.getByCreatorUuid(ACCOUNT.getUuid());
+        handler.json(LICENSES.stream().map(license -> Objects.requireNonNull(license).payload()).toList());
     }
 }

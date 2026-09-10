@@ -1,11 +1,13 @@
 package niwer.photon.objects;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.gson.annotations.SerializedName;
 
-public class ObjectProduct {
+public class ObjectProduct implements IPayloadProvider {
 
     @SerializedName("id") private String id;
     @SerializedName("name") private String name;
@@ -13,7 +15,8 @@ public class ObjectProduct {
     @SerializedName("is_license_required") private boolean is_license_required = true;
     @SerializedName("default_license_duration_days") private Long default_license_duration_days;
 
-    @SerializedName("stripe_price_id") private String stripe_price_id;
+    @SerializedName("stripe_price_ids") private Set<String> stripe_price_ids;
+    @SerializedName("is_subscription") private boolean is_subscription;
 
     @SerializedName("repo_owner") private String repoOwner;
     @SerializedName("repo_name") private String repoName;
@@ -27,9 +30,9 @@ public class ObjectProduct {
         this.default_license_duration_days = defaultDurationDays;
     }
 
-    public ObjectProduct(String id, String name, Long defaultDurationDays, String stripePriceId) {
+    public ObjectProduct(String id, String name, Long defaultDurationDays, Set<String> stripePriceId) {
         this(id, name, defaultDurationDays);
-        this.stripe_price_id = stripePriceId;
+        this.stripe_price_ids = stripePriceId;
     }
 
     public String id() { return this.id; }
@@ -40,7 +43,9 @@ public class ObjectProduct {
 
     public Long defaultLicenseDurationDays() { return this.default_license_duration_days; }
 
-    public String stripePriceId() { return this.stripe_price_id; }
+    public Set<String> stripePriceIds() { return this.stripe_price_ids; }
+
+    public boolean isSubscription() { return this.is_subscription; }
 
     public String repoOwner() { return this.repoOwner; }
 
@@ -60,9 +65,18 @@ public class ObjectProduct {
             && (this.repoName != null && !this.repoName.isEmpty());
     }
 
+    @Override 
+    public Map<String, Object> payload() {
+        final Map<String, Object> PAYLOAD = new LinkedHashMap<>();
+        PAYLOAD.put("id", this.id);
+        PAYLOAD.put("name", this.name);
+        PAYLOAD.put("defaultLicenseDurationDays", this.default_license_duration_days);
+        return PAYLOAD;
+    }
+
     @Override
     public String toString() {
-        return String.format("ObjectProduct{id='%s', name='%s', is_license_required=%s, default_license_duration_days=%s, stripe_price_id='%s', repo_owner='%s', repo_name='%s', excluded_release_tags=%s}",
-            id, name, is_license_required, default_license_duration_days, stripe_price_id, repoOwner, repoName, excluded_release_tags);
+        return String.format("ObjectProduct{id='%s', name='%s', is_license_required=%s, default_license_duration_days=%s, stripe_price_ids=%s, repo_owner='%s', repo_name='%s', excluded_release_tags=%s}",
+            id, name, is_license_required, default_license_duration_days, stripe_price_ids, repoOwner, repoName, excluded_release_tags);
     }
 }

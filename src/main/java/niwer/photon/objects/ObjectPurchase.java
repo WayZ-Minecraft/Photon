@@ -45,9 +45,6 @@ public class ObjectPurchase extends SQLSerializable<ObjectPurchase> implements I
 	@IColumnField(name = "redeemed_at")
 	private Date redeemedAt;
 
-	@IColumnField(name = "expires_at")
-	private Date expiresAt;
-
 	@IColumnField(name = "github_username")
 	private String githubUsername;
 
@@ -75,7 +72,5 @@ public class ObjectPurchase extends SQLSerializable<ObjectPurchase> implements I
 
 	public Date redeemedAt() { return redeemedAt; }
 	
-	public Date expiresAt() { return expiresAt; }
-
 	public String githubUsername() { return githubUsername; }
 }

@@ -58,6 +58,7 @@ public class StripeWebhookEndpoint implements IEndpoint {
                 case "checkout.session.completed" -> handleCheckoutSession((Session) STRIPE_OBJECT);
                 case "customer.subscription.created", "customer.subscription.updated" -> syncSubscription((Subscription) STRIPE_OBJECT);
                 case "customer.subscription.deleted" -> handleSubscriptionDeleted((Subscription) STRIPE_OBJECT);
+                // case "invoice.paid" -> 
                 default -> Console.log("Unhandled webhook event: " + EVENT.getType()).type(PhotonLogTypes.STRIPE).container(PhotonEngine.LOGGER).send();
             }
             ctx.status(200).result("ok");

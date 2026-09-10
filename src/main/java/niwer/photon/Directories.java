@@ -19,6 +19,7 @@ import com.google.gson.annotations.SerializedName;
 
 import niwer.lumen.Console;
 import niwer.photon.objects.ObjectProduct;
+import niwer.photon.objects.ObjectPurchase;
 import niwer.photon.util.GsonUtils;
 import niwer.photon.util.OperatingSystem;
 import niwer.photon.util.PhotonLogTypes;
@@ -182,6 +183,18 @@ public class Directories
 		}
 
 		/**
+		 * Check if a product is a one-time purchase (not a subscription) based on its product ID.
+		 * 
+		 * @param purchase The ObjectPurchase to check.
+		 * @return True if the product is a one-time purchase, false if it is a subscription or not found.
+		 */
+		public boolean isOneTimeProduct(ObjectPurchase purchase) {
+			if(purchase == null) return false;
+			if(purchase.productId() == null || purchase.productId().isBlank()) return false;
+			return getProducts().stream().anyMatch(product -> !product.isSubscription() && purchase.productId().equals(product.id()));
+		}
+
+		/**
 		 * Resolve a product by its Stripe price ID.
 		 * 
 		 * @param stripePriceId The Stripe price ID to look for.
@@ -190,7 +203,7 @@ public class Directories
 		public ObjectProduct productByStripePriceId(String stripePriceId) {
 			if (stripePriceId == null || stripePriceId.isBlank()) return null;
 			return getProducts().stream()
-				.filter(product -> stripePriceId.equals(product.stripePriceId()))
+				.filter(product -> product.stripePriceIds() != null && product.stripePriceIds().contains(stripePriceId))
 				.findFirst()
 				.orElse(null);
 		}

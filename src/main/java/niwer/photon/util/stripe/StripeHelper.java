@@ -38,7 +38,7 @@ public final class StripeHelper {
      */
     public static String resolveProductId(Price price) {
         if (price == null) return null;
-
+        
         final var PRODUCT = Directories.getConfig().productByStripePriceId(price.getId());
         return PRODUCT != null ? PRODUCT.id() : null;
     }
@@ -52,8 +52,8 @@ public final class StripeHelper {
     public static Date resolveSubscriptionExpiry(Subscription sub) {
         if (sub.getEndedAt() != null) return new Date(sub.getEndedAt() * 1000L);
         if (sub.getItems() != null && !sub.getItems().getData().isEmpty()) {
-            final SubscriptionItem item = sub.getItems().getData().get(0);
-            if (item.getCurrentPeriodEnd() != null) return new Date(item.getCurrentPeriodEnd() * 1000L);
+            final SubscriptionItem ITEM = sub.getItems().getData().get(0);
+            if (ITEM.getCurrentPeriodEnd() != null) return new Date(ITEM.getCurrentPeriodEnd() * 1000L);
         }
         return null;
     }
@@ -91,5 +91,25 @@ public final class StripeHelper {
     public static String resolveName(Customer customer, Session.CustomerDetails details) {
         if (customer != null && customer.getName() != null && !customer.getName().isBlank()) return customer.getName();
         return details != null ? details.getName() : null;
+    }
+
+    /**
+     * Normalizes a purchase token by trimming whitespace. This ensures consistent formatting for storage and comparison.
+     * 
+     * @param purchaseToken The purchase token to normalize.
+     * @return The normalized purchase token, or null if the input is null or blank.
+     */
+    public static String normalizeToken(String purchaseToken) {
+        return purchaseToken == null ? null : purchaseToken.trim();
+    }
+
+    /**
+     * Normalizes an email address by trimming whitespace and converting it to lowercase.
+     * 
+     * @param email The email address to normalize.
+     * @return The normalized email address, or null if the input is null or blank.
+     */
+    public static String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase();
     }
 }

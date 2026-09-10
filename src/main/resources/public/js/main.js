@@ -175,7 +175,7 @@ const UI = {
 
         document.querySelectorAll('.guest-only').forEach(el => el.classList.toggle('hidden', isUser));
         document.querySelectorAll('.auth-required').forEach(el => el.classList.toggle('hidden', !isUser));
-        document.querySelectorAll('.sub-required').forEach(el => el.classList.toggle('hidden', !hasAccess));
+        document.querySelectorAll('.sub-required').forEach(el => el.classList.toggle('hidden', !isAdmin && !hasAccess)); // Allow admins to see sub-required pages even without entitlements
         document.querySelectorAll('.admin-required').forEach(el => el.classList.toggle('hidden', !isAdmin));
 
         if (isUser && State.account) {

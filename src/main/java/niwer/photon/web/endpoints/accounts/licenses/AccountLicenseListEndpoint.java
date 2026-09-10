@@ -25,12 +25,13 @@ public class AccountLicenseListEndpoint implements IEndpoint {
         final var ACCOUNT = SessionManager.requireAccount(handler);
         if (ACCOUNT == null) return;
         
+        /* Check if the user has any access to the license system */
         if (!EntitlementManager.hasAnyAccess(ACCOUNT.getUuid())) {
             handler.status(403).result("Purchase or active subscription required");
             return;
         }
 
-        final List<ObjectLicense> licenses = LicenseTable.getByCreatorUuid(ACCOUNT.getUuid());
-        handler.json(licenses.stream().map(license -> Objects.requireNonNull(license).payload()).toList());
+        final List<ObjectLicense> LICENSES = LicenseTable.getByCreatorUuid(ACCOUNT.getUuid());
+        handler.json(LICENSES.stream().map(license -> Objects.requireNonNull(license).payload()).toList());
     }
 }

@@ -27,35 +27,45 @@ public class AccountLicenseRevokeEndpoint implements IEndpoint {
         final var ACCOUNT = SessionManager.requireAccount(handler);
         if (ACCOUNT == null) return;
         
+        /* Check if the user has any access to the license system */
         if (!EntitlementManager.hasAnyAccess(ACCOUNT.getUuid())) {
             handler.status(403).result("Purchase or active subscription required");
             return;
         }
 
-        final JsonObject body = EndpointUtils.readBody(handler);
-        final String licenseKey = GsonUtils.getString(body, "license_key", "licenseKey", null);
-        if (licenseKey == null || licenseKey.isBlank()) {
+        final JsonObject BODY = EndpointUtils.readBody(handler);
+        final String LICENSE_KEY = GsonUtils.getString(BODY, "license_key", "licenseKey", null);
+        if (LICENSE_KEY == null || LICENSE_KEY.isBlank()) {
             handler.status(400).result("Missing license key");
             return;
         }
 
-        final ObjectLicense license = LicenseTable.getByKey(licenseKey);
-        if (license == null) {
+        /* Get the license, if it does not exist, return an error */
+        final ObjectLicense LICENSE = LicenseTable.getByKey(LICENSE_KEY);
+        if (LICENSE == null) {
             handler.status(404).result("License not found");
             return;
         }
 
-        if (license.creatorUuid() == null || !license.creatorUuid().equalsIgnoreCase(ACCOUNT.getUuid())) {
+        /* Check if the user has access to the product */
+        if(!EntitlementManager.hasAccess(ACCOUNT.getUuid(), LICENSE.productId())) {
+            handler.status(403).result("You do not have access to this product");
+            return;
+        }
+
+        /* Check if the user is the creator of the license */
+        if (LICENSE.creatorUuid() == null || !LICENSE.creatorUuid().equalsIgnoreCase(ACCOUNT.getUuid())) {
             handler.status(403).result("You can only revoke your own licenses");
             return;
         }
 
-        if (!LicenseTable.revoke(licenseKey)) {
+        /* Revoke the license */
+        if (!LicenseTable.revoke(LICENSE_KEY)) {
             handler.status(500).result("Failed to revoke license");
             return;
         }
 
-        final ObjectLicense updatedLicense = LicenseTable.getByKey(licenseKey);
-        handler.json(updatedLicense == null ? license.payload() : updatedLicense.payload());
+        final ObjectLicense UPDATED_LICENSE = LicenseTable.getByKey(LICENSE_KEY);
+        handler.json(UPDATED_LICENSE == null ? LICENSE.payload() : UPDATED_LICENSE.payload());
     }
 }

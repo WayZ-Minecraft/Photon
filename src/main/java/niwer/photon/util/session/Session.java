@@ -2,11 +2,11 @@ package niwer.photon.util.session;
 
 import niwer.photon.objects.ObjectUserAccount;
 
-public class AuthSession {
+public class Session {
     String token;
     ObjectUserAccount account;
 
-    public AuthSession(String token, ObjectUserAccount account) {
+    public Session(String token, ObjectUserAccount account) {
         this.token = token;
         this.account = account;
     }

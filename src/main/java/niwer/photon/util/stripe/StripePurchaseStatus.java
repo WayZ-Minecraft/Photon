@@ -9,4 +9,7 @@ public enum StripePurchaseStatus {
     LINKING_PENDING,
     LINKED;
 
+    public boolean isActive() {
+        return this == ACTIVE || this == LINKED;
+    }
 }

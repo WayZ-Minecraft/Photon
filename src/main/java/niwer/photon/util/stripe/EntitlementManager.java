@@ -19,8 +19,8 @@ public final class EntitlementManager {
     public static boolean hasAccess(String accountUuid, String productId) {
         if (accountUuid == null || accountUuid.isBlank() || productId == null || productId.isBlank()) return false;
 
-        final boolean HAS_SUB_ACCESS = SubscriptionTable.getByAccountUuid(accountUuid).stream().anyMatch(sub -> productId.equals(sub.productId()) && sub.isActive());
-        if (HAS_SUB_ACCESS) return true;
+        final boolean HAS_ACCESS = SubscriptionTable.getByAccountUuid(accountUuid).stream().anyMatch(sub -> productId.equals(sub.productId()) && sub.isActive()); // TODO CHECK ONE TIME PURCHASES AS WELL
+        if (HAS_ACCESS) return true;
 
         return PurchaseTable.getByAccountUuid(accountUuid).stream().anyMatch(p -> productId.equals(p.productId())
             && p.status() == StripePurchaseStatus.ACTIVE
@@ -30,8 +30,8 @@ public final class EntitlementManager {
     public static boolean hasAnyAccess(String accountUuid) {
         if (accountUuid == null || accountUuid.isBlank()) return false;
 
-        final boolean HAS_SUB = SubscriptionTable.getByAccountUuid(accountUuid).stream().anyMatch(ObjectSubscription::isActive);
-        if (HAS_SUB) return true;
+        final boolean hasSub = SubscriptionTable.getByAccountUuid(accountUuid).stream().anyMatch(ObjectSubscription::isActive);
+        if (hasSub) return true;
 
         return PurchaseTable.getByAccountUuid(accountUuid).stream().anyMatch(p -> p.status() == StripePurchaseStatus.ACTIVE && (p.expiresAt() == null || p.expiresAt().after(new Date())));
     }
@@ -57,38 +57,52 @@ public final class EntitlementManager {
 
         final ObjectPurchase purchase = PurchaseTable.getByPurchaseReference(purchaseToken);
         if (purchase == null) return false;
+        
         if (purchase.linkedAccountUuid() != null && !purchase.linkedAccountUuid().isBlank() && !purchase.linkedAccountUuid().equals(account.getUuid())) {
             return false;
         }
 
-        // if (purchase.stripeSubscriptionId() != null && !purchase.stripeSubscriptionId().isBlank()) { //TODO
-        //     SubscriptionTable.upsertSubscription(
-        //         purchase.customerEmail(),
-        //         purchase.customerName(),
-        //         purchase.stripeCustomerId(),
-        //         purchase.stripeSubscriptionId(),
-        //         purchase.status(),
-        //         purchase.expiresAt(),
-        //         account.getUuid(),
-        //         purchase.productId()
-        //     );
-        // }
+        // Link the purchase record first
+        final boolean marked = PurchaseTable.markAsRedeemed(purchaseToken, account.getUuid());
+        if (!marked) return false;
 
-        return PurchaseTable.markAsRedeemed(purchaseToken, account.getUuid());
+        // Link subscription if one exists for this customer or email
+        ObjectSubscription sub = null;
+        if (purchase.stripeCustomerId() != null && !purchase.stripeCustomerId().isBlank()) {
+            sub = SubscriptionTable.getByCustomerId(purchase.stripeCustomerId());
+        }
+        if (sub == null && purchase.customerEmail() != null && !purchase.customerEmail().isBlank()) {
+            sub = SubscriptionTable.getByEmail(purchase.customerEmail());
+        }
+
+        if (sub != null) {
+            SubscriptionTable.upsertSubscription(
+                sub.customerEmail(),
+                sub.customerName(),
+                sub.customerId(),
+                sub.subscriptionId(),
+                sub.status(),
+                sub.expiresAt(),
+                account.getUuid(),
+                sub.productId()
+            );
+        }
+
+        return true;
     }
 
     private static Map<String, Object> entitlementRecord(String productId, StripePurchaseStatus status, Long expiresAt, Long createdAt) {
-        final Map<String, Object> RECORD = new LinkedHashMap<>();
-        RECORD.put("productId", productId);
-        RECORD.put("status", status);
-        if (expiresAt != null) RECORD.put("expiresAt", expiresAt);
-        if (createdAt != null) RECORD.put("createdAt", createdAt);
-        return RECORD;
+        final Map<String, Object> record = new LinkedHashMap<>();
+        record.put("productId", productId);
+        record.put("status", status);
+        if (expiresAt != null) record.put("expiresAt", expiresAt);
+        if (createdAt != null) record.put("createdAt", createdAt);
+        return record;
     }
 
     private static Map<String, Object> entitlement(Map<String, Object> item, String type) {
-        final Map<String, Object> RECORD = new LinkedHashMap<>(item);
-        RECORD.put("type", type);
-        return RECORD;
+        final Map<String, Object> record = new LinkedHashMap<>(item);
+        record.put("type", type);
+        return record;
     }
 }

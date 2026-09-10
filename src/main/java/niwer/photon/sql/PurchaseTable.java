@@ -93,8 +93,7 @@ public class PurchaseTable extends Table {
 			InsertionManager.insert(PhotonEngine.DATA_BASE, PurchaseTable.class,
 					"purchase_token", "checkout_session_id", "stripe_customer_id", "stripe_subscription_id",
 					"customer_email", "customer_name", "product_id", "status", "expires_at", "github_username", "created_at", "updated_at")
-				.row(token, checkoutSessionId, stripeCustomerId, stripeSubscriptionId,
-					normalizeEmail(customerEmail), customerName, productId, status, expiresAt, githubUsername, now, now)
+				.row(token, checkoutSessionId, stripeCustomerId, stripeSubscriptionId, normalizeEmail(customerEmail), customerName, productId, status, expiresAt, githubUsername, now, now)
 				.execute();
 			return getByToken(token);
 		}

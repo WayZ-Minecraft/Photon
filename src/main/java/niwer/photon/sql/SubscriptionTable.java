@@ -71,16 +71,6 @@ public class SubscriptionTable extends Table {
             .executeList(ObjectSubscription.class);
     }
 
-    public static List<ObjectSubscription> getAllActive() {
-        return SelectionManager.select(PhotonEngine.DATA_BASE, SubscriptionTable.class)
-            .where(Expression.of("status").isEqualTo(StripePurchaseStatus.ACTIVE))
-            .executeList(ObjectSubscription.class);
-    }
-
-    public static ObjectSubscription upsertSubscription(String email, String customerName, String customerId, String subscriptionId, StripePurchaseStatus status, Date expiresAt, String accountUuid) {
-        return upsertSubscription(email, customerName, customerId, subscriptionId, status, expiresAt, accountUuid, null);
-    }
-
     public static ObjectSubscription upsertSubscription(Subscription sub) {
         if (sub == null) return null;
 
@@ -145,14 +135,15 @@ public class SubscriptionTable extends Table {
         return existing == null ? getBySubscriptionId(subscriptionId) : existing;
     }
 
-    public static boolean isActive(String email, String accountUuid) {
-        final ObjectSubscription subscription = resolveSubscription(email, accountUuid);
-        return subscription != null && subscription.isActive();
-    }
-
-    private static ObjectSubscription resolveSubscription(String email, String accountUuid) {
-        final ObjectSubscription subscriptionByUuid = accountUuid != null && !accountUuid.isBlank() ? getFirstByAccountUuid(accountUuid) : null;
-        if (subscriptionByUuid != null) return subscriptionByUuid;
-        return getByEmail(email);
+    public static void cancelSubscription(String subscriptionId) {
+        if (subscriptionId == null || subscriptionId.isBlank()) return;
+        final ObjectSubscription existing = getBySubscriptionId(subscriptionId);
+        if (existing != null) {
+            upsertSubscription(
+                existing.customerEmail(), existing.customerName(), existing.customerId(),
+                existing.subscriptionId(), StripePurchaseStatus.CANCELED, new Date(),
+                existing.accountUuid(), existing.productId()
+            );
+        }
     }
 }

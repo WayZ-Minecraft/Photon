@@ -4,6 +4,7 @@ import java.util.Date;
 
 import niwer.photon.objects.ObjectLicense;
 import niwer.photon.sql.LicenseTable;
+import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.util.HashUtils;
 import niwer.photon.util.OperatingSystem;
 import niwer.photon.util.stripe.EntitlementManager;
@@ -68,30 +69,30 @@ public final class LicenseManager {
      */
 	public static LicenseValidationResult validateLicense(final String licenseKey, final String productId, final String hardwareId) {
 		final String NORMALIZED_KEY = normalizeKey(licenseKey);
-		final ObjectLicense license = LicenseTable.getByKey(NORMALIZED_KEY);
-		if (license == null) return LicenseValidationResult.missing(); // License key not found in database
+		final ObjectLicense LICENSE = LicenseTable.getByKey(NORMALIZED_KEY);
+		if (LICENSE == null) return LicenseValidationResult.missing(); // License key not found in database
 
-		if (license.productId() == null || !license.productId().equalsIgnoreCase(productId)) return LicenseValidationResult.invalid(LicenseFailureReason.PRODUCT_MISMATCH, "License is not valid for product '" + productId + "'");
-		if (LicenseTable.LicenseStatus.REVOKED == license.status()) return LicenseValidationResult.invalid(LicenseFailureReason.UNEXPECTED_ERROR, "License key has been revoked");
-		if (license.isExpired()) return LicenseValidationResult.invalid(LicenseFailureReason.EXPIRED, "License key has expired");
+		if (LICENSE.productId() == null || !LICENSE.productId().equalsIgnoreCase(productId)) return LicenseValidationResult.invalid(LicenseFailureReason.PRODUCT_MISMATCH, "License is not valid for product '" + productId + "'");
+		if (LicenseTable.LicenseStatus.REVOKED == LICENSE.status()) return LicenseValidationResult.invalid(LicenseFailureReason.UNEXPECTED_ERROR, "License key has been revoked");
+		if (LICENSE.isExpired()) return LicenseValidationResult.invalid(LicenseFailureReason.EXPIRED, "License key has expired");
 
 		/* Ensure creator's subscription is active; license becomes usable again if subscription restarts */
-		final boolean HAS_ACCESS = EntitlementManager.hasAccess(license.creatorUuid(), license.productId());
+		final boolean HAS_ACCESS = PlayerAccountTable.isAdmin(LICENSE.creatorUuid()) || EntitlementManager.hasAccess(LICENSE.creatorUuid(), LICENSE.productId());
 		if (!HAS_ACCESS) return LicenseValidationResult.invalid(LicenseFailureReason.SUBSCRIPTION_INACTIVE, "License creator has no active entitlement for this product");
 
 		final String CURREND_HWID = (hardwareId != null && !hardwareId.isBlank()) ? hardwareId : OperatingSystem.getHWID();
-		if (license.hwid() != null && !license.hwid().isBlank()) { // If the key is already bound to a hardware id, ensure it matches the current machine's hwid
-			if (!license.hwid().equalsIgnoreCase(CURREND_HWID)) return LicenseValidationResult.invalid(LicenseFailureReason.HARDWARE_MISMATCH, "License key is bound to another machine");
+		if (LICENSE.hwid() != null && !LICENSE.hwid().isBlank()) { // If the key is already bound to a hardware id, ensure it matches the current machine's hwid
+			if (!LICENSE.hwid().equalsIgnoreCase(CURREND_HWID)) return LicenseValidationResult.invalid(LicenseFailureReason.HARDWARE_MISMATCH, "License key is bound to another machine");
 		} else if (CURREND_HWID != null && !CURREND_HWID.isBlank()) LicenseTable.activate(NORMALIZED_KEY, CURREND_HWID); // If the key is not bound to a hardware id, bind it to the current machine's hwid
 
 		return LicenseValidationResult.valid(new LicenseClaims(
 			NORMALIZED_KEY,
-			license.productId(),
-			license.name(),
-			license.customerEmail(),
+			LICENSE.productId(),
+			LICENSE.name(),
+			LICENSE.customerEmail(),
 			CURREND_HWID,
-			license.createdAt() == null ? null : license.createdAt().getTime(),
-			license.expiresAt() == null ? null : license.expiresAt().getTime()
+			LICENSE.createdAt() == null ? null : LICENSE.createdAt().getTime(),
+			LICENSE.expiresAt() == null ? null : LICENSE.expiresAt().getTime()
 		));
 	}
 }

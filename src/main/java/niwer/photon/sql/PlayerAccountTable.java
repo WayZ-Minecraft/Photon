@@ -75,6 +75,20 @@ public class PlayerAccountTable extends Table {
         return getAccountByUUID(UniqueUserID);
     }
 
+    /**
+     * Check if a user is an administrator based on their UUID.
+     * 
+     * @param uuid The unique identifier of the user
+     * @return true if the user is an administrator, false otherwise
+     */
+    public static boolean isAdmin(String uuid) {
+        if (uuid == null || uuid.trim().isEmpty()) return false;
+        final Boolean IS_ADMIN = SelectionManager.select(PhotonEngine.DATA_BASE, PlayerAccountTable.class, "administrator")
+            .where(Expression.of("uuid").isEqualTo(uuid))
+            .executePrimitive(Boolean.class);
+        return IS_ADMIN != null && IS_ADMIN;
+    }
+
     public static void setAdmin(String uuid, boolean isAdmin) {
         if (uuid == null || uuid.trim().isEmpty()) {
             Console.log("Cannot update admin status for null/empty UUID").error().container(PhotonEngine.LOGGER).send();

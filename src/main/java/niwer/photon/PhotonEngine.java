@@ -20,7 +20,6 @@ import niwer.photon.discord.BotEngine;
 import niwer.photon.sql.AnticheatTable;
 import niwer.photon.sql.CrashReportTable;
 import niwer.photon.sql.DiscordLogTable;
-import niwer.photon.sql.DiscordProfileTable;
 import niwer.photon.sql.HWIDTable;
 import niwer.photon.sql.LicenseTable;
 import niwer.photon.sql.PlayerAccountTable;
@@ -30,8 +29,8 @@ import niwer.photon.sql.SubscriptionTable;
 import niwer.photon.util.DatabaseBackupManager;
 import niwer.photon.util.PhotonLogTypes;
 import niwer.photon.util.TranslationManager;
+import niwer.photon.util.stripe.StripeStartupSync;
 import niwer.photon.web.WebServerEngine;
-import niwer.photon.web.endpoints.stripe.StripeStartupSync;
 import niwer.queryon.DataBase;
 
 /**
@@ -126,14 +125,13 @@ public class PhotonEngine {
 
             /* User Accounts */
             .registerTable(PlayerAccountTable.class)
-            .registerTable(DiscordProfileTable.class)
             .registerTable(ServerTable.class)
         ;
 
         /* Run the database backup system */
         DatabaseBackupManager.start();
 
-        /* Repopulate Stripe subscriptions on startup */
+        /* Repopulate Stripe data on startup */
         StripeStartupSync.load();
 
         /* Starting the discord bot if token available */

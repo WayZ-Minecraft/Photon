@@ -1,21 +1,23 @@
 package niwer.photon.util.session;
 
+import niwer.photon.objects.ObjectUserAccount;
+
 public class SessionSnapshot {
-    AccountSnapshot account;
+    ObjectUserAccount account;
     long createdAt;
     String csrf = null;
 
-    public SessionSnapshot(AccountSnapshot account, long createdAt) {
+    public SessionSnapshot(ObjectUserAccount account, long createdAt) {
         this(account, createdAt, null);
     }
 
-    public SessionSnapshot(AccountSnapshot account, long createdAt, String csrf) {
+    public SessionSnapshot(ObjectUserAccount account, long createdAt, String csrf) {
         this.account = account;
         this.createdAt = createdAt;
         this.csrf = csrf;
     }
 
-    public AccountSnapshot account() { return this.account; }
+    public ObjectUserAccount account() { return this.account; }
 
     public long createdAt() { return this.createdAt; }
 

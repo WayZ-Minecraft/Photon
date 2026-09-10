@@ -37,9 +37,8 @@ public class ObjectServer extends SQLSerializable<ObjectServer> {
     @IColumnField(name = "discord")
     public String discord;
 
-    // public String[] owners = new String[] {};
-
-    // public String[] tags = new String[] {};
+    @IColumnField(name = "project_id")
+    public String projectId;
 
     @Override
     public int hashCode() {

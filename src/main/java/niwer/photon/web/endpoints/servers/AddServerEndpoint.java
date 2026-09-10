@@ -16,15 +16,9 @@ import niwer.photon.web.endpoints.IEndpoint;
  */
 public class AddServerEndpoint implements IEndpoint {
 
-    @Override
-    public String path() {
-        return "/servers/add-server";
-    }
+    @Override public String path() { return "/servers/add-server"; }
 
-    @Override
-    public HttpMethod method() {
-        return HttpMethod.POST;
-    }
+    @Override public HttpMethod method() { return HttpMethod.POST; }
 
     @Override
     public void handle(Context handler) {
@@ -62,13 +56,8 @@ public class AddServerEndpoint implements IEndpoint {
         }
 
         server.serverName = server.serverName.trim();
-        if (server.serverName.length() > 64) {
-            server.serverName = server.serverName.substring(0, 64);
-        }
-
-        if (server.serverMOTD != null && server.serverMOTD.length() > 2048) {
-            server.serverMOTD = server.serverMOTD.substring(0, 2048);
-        }
+        if (server.serverName.length() > 64) server.serverName = server.serverName.substring(0, 64);
+        if (server.serverMOTD != null && server.serverMOTD.length() > 2048) server.serverMOTD = server.serverMOTD.substring(0, 2048);
 
         ServerTable.saveOrUpdate(server);
         handler.status(200).json(server);

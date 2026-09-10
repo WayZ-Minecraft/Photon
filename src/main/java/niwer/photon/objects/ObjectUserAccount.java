@@ -1,6 +1,5 @@
 package niwer.photon.objects;
 
-import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.HashMap;
@@ -14,7 +13,7 @@ import niwer.queryon.tables.api.IDefaultValue;
 /**
  * @author Niwer 
  */
-public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
+public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> implements IPayloadProvider {
 
     @IColumnField(name = "username", notNull = true)
     private String username;
@@ -66,7 +65,8 @@ public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
 
     public Language getLanguage() { return Language.fromString(this.language); }
 
-    public Map<String, Object> toPublicMap() {
+    @Override 
+    public Map<String, Object> payload() {
         final Map<String, Object> response = new HashMap<>();
         response.put("username", this.username);
         response.put("email", this.email);
@@ -76,30 +76,5 @@ public class ObjectUserAccount extends SQLSerializable<ObjectUserAccount> {
         response.put("administrator", isAdministrator());
         response.put("language", getLanguage().name());
         return response;
-    }
-
-    public static ObjectUserAccount fromSnapshot(String username, String email, String uuid, String discordID, String discordAuthCode, boolean administrator) {
-        final ObjectUserAccount account = new ObjectUserAccount();
-        try {
-            setField(account, "username", username);
-            setField(account, "email", email);
-            setField(account, "uuid", uuid);
-            setField(account, "discordID", discordID);
-            setField(account, "discordAuthCode", discordAuthCode);
-            setField(account, "administrator", administrator);
-        } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException("Unable to rebuild account snapshot", e);
-        }
-        return account;
-    }
-
-    private static void setField(ObjectUserAccount account, String fieldName, Object value) throws ReflectiveOperationException {
-        final Field field = ObjectUserAccount.class.getDeclaredField(fieldName);
-        field.setAccessible(true);
-        if (field.getType() == boolean.class && value instanceof Boolean booleanValue) {
-            field.setBoolean(account, booleanValue);
-            return;
-        }
-        field.set(account, value);
     }
 }

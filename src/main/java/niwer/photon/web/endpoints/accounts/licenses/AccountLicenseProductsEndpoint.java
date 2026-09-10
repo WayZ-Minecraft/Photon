@@ -1,11 +1,13 @@
 package niwer.photon.web.endpoints.accounts.licenses;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import io.javalin.http.Context;
 import niwer.photon.Directories;
-import niwer.photon.sql.SubscriptionTable;
-import niwer.photon.util.session.UserSessionManager;
+import niwer.photon.util.session.SessionManager;
+import niwer.photon.util.stripe.EntitlementManager;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
@@ -19,13 +21,20 @@ public class AccountLicenseProductsEndpoint implements IEndpoint {
     public void handle(Context handler) {
         IEndpoint.setupRateLimit(handler, 10, TimeUnit.SECONDS);
 
-        final var account = UserSessionManager.requireAccount(handler);
-        if (account == null) return;
-        if (!SubscriptionTable.hasAnyAccess(account.getUuid())) {
+        final var ACCOUNT = SessionManager.requireAccount(handler);
+        if (ACCOUNT == null) return;
+        
+        /* Check if the user has any access to the license system */
+        if (!EntitlementManager.hasAnyAccess(ACCOUNT.getUuid())) {
             handler.status(403).result("Purchase or active subscription required");
             return;
         }
-
-        handler.json(Directories.getConfig().getLicenseProducts());
+        
+        /* Get the products to which the user has access */
+        final List<Map<String, Object>> PRODUCTS = Directories.getConfig().getProducts().stream()
+            .filter(product -> product.isLicenseRequired() && EntitlementManager.hasAccess(ACCOUNT.getUuid(), product.id()))
+            .map(product -> product.payload())
+            .toList();
+        handler.json(PRODUCTS);
     }
 }

@@ -134,6 +134,12 @@ main { flex: 1; padding: calc(var(--nav-height) + 2rem) 1.5rem 4rem; max-width: 
 .card-body { color: var(--text-secondary); font-size: 0.9rem; flex: 1; }
 .card-footer { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); display: flex; gap: 0.5rem; align-items: center; }
 
+.download-repository { margin-bottom: 2rem; }
+.download-repository:last-child { margin-bottom: 0; }
+.download-repository-header { border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; padding-bottom: 0.75rem; }
+.download-repository-header h3 { margin: 0; font-size: 1rem; }
+.download-action { width: 1%; white-space: nowrap; }
+
 /* Buttons & Inputs */
 button, .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
@@ -145,8 +151,8 @@ button, .btn {
 button:hover {
     background: rgba(216, 180, 254, 0.1); border-color: var(--accent-color); color: var(--text-primary);
 }
-button.primary { background: var(--accent-color); color: var(--bg-color); border-color: var(--accent-color); }
-button.primary:hover { background: transparent; color: var(--accent-color); }
+.btn.primary, button.primary { background: var(--accent-color); color: var(--bg-color); border-color: var(--accent-color); }
+.btn.primary:hover, button.primary:hover { background: transparent; color: var(--accent-color); }
 button.danger { background: rgba(255, 92, 92, 0.1); color: var(--danger-color); border-color: rgba(255, 92, 92, 0.2); }
 button.danger:hover { background: var(--danger-color); color: var(--bg-color); border-color: var(--danger-color); }
 

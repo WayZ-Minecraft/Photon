@@ -4,13 +4,12 @@ import java.util.concurrent.TimeUnit;
 
 import io.javalin.http.Context;
 import niwer.photon.util.session.SessionManager;
-import niwer.photon.util.stripe.EntitlementManager;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
-public class AccountEntitlementsEndpoint implements IEndpoint {
+public class MeEndpoint implements IEndpoint {
 
-    @Override public String path() { return "/accounts/entitlements"; }
+    @Override public String path() { return "/accounts/me"; }
 
     @Override public HttpMethod method() { return HttpMethod.GET; }
 
@@ -18,9 +17,9 @@ public class AccountEntitlementsEndpoint implements IEndpoint {
     public void handle(Context handler) {
         IEndpoint.setupRateLimit(handler, 10, TimeUnit.MINUTES);
 
-        final var account = SessionManager.requireAccount(handler);
-        if (account == null) return;
+        final var ACCOUNT = SessionManager.requireAccount(handler);
+        if (ACCOUNT == null) return;
 
-        handler.json(EntitlementManager.getEntitlements(account.getUuid()));
+        handler.json(ACCOUNT.payload());
     }
 }

@@ -1,11 +1,20 @@
 package niwer.photon.web.api.github;
 
+import java.net.http.HttpClient;
 import java.net.http.HttpRequest.Builder;
 
 import niwer.photon.Directories;
 import niwer.photon.web.api.ApiRequest;
 
 public abstract class GithubApiRequest<T> extends ApiRequest<T> {
+
+    protected GithubApiRequest() {
+        super();
+    }
+
+    protected GithubApiRequest(HttpClient.Redirect redirect) {
+        super(redirect);
+    }
 
     @Override
     public void addHeaders(Builder builder) {

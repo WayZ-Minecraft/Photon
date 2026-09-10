@@ -4,14 +4,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import io.javalin.http.Context;
-import niwer.photon.objects.ObjectSubscription;
 import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.sql.PurchaseTable;
-import niwer.photon.sql.SubscriptionTable;
-import niwer.photon.util.session.AuthSession;
-import niwer.photon.util.session.UserSessionManager;
+import niwer.photon.util.session.Session;
+import niwer.photon.util.session.SessionManager;
+import niwer.photon.util.session.SessionManager.Scope;
+import niwer.photon.util.stripe.EntitlementManager;
 import niwer.photon.web.HttpMethod;
+import niwer.photon.web.endpoints.EndpointUtils;
 import niwer.photon.web.endpoints.IEndpoint;
 
 /**
@@ -29,125 +30,78 @@ public class CreateAccountEndpoint implements IEndpoint {
     public void handle(Context handler) {
         IEndpoint.setupRateLimit(handler, 5, TimeUnit.MINUTES);
         
-        final String username = handler.formParam("username");
-        final String email = handler.formParam("email");
-        final String password = handler.formParam("password");
-        final String checkoutSessionId = firstNonBlank(handler.formParam("checkoutSessionId"), handler.formParam("token"));
+        final String USERNAME = handler.formParam("username");
+        final String EMAIL = handler.formParam("email");
+        final String PASSWORD = handler.formParam("password");
+        final String CHECKOUT_SESSION_ID = EndpointUtils.firstNonBlank(handler.formParam("checkoutSessionId"), handler.formParam("token"));
 
         /* Ensure all parameters are provided */
-        if(username == null || email == null || password == null) {
+        if(USERNAME == null || EMAIL == null || PASSWORD == null) {
             handler.status(400).result("Missing parameters");
             return;
         }
 
         /* Ensure no parameters are blank */
-        if(username.isBlank() || email.isBlank() || password.isBlank()) {
+        if(USERNAME.isBlank() || EMAIL.isBlank() || PASSWORD.isBlank()) {
             handler.status(400).result("Parameters cannot be blank");
             return;
         }
 
         /* Ensure the email address is valid */
-        if(!validEmailAddress(email)) {
+        if(!validEmailAddress(EMAIL)) {
             handler.status(400).result("Invalid email address");
             return;
         }
 
         /* Ensure the password is at least 8 characters long */
-        if(password.length() < 8) {
+        if(PASSWORD.length() < 8) {
             handler.status(400).result("Password must be at least 8 characters long");
             return;
         }
 
         /* Ensure the email address is not already in use */
-        if(emailExists(email)) {
+        if(PlayerAccountTable.emailExists(EMAIL)) {
             handler.status(400).result("An account with this email already exists. Sign in instead.");
             return;
         }
 
         /* Ensure the username is not already in use */
-        if(usernameExists(username)) {
+        if(PlayerAccountTable.usernameExists(USERNAME)) {
             handler.status(400).result("An account with this username already exists.");
             return;
         }
 
-        final boolean hasPurchaseReference = checkoutSessionId != null && !checkoutSessionId.isBlank();
-        final ObjectSubscription subscription = SubscriptionTable.getByEmail(email);
-        if (hasPurchaseReference) {
-            if (!canRedeemPurchaseReference(checkoutSessionId)) {
-                handler.status(403).result("Invalid or expired purchase token");
-                return;
-            }
+        /* Check the validity of the purchase token if a token is provided */
+        final boolean HAS_PURCHASE_REFERENCE = CHECKOUT_SESSION_ID != null && !CHECKOUT_SESSION_ID.isBlank();
+        if (HAS_PURCHASE_REFERENCE && !PurchaseTable.canRedeem(CHECKOUT_SESSION_ID)) {
+            handler.status(403).result("Invalid or expired purchase token");
+            return;
         }
 
-        /* Create the account */
-        final ObjectUserAccount ACCOUNT = createAccount(username, email, password);
+        final ObjectUserAccount ACCOUNT = PlayerAccountTable.createAccount(USERNAME, EMAIL, PASSWORD);
         if(ACCOUNT == null) {
             handler.status(500).result("Failed to create account");
             return;
         }
 
-        if (hasPurchaseReference && !redeemPurchaseReference(checkoutSessionId, ACCOUNT)) {
+        if (HAS_PURCHASE_REFERENCE && !EntitlementManager.redeemPurchase(CHECKOUT_SESSION_ID, ACCOUNT)) {
             handler.status(500).result("Failed to link purchase token");
             return;
-        } else if (subscription != null && subscription.isActive()) {
-            SubscriptionTable.upsertSubscription(
-                subscription.customerEmail(),
-                subscription.customerName(),
-                subscription.customerId(),
-                subscription.subscriptionId(),
-                subscription.status(),
-                subscription.expiresAt(),
-                ACCOUNT.getUuid()
-            );
         }
 
-        final AuthSession session = createSession(email, password);
-        if (session == null) {
+        final Session SESSION = SessionManager.login(EMAIL, PASSWORD, Scope.USER);
+        if (SESSION == null) {
             handler.status(500).result("Failed to create session");
             return;
         }
 
-        handler.json(new LoginResponse(session.token(), ACCOUNT.toPublicMap()));
-    }
-
-    protected boolean emailExists(String email) {
-        return PlayerAccountTable.emailExists(email);
-    }
-
-    protected boolean usernameExists(String username) {
-        return PlayerAccountTable.usernameExists(username);
-    }
-
-    protected ObjectUserAccount createAccount(String username, String email, String password) {
-        return PlayerAccountTable.createAccount(username, email, password);
+        handler.json(new LoginResponse(SESSION.token(), ACCOUNT.payload()));
     }
 
     private static boolean validEmailAddress(String email) {
 		final Pattern EMAIL_PATTERN = Pattern.compile("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}");
         return EMAIL_PATTERN.matcher(email).matches();
 	}
-
-    private static String firstNonBlank(String first, String second) {
-        if (first != null && !first.isBlank()) return first;
-        if (second != null && !second.isBlank()) return second;
-        return null;
-    }
-
-    protected boolean canRedeemPurchaseReference(String purchaseReference) {
-        return PurchaseTable.canRedeem(purchaseReference);
-    }
-
-    protected boolean redeemPurchaseReference(String purchaseReference, ObjectUserAccount account) {
-        return PurchaseTable.redeem(purchaseReference, account);
-    }
-
-    protected boolean hasActiveSubscription(String email, String accountUuid) {
-        return SubscriptionTable.isActive(email, accountUuid);
-    }
-
-    protected AuthSession createSession(String email, String password) {
-        return UserSessionManager.login(email, password);
-    }
 
     private record LoginResponse(String token, Object account) {}
 }

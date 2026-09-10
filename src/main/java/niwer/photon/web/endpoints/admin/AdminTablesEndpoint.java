@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.javalin.http.Context;
-import niwer.photon.util.session.AdminSessionManager;
+import niwer.photon.util.session.SessionManager;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
@@ -17,8 +17,7 @@ public class AdminTablesEndpoint implements IEndpoint {
         new TableInfo("HWID", "HWIDs", "HWID bindings"),
         new TableInfo("CrashReport", "Crash reports", "Stored crash reports"),
         new TableInfo("Anticheat", "Anti-cheat reports", "Stored anti-cheat reports"),
-        new TableInfo("DiscordLog", "Discord logs", "Moderation logs"),
-        new TableInfo("DiscordAccount", "Discord profiles", "Discord progression profiles")
+        new TableInfo("DiscordLog", "Discord logs", "Moderation logs")
     );
 
     @Override public String path() { return "/api/admin/tables"; }
@@ -29,7 +28,7 @@ public class AdminTablesEndpoint implements IEndpoint {
     public void handle(Context handler) {
         IEndpoint.setupRateLimit(handler, 5, TimeUnit.MINUTES);
 
-        if (AdminSessionManager.requireAdministrator(handler) == null) return;
+        if (SessionManager.requireAdministrator(handler) == null) return;
         handler.json(TABLES);
     }
 

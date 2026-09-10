@@ -2,7 +2,7 @@ package niwer.photon.objects;
 
 import java.util.Date;
 
-import niwer.photon.sql.SubscriptionTable.SubscriptionStatus;
+import niwer.photon.util.stripe.StripePurchaseStatus;
 import niwer.queryon.SQLSerializable;
 import niwer.queryon.tables.api.IColumnField;
 import niwer.queryon.tables.api.IDefaultValue;
@@ -30,11 +30,8 @@ public class ObjectPurchase extends SQLSerializable<ObjectPurchase> implements I
 	@IColumnField(name = "stripe_customer_id", unique = true)
 	private String stripeCustomerId;
 
-	@IColumnField(name = "stripe_subscription_id")
-	private String stripeSubscriptionId;
-
 	@IColumnField(name = "status", notNull = true, defaultValue = @IDefaultValue(value = "ACTIVE"))
-	private SubscriptionStatus status;
+	private StripePurchaseStatus status;
 
 	@IColumnField(name = "linked_account_uuid")
 	private String linkedAccountUuid;
@@ -47,9 +44,6 @@ public class ObjectPurchase extends SQLSerializable<ObjectPurchase> implements I
 
 	@IColumnField(name = "redeemed_at")
 	private Date redeemedAt;
-
-	@IColumnField(name = "expires_at")
-	private Date expiresAt;
 
 	@IColumnField(name = "github_username")
 	private String githubUsername;
@@ -68,9 +62,7 @@ public class ObjectPurchase extends SQLSerializable<ObjectPurchase> implements I
 
 	public String stripeCustomerId() { return stripeCustomerId; }
 
-	public String stripeSubscriptionId() { return stripeSubscriptionId; }
-
-	public SubscriptionStatus status() { return status; }
+	public StripePurchaseStatus status() { return status; }
 
 	public String linkedAccountUuid() { return linkedAccountUuid; }
 
@@ -80,7 +72,5 @@ public class ObjectPurchase extends SQLSerializable<ObjectPurchase> implements I
 
 	public Date redeemedAt() { return redeemedAt; }
 	
-	public Date expiresAt() { return expiresAt; }
-
 	public String githubUsername() { return githubUsername; }
 }

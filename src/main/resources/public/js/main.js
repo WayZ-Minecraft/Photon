@@ -163,8 +163,9 @@ const UI = {
 
         // Lazy load logic
         if(pageId === 'overview') App.loadPublicServers();
+        if(pageId === 'downloads') App.loadDownloads();
         if(pageId === 'licenses' && State.entitlements.length) App.loadLicenses();
-        if(pageId === 'tables') App.loadTablesList();
+        if(pageId === 'admin') App.loadTablesList();
     },
 
     updateAuthVisbility() {
@@ -233,7 +234,13 @@ const UI = {
         }
     },
 
-    openModal(id) { document.getElementById(id).classList.add('open'); },
+    openModal(id) {
+        const modal = document.getElementById(id);
+        if (!modal) return;
+
+        modal.classList.add('open');
+        if (id === 'createLicenseModal') App.loadLicenseProducts();
+    },
     
     closeModal(event, force=false) {
         if (force || (event && event.target && event.target.classList.contains('modal-backdrop'))) {
@@ -282,11 +289,7 @@ const App = {
     async init() {
         UI.init();
         UI.navigate(window.location.hash.replace('#','') || 'overview');
-        
-        const promises = [this.loadPublicServers()];
-        if (State.token || State.account?.administrator) promises.push(this.loadAdminConfig());
-        
-        await Promise.allSettled(promises);
+        await Promise.allSettled([this.loadPublicServers()]);
     },
 
     // --- Authentication ---
@@ -300,59 +303,58 @@ const App = {
     async login(e) {
         e.preventDefault();
         const btn = e.target.querySelector('button[type="submit"]');
-        const originalText = btn.innerHTML;
+        const originalText = btn ? btn.innerHTML : '';
         if (btn) {
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
         }
 
         const formData = new FormData(e.target);
-        const body = new URLSearchParams();
-        for (const [key, val] of formData.entries()) {
-            body.append(key, val);
-        }
-        
-        // Append the purchase token if it exists
-        if (State.purchaseToken) body.set('token', State.purchaseToken);
+        const body = new URLSearchParams(formData);
 
-        const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+        if (State.purchaseToken) {
+            body.set('token', State.purchaseToken);
+        }
 
         try {
-            // Pre-emptively notify the stripe session endpoint just like in register
             if (State.purchaseToken) {
                 await fetch('/stripe/purchase_session', {
-                    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: new URLSearchParams({ checkoutSessionId: State.purchaseToken })
-                }).catch(()=>{});
+                }).catch(() => {});
             }
 
-            // Try Admin
-            const adminRes = await fetch('/api/admin/login', { method: 'POST', headers, body: body.toString(), credentials: 'same-origin' });
-            if (adminRes.ok) {
-                const payload = await adminRes.json();
-                State.token = ''; State.userToken = ''; State.account = payload.account || payload;
-                localStorage.setItem('photon-account', JSON.stringify(State.account));
-                UI.toast('Signed in as admin', 'success');
-                
-                // Clear token from URL after successful auth
-                this.clearPurchaseToken();
-                
-                this.onLoginSuccess();
-                return;
+            // Single unified auth call
+            const res = await fetch('accounts/auth_account', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString(),
+                credentials: 'same-origin'
+            });
+
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(errText || 'Login failed');
             }
 
-            // Fallback to User
-            const payload = await Api('/accounts/auth_account', { method: 'POST', headers, body: body.toString() });
-            
-            State.userToken = payload.token || ''; State.account = payload.account || payload;
-            await this.loadEntitlements();
-            localStorage.setItem('photon-user-token', State.userToken);
+            const payload = await res.json();
+            State.account = payload.account || payload;
             localStorage.setItem('photon-account', JSON.stringify(State.account));
-            
-            // Clear token from URL after successful auth
-            this.clearPurchaseToken();
 
-            UI.toast('Signed in', 'success');
+            if (payload.isAdmin) {
+                State.token = '';
+                State.userToken = '';
+                localStorage.removeItem('photon-user-token');
+                UI.toast('Signed in as admin', 'success');
+            } else {
+                State.userToken = payload.token || '';
+                localStorage.setItem('photon-user-token', State.userToken);
+                await this.loadEntitlements();
+                UI.toast('Signed in', 'success');
+            }
+
+            this.clearPurchaseToken();
             this.onLoginSuccess();
         } catch (err) {
             UI.toast(err.message, 'error');
@@ -427,7 +429,6 @@ const App = {
 
     onLoginSuccess() {
         UI.closeModal(null, true);
-        if (State.account?.administrator) this.loadAdminConfig();
         UI.updateAuthVisbility();
         if (State.entitlements.length) UI.navigate('licenses');
         else UI.navigate('user');
@@ -500,10 +501,43 @@ const App = {
         }
     },
 
-    downloadMod(e) {
-        e.preventDefault();
-        const chan = document.getElementById('downloadChannel').value;
-        window.location.href = `/download/mod?channel=${encodeURIComponent(chan)}`;
+    async loadDownloads() {
+        const grid = document.getElementById('downloadsGrid');
+        try {
+            const repositories = await Api('/download/list');
+            const sections = Object.entries(repositories || {}).map(([repository, releases]) => {
+                const rows = releases.flatMap(release => (release.assets || [])
+                    .filter(asset => asset.name && asset.name.endsWith('.jar'))
+                    .map(asset => `
+                        <tr>
+                            <td>${UI.escapeHTML(release.name || release.tag_name || 'Unreleased')}</td>
+                            <td><span class="font-mono text-sm">${UI.escapeHTML(asset.name)}</span></td>
+                            <td class="download-action">
+                                <a class="btn primary icon-btn" title="Download" href="/download?product=${encodeURIComponent(repository)}&assetId=${asset.id}" target="_blank">
+                                    <i class="fa-solid fa-cloud-arrow-down"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    `)).join('');
+
+                return `
+                    <section class="download-repository">
+                        <div class="download-repository-header">
+                            <h3><i class="fa-solid fa-code-branch text-accent"></i> ${UI.escapeHTML(repository)}</h3>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead><tr><th>Release</th><th>Asset</th><th>Download</th></tr></thead>
+                                <tbody>${rows || '<tr><td colspan="3" class="text-secondary">No downloadable assets found.</td></tr>'}</tbody>
+                            </table>
+                        </div>
+                    </section>
+                `;
+            });
+            grid.innerHTML = sections.length ? sections.join('') : '<p class="text-secondary">No downloadable assets found.</p>';
+        } catch (e) {
+            grid.innerHTML = '<p class="text-secondary text-danger">Failed to load downloads.</p>';
+        }
     },
 
     // --- Subscriptions ---
@@ -551,14 +585,21 @@ const App = {
     },
 
     async loadLicenseProducts() {
-        const products = await Api('/accounts/license-products');
-        State.licenseProducts = Array.isArray(products) ? products : [];
         const select = document.getElementById('licenseProductSelect');
         if (!select) return;
 
-        select.innerHTML = State.licenseProducts.length
-            ? State.licenseProducts.map(product => `<option value="${UI.escapeHTML(product.id)}">${UI.escapeHTML(product.name || product.id)}</option>`).join('')
-            : '<option value="">No products available</option>';
+        select.innerHTML = '<option value="">Loading products...</option>';
+        try {
+            const products = await Api('/accounts/license-products');
+            State.licenseProducts = Array.isArray(products) ? products : [];
+            select.innerHTML = State.licenseProducts.length
+                ? State.licenseProducts.map(product => `<option value="${UI.escapeHTML(product.id)}">${UI.escapeHTML(product.name || product.id)}</option>`).join('')
+                : '<option value="">No products available</option>';
+        } catch (error) {
+            State.licenseProducts = [];
+            select.innerHTML = '<option value="">Unable to load products</option>';
+            UI.toast(error.message || 'Failed to load license products', 'error');
+        }
     },
 
     async createLicense(e) {
@@ -585,44 +626,7 @@ const App = {
         } catch (err) { UI.toast(err.message, 'error'); }
     },
 
-    // --- Admin & Config ---
-    async loadAdminConfig() {
-        try {
-            State.config = await Api('/api/admin/config');
-            const form = document.getElementById('configForm');
-            
-            form.innerHTML = State.configSchema.map(f => `
-                <div class="form-group">
-                    <label>${UI.escapeHTML(f.label)}</label>
-                    <input type="${f.type}" name="${f.key}" value="${UI.escapeHTML(State.config[f.key] || '')}">
-                </div>
-            `).join('');
-
-            // Update footer links if available
-            if (State.config.store_url) document.getElementById('footerStoreLink').href = State.config.store_url;
-            if (State.config.terms_of_service_url) document.getElementById('footerTosLink').href = State.config.terms_of_service_url;
-            if (State.config.terms_of_sale_url) document.getElementById('footerTosaleLink').href = State.config.terms_of_sale_url;
-            if (State.config.privacy_policy_url) document.getElementById('footerPrivacyLink').href = State.config.privacy_policy_url;
-
-            UI.updateAuthVisbility(); // Re-trigger UI update for overview store button if config changed
-        } catch (e) { /* user lacks permission, silently ignore */ }
-    },
-
-    async saveConfig(e) {
-        e.preventDefault();
-        const fd = new FormData(e.target);
-        const payload = {};
-        State.configSchema.forEach(f => {
-            const val = fd.get(f.key);
-            payload[f.key] = f.type === 'number' ? (val ? Number(val) : null) : val;
-        });
-        try {
-            State.config = await Api('/api/admin/config', { method: 'PUT', body: JSON.stringify(payload) });
-            UI.toast('Config saved', 'success');
-            this.loadAdminConfig(); // Refresh UI mappings
-        } catch (err) { UI.toast(err.message, 'error'); }
-    },
-
+    // --- Admin ---
     async loadTablesList() {
         try {
             const tables = await Api('/api/admin/tables');
@@ -667,25 +671,7 @@ const App = {
             UI.toast('Failed to load table data', 'error');
             document.getElementById('dataTableBody').innerHTML = '<tr><td class="text-danger">Failed to fetch data.</td></tr>';
         }
-    },
-
-    async restartService() {
-        if(!confirm('Restart Photon now?')) return;
-        try {
-            await Api('/api/admin/restart', { method: 'POST' });
-            UI.toast('Restart requested', 'success');
-        } catch(e) { UI.toast(e.message, 'error'); }
-    },
-
-    async uploadUpdate(e) {
-        e.preventDefault();
-        try {
-            await Api('/api/admin/updates/upload', { method: 'POST', body: new FormData(e.target) });
-            UI.toast('Update uploaded successfully', 'success');
-            e.target.reset();
-        } catch(err) { UI.toast(err.message, 'error'); }
     }
 };
 
-// Boot
-document.addEventListener('DOMContentLoaded', () => App.init());
+document.addEventListener('DOMContentLoaded', () => App.init()); // Boot

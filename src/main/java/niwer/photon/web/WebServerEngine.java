@@ -1,6 +1,7 @@
 package niwer.photon.web;
 
 import org.eclipse.jetty.server.ForwardedRequestCustomizer;
+import org.slf4j.LoggerFactory;
 
 import io.javalin.Javalin;
 import io.javalin.plugin.bundled.RateLimitPlugin;
@@ -8,40 +9,32 @@ import niwer.lumen.Console;
 import niwer.photon.Directories;
 import niwer.photon.PhotonEngine;
 import niwer.photon.util.PhotonLogTypes;
-import niwer.photon.util.session.AdminSessionManager;
-import niwer.photon.util.session.UserSessionManager;
 import niwer.photon.web.endpoints.HomeEndpoint;
 import niwer.photon.web.endpoints.IEndpoint;
 import niwer.photon.web.endpoints.LicenseValidateEndpoint;
-import niwer.photon.web.endpoints.accounts.AuthAccountEndpoint;
 import niwer.photon.web.endpoints.accounts.AccountEntitlementsEndpoint;
+import niwer.photon.web.endpoints.accounts.AuthAccountEndpoint;
 import niwer.photon.web.endpoints.accounts.ChangePasswordEndpoint;
 import niwer.photon.web.endpoints.accounts.CreateAccountEndpoint;
-import niwer.photon.web.endpoints.accounts.UpdateProfileEndpoint;
-import niwer.photon.web.endpoints.accounts.UserMeEndpoint;
+import niwer.photon.web.endpoints.accounts.MeEndpoint;
+import niwer.photon.web.endpoints.accounts.UpdateAccountSettingsEndpoint;
 import niwer.photon.web.endpoints.accounts.licenses.AccountLicenseCreateEndpoint;
 import niwer.photon.web.endpoints.accounts.licenses.AccountLicenseListEndpoint;
 import niwer.photon.web.endpoints.accounts.licenses.AccountLicenseProductsEndpoint;
 import niwer.photon.web.endpoints.accounts.licenses.AccountLicenseRevokeEndpoint;
-import niwer.photon.web.endpoints.admin.AdminConfigEndpoint;
-import niwer.photon.web.endpoints.admin.AdminLoginEndpoint;
-import niwer.photon.web.endpoints.admin.AdminMeEndpoint;
-import niwer.photon.web.endpoints.admin.AdminRestartEndpoint;
 import niwer.photon.web.endpoints.admin.AdminTableDataEndpoint;
 import niwer.photon.web.endpoints.admin.AdminTablesEndpoint;
-import niwer.photon.web.endpoints.admin.AdminUpdateConfigEndpoint;
-import niwer.photon.web.endpoints.admin.AdminUpdateEndpoint;
-import niwer.photon.web.endpoints.admin.AdminUploadUpdateEndpoint;
 import niwer.photon.web.endpoints.game.AddAntiCheatReportEndpoint;
 import niwer.photon.web.endpoints.game.AddCrashReportEndpoint;
 import niwer.photon.web.endpoints.game.AddHWIDEndpoint;
 import niwer.photon.web.endpoints.game.InfoEndpoint;
-import niwer.photon.web.endpoints.game.ModDownloadEndpoint;
 import niwer.photon.web.endpoints.servers.AddServerEndpoint;
 import niwer.photon.web.endpoints.servers.ServerListEndpoint;
 import niwer.photon.web.endpoints.servers.StatusServersEndpoint;
 import niwer.photon.web.endpoints.stripe.StripePurchaseSessionEndpoint;
 import niwer.photon.web.endpoints.stripe.StripeWebhookEndpoint;
+import niwer.photon.web.endpoints.updates.DownloadEndpoint;
+import niwer.photon.web.endpoints.updates.GetAssetsEndpoint;
 
 public class WebServerEngine {
 
@@ -53,12 +46,11 @@ public class WebServerEngine {
                 PhotonLogTypes.silenceLogsFor("org.eclipse.jetty");
             }
 
-            /* Load admin sessions */
-            AdminSessionManager.load();
-            UserSessionManager.load();
-
             /* Create the web server */
             final var WEB_SERVER = Javalin.create(cfg -> {
+                cfg.startup.showJavalinBanner = false;
+                System.out.println("SLF4J Provider: " + LoggerFactory.getILoggerFactory().getClass().getName());
+
                 /* Set the static files directory (index.html, main.css, main.js, etc.) */
                 cfg.staticFiles.add("/public");
 
@@ -75,16 +67,10 @@ public class WebServerEngine {
                 IEndpoint.register(cfg, AddAntiCheatReportEndpoint.class);
                 IEndpoint.register(cfg, AddHWIDEndpoint.class);
                 IEndpoint.register(cfg, LicenseValidateEndpoint.class);
-                IEndpoint.register(cfg, AdminUpdateEndpoint.class);
-                IEndpoint.register(cfg, ModDownloadEndpoint.class);
+                IEndpoint.register(cfg, DownloadEndpoint.class);
+                IEndpoint.register(cfg, GetAssetsEndpoint.class);
                 {
                     /* Admin panel */
-                    IEndpoint.register(cfg, AdminLoginEndpoint.class);
-                    IEndpoint.register(cfg, AdminMeEndpoint.class);
-                    IEndpoint.register(cfg, AdminConfigEndpoint.class);
-                    IEndpoint.register(cfg, AdminUpdateConfigEndpoint.class);
-                    IEndpoint.register(cfg, AdminUploadUpdateEndpoint.class);
-                    IEndpoint.register(cfg, AdminRestartEndpoint.class);
                     IEndpoint.register(cfg, AdminTablesEndpoint.class);
                     IEndpoint.register(cfg, AdminTableDataEndpoint.class);
                 }
@@ -98,9 +84,9 @@ public class WebServerEngine {
                     IEndpoint.register(cfg, CreateAccountEndpoint.class);   
                     IEndpoint.register(cfg, AuthAccountEndpoint.class);
                     IEndpoint.register(cfg, AccountEntitlementsEndpoint.class);
-                    IEndpoint.register(cfg, UserMeEndpoint.class);
+                    IEndpoint.register(cfg, MeEndpoint.class);
                     IEndpoint.register(cfg, ChangePasswordEndpoint.class);
-                    IEndpoint.register(cfg, UpdateProfileEndpoint.class);
+                    IEndpoint.register(cfg, UpdateAccountSettingsEndpoint.class);
                     IEndpoint.register(cfg, AccountLicenseListEndpoint.class);
                     IEndpoint.register(cfg, AccountLicenseProductsEndpoint.class);
                     IEndpoint.register(cfg, AccountLicenseCreateEndpoint.class);

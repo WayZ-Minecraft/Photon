@@ -2,8 +2,7 @@ package niwer.photon.objects;
 
 import java.util.Date;
 
-import niwer.photon.sql.SubscriptionTable;
-import niwer.photon.sql.SubscriptionTable.SubscriptionStatus;
+import niwer.photon.util.stripe.StripePurchaseStatus;
 import niwer.queryon.SQLSerializable;
 import niwer.queryon.tables.api.IColumnField;
 import niwer.queryon.tables.api.IDefaultValue;
@@ -35,7 +34,7 @@ public class ObjectSubscription extends SQLSerializable<ObjectSubscription> {
     private String subscriptionId;
 
     @IColumnField(name = "status", notNull = true, defaultValue = @IDefaultValue(value = "ACTIVE"))
-    private SubscriptionStatus status;
+    private StripePurchaseStatus status;
 
     @IColumnField(name = "expires_at")
     private Date expiresAt;
@@ -45,7 +44,7 @@ public class ObjectSubscription extends SQLSerializable<ObjectSubscription> {
 
     public ObjectSubscription() {}
 
-    public boolean isActive() { return SubscriptionStatus.ACTIVE == status && (expiresAt == null || expiresAt.after(new Date())); }
+    public boolean isActive() { return StripePurchaseStatus.ACTIVE == status && (expiresAt == null || expiresAt.after(new Date())); }
 
     public int id() { return id; }
 
@@ -61,7 +60,7 @@ public class ObjectSubscription extends SQLSerializable<ObjectSubscription> {
 
     public String subscriptionId() { return subscriptionId; }
 
-    public SubscriptionTable.SubscriptionStatus status() { return status; }
+    public StripePurchaseStatus status() { return status; }
 
     public Date expiresAt() { return expiresAt; }
     

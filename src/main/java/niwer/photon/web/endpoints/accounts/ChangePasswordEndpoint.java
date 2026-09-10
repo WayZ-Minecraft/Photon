@@ -6,6 +6,7 @@ import io.javalin.http.Context;
 import niwer.photon.objects.ObjectUserAccount;
 import niwer.photon.sql.PlayerAccountTable;
 import niwer.photon.util.GsonUtils;
+import niwer.photon.util.HashUtils;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.endpoints.IEndpoint;
 
@@ -48,13 +49,13 @@ public class ChangePasswordEndpoint implements IEndpoint {
             return;
         }
 
-        if (!PlayerAccountTable.passwordMatches(account.password(), request.currentPassword)) {
+        if (!HashUtils.passwordMatches(account.password(), request.currentPassword)) {
             handler.status(401).result("Incorrect password");
             return;
         }
 
         PlayerAccountTable.setPassword(account.getUuid(), request.newPassword);
-        handler.json(account.toPublicMap());
+        handler.json(account.payload());
     }
 
     private record PasswordChangeRequest(String email, String currentPassword, String newPassword) {}

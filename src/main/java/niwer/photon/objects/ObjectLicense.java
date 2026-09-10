@@ -65,9 +65,7 @@ public class ObjectLicense extends SQLSerializable<ObjectLicense> implements IPa
 
 	public LicenseStatus status() { return this.status; }
 
-	public Date createdAt() {
-		return parseDate(this.createdAt);
-	}
+	public Date createdAt() { return parseDate(this.createdAt); }
 
 	public Date activatedAt() { return this.activatedAt; }
 

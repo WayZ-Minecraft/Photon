@@ -39,6 +39,7 @@ public class ServerTable extends Table {
                 .set("last_seen_at", now)
                 .set("site_url", server.site)
                 .set("discord", server.discord)
+                .set("project_id", server.projectId)
                 .where(Expression.of("server_ip").isEqualTo(server.serverIP))
                 .where(Expression.of("server_port").isEqualTo(server.serverPort))
                 .execute();
@@ -56,23 +57,18 @@ public class ServerTable extends Table {
      * @return A list of ObjectServer instances that are currently visible (i.e., have been seen within the TTL period)
      */
     public static List<ObjectServer> getVisibleServers() {
-        final Date cutoff = new Date(System.currentTimeMillis() - SERVER_VISIBILITY_TTL_MILLIS);
         try {
-            return SelectionManager.select(PhotonEngine.DATA_BASE, ServerTable.class)
-                .executeList(ObjectServer.class)
-                .stream()
-                .filter(server -> server != null && server.last_seen_at != null && !server.last_seen_at.before(cutoff))
-                .toList();
+            final Date CUT_OFF = new Date(System.currentTimeMillis() - SERVER_VISIBILITY_TTL_MILLIS);
+            return getAllServers().stream().filter(server -> server != null && server.last_seen_at != null && !server.last_seen_at.before(CUT_OFF)).toList();
         } catch (Exception e) {
             Console.log("Failed to load server list: " + e.getMessage()).type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
             return new ArrayList<>();
         }
     }
-
+    
     public static List<ObjectServer> getAllServers() {
         try {
-            return SelectionManager.select(PhotonEngine.DATA_BASE, ServerTable.class)
-                .executeList(ObjectServer.class);
+            return SelectionManager.select(PhotonEngine.DATA_BASE, ServerTable.class).executeList(ObjectServer.class);
         } catch (Exception e) {
             Console.log("Failed to load all servers: " + e.getMessage()).type(PhotonLogTypes.SQL).error().container(PhotonEngine.LOGGER).send();
             return new ArrayList<>();
@@ -90,8 +86,7 @@ public class ServerTable extends Table {
         if (ip == null || ip.isBlank() || port <= 0) return null;
         try {
             return SelectionManager.select(PhotonEngine.DATA_BASE, ServerTable.class)
-                .where(Expression.of("server_ip").isEqualTo(ip))
-                .where(Expression.of("server_port").isEqualTo(port))
+                .where(Expression.of("server_ip").isEqualTo(ip).and(Expression.of("server_port").isEqualTo(port)))
                 .limit(1)
                 .executeSerializable(ObjectServer.class);
         } catch (Exception e) {
@@ -102,12 +97,7 @@ public class ServerTable extends Table {
     private static boolean exists(String serverIP, int serverPort) {
         try {
             return SelectionManager.select(PhotonEngine.DATA_BASE, ServerTable.class, "COUNT(*) as count")
-                .where(
-                    Expression.of("server_ip").isEqualTo(serverIP)
-                    .and(
-                        Expression.of("server_port").isEqualTo(serverPort)
-                    )
-                )
+                .where(Expression.of("server_ip").isEqualTo(serverIP).and(Expression.of("server_port").isEqualTo(serverPort)))
                 .executeHasResult();
         } catch (Exception e) {
             return false;

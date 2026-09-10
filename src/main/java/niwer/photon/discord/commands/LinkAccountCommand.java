@@ -52,7 +52,7 @@ public class LinkAccountCommand extends AbstractSlashCommand {
         }
 
         /* Update the Discord ID */
-        PlayerAccountTable.updateDiscordID(UUID, DISCORD_USER_ID);
+        PlayerAccountTable.setDiscordID(UUID, DISCORD_USER_ID);
 
         /* Print reply */
         event.reply(TranslationManager.format(event.getUser().getId(), "command.link_account.success", event.getUser().getAsMention())).queue();

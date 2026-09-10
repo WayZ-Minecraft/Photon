@@ -1,6 +1,6 @@
 # Photon
 
-Photon is a network application for Niwer's stuff such as the engine/framework, official content-packs.
+Photon is a network application for Niwer's stuff such as the engine/framework, official content-packs & Armo.
 It also provide the official discord bot, database for anti-cheat reports, crash-reports, accounts & much more.
 
 ## Run
@@ -40,9 +40,9 @@ Photon is configured via a JSON file : `network/config.json`, which contains set
 	- Set `stripe_api_key` in `network/config.json` to enable Stripe checkout session creation.
 
 - **Licenses**
-	- `license_products` is a list of products available when creating a license. Each entry contains an `id`, display `name`, optional `default_license_duration_days`, and Stripe `stripe_price_id`.
-	- Example: `"license_products": [{"id": "niwer-engine", "name": "Niwer Engine", "default_license_duration_days": 30, "stripe_price_id": "price_123"}]`
-	- Photon retrieves Checkout Session line items from Stripe and matches their Price ID against `stripe_price_id`. Product metadata is not used.
+	- `products` is a list of products available when creating a license. Each entry contains an `id`, display `name`, optional `default_license_duration_days`, and Stripe `stripe_price_ids`.
+	- Example: `"products": [{"id": "niwer-engine", "name": "Niwer Engine", "default_license_duration_days": 30, "stripe_price_ids": ["price_123"], "is_subscription": true, "repo_owner": "niwer", "repo_name": "engine", "excluded_release_tags": ["v1.0.0"]}]`
+	- Photon retrieves Checkout Session line items from Stripe and matches their Price ID against `stripe_price_ids`. Product metadata is not used.
 
 ## Endpoints
 
@@ -59,14 +59,19 @@ The routes below are the ones typically called by the game client, launcher, Str
 		- Auth via `X-Photon-User-Token` or `Authorization: Bearer <token>`.
 	- `GET /accounts/entitlements` — Return the account's subscriptions and one-time product purchases.
 	- `POST /accounts/change_password` — Change a password.
-		- Body fields: `email`, `currentPassword`, `newPassword`.
+		- Required body fields: `email`, `currentPassword`, `newPassword`.
 	- `POST /accounts/update_profile` — Update username, email, or password.
-		- Body fields: `uuid`, `currentPassword`, optional `username`, `email`, `newPassword`, `confirmPassword`.
+		- Required body fields: `uuid`, `currentPassword`, optional `username`, `email`, `newPassword`, `confirmPassword`.
 	- `GET /accounts/licenses` — List the caller’s licenses.
 	- `POST /accounts/licenses` — Create a license for the current subscriber.
 	- `POST /accounts/licenses/revoke` — Revoke one of the caller’s licenses.
 
-- **Game / launcher**
+- **Updates**
+	- `GET /download/list` — List available download assets.
+	- `GET /download` — Download a specific asset from GitHub.
+		- Required query parameters: `assetId`, `product`.
+
+- **Software (Games / Applications / Launchers)**
 	- `GET /game/config` — Public runtime config used by the client.
 	- `POST /game/add-crash-report` — Upload a crash report.
 		- Required fields: `fileMessage`, `userUUID`, `timestamp`.
@@ -77,9 +82,8 @@ The routes below are the ones typically called by the game client, launcher, Str
 		- Required fields: `hwid`, `userUUID`, `operatingSystem`.
 	- `POST /licenses/validate` — Validate a license key on the client.
 		- Required fields: `license_key`, `product_id`, `hardware_id`.
-	- `GET /download/mod` — Download the current mod package.
 
-- **Servers / status**
+- **Servers**
 	- `POST /servers/add-server` — Register or update a server entry.
 		- The request IP must match the remote IP.
 	- `GET /servers/server-list` — List known servers.
@@ -93,12 +97,5 @@ The routes below are the ones typically called by the game client, launcher, Str
 ## Admin endpoints
 
 These routes require an admin session or admin token.
-
-- `POST /api/admin/login`
-- `GET /api/admin/me`
 - `GET /api/admin/tables`
 - `GET /api/admin/tables/{table}`
-- `GET /api/admin/config`
-- `PUT /api/admin/config`
-- `POST /api/admin/restart`
-- `POST /api/admin/updates/upload`

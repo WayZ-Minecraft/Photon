@@ -505,20 +505,34 @@ const App = {
         const grid = document.getElementById('downloadsGrid');
         try {
             const repositories = await Api('/download/list');
-            const sections = Object.entries(repositories || {}).map(([repository, releases]) => {
-                const rows = releases.flatMap(release => (release.assets || [])
-                    .filter(asset => asset.name && asset.name.endsWith('.jar'))
-                    .map(asset => `
-                        <tr>
-                            <td>${UI.escapeHTML(release.name || release.tag_name || 'Unreleased')}</td>
-                            <td><span class="font-mono text-sm">${UI.escapeHTML(asset.name)}</span></td>
-                            <td class="download-action">
-                                <a class="btn primary icon-btn" title="Download" href="/download?product=${encodeURIComponent(repository)}&assetId=${asset.id}" target="_blank">
-                                    <i class="fa-solid fa-cloud-arrow-down"></i>
-                                </a>
-                            </td>
-                        </tr>
-                    `)).join('');
+            const sections = Object.entries(repositories || {}).map(([repository, data]) => {
+                const releases = (data && data.releases) || [];
+                const tags = (data && data.tags) || [];
+
+                // Map tag metadata by tag name/commit for quick lookup
+                const tagMap = new Map(tags.map(tag => [tag.tag || tag.name, tag]));
+
+                const rows = releases.flatMap(release => {
+                    const tagName = release.tagName || release.tag_name;
+                    const associatedTag = tagMap.get(tagName);
+                    const tagMessage = associatedTag ? (associatedTag.message || '') : '';
+
+                    return (release.assets || [])
+                        .filter(asset => asset.name)
+                        .map(asset => `
+                            <tr>
+                                <td>${UI.escapeHTML(release.name || tagName || 'Unreleased')}</td>
+                                <td><span class="font-mono text-sm">${UI.escapeHTML(release.prerelease ? 'Yes' : 'No')}</span></td>
+                                <td><span class="font-mono text-sm">${UI.escapeHTML(asset.name)}</span></td>
+                                <td><span class="font-mono text-sm">${UI.escapeHTML(tagMessage || release.body || asset.body || '-')}</span></td>
+                                <td class="download-action">
+                                    <a class="btn primary icon-btn" title="Download" href="/download?product=${encodeURIComponent(repository)}&assetName=${asset.name || 'Unknown'}&assetId=${asset.id}" target="_blank">
+                                        <i class="fa-solid fa-cloud-arrow-down"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        `);
+                }).join('');
 
                 return `
                     <section class="download-repository">
@@ -527,13 +541,20 @@ const App = {
                         </div>
                         <div class="table-container">
                             <table>
-                                <thead><tr><th>Release</th><th>Asset</th><th>Download</th></tr></thead>
-                                <tbody>${rows || '<tr><td colspan="3" class="text-secondary">No downloadable assets found.</td></tr>'}</tbody>
+                                <thead><tr>
+                                    <th>Release</th>
+                                    <th>Pre-Release</th>
+                                    <th>Asset</th>
+                                    <th>Description</th>
+                                    <th>Download</th>
+                                </tr></thead>
+                                <tbody>${rows || '<tr><td colspan="5" class="text-secondary">No downloadable assets found.</td></tr>'}</tbody>
                             </table>
                         </div>
                     </section>
                 `;
             });
+
             grid.innerHTML = sections.length ? sections.join('') : '<p class="text-secondary">No downloadable assets found.</p>';
         } catch (e) {
             grid.innerHTML = '<p class="text-secondary text-danger">Failed to load downloads.</p>';

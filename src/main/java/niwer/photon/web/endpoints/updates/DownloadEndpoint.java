@@ -27,6 +27,13 @@ public class DownloadEndpoint implements IEndpoint {
         IEndpoint.setupRateLimit(ctx, 10, TimeUnit.MINUTES);
 
         /* Check if any asset id was provided as query parameter */
+        final var ASSET_NAME = ctx.queryParam("assetName");
+        if (ASSET_NAME == null) {
+            ctx.status(400).result("Please provide the asset name.");
+            return;
+        }
+
+        /* Check if any asset id was provided as query parameter */
         final var ASSET_ID = ctx.queryParam("assetId");
         if (ASSET_ID == null) {
             ctx.status(400).result("Please provide the asset ID.");
@@ -59,16 +66,14 @@ public class DownloadEndpoint implements IEndpoint {
             return;
         }
 
-        final String NAME = REPO+"-"+ASSET_ID+".jar"; // TODO: make this more dynamic in the future, maybe by fetching the asset name from GitHub API
         final InputStream MOD_FILE = new DownloadAssetService(OWNER, REPO, ASSET_NUMBER).request();
-
         if (MOD_FILE == null) {
             ctx.status(404).result("The requested asset could not be downloaded.");
             return;
         }
 
         ctx.contentType("application/java-archive"); // Set the MIME type 
-        ctx.header("Content-Disposition", "attachment; filename=\"" + NAME + "\""); // Tell the browser to treat it as a downloadable attachment with a filename
+        ctx.header("Content-Disposition", "attachment; filename=\"" + ASSET_NAME + "\""); // Tell the browser to treat it as a downloadable attachment with a filename
         ctx.status(200);
         ctx.result(MOD_FILE); // pass the input stream directly
     }

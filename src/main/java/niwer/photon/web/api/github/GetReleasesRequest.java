@@ -60,7 +60,8 @@ public class GetReleasesRequest extends GithubApiRequest<List<ObjectGithubReleas
             return RELEASES.stream()
                     .filter(release -> !release.draft) // Exclude draft releases
                     .filter(release -> !excludedTags.contains(release.tagName)) // Filter out unwanted versions
-                    .filter(release -> release.assets != null && release.assets.stream().anyMatch(a -> a.name.endsWith(".jar"))) // Ensure the release has at least one .jar asset
+                    .filter(release -> release.assets != null && release.containsExecutable())
+                    .peek(release -> release.keepOnlyExecutableAssets())
                     .collect(Collectors.toList());
         } catch (Exception e) {
             e.printStackTrace();

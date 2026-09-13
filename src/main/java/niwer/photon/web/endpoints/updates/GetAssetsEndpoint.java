@@ -2,23 +2,29 @@ package niwer.photon.web.endpoints.updates;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.google.gson.annotations.SerializedName;
+
 import io.javalin.http.Context;
 import niwer.photon.Directories;
 import niwer.photon.objects.ObjectGithubRelease;
+import niwer.photon.objects.ObjectGithubTag;
 import niwer.photon.objects.ObjectProduct;
 import niwer.photon.web.HttpMethod;
 import niwer.photon.web.api.github.GetReleasesRequest;
+import niwer.photon.web.api.github.GetTagRequest;
+import niwer.photon.web.api.github.GetTagShaRequest;
 import niwer.photon.web.endpoints.IEndpoint;
 
 /**
  * Serves mod update files from GitHub releases.
- * TODO : In the future, this should be replaced by modrinth for all projects that are hosted there.
+ * TODO: Replace with Modrinth for hosted projects.
  * 
  * @author Niwer
  */
@@ -27,7 +33,7 @@ public class GetAssetsEndpoint implements IEndpoint {
     private static final ExecutorService EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 
     @Override public String path() { return "/download/list"; }
-
+    
     @Override public HttpMethod method() { return HttpMethod.GET; }
 
     @Override
@@ -37,19 +43,66 @@ public class GetAssetsEndpoint implements IEndpoint {
         /* Filter products having a repo */
         final List<ObjectProduct> PRODUCTS = Directories.getConfig().getProducts().stream().parallel().filter(ObjectProduct::hasRepo).toList();
 
-        /* Start a new task for each product */
-        List<CompletableFuture<Map.Entry<String, List<ObjectGithubRelease>>>> futures = PRODUCTS.stream()
-            .map(product -> CompletableFuture.supplyAsync(() -> {
-                final List<ObjectGithubRelease> RELEASES = new GetReleasesRequest(product).request();
-                return Map.entry(product.repoKey(), RELEASES);
-            }, EXECUTOR))
-            .toList();
+        /* Futures */
+        final List<CompletableFuture<Map.Entry<String, ReleaseResult>>> FUTURES = PRODUCTS.stream().map(this::fetchProductAssetsAsync).toList();
 
-        /* Wait for all tasks to finish */
-        CompletableFuture<Map<String, List<ObjectGithubRelease>>> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-            .thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+        /* Aggregate the results */
+        final CompletableFuture<Map<String, ReleaseResult>> AGGREGATED_RESULT = CompletableFuture
+            .allOf(FUTURES.toArray(CompletableFuture[]::new))
+            .thenApply(ignored -> FUTURES.stream()
+                .map((CompletableFuture<Map.Entry<String, ReleaseResult>> future) -> future.join())
+                .collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    Map.Entry::getValue,
+                    (existing, replacement) -> existing
+                ))
+            );
 
-        /* Delegate the completion to Javalin (frees the server thread during processing) */
-        ctx.future(() -> allFutures.thenAccept(result -> ctx.status(200).json(result)));
+        /* Send the aggregated result */
+        ctx.future(() -> AGGREGATED_RESULT
+            .thenAccept(ctx::json)
+            .exceptionally(e -> {
+                e.printStackTrace();
+                ctx.status(500).json(Map.of("error", e.getMessage() != null ? e.getMessage() : "Unknown error"));
+                return null;
+            })
+        );
+    }
+
+    private CompletableFuture<Map.Entry<String, ReleaseResult>> fetchProductAssetsAsync(final ObjectProduct product) {
+        return CompletableFuture.supplyAsync(() -> {
+            /* Fetch releases for the product */
+            final List<ObjectGithubRelease> RELEASES = new GetReleasesRequest(product).request();
+
+            /* Asynchronously resolve tag commit metadata for each release concurrently */
+            final List<CompletableFuture<ObjectGithubTag>> TAG_FUTURES = RELEASES.stream()
+                .map(release -> fetchTagAsync(product, release))
+                .toList();
+
+            final List<ObjectGithubTag> TAGS = TAG_FUTURES.stream()
+                .map((CompletableFuture<ObjectGithubTag> future) -> future.join())
+                .filter(Objects::nonNull)
+                .toList();
+
+            final ReleaseResult RESULT = new ReleaseResult(RELEASES, TAGS);
+            return Map.entry(product.repoKey(), RESULT);
+        }, EXECUTOR);
+    }
+
+    private CompletableFuture<ObjectGithubTag> fetchTagAsync(final ObjectProduct product, final ObjectGithubRelease release) {
+        return CompletableFuture.supplyAsync(() -> {
+            final String SHA = new GetTagShaRequest(product, release.tagName).request();
+            if (SHA == null) return null;
+
+            final ObjectGithubTag TAG = new GetTagRequest(product, SHA).request();
+            return TAG;
+        }, EXECUTOR);
+    }
+
+    public record ReleaseResult(@SerializedName("releases") List<ObjectGithubRelease> releases, @SerializedName("tags") List<ObjectGithubTag> tags) {
+        public ReleaseResult {
+            releases = releases != null ? releases : List.of();
+            tags = tags != null ? tags : List.of();
+        }
     }
 }

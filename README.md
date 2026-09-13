@@ -69,7 +69,7 @@ The routes below are the ones typically called by the game client, launcher, Str
 - **Updates**
 	- `GET /download/list` — List available download assets.
 	- `GET /download` — Download a specific asset from GitHub.
-		- Required query parameters: `assetId`, `product`.
+		- Required query parameters: `assetId`, `product`, `assetName`.
 
 - **Software (Games / Applications / Launchers)**
 	- `GET /game/config` — Public runtime config used by the client.

@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 import com.google.gson.annotations.SerializedName;
 
 import io.javalin.http.Context;
-import niwer.lumen.Console;
 import niwer.photon.Directories;
 import niwer.photon.objects.ObjectGithubRelease;
 import niwer.photon.objects.ObjectGithubTag;
@@ -51,7 +50,6 @@ public class GetAssetsEndpoint implements IEndpoint {
         final long NOW = System.currentTimeMillis();
         if (cachedData != null && (NOW - lastCacheUpdate) < CACHE_TTL_MILLIS) {
             ctx.json(cachedData);
-            Console.debug("CACHE");
             return;
         }
 

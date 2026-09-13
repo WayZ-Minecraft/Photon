@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import com.google.gson.annotations.SerializedName;
 
 import io.javalin.http.Context;
+import niwer.lumen.Console;
 import niwer.photon.Directories;
 import niwer.photon.objects.ObjectGithubRelease;
 import niwer.photon.objects.ObjectGithubTag;
@@ -32,6 +33,12 @@ public class GetAssetsEndpoint implements IEndpoint {
 
     private static final ExecutorService EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 
+    /* Cache Configuration */
+    private static final long CACHE_TTL_MILLIS = TimeUnit.MINUTES.toMillis(15);
+    private static volatile Map<String, ReleaseResult> cachedData = null;
+    private static volatile long lastCacheUpdate = 0;
+    private static final Object CACHE_LOCK = new Object();
+
     @Override public String path() { return "/download/list"; }
     
     @Override public HttpMethod method() { return HttpMethod.GET; }
@@ -40,33 +47,49 @@ public class GetAssetsEndpoint implements IEndpoint {
     public void handle(Context ctx) {
         IEndpoint.setupRateLimit(ctx, 10, TimeUnit.MINUTES);
 
-        /* Filter products having a repo */
-        final List<ObjectProduct> PRODUCTS = Directories.getConfig().getProducts().stream().parallel().filter(ObjectProduct::hasRepo).toList();
+        /* Return cached response if still valid */
+        final long NOW = System.currentTimeMillis();
+        if (cachedData != null && (NOW - lastCacheUpdate) < CACHE_TTL_MILLIS) {
+            ctx.json(cachedData);
+            Console.debug("CACHE");
+            return;
+        }
 
-        /* Futures */
-        final List<CompletableFuture<Map.Entry<String, ReleaseResult>>> FUTURES = PRODUCTS.stream().map(this::fetchProductAssetsAsync).toList();
-
-        /* Aggregate the results */
-        final CompletableFuture<Map<String, ReleaseResult>> AGGREGATED_RESULT = CompletableFuture
-            .allOf(FUTURES.toArray(CompletableFuture[]::new))
-            .thenApply(ignored -> FUTURES.stream()
-                .map((CompletableFuture<Map.Entry<String, ReleaseResult>> future) -> future.join())
-                .collect(Collectors.toMap(
-                    Map.Entry::getKey,
-                    Map.Entry::getValue,
-                    (existing, replacement) -> existing
-                ))
-            );
-
-        /* Send the aggregated result */
-        ctx.future(() -> AGGREGATED_RESULT
-            .thenAccept(ctx::json)
-            .exceptionally(e -> {
-                e.printStackTrace();
-                ctx.status(500).json(Map.of("error", e.getMessage() != null ? e.getMessage() : "Unknown error"));
+        /* Asynchronously refresh data if stale or null */
+        ctx.future(() -> getOrRefreshDataAsync().thenAccept(ctx::json).exceptionally(e -> {
+            e.printStackTrace();
+            /* Fallback to stale cache if GitHub rate limits fail */
+            if (cachedData != null) {
+                ctx.json(cachedData);
                 return null;
-            })
-        );
+            }
+            ctx.status(500).json(Map.of("error", e.getMessage() != null ? e.getMessage() : "Unknown error"));
+            return null;
+        }));
+    }
+
+    private CompletableFuture<Map<String, ReleaseResult>> getOrRefreshDataAsync() {
+        return CompletableFuture.supplyAsync(() -> {
+            synchronized (CACHE_LOCK) {
+                final long NOW = System.currentTimeMillis();
+                if (cachedData != null && (NOW - lastCacheUpdate) < CACHE_TTL_MILLIS) return cachedData;
+
+                /* Filter products having a repo */
+                final List<ObjectProduct> PRODUCTS = Directories.getConfig().getProducts().stream().parallel().filter(ObjectProduct::hasRepo).toList();
+
+                /* Futures */
+                final List<CompletableFuture<Map.Entry<String, ReleaseResult>>> FUTURES = PRODUCTS.stream().map(this::fetchProductAssetsAsync).toList();
+
+                /* Aggregate the results */
+                final Map<String, ReleaseResult> REFRESHED = CompletableFuture
+                    .allOf(FUTURES.toArray(CompletableFuture[]::new))
+                    .thenApply(ignored -> FUTURES.stream().map(future -> future.join()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (existing, replacement) -> existing))).join();
+
+                cachedData = REFRESHED;
+                lastCacheUpdate = System.currentTimeMillis();
+                return REFRESHED;
+            }
+        }, EXECUTOR);
     }
 
     private CompletableFuture<Map.Entry<String, ReleaseResult>> fetchProductAssetsAsync(final ObjectProduct product) {
@@ -75,14 +98,8 @@ public class GetAssetsEndpoint implements IEndpoint {
             final List<ObjectGithubRelease> RELEASES = new GetReleasesRequest(product).request();
 
             /* Asynchronously resolve tag commit metadata for each release concurrently */
-            final List<CompletableFuture<ObjectGithubTag>> TAG_FUTURES = RELEASES.stream()
-                .map(release -> fetchTagAsync(product, release))
-                .toList();
-
-            final List<ObjectGithubTag> TAGS = TAG_FUTURES.stream()
-                .map((CompletableFuture<ObjectGithubTag> future) -> future.join())
-                .filter(Objects::nonNull)
-                .toList();
+            final List<CompletableFuture<ObjectGithubTag>> TAG_FUTURES = RELEASES.stream().map(release -> fetchTagAsync(product, release)).toList();
+            final List<ObjectGithubTag> TAGS = TAG_FUTURES.stream().map(future -> future.join()).filter(Objects::nonNull).toList();
 
             final ReleaseResult RESULT = new ReleaseResult(RELEASES, TAGS);
             return Map.entry(product.repoKey(), RESULT);
